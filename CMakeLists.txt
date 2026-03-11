@@ -2,6 +2,14 @@ cmake_minimum_required(VERSION 3.10)
 project(logia)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+
+# compiler must be 17
+set(CMAKE_CXX_STANDARD 17)
+# required if linking to static library
+add_definitions(-DANTLR4CPP_STATIC)
+# using /MD flag for antlr4_runtime (for Visual C++ compilers only)
+set(ANTLR4_WITH_STATIC_CRT OFF)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -19,5 +27,8 @@ endif()
 
 include(${antlr_runtime_SOURCE_DIR}/runtime/Cpp/cmake/FindANTLR.cmake)
 
-add_executable(logia src/main.cpp)
-target_link_libraries(logia PRIVATE antlr4_shared)
+add_executable(logia src/main.cpp
+  ${ANTLR_SampleGrammarLexer_CXX_OUTPUTS}
+  ${ANTLR_SampleGrammarParser_CXX_OUTPUTS})
+# target_link_libraries(logia PRIVATE antlr4_shared)
+target_link_libraries(logia antlr4_static)
