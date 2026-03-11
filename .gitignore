@@ -8,6 +8,8 @@ cmake_install.cmake
 *.sln
 *.vcxproj
 *.vcxproj.filters
+*.aps
+*.ncb
 *.opensdf
 *.suo
 *.user
@@ -32,3 +34,9 @@ cmake_install.cmake
 *.exe
 *.so
 *.dylib
+
+
+# ??
+*.ilk
+*.obj
+*.pdb
