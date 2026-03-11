@@ -1,0 +1,34 @@
+# Ignore CMake build directories
+build/
+CMakeFiles/
+cmake_install.cmake
+*.cmake.cache
+
+# Ignore Visual Studio files
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.opensdf
+*.suo
+*.user
+*.ncb
+*.ipch/
+
+# Ignore Xcode files
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+
+# Ignore other build artifacts
+*.o
+*.a
+*.lib
+*.dll
+*.exe
+*.so
+*.dylib
