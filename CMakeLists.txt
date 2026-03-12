@@ -1,6 +1,8 @@
 # https://github.com/llvm/llvm-project/blob/main/llvm/docs/CMake.rst
 cmake_minimum_required(VERSION 3.20)
-project(logia)
+project(logia LANGUAGES CXX)
+
+set(CMAKE_BUILD_TYPE Release)
 
 # once downloaded no more!
 set(FETCHCONTENT_FULLY_DISCONNECTED ON)
@@ -43,9 +45,12 @@ endif()
 
 include(${antlr_runtime_SOURCE_DIR}/runtime/Cpp/cmake/FindANTLR.cmake)
 
+include_directories(${antlr_SOURCE_DIR}/runtime/Cpp/runtime/src)
+
 #
 # start llvm
-#
+# https://llvm.org/devmtg/2023-10/slides/tutorials/Hosek-UnderstandingtheLLVMbuild.pdf
+# https://llvm.org/docs/CMake.html#llvm-related-variables
 
 include(FetchContent)
 Set(FETCHCONTENT_QUIET FALSE)
@@ -68,45 +73,21 @@ FetchContent_MakeAvailable(llvm_project)
 
 FetchContent_GetProperties(llvm_project SOURCE_DIR FETCHCONTENT_SOURCE_DIR_LLVMPROJECT)
 
-message(STATUS "llvmproject_SOURCE_DIR ${llvm_project_SOURCE_DIR}")
-
-
-# set(CMAKE_INSTALL_PREFIX "${llvm_project_SOURCE_DIR}/llvm/cmake/Modules" CACHE PATH "Install path prefix" FORCE)
+# display all runtimes!
+#set(LLVM_ENABLE_RUNTIMES notaruntime)
+#libc;libunwind;libcxxabi;libcxx;compiler-rt;openmp;llvm-libgcc;offload;flang-rt;libclc;libsycl;orc-rt
 
 set(LLVM_DIR "${llvm_project_SOURCE_DIR}/llvm" CACHE PATH "LLVM DIR" FORCE)
-message(STATUS "LLVM_DIR ${LLVM_DIR}")
-
 set(LLVM_USE_CRT_RELEASE MD)
-#CMAKE_INSTALL_PREFIX
-
-
 set(LLVM_INCLUDE_DIRS ${llvm_project_SOURCE_DIR}/llvm/include)
-set(LLVM_CMAKE_ARGS
-    -DCMAKE_BUILD_TYPE=Release
-    -DLLVM_ENABLE_PROJECTS=clang;lld
-    -DLLVM_BUILD_LLVM_DYLIB=ON
-    -DLLVM_LINK_LLVM_DYLIB=ON
-    -DLLVM_ENABLE_RTTI=ON
-)
 
-add_subdirectory(
-    ${llvm_project_SOURCE_DIR}/llvm llvm
-)
-
-find_package(LLVM REQUIRED CONFIG)
-
-message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
-
-add_library(llvm INTERFACE)
-
-target_include_directories(llvm INTERFACE ${LLVM_INCLUDE_DIRS})
-separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
-target_compile_definitions(llvm INTERFACE ${LLVM_DEFINITIONS_LIST})
-
-
-
-
+set(LLVM_TARGETS_TO_BUILD Native)
+set(LLVM_ENABLE_PROJECTS clang;lldb;libc)
+set(LLVM_ENABLE_RUNTIMES libc;orc-rt)
+set(LLVM_BUILD_LLVM_DYLIB ON)
+set(LLVM_LINK_LLVM_DYLIB ON)
+set(LLVM_ENABLE_RTTI ON)
+set(LLVM_ENABLE_ASSERTIONS ON)
 
 # MSVC-specific options
 if(MSVC)
@@ -124,25 +105,42 @@ if(MSVC)
     endif()
 endif()
 
-# libs return by llvm_map_components_to_libnames doesn't exist on Arch Linux and msys2
-# `llvm-config --libs` works
-execute_process(COMMAND llvm-config --libs
-                OUTPUT_VARIABLE LLVM_LIBS
-                OUTPUT_STRIP_TRAILING_WHITESPACE)
+message(STATUS "llvm_project_SOURCE_DIR ${llvm_project_SOURCE_DIR}")
+message(STATUS "LLVM_DIR ${LLVM_DIR}")
+message(STATUS "LLVM_USE_CRT_RELEASE ${llvm_project_SOURCE_DIR}")
+message(STATUS "LLVM_INCLUDE_DIRS ${LLVM_INCLUDE_DIRS}")
+message(STATUS "LLVM_CMAKE_ARGS ${LLVM_CMAKE_ARGS}")
 
-# Find the libraries that correspond to the LLVM components
-# that we wish to use
-# llvm_map_components_to_libnames(llvm_libs support core irreader)
+
+add_subdirectory(
+    ${llvm_project_SOURCE_DIR}/llvm llvm
+)
+
+find_package(LLVM REQUIRED CONFIG)
+
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+
+add_library(llvm INTERFACE)
+
+target_include_directories(llvm INTERFACE ${LLVM_INCLUDE_DIRS})
+separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
+target_compile_definitions(llvm INTERFACE ${LLVM_DEFINITIONS_LIST})
+
 
 add_executable(logia src/main.cpp
-  ${ANTLR_SampleGrammarLexer_CXX_OUTPUTS}
-  ${ANTLR_SampleGrammarParser_CXX_OUTPUTS})
+  ${ANTLR_LogiaLexer_CXX_OUTPUTS}
+  ${ANTLR_LogiaParser_CXX_OUTPUTS})
 
-target_link_libraries(logia antlr4_static)
+target_link_libraries(logia
+  antlr4_static
+  LLVMOrcJIT
+  LLVMExecutionEngine
+  LLVMCore
+  LLVMSupport)
 
-target_link_libraries(llvm INTERFACE ${LLVM_LIBS})
+#target_link_libraries(llvm INTERFACE ${LLVM_LIBS})
 
 target_compile_features(logia PRIVATE
     cxx_std_20
 )
-
