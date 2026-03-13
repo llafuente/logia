@@ -40,7 +40,7 @@ antlr_target(LogiaGrammarLexer src/LogiaLexer.g4 LEXER
 antlr_target(LogiaGrammarParser src/LogiaParser.g4 PARSER
              PACKAGE logia
              DEPENDS_ANTLR LogiaGrammarLexer
-             COMPILE_FLAGS -lib ${ANTLR_LogiaGrammarLexer_OUTPUT_DIR})
+             COMPILE_FLAGS -lib ${ANTLR_LogiaGrammarLexer_OUTPUT_DIR} -visitor)
 
 # include generated files in project environment
 include_directories(${ANTLR_LogiaGrammarLexer_OUTPUT_DIR})

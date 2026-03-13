@@ -35,6 +35,7 @@ message(STATUS "ANTLR_LogiaGrammarParser_CXX_OUTPUTS ${ANTLR_LogiaGrammarParser_
 
 add_executable(logia
   src/main.cpp
+  src/llvmvisitor.cpp
   ${ANTLR_LogiaGrammarLexer_CXX_OUTPUTS}
   ${ANTLR_LogiaGrammarParser_CXX_OUTPUTS}
 )
