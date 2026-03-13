@@ -1,0 +1,1248 @@
+parser grammar LogiaParser;
+options { tokenVocab=LogiaLexer; }
+//file: spec\compiler\compilation-phases.md
+
+//file: spec\compiler\compiler-configuration.md
+preprocessorSetStatement
+  : '#' 'set' identifier ('.' identifier)* '=' mayBeConstant
+  ;
+
+//file: spec\compiler\project-structure.md
+
+//file: spec\compiler\the-source-file.md
+
+//file: spec\features.md
+
+//file: spec\general\conformance.md
+
+//file: spec\general\glossary.md
+
+//file: spec\general\normative-references.md
+
+//file: spec\general\scope.md
+
+//file: spec\generic-programming.md
+
+//file: spec\keywords.md
+
+keywords
+  // Type system
+  : 'type'
+  | 'struct'
+  | 'noalign'
+  | 'lean'
+  | 'enum'
+  | 'mask'
+  | 'extends'
+  | 'implements'
+  | 'interface'
+  | 'is'
+  | 'any'
+  | 'self'
+  | 'hoist'
+  | 'readonly'
+  | 'instanceof'
+  | 'static'
+  // constants
+  | 'true'
+  | 'false'
+  | 'null'
+  // variables
+  | 'var'
+  | 'const'
+  | 'global'
+  | 'package'
+  // functions
+  | 'function'
+  | 'pure'
+  | 'operator'
+  | 'return'
+  | 'alias'
+  | 'get'
+  | 'set'
+  | 'autocast'
+  | 'defer'
+  | 'out'
+  | 'override'
+  | 'overwrite'
+  // Control flow
+  | 'if'
+  | 'else'
+  | 'switch'
+  | 'case'
+  | 'fallthrough'
+  | 'goto'
+  | 'loop'
+  | 'where'
+  | 'foreach'
+  | 'for'
+  | 'do'
+  | 'while'
+  | 'until'
+  | 'continue'
+  | 'restart'
+  | 'break'
+  | 'in'
+  | 'default'
+  // memory
+  | 'clone'
+  | 'new'
+  | 'delete'
+  | 'lend'
+  | 'own'
+  | 'uninitialized'
+  | 'at'
+  | 'cast'
+  // error handling
+  | 'try'
+  | 'retry'
+  | 'catch'
+  | 'finally'
+  | 'throw'
+  // Operators
+  | 'not'
+  | 'and'
+  | 'or'
+  // package system
+  | 'import'
+  | 'as'
+  // unit-test
+  | 'test'
+  | 'mock'
+  ;
+
+//file: spec\language\control-flow.md
+selectionStmts
+  : ifStmt
+  | switchStmt
+  | gotoStmt
+  | loopStmt
+  | forStmt
+  | foreachStmt
+  | whileStmt
+  | doWhileStmt
+  | continueStmt
+  | restartStmt
+  | breakStmt
+  | fallthroughStmt
+  ;
+
+ifSelectionStmt
+  // REVIEW syntax require block here ?
+  : 'if' expression functionBody
+  ;
+
+elseSelectionStmt
+  : 'else' functionBody
+  ;
+
+ifStmt
+  : ifSelectionStmt ('else' ifSelectionStmt)* elseSelectionStmt?
+  ;
+
+switchCaseStmt
+  // REVIEW syntax require block here ? also required colon ?
+  : 'case' expressionList ':' functionBodyStmtList
+  ;
+switchDefaultStmt
+  : 'default' ':' functionBodyStmtList
+  ;
+
+switchStmt
+  : 'switch' expression '{' (endOfStmt? switchCaseStmt)+ (endOfStmt? switchDefaultStmt)? '}'
+  ;
+
+gotoStmt
+  : 'goto' identifier
+  ;
+
+loopStmt
+  : 'loop'
+    ((value=identifier 'in') | (key=identifier ',' value=identifier 'in'))?
+    loop_limit_expr=expression
+    ('where' where_expr=expression)?
+    (('until' until_expr=expression) | ('while' while_expr=expression))?
+    loop_body=functionBody
+  ;
+
+forCondition
+    : (blockVariableDeclStmt | expression)? ';' forExpression? ';' forExpression?
+    ;
+
+forExpression
+  : assignmentExpr (',' assignmentExpr)*
+  ;
+
+forStmt
+  : 'for' '(' forCondition ')' functionBody
+  ;
+
+foreachStmt
+  : 'foreach'
+    ((value=identifier 'in') | (key=identifier ',' value=identifier 'in'))?
+    foreach_expr=expression
+    foreach_body=functionBody
+  ;
+
+whileStmt
+  : 'while' expression functionBody
+  ;
+
+doWhileStmt
+  : 'do' functionBody ('while' | 'until') expression
+  ;
+
+continueStmt
+  : 'continue' (identifier | numberLiteral)?
+  ;
+
+restartStmt
+  : 'restart' ( identifier | numberLiteral )?
+  ;
+
+breakStmt
+  : 'break' ( identifier | numberLiteral )?
+  ;
+
+fallthroughStmt
+  : 'fallthrough'
+  ;
+
+//file: spec\language\error-handling.md
+
+errorHandlingStmts
+  : tryBlock catchBlock* finallyBlock?
+  | 'throw' expression?
+  ;
+
+errorHandlingExprs
+  : 'try' conditionalExpr ('catch' conditionalExpr)?
+  // TODO how do we rename the exception ?
+  // catch x: expr
+  // catch expr as x
+  // try name {} catch name is x {}
+  | 'catch' conditionalExpr ('as' name=identifier)? functionBody
+  ;
+
+tryBlock
+	: 'try' functionBody
+	;
+
+catchBlock
+	: 'catch' (
+      typeDefinition identifier
+      | '(' typeDefinition identifier ')'
+      | postfixExpr
+    )? functionBody
+	;
+
+finallyBlock
+	: 'finally' functionBody
+	;
+
+
+retryUntilWhileStmt
+  : 'retry' keyName=identifier? (',' expectionName=identifier)? ('while' expression | 'until' expression) functionBody
+  ;
+
+//file: spec\language\expressions.md
+
+/*
+expressions
+*/
+
+constant
+    : 'true'                  # trueLiteralExpr
+    | 'false'                 # falseLiteralExpr
+    | 'null'                  # nullLiteralExpr
+    | 'type'                  # typeLiteralExpr
+    | 'default'               # defaultValueExpr
+    | 'new'                   # newValueExpr
+    | 'cast'                  # castLiteralExpr
+    | stringLiteral           # stringLiteralExpr
+    | numberLiteral           # numberLiteralExpr
+    | identifier              # identifierExpr
+    | preprocessorExpr        # preprocessorExpr2
+    | regularExpressionLiteral # regExExpr
+    | 'struct'                 # structTypeLit
+    | 'mask'                   # maskTypeLit
+    | 'enum'                   # enumTypeLit
+    | 'function'               # functionTypeLit
+    ;
+
+regularExpressionLiteral: RegularExpressionLiteral;
+
+// this is a construct to easy syntax parsing
+// some can be constant or not, but it's up to the compiler to find out, not the parser
+mayBeConstant
+    : constant
+    | arrayInitializer
+    | structConstantInitializer
+    | structInitializer
+    ;
+
+groupExpr
+  : '(' expression ')'
+  ;
+
+primaryExpr
+    : mayBeConstant
+    | groupExpr
+    | typeDefinition
+    ;
+
+identifierName
+    : identifier
+    | keywords // TODO atm we use every keyword but makes no sense
+    ;
+
+postfixExpr
+    : postfixExpr ('![' | '?[' | '[') expression ']'                                  # postfixBracesMemberAccessExpr
+    | postfixExpr ('!.' | '?.' | '.') identifierName templateId?                      # postfixDotMemberAccessExpr
+    // TODO slice operator
+    | postfixExpr '[' expression ':' expression ']'                                   # postfixSliceExpr
+    | postfixExpr '.' '.' primaryExpr                                                # rangeExpr
+    // function call
+    | postfixExpr '(' argumentExprList? ')'                                           # postfixCallExpr
+    //| postfixExpr '.' '#' identifier '(' preprocessorMacroCallArgumentList? ')'     # preprocessorMemberMacroCallExpr
+    | postfixExpr ( '++' | '--' )+                                                    # postfixIndecrementExpr
+    | primaryExpr                                                                    # primaryExprFwExpr
+    ;
+
+namedArgument
+    : identifier '=' conditionalExpr
+    ;
+
+orderedArgument
+    : conditionalExpr
+    | anonymousfunctionDecl
+    ;
+
+
+argumentExprList
+  : (namedArgument | orderedArgument) (',' (namedArgument | orderedArgument))*
+  // TODO 
+  // send as object
+  // expand from struct / variable
+  // use spread operator? ...b ...{}
+  // a(@b) a(@{a: 1, b: 2})
+  ;
+
+
+unaryExpr
+    // defined at memory-management
+    : unaryNewExpression
+    // defined at memory-management
+    | unaryDeleteExpression
+    // defined at memory-management
+    | unaryCloneExpression
+    // defined at unit-test
+    | unaryMockExpr
+
+    // NOTE:  there is not sizeof operator, it's a property of each type
+    //| ('++' |  '--')* (left=postfixExpr | unaryOperators castExpr)
+    | ('++' |  '--')* (left=postfixExpr | unaryOperators left=postfixExpr)
+    ;
+
+unaryOperators
+    :   '@' | '&' | '*' | '+' | '-' | '~' | '!' | 'not'
+    ;
+
+castExpr
+    :   'cast' left=unaryExpr
+    |   left=unaryExpr
+    ;
+
+multiplicativeExpr
+    :   left=multiplicativeExpr operator=multiplicativeOperators right=castExpr
+    |   right=castExpr
+    ;
+
+multiplicativeOperators
+    : '*'
+    | '/'
+    | '%'
+    ;
+
+additiveExpr
+    : left=additiveExpr operator=additiveOperators right=multiplicativeExpr
+    | right=multiplicativeExpr
+    ;
+
+additiveOperators
+    : '+'
+    | '-'
+    ;
+
+shiftExpr
+    : left=shiftExpr operator=shiftOperators right=additiveExpr
+    | right=additiveExpr
+    ;
+
+shiftOperators
+    : '<' '<'
+    | '>' '>'
+    ;
+
+relationalExpr
+    : left=relationalExpr operator=relational_operators right=shiftExpr
+    | right=shiftExpr
+    ;
+
+relational_operators
+    : '<'
+    | '>'
+    | '<='
+    | '>='
+    ;
+
+equalityExpr
+    : left=equalityExpr operator=equality_operators right=relationalExpr
+    | right=relationalExpr
+    ;
+
+equality_operators: type_equality_operators | value_equality_operators;
+
+type_equality_operators
+  : 'is'
+  | 'extends'
+  | 'implements'
+  | 'instanceof'
+  ;
+
+value_equality_operators
+    // memory equality (pointer comparation)
+    : '==='
+    // memory inequality (pointer comparation)
+    | '!=='
+    // floating point equality: abs(left - right) < epsilon
+    | '~='
+    // value equality
+    | '=='
+    // value inequality
+    | '!='
+    | '<' '>'
+    ;
+
+andExpr
+    //:   left=equalityExpr ( operator='&' right=andExpr)*
+    :   left=equalityExpr ( operator='&' right=andExpr)?
+    ;
+
+exclusiveOrExpr
+    //:   left=andExpr (operator='^' right=exclusiveOrExpr)*
+    :   left=andExpr (operator='^' right=exclusiveOrExpr)?
+    ;
+
+inclusiveOrExpr
+    //:   left=exclusiveOrExpr (operator='|' right=inclusiveOrExpr)*
+    :   left=exclusiveOrExpr (operator='|' right=inclusiveOrExpr)?
+    ;
+
+logicalAndExpr
+    //:   inclusiveOrExpr (('&&' | 'and') logicalAndExpr)*
+    :   left=inclusiveOrExpr (operator=('&&' | 'and') right=logicalAndExpr)?
+    ;
+
+logicalOrExpr
+    //:   left=logicalAndExpr (('||' |'or') logicalOrExpr)*
+    :   left=logicalAndExpr (operator=('||' |'or') right=logicalOrExpr)?
+    ;
+
+conditionalExpr
+    :   condition=logicalOrExpr ('?' true_expr=expression ':' false_expr=conditionalExpr)?
+    ;
+
+assignmentExpr
+    //:   conditionalExpr
+    : errorHandlingExprs
+    | conditionalExpr
+    | left=unaryExpr operator=assignment_operator right=assignmentExpr
+    ;
+
+assignment_operator
+    :   '=' | '*=' | '/=' | '%=' | '+=' | '-=' | '<<=' | '>>=' | '&=' | '^=' | '|='
+    ;
+
+expression
+    // NOTE comma operator is removed on purpose.
+    : assignmentExpr
+    ;
+
+expressionList
+    : expression (',' expression)*
+    ;
+
+rhsExpr
+  : errorHandlingExprs
+  | conditionalExpr
+  | tokenizeExpr
+  | anonymousFunctionDef functionBody
+  ;
+// NOTE comma is not an operator!
+operators
+  : assignment_operator
+  | relational_operators
+  | value_equality_operators
+  | '||'
+  | '&&'
+  | '|'
+  | '^'
+  | '&'
+  | '<' '<' | '>' '>'
+  | '-' | '+'
+  | multiplicativeOperators
+  | '<' | '>'
+  | unaryOperators
+  | '--' | '++'
+  ;
+
+
+//file: spec\language\functions.md
+
+returnStmt
+  : 'return' rhsExpr?
+  ;
+
+deferStmt
+  : 'defer' rhsExpr
+  ;
+
+functionDecl
+  : (functionDef | anonymousFunctionDef) functionBody
+  ;
+
+anonymousfunctionDecl
+  : anonymousFunctionDef functionBody
+  ;
+
+functionModifiers
+  : 'pure'
+  | 'override'
+  | 'overwrite'
+  | 'readonly' // struct-readonly
+  | 'inline'
+  ;
+
+functionReturnTypeModifiers
+  : 'lend'
+  // | 'own'
+  | 'uninitialized'
+  ;
+
+anonymousFunctionDef
+  : functionModifiers* 'function' templateDefinition? '(' functionParameterList? ')' functionReturnTypeModifiers* typeDefinition?
+  ;
+
+// list of valid functions names, may include keywords
+functionName
+  : identifier
+  | 'autocast'
+  ;
+
+functionDef
+  : function_mod=functionModifiers* 'function' name=functionName template_def=templateDefinition? '(' functionParameterList? ')' return_type_modifiers=functionReturnTypeModifiers* return_type=typeDefinition?
+  ;
+
+memoryFunctionDecl
+  : memoryFunctionDef functionBody
+  ;
+
+memoryFunctionDef
+  : ('override' | 'overwrite')* ('new'|'delete'|'clone') '(' functionParameterList? ')'
+  ;
+
+operatorFunctionDecl
+  : functionModifiers* operatorFunctionDef functionBody
+  ;
+
+operatorFunctionDef
+  : 'operator' overloadableOperators templateDefinition? '(' functionParameterList? ')' functionReturnTypeModifiers* typeDefinition?
+  ;
+
+overloadableOperators
+  // Binary arithmetic operators
+  : '+'
+  | '-'
+  | '*'
+  | '/'
+  | '^'
+  | '%'
+  // pointer get address
+  | '@'
+  // shift
+  | '<' '<'
+  | '>' '>'
+  // AND
+  | '&'
+  // OR
+  | '|'
+  // XOR
+  | '^'
+  // Assignament operators
+  | '='
+  | '+='
+  | '-='
+  | '*='
+  | '/='
+  | '^='
+  | '~='
+  // Array subscript operator
+  | '[' ']' '='
+  | '[' ']'
+  // Member access
+  | '.'
+  | '?.'
+  // Comparison operators
+  | '<'
+  | '>'
+  | '<='
+  | '>='
+  | '=='
+  | '!='
+  // function call
+  | '(' ')'
+  // unary
+  | '~'
+  | '!'
+  ;
+
+functionBody
+  : endOfStmt? '{' globalImportVarList? functionBodyStmtList? '}'
+  ;
+
+functionBodyStmtList
+  : functionBodyStmt+
+  ;
+
+labeledStatement
+  : identifier ':' endOfStmt* (functionBodyStmt | blockStatement)
+  ;
+
+globalImportVarList 
+  : globalImportVar+
+  ;
+
+globalImportVar 
+  : 'global' identifier (',' identifier)* endOfStmt
+  ;
+
+blockStatement
+  : '{' functionBodyStmtList? '}'
+  ;
+
+functionBodyStmt
+  : labeledStatement endOfStmt
+  | blockStatement endOfStmt
+  | comments endOfStmt
+  | aliasDeclStmt endOfStmt
+  | typeDecl endOfStmt
+  | functionDecl endOfStmt
+  | selectionStmts endOfStmt
+  // function exclusive
+  | returnStmt endOfStmt
+  | deferStmt endOfStmt
+  | blockVariableDeclStmt endOfStmt
+  | errorHandlingStmts endOfStmt
+  | retryUntilWhileStmt endOfStmt
+  // preprocessor
+  | preprocessorStmts endOfStmt
+  // expression at the bottom to fix some preprocessor issues
+  | expression endOfStmt
+  | endOfStmt
+  ;
+
+functionParameterList
+  : functionParameter (',' functionParameter)*
+  ;
+
+functionParametersTypeModifiers
+  : 'lend'
+  | 'own'
+  | 'uninitialized' // why ? <-- real usage ?
+  | 'autocast'
+  | 'out'
+  ;
+
+functionParameter
+  : functionParametersTypeModifiers* typeDefinition identifier ('=' rhsExpr)?
+  ;
+
+//file: spec\language\identifiers.md
+
+identifier: Identifier;
+
+dollarIdentifier
+  : '$' identifier
+  ;
+
+dollarIdentifierList
+  : dollarIdentifier (',' dollarIdentifier)*
+  ;
+
+//file: spec\language\introspection.md
+
+//file: spec\language\literals.md
+stringLiteral
+  : STRING_LITERAL
+  ;
+
+numberLiteral
+  : ('-')? Number
+  ;
+
+anyNonNewLine
+  : ',' // NON_NEW_LINE+
+  ;
+
+//file: spec\language\program.md
+
+// main program entry point!
+program
+  : preprocessors=preprocessorProgramStmtList? imports=importStmtList? statements=programStmsList? EOF
+  ;
+
+programStmsList
+  : programStmt+
+  ;
+
+programStmt
+  : comments endOfStmt
+  | preprocessorDecl endOfStmt
+  | preprocessorStmts endOfStmt
+  | functionDecl endOfStmt
+  | operatorFunctionDecl endOfStmt
+  // program exclusive!
+  | typeDecl endOfStmt
+  | globalVariableDeclStmt endOfStmt
+  | fileVariableDeclStmt endOfStmt
+  | testStmt endOfStmt
+  | endOfStmt
+  ;
+
+comments
+  : SINGLE_LINE_COMMENT
+  | BLOCK_COMMENT
+  ;
+
+endOfStmt: (comments? (NEWLINE_WIN_TK | NEWLINE_LINUX_TK | SEMICOLON_TK))+;
+
+ws: (comments | NEWLINE_WIN_TK | NEWLINE_LINUX_TK)+;
+
+
+//file: spec\language\reflection.md
+
+//file: spec\language\regular-expressions.md
+
+//file: spec\language\tokens.md
+
+//file: spec\language\type-system.md
+primitive
+  : 'self' | 'any' | 'type'
+  ;
+
+typeModifiers
+  : 'readonly'
+  | 'lend'
+  | 'own'
+  | 'uninitialized'
+  ;
+
+type
+  : typeModifiers* (primitive | dollarIdentifier | identifier)
+  ;
+
+templateDefinition
+  : '<' templateParameter (',' templateParameter)* '>'
+  ;
+
+templateId
+  : '<' templateArgument (',' templateArgument)* '>'
+  ;
+
+templateArgument
+  : typeDefinition
+  | dollarIdentifier
+  ;
+
+// TODO semantic error if a tempalte is inside a template...
+templateParameter
+  : typeDefinition ( templateIs | templateExtends | templateImplements )*
+  ;
+
+templateIs
+  : 'is' (typeDefinition | 'struct' | 'enum' | 'mask' | 'function')
+  ;
+
+templateExtends
+  : 'extends' (primitive | identifier | templateTypeDef)
+  ;
+
+templateImplements
+  : 'implements' (identifier | templateTypeDef)
+  ;
+
+typeDefinitionList
+  : typeDefinition (',' typeDefinition)*
+  ;
+
+typeDefinition
+  : typeModifiers* typeLocator ('?')?
+  ;
+
+typeLocator
+  // | type ('.' (identifier | 'type'))* templateId? ('[' argumentExprList? ']')? '?'?
+  : typeLocator (
+    '.' (typeLocator | 'type')
+    | templateId
+    | '[' argumentExprList? ']'
+  )
+  | primitive
+  | stringLiteral
+  | type
+  | identifier
+  | dollarIdentifier
+  ;
+
+
+templateTypeDef
+  : type templateId
+  ;
+
+aggregateTypeAndDecl
+    :   typeDefinition (('&' | 'and') aggregateTypeAndDecl)*
+    ;
+
+aggregateTypeOrDecl
+    :   aggregateTypeAndDecl (('|' |'or') aggregateTypeOrDecl)*
+    ;
+
+aggregateTypeDecl
+  : aggregateTypeOrDecl
+  ;
+
+aliasTypeDecl
+  : typeDefinition
+  ;
+
+// types that support templates
+templateTypeDecl
+  : 'type' identifier templateDefinition? '=' (structTypeDecl | interfaceTypeDecl | anonymousFunctionDef | aggregateTypeDecl | aliasTypeDecl)
+  ;
+
+// types that DON'T support templates
+primitiveTypeDecl
+  : 'type' identifier '=' (enumTypeDecl | maskTypeDecl)
+  ;
+
+typeDecl
+  : templateTypeDecl
+  | primitiveTypeDecl
+  ;
+
+//file: spec\language\types\array.md
+arrayItem
+  : rhsExpr
+  ;
+
+arrayItemList
+  : arrayItem (',' arrayItemList)?
+  ;
+
+arrayInitializer
+  : '[' arrayItemList? ','? ']'
+  ;
+
+// TODO
+arrayConstantInitializer
+  : '[' arrayItemList ','? ']'
+  ;
+
+//file: spec\language\types\date.md
+
+//file: spec\language\types\enumerated.md
+enumTypeDecl
+  : 'enum' primitive? '{' endOfStmt? enumeratorList? '}'
+  ;
+
+enumeratorList
+  : (enumerator endOfStmt)+
+  | comments
+  ;
+
+enumerator
+  : name=identifier ('=' value=logicalOrExpr)?
+  ;
+
+maskTypeDecl
+  : 'mask' primitive? '{' endOfStmt? maskEnumeratorList? '}'
+  ;
+
+maskEnumeratorList
+  : (maskEnumerator endOfStmt)+
+  | comments
+  ;
+
+maskEnumerator
+  : identifier ('=' logicalOrExpr)
+  ;
+
+//file: spec\language\types\error.md
+
+//file: spec\language\types\interface.md
+interfaceTypeDecl
+  : 'interface' (typeExtendsDecl)* '{' endOfStmt? interfaceProperty* '}'
+  ;
+
+interfacePropertyDecl
+  // TODO keep assignament ? it clash with the redefined one ?
+  // TODO constrains to not initialize again ?
+  : (structPropertyModifiers)* typeDefinition identifier ('=' (constant | arrayConstantInitializer | structConstantInitializer))?
+  | propertyAlias
+  | functionDef
+  | memoryFunctionDef
+  | operatorFunctionDef
+  | structGetterDef
+  | structSetterDef
+  ;
+
+interfaceProperty
+  : interfacePropertyDecl endOfStmt
+  | comments endOfStmt
+  ;
+
+//file: spec\language\types\numeric-arithmetic.md
+
+//file: spec\language\types\path.md
+
+//file: spec\language\types\pointers.md
+
+//file: spec\language\types\string.md
+
+//file: spec\language\types\structured.md
+structTypeDecl
+  : ('noalign' | 'lean')* 'struct' (typeExtendsDecl | typeImplementsDecl)* '{' structProperty* '}'
+  ;
+
+typeExtendsDecl
+  : 'extends' typeDefinition
+  ;
+
+typeImplementsDecl
+  : 'implements' typeDefinition
+  ;
+
+structProperty
+  : structPropertyDecl endOfStmt
+  | comments endOfStmt
+  | endOfStmt
+  ;
+
+structPropertyDecl
+  //: (structPropertyModifiers)* typeDefinition identifierName ('=' (constant | arrayConstantInitializer | structConstantInitializer))?
+  : (structPropertyModifiers)* typeDefinition identifierName ('=' rhsExpr)?
+  // TODO REVIEW aliasing operator?
+  | propertyAlias
+  | functionDef functionBody
+  | memoryFunctionDecl
+  | operatorFunctionDecl
+  | structGetterDecl
+  | structSetterDecl
+  ;
+
+// TODO do not repeat at parser level ?
+structPropertyModifiers
+  : 'own'
+  | 'hoist'
+  | 'readonly'
+  | 'static'
+  ;
+
+propertyAlias
+  : 'alias' identifier identifier
+  ;
+
+structGetterDecl
+  : structGetterDef functionBody
+  ;
+
+structGetterDef
+  : 'get' typeDefinition identifierName
+  ;
+
+structSetterDecl
+  : structSetterDef functionBody
+  ;
+
+structSetterDef
+  : 'set' identifierName '(' typeDefinition identifier ')'
+  ;
+
+structInitializer
+  : typeDefinition? '{' structProperyInitializerList? '}' #    cStructInitializer
+  | typeDefinition? '{' jsonInitializerList '}'                           # jsonStructInitializer
+  ;
+
+structProperyInitializerList
+  : structProperyInitializer (',' structProperyInitializer)*
+  | endOfStmt+
+  ;
+
+structProperyInitializer
+  : identifier ('.' identifier)* ('='|':') rhsExpr       #   namedStructProperyInitializer
+  | rhsExpr                                        # orderedStructProperyInitializer
+  ;
+
+jsonInitializerList
+  : jsonInitializerPair (',' jsonInitializerPair)* ','?
+  ;
+
+jsonInitializerPair
+  : stringLiteral ':' constant
+  ;
+
+// TODO
+structConstantInitializer
+  : '{' structProperyInitializerList? '}'
+  ;
+
+//file: spec\language\unit-testing.md
+testStmt
+  // TODO functionLocator?
+  : 'test' (stringLiteral | identifier) testBlockStatement
+  ;
+
+testBlockStatement
+  : '{' testBodyStmtList? '}'
+  ;
+
+testBodyStmtList
+  : (testStmt | functionBodyStmt)+
+  ;
+
+
+unaryMockExpr
+  // TODO functionLocator?
+  : 'mock' postfixExpr
+  ;
+
+//file: spec\language\variables.md
+globalVariableDeclStmt
+  // infer variable with initialization
+  : 'global' fileVariableDeclStmt
+  ;
+
+packageVariableDeclStmt
+  // infer variable with initialization
+  : 'package' fileVariableDeclStmt
+  ;
+
+// infer variable declaration w/out initialization
+inferVariableDeclStmt
+  : ('var' | 'const' | 'readonly') identifier ('=' rhsExpr)?
+  ;
+
+// typed variable declaration and initialization
+typedVariableDeclStmt
+  : ('var' | 'const' | 'readonly') typeDefinition identifier ('(' argumentExprList? ')' | '=' rhsExpr)?
+  ;
+
+fileVariableDeclStmt
+  : inferVariableDeclStmt
+  | typedVariableDeclStmt
+  ;
+
+blockVariableDeclStmt
+  : fileVariableDeclStmt
+  // infer variable with first initialization
+  | 'var' identifier ('=' rhsExpr)?
+  ;
+
+aliasDeclStmt
+  : 'alias' identifier '=' identifier
+  ;
+
+//file: spec\memory-management.md
+allocator
+  : 'at' identifier
+  ;
+
+defaultNewExpression
+  : typeDefinition? allocator?
+  ;
+
+initializedNewExpression
+  : typeDefinition? ('(' argumentExprList? ')')+ allocator?
+  ;
+
+arrayNewExpression
+  : typeDefinition? ('[' rhsExpr ']')+ ('(' argumentExprList? ')')? allocator?
+  ;
+
+unaryNewExpression
+  : 'new' ( defaultNewExpression | initializedNewExpression | arrayNewExpression );
+
+unaryDeleteExpression
+  : 'delete' postfixExpr
+  ;
+
+unaryCloneExpression
+  : 'clone' postfixExpr;
+
+//file: spec\meta\syntax.logia
+
+//file: spec\package-system.md
+// package entry point!
+packageProgram
+  : (comments endOfStmt?)* packageDefinitionStmt importStmtList? preprocessorProgramStmtList? packageStmsList? EOF
+  ;
+
+
+packageStmsList
+  : packageStmts+
+  ;
+
+packageStmts
+  : comments endOfStmt
+  | preprocessorDecl endOfStmt
+  | preprocessorStmts endOfStmt
+  | functionDecl endOfStmt
+  | operatorFunctionDecl endOfStmt
+  // program exclusive!
+  | typeDecl endOfStmt
+  | packageVariableDeclStmt endOfStmt
+  | fileVariableDeclStmt endOfStmt
+  | testStmt endOfStmt
+  | endOfStmt
+  ;
+
+
+
+packageDefinitionStmt
+  : 'package' name=packageName version=stringLiteral endOfStmt
+  ;
+
+
+packageName
+  : packageName ('.' (identifier | '*'))
+  | identifier
+  ;
+
+importStmt
+  : 'import' location=packageName version=stringLiteral? ('as' name=identifier)? endOfStmt
+  | endOfStmt
+  ;
+
+importStmtList
+  : importStmt+
+  ;
+
+//file: spec\preprocessor-and-metaprogramming.md
+
+preprocessorProgramStmtList
+  : preprocessorProgramStmt+
+  ;
+
+preprocessorProgramStmt
+  : preprocessorSetStatement
+  | endOfStmt
+  ;
+
+preprocessorExpr
+  : preprocessorStr
+  | preprocessorEcho
+  | preprocessorCallExpr
+  // PROPOSSAL: | preprocessorRepeatExpr
+  ;
+
+preprocessorStr
+  : '##' identifier '#' // TODO why can't we use identifierUp here ?
+  ;
+
+preprocessorEcho
+  : '#' (identifier | 'function') '#'
+  ;
+
+preprocessorCallExpr
+  // TODO eos sensible
+  : '#' postfixExpr ('(' preprocessorCallArgumentsList? ')')? '{' tokenList '}'
+  | '#' postfixExpr ('(' preprocessorCallArgumentsList? ')')
+  ;
+
+preprocessorCallArgumentsList
+  : tokenListNoComma (',' tokenListNoComma)*
+  ;
+
+tokenListNoComma
+  : (groupTokens | isolatedTokenListNoComma)+  tokenListNoComma?
+  ;
+
+tokenList
+  : (groupTokens | isolatedTokenList)+ tokenList?
+  ;
+
+// inside a group "," is allowed
+groupTokens
+  : '(' tokenList?  ')'
+  | '{' tokenList? '}'
+  ;
+
+isolatedTokenListNoComma
+  : ~(',' | '{' | '}' | '(' | ')')
+  ;
+
+isolatedTokenList
+  : ~('{' | '}' | '(' | ')')
+  ;
+
+preprocessorStmts
+  : preprocessorIfStmt
+  | preprocessorLoopStmt
+  ;
+
+tokenizeExpr
+  : 'tokenize' '{' tokenList '}'
+  ;
+
+
+
+preprocessorIfStmt
+  : '#' ifStmt
+  ;
+
+
+preprocessorDecl
+  : '#' 'function' identifier '(' preprocessorMacroArgumentList? ')' typeDefinition preprocessorBody
+  ;
+
+preprocessorMacroArgumentList
+  : typeDefinition identifier (',' preprocessorMacroArgumentList)*
+  ;
+
+preprocessorBody
+  : endOfStmt? '{' globalImportVarList? functionBodyStmtList? '}'
+  ;
+
+
+forargsStmt
+  : '#forargs' identifier ',' identifier functionBody
+  ;
+
+
+preprocessorLoopStmt
+  : '#' 'loop' identifier ',' identifier 'in' expression functionBody
+  ;
+
+
+execStmt
+  : '#exec' anyNonNewLine
+  ;
+
+
+identifierList
+    : identifier? (',' identifier)*
+    ;
+
+preprocessorRepeatExpr
+  : '#repeat' '(' identifierList ')'
+  ;

@@ -1,0 +1,401 @@
+lexer grammar LogiaLexer;
+//file: ./spec/language/tokens.md
+
+// Type system
+
+TYPE_TK : 'type';
+STRUCT_TK : 'struct';
+NOALIGN_TK : 'noalign';
+LEAN_TK : 'lean';
+ENUM_TK : 'enum';
+MASK_TK : 'mask';
+EXTENDS_TK : 'extends';
+IMPLEMENTS_TK : 'implements';
+INTERFACE_TK : 'interface';
+IS_TK : 'is';
+ANY_TK : 'any';
+SELF_TK : 'self';
+HOIST_TK : 'hoist';
+READONLY_TK : 'readonly';
+INSTANCEOF_TK : 'instanceof';
+STATIC_TK : 'static';
+
+// constants
+TRUE_TK : 'true';
+FALSE_TK : 'false';
+NULL_TK : 'null';
+
+
+
+// variables
+VAR_TK : 'var';
+CONST_TK : 'const';
+GLOBAL_TK : 'global';
+PACKAGE_TK : 'package';
+
+// functions
+FUNCTION_TK : 'function';
+PURE_TK : 'pure';
+INLINE_TK : 'inline';
+OPERATOR_TK : 'operator';
+RETURN_TK : 'return';
+ALIAS_TK : 'alias';
+GET_TK : 'get';
+SET_TK : 'set';
+AUTOCAST_TK : 'autocast';
+DEFER_TK : 'defer';
+OUT_TK : 'out';
+OVERRIDE_TK : 'override';
+OVERWRITE_TK : 'overwrite';
+
+// Control flow
+IF_TK : 'if';
+ELSE_TK : 'else';
+SWITCH_TK : 'switch';
+CASE_TK : 'case';
+FALLTHROUGH_TK : 'fallthrough';
+GOTO_TK : 'goto';
+LOOP_TK : 'loop';
+WHERE_TK : 'where';
+FOREACH_TK : 'foreach';
+FOR_TK : 'for';
+DO_TK : 'do';
+WHILE_TK : 'while';
+UNTIL_TK : 'until';
+CONTINUE_TK : 'continue';
+RESTART_TK : 'restart';
+BREAK_TK : 'break';
+IN_TK : 'in';
+DEFAULT_TK : 'default';
+
+// memory
+CLONE_TK : 'clone';
+NEW_TK : 'new';
+DELETE_TK : 'delete';
+LEND_TK : 'lend';
+OWN_TK : 'own';
+UNINITIALIZED_TK : 'uninitialized';
+AT_TK : 'at';
+CAST_TK : 'cast';
+
+// error handling
+TRY_TK : 'try';
+RETRY_TK : 'retry';
+CATCH_TK : 'catch';
+FINALLY_TK : 'finally';
+THROW_TK : 'throw';
+
+
+//metaprogramming
+
+META_REPEAT_TK : '#repeat';
+META_MACRO_BLOCK_TK : '#block';
+META_DEFINE_TK : '#define';
+META_TEXT_TK : '#text';
+META_STRING_TK : '#string';
+META_EXPR_TK : '#expression';
+META_VALUE_TK : '#value';
+META_FORARGS_TK : '#forargs';
+META_EXEC_TK : '#exec';
+
+META_TOKENIZE_TK : 'tokenize';
+
+
+
+// unit test
+TEST_TK : 'test';
+MOCK_TK : 'mock';
+
+// Preprocessor
+
+DOUBLE_HASH_TK : '##';
+HASH_TK : '#';
+
+// Expressions
+LEFTPAREN_TK : '(';
+RIGHTPAREN_TK : ')';
+SELFLEFTBRACKET_TK : '![';
+SAFELEFTBRACKET_TK : '?[';
+LEFTBRACKET_TK : '[';
+RIGHTBRACKET_TK : ']';
+LEFTBRACE_TK : '{';
+RIGHTBRACE_TK : '}';
+
+// Operators
+DOLLAR_TK : '$';
+COMMA_TK : ',';
+GT_TK : '>';
+LT_TK : '<';
+EQUALEQUALEQUAL_TK : '===';
+EQUALEQUAL_TK : '==';
+ALMOSTEQUAL_TK : '~=';
+EQUAL_TK : '=';
+PIPE_TK : '|';
+QUESTION_TK : '?';
+PLUSPLUS_TK : '++';
+PLUS_TK : '+';
+MINUSMINUS_TK : '--';
+MINUS_TK : '-';
+COLON_TK : ':';
+QUESTIONDOT_TK : '?.';
+NOTDOT_TK : '!.';
+DOT_TK : '.';
+AND_TK : '&';
+AT_CHAR_TK : '@';
+STAR_TK : '*';
+TILDE_TK : '~';
+NOT_TK : '!';
+NOT2_TK : 'not';
+SLASH_TK : '/';
+MOD_TK : '%';
+// LEFT_SHIFT_TK : '<<';
+// RIGHT_SHIFT_TK : '>>';
+LESS_EQUAL_TK : '<=';
+GREATER_EQUAL_TK : '>=';
+NOT_EQUALEQUAL_TK : '!==';
+NOT_EQUAL_TK : '!=';
+CARET_TK : '^';
+ANDAND_TK : '&&';
+ANDAND2_TK : 'and';
+OROR_TK : '||';
+OROR2_TK : 'or';
+STAR_ASSIGN_TK : '*=';
+DIV_ASSIGN_TK : '/=';
+MOD_ADDIGN_TK : '%=';
+PLUS_ASSIGN_TK : '+=';
+MINUS_ASSIGN_TK : '-=';
+LEFT_SHIFT_ASSIGN_TK : '<<=';
+RIGHT_SHIFT_ASSIGN_TK : '>>=';
+AND_ASSIGN_TK : '&=';
+XOR_ASSIGN_TK : '^=';
+OR_ASSIGN_TK : '|=';
+
+
+// package system
+IMPORT_TK : 'import';
+AS_TK : 'as';
+
+// WS : [ \t\f]+                        -> channel(HIDDEN);
+WS : [ \t\f]+                        -> skip;
+WHITESPACE: ' ' -> skip;
+
+// new lines
+NEWLINE_WIN_TK: '\r\n';
+NEWLINE_LINUX_TK: '\n';
+SEMICOLON_TK : ';';
+
+BACKTICK : '`';
+
+
+// ?? -> channel(HIDDEN);
+SINGLE_LINE_COMMENT : '//' ~[\r\n]*;
+BLOCK_COMMENT : '/*' .*? '*/';
+
+
+//file: ./spec/language/identifiers.md
+
+// Identifier: starts with a letter or underscore, followed by letters, digits, or underscores
+Identifier
+    :   (ID_Start | '_') (ID_Continue | '_')*
+    ;
+
+// Matches any character that can start an identifier (letters, letter numbers, etc.)
+fragment ID_Start
+    :   [\p{L}\p{Nl}]
+    ;
+
+// Matches any character that can continue an identifier (letters, digits, marks, connector punctuation, etc.)
+fragment ID_Continue
+    :   [\p{L}\p{Nl}\p{Nd}\p{Mn}\p{Mc}\p{Pc}]
+    ;
+
+fragment
+UNIVERSAL_CHARACTER_NAME
+    :   '\\u' HEX_QUAD
+    |   '\\U' HEX_QUAD
+    |   '\\U' HEX_QUAD HEX_QUAD
+    |   '\\U' HEX_QUAD HEX_QUAD HEX_QUAD
+    |   '\\U' HEX_QUAD HEX_QUAD HEX_QUAD HEX_QUAD
+    ;
+
+fragment
+HEX_QUAD
+    :   HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
+    ;
+
+//file: ./spec/language/literals.md
+/*
+  literal / constants
+*/
+
+STRING_LITERAL
+    :   ENCODING_PREFIX? '"' DQUOTE_SCHAR_SEQUENCE? '"'
+    |  ENCODING_PREFIX? '`' BACKTICK_SCHAR_SEQUENCE? '`'
+    ;
+
+fragment
+ENCODING_PREFIX
+    :   'u8'
+    |   'u'
+    |   'U'
+    |   'L'
+    ;
+
+fragment
+BACKTICK_SCHAR_SEQUENCE
+    :   BACKTICK_SCHAR+
+    ;
+
+fragment
+BACKTICK_SCHAR
+    :   ~[`]
+    |   ESCAPE_SEQUENCE
+    |   '\\\n'   // Added line
+    |   '\\\r\n' // Added line
+    ;
+
+fragment
+DQUOTE_SCHAR_SEQUENCE
+    :   DQUOTE_SCHAR+
+    ;
+
+fragment
+DQUOTE_SCHAR
+    :   ~["]
+    |   ESCAPE_SEQUENCE
+    |   '\\\n'   // Added line
+    |   '\\\r\n' // Added line
+    ;
+
+fragment
+ESCAPE_SEQUENCE
+    :   SIMPLE_ESCAPE_SEQUENCE
+    |   OCTAL_ESCAPE_SEQUENCE
+    |   HEXADECIMAL_ESCAPE_SEQUENCE
+    |   UNIVERSAL_CHARACTER_NAME
+    ;
+
+fragment
+SIMPLE_ESCAPE_SEQUENCE
+    :   '\\' ['"?abfnrtv\\]
+    ;
+
+fragment
+OCTAL_ESCAPE_SEQUENCE
+    :   '\\' OCT_DIGIT OCT_DIGIT? OCT_DIGIT?
+    ;
+
+fragment
+HEXADECIMAL_ESCAPE_SEQUENCE
+    :   '\\x' HEX_DIGIT+
+    ;
+
+
+fragment
+HEXADECIMAL_FRACTIONAL_CONSTANT
+    :   HEX_DIGIT_SEQUENCE? '.' HEX_DIGIT_SEQUENCE
+    |   HEX_DIGIT_SEQUENCE '.'
+    ;
+
+fragment
+HEX_DIGIT_SEQUENCE
+    :   HEX_DIGIT+
+    ;
+
+StringLiteral
+    :   '\'' CCHAR_SEQUENCE '\''
+    |   'L\'' CCHAR_SEQUENCE '\''
+    |   'u\'' CCHAR_SEQUENCE '\''
+    |   'U\'' CCHAR_SEQUENCE '\''
+    ;
+
+fragment
+CCHAR_SEQUENCE
+    :   CCHAR+
+    ;
+
+fragment
+CCHAR
+    :   ~['\\\r\n]
+    |   ESCAPE_SEQUENCE
+    ;
+
+
+//
+// numbers
+//
+
+Number
+    : INTEGER
+    | FLOAT_NUMBER
+    | IMAG_NUMBER
+    ;
+
+// https://docs.python.org/3.12/reference/lexical_analysis.html#integer-literals
+fragment INTEGER        : DEC_INTEGER | DEC_ZERO | BIN_INTEGER | OCT_INTEGER | HEX_INTEGER;
+fragment DEC_INTEGER    : NON_ZERO_DIGIT ('_'? DIGIT)*;
+fragment DEC_ZERO       : '0' ('_'? '0')*;
+fragment BIN_INTEGER    : '0' ('b' | 'B') ('_'? BIN_DIGIT)+;
+fragment OCT_INTEGER    : '0' ('o' | 'O') ('_'? OCT_DIGIT)+;
+fragment HEX_INTEGER    : '0' ('x' | 'X') ('_'? HEX_DIGIT)+;
+// fragment NON_ZERO_DIGIT : [1-9];
+fragment NON_ZERO_DIGIT : '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
+//fragment DIGIT          : [0-9];
+fragment DIGIT          : '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
+fragment BIN_DIGIT      : '0' | '1';
+fragment OCT_DIGIT      : [0-7];
+fragment HEX_DIGIT      : DIGIT | [a-f] | [A-F];
+
+// https://docs.python.org/3.12/reference/lexical_analysis.html#floating-point-literals
+fragment FLOAT_NUMBER   : POINT_FLOAT | EXPONENT_FLOAT;
+fragment POINT_FLOAT    : DIGIT_PART? FRACTION | DIGIT_PART '.';
+fragment EXPONENT_FLOAT : (DIGIT_PART | POINT_FLOAT) EXPONENT;
+fragment DIGIT_PART     : DIGIT ('_'? DIGIT)*;
+fragment FRACTION       : '.' DIGIT_PART;
+fragment EXPONENT       : ('e' | 'E') ('+' | '-')? DIGIT_PART;
+
+// https://docs.python.org/3.12/reference/lexical_analysis.html#imaginary-literals
+fragment IMAG_NUMBER : (FLOAT_NUMBER | DIGIT_PART) ('j' | 'J');
+
+/*
+NON_NEW_LINE
+    : NON_NEW_LINE_CHAR
+    ;
+
+fragment
+NON_NEW_LINE_CHAR
+    : ~[\r\n]
+    ;
+*/
+
+//file: ./spec/language/regular-expressions.md
+
+
+RegularExpressionLiteral:
+    '/' RegularExpressionFirstChar RegularExpressionChar* '/' IdentifierPart*
+;
+
+fragment UnicodeEscapeSequence:
+    'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
+    | 'u' '{' HEX_DIGIT HEX_DIGIT+ '}'
+;
+
+fragment IdentifierPart: IdentifierStart | [\p{Mn}] | [\p{Nd}] | [\p{Pc}] | '\u200C' | '\u200D';
+
+fragment IdentifierStart: [\p{L}] | [$_] | '\\' UnicodeEscapeSequence;
+
+fragment RegularExpressionFirstChar:
+    ~[*\r\n\u2028\u2029\\/[]
+    | RegularExpressionBackslashSequence
+    | '[' RegularExpressionClassChar* ']'
+;
+
+fragment RegularExpressionChar:
+    ~[\r\n\u2028\u2029\\/[]
+    | RegularExpressionBackslashSequence
+    | '[' RegularExpressionClassChar* ']'
+;
+
+fragment RegularExpressionClassChar: ~[\r\n\u2028\u2029\]\\] | RegularExpressionBackslashSequence;
+
+fragment RegularExpressionBackslashSequence: '\\' ~[\r\n\u2028\u2029];
