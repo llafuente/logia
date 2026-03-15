@@ -6,20 +6,15 @@ set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
-#set(CMAKE_BUILD_TYPE Release)
 # once downloaded no more!
-set(FETCHCONTENT_FULLY_DISCONNECTED ON)
+#set(FETCHCONTENT_FULLY_DISCONNECTED ON)
 
-set(Python_EXECUTABLE "C:/Users/luis/.pyenv/pyenv-win/versions/3.10.11/python.exe" CACHE FILEPATH "Path to Python executable")
-set(Python3_ROOT_DIR "C:/Users/luis/.pyenv/pyenv-win/versions/3.10.11/")
 
 #
 # start antlr4
 #
 
 include(antlr4)
-
-set(LLVM_DIR "C:/Program Files (x86)/LLVM/lib/cmake/llvm/")
 include(llvm)
 
 #
@@ -36,6 +31,7 @@ message(STATUS "ANTLR_LogiaGrammarParser_CXX_OUTPUTS ${ANTLR_LogiaGrammarParser_
 
 add_executable(logia
   src/main.cpp
+  src/compiler.cpp
   src/llvmvisitor.cpp
   ${ANTLR_LogiaGrammarLexer_CXX_OUTPUTS}
   ${ANTLR_LogiaGrammarParser_CXX_OUTPUTS}

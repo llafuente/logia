@@ -10,85 +10,13 @@
 #include "LogiaLexer.h"
 
 #include "llvmvisitor.h"
+#include "compiler.h"
 
 #include <Windows.h>
 
 #pragma execution_character_set("utf-8")
 
-using namespace antlr4;
 using namespace std;
-using namespace logia;
-
-class LogiaErrorListener : ANTLRErrorListener
-{
-	std::string input;
-	std::string inputFile;
-
-public:
-	LogiaErrorListener(std::string inputFile, std::string input)
-	{
-		this->input = input;
-		this->inputFile = inputFile;
-	}
-	void syntaxError(Recognizer *recognizer, Token *offendingSymbol, size_t line,
-					 size_t column, const std::string &msg, std::exception_ptr e)
-	{
-
-		// Create a stringstream object
-		// to str
-		stringstream ss(this->input);
-
-		// Temporary object to store
-		// the splitted string
-		string str;
-
-		// Delimiter
-		char del = '\n';
-
-		// Splitting the str string
-		// by delimiter
-		int count = 1;
-		auto start = max(0, line - 5);
-		auto end = line + 3;
-		while (getline(ss, str, del))
-		{
-			if (count >= start && count < end)
-			{
-				cout << str << std::endl;
-			}
-			if (count == line)
-			{
-				for (int i = 0; i < column; ++i)
-				{
-					cout << " ";
-				}
-				// console.log(Array(column).fill("-").join("") + "^\x1B[31m", msg, "\x1B[39m")
-				cout << "^\x1B[31m" << msg << "\x1B[39m" << std::endl;
-			}
-
-			++count;
-		}
-
-		std::cout << this->inputFile << ":" << line << ":" << column;
-
-		// console.log(recognizer.getLiteralNames())
-		// console.log(recognizer.getSymbolicNames())
-		std::cout << offendingSymbol->toString();
-
-		exit(1);
-	}
-
-	// Inherited via ANTLRErrorListener
-	void reportAmbiguity(Parser *recognizer, const dfa::DFA &dfa, size_t startIndex, size_t stopIndex, bool exact, const antlrcpp::BitSet &ambigAlts, atn::ATNConfigSet *configs) override
-	{
-	}
-	void reportAttemptingFullContext(Parser *recognizer, const dfa::DFA &dfa, size_t startIndex, size_t stopIndex, const antlrcpp::BitSet &conflictingAlts, atn::ATNConfigSet *configs) override
-	{
-	}
-	void reportContextSensitivity(Parser *recognizer, const dfa::DFA &dfa, size_t startIndex, size_t stopIndex, size_t prediction, atn::ATNConfigSet *configs) override
-	{
-	}
-};
 
 class EmptyNodeRemover : antlr4::tree::ParseTreeWalker
 {
@@ -108,42 +36,7 @@ public:
 	}
 };
 
-char *file_read(const char *file_path)
-{
-	FILE *file;
-	auto err = fopen_s(&file, file_path, "rb");
-	if (err)
-	{
-		std::stringstream ss;
-		ss << "Error opening file: " << file_path;
 
-		perror(ss.str().c_str());
-		return nullptr;
-	}
-
-	// Seek to the end to determine file size
-	fseek(file, 0, SEEK_END);
-	auto fileSize = ftell(file);
-	rewind(file);
-
-	// Allocate memory for the file content
-	char *buffer = (char *)malloc(fileSize + 2);
-	if (buffer == NULL)
-	{
-		perror("Memory allocation failed");
-		fclose(file);
-
-		return nullptr;
-	}
-
-	// Read the file into the buffer
-	fread(buffer, 1, fileSize, file);
-	buffer[fileSize] = '\n';	 // Null-terminate the string
-	buffer[fileSize + 1] = '\0'; // Null-terminate the string
-
-	fclose(file);
-	return buffer;
-}
 
 /*
 std::string file_read(const std::string& filePath) {
@@ -158,38 +51,104 @@ std::string file_read(const std::string& filePath) {
 // #include <windows.h>
 #pragma execution_character_set("utf-8")
 
+void print_usage(std::string *command)
+{
+
+	if (!command)
+	{
+		std::cout << "Usage: logia.exe command [options]" << std::endl;
+	}
+
+	std::cout << "  check <file> [options]" << std::endl;
+	std::cout << "    checks syntax and semantics of given file" << std::endl;
+	std::cout << "    [options]" << std::endl;
+	std::cout << "      --json prints output as json" << std::endl;
+	std::cout << "  build <file> <output> [options]" << std::endl;
+	std::cout << "    [options]" << std::endl;
+	std::cout << "    --emit-llvm prints llvm intermediary representation" << std::endl;
+	std::cout << "  run <file>" << std::endl;
+	std::cout << "    JIT compiles and runs main function" << std::endl;
+	std::cout << "  test <file.logia|file.clogia> [filter] [options]" << std::endl;
+	std::cout << "    JIT compiles and runs all tests found in given file" << std::endl;
+	std::cout << "    if file is a logia-compiler-test it will check process output match the expected" << std::endl;
+	std::cout << "    [filter] only executes tests that contains given filter (string|regex)" << std::endl;
+	std::cout << "    [options]" << std::endl;
+	std::cout << "      --all-test Run all test found in all compiled files" << std::endl;
+	std::cout << "      --update Updates test output" << std::endl;
+}
+
 int main(int argc, const char *argv[])
 {
+	SetConsoleOutputCP(65001); // CP_UTF8
+
+	logia::Compiler *logia_compiler = new logia::Compiler();
+
 	try
 	{
-		SetConsoleOutputCP(65001); // CP_UTF8
 
 		if (argc == 1)
 		{
-			std::cout << "Usage: compiler.exe <file> [-package]" << std::endl;
+			print_usage(nullptr);
 			return 1;
 		}
-		auto file_path = argv[1];
-		bool package = false;
-		bool verbose = false;
-		bool print = false;
-		for (int i = 0; i < argc; ++i)
+		auto command = argv[1];
+		const char *file_path;
+		bool check = true;
+		bool build = false;
+
+		bool run_main = false;
+		bool run_test = false;
+
+		file_path = argv[2];
+		if (strcmp(command, "check") == 0)
+		{
+		}
+		else if (strcmp(command, "build") == 0)
+		{
+			build = true;
+		}
+		else if (strcmp(command, "run") == 0)
+		{
+			build = true;
+			run_main = true;
+		}
+		else if (strcmp(command, "test") == 0)
+		{
+			build = true;
+			run_test = true;
+		}
+		else
+		{
+			std::cout << "unkown command: \"" << command << "\"" << std::endl;
+			print_usage(nullptr);
+			return 1;
+		}
+
+		// parse common options
+
+		bool print_file_contents = false;
+		bool emit_llvm = false;
+		for (int i = 1; i < argc; ++i)
 		{
 			if (strcmp("--package", argv[i]) == 0)
 			{
-				package = true;
+				logia_compiler->is_program = false;
 			}
-			if (strcmp("--print", argv[i]) == 0)
+			else if (strcmp("--print", argv[i]) == 0)
 			{
-				print = true;
+				print_file_contents = true;
 			}
-			if (strcmp("--verbose", argv[i]) == 0)
+			else if (strcmp("--verbose", argv[i]) == 0)
 			{
-				verbose = true;
+				logia_compiler->verbose = true;
+			}
+			else if (strcmp("--emit-llvm", argv[i]) == 0)
+			{
+				emit_llvm = true;
 			}
 		}
 
-		if (verbose)
+		if (logia_compiler->verbose)
 		{
 			TCHAR cwd[MAX_PATH];
 			GetCurrentDirectory(MAX_PATH, cwd);
@@ -201,73 +160,29 @@ int main(int argc, const char *argv[])
 				<< "* cwd: " << cwd << std::endl;
 			std::cout
 				<< "* file: " << file_path << std::endl
-				<< "* print: " << (print ? "yes" : "no") << std::endl
-				<< "* is package? " << (package ? "yes" : "no") << std::endl;
+				<< "* print: " << (print_file_contents ? "yes" : "no") << std::endl
+				<< "* program: " << (logia_compiler->is_program ? "yes" : "no") << std::endl;
 		}
 
-		auto text = file_read(file_path);
-		if (print)
-		{
-			std::cout << "File Content \n"
-					  << text << std::endl;
+		logia_compiler->read(file_path);
+		if (print_file_contents) {
+            std::cout << "File Contents:" << std::endl
+                      << logia_compiler->text << std::endl;
+        
 		}
-
-		// deprecated ANTLRFileStream* input = new ANTLRFileStream(file_path);
-
-		// std::ifstream stream(file_path, std::ios::binary);
-		// antlr4::ANTLRInputStream input(stream);
-
-		antlr4::ANTLRInputStream input(text);
-
-		// ANTLRInputStream input(text);
-
-		LogiaLexer lexer(&input);
-		CommonTokenStream tokens(&lexer);
-		LogiaParser parser(&tokens);
-		ANTLRErrorListener *elis = (ANTLRErrorListener *)new LogiaErrorListener(file_path, text);
-		parser.addErrorListener(elis);
-
-		LLVMVisitor *llvmVisitor = new LLVMVisitor();
-
-		// LogiaParser::ProgramContext *context = parser.program();
-		// llvmVisitor->visitProgram(context);
-		//
-
-		antlr4::ParserRuleContext *tree = package ? (antlr4::ParserRuleContext *)parser.packageProgram() : (antlr4::ParserRuleContext *)parser.program();
-		llvmVisitor->visit(tree);
-
-		auto s = tree->toStringTree(&parser, true);
-		std::cout << s << std::endl;
-
-		if (!package)
-		{
-			auto program = static_cast<LogiaParser::ProgramContext *>(tree);
-			auto stmts = program->programStmsList()->programStmt();
-			std::cout << "stmts[" << stmts.size() << "]" << std::endl;
-			for (auto p = stmts.begin(); p < stmts.end(); ++p)
-			{
-				auto f = (*p)->functionDecl();
-				if (f)
-				{
-					// std::cout << "function!! " << f->functionDef()->functionModifiers() << std::endl;
-					std::cout << "function found: " << f->functionDef()->functionName()->identifier()->getText() << std::endl;
-				}
-			}
+		antlr4::ParserRuleContext *tree = logia_compiler->check();
+		logia_compiler->compile();
+		if (emit_llvm) {
+			// std::cout << logia_compiler->module->llvm()
 		}
-
-		/*
-		auto root = tree;
-		auto ruleRoot = ((RuleContext*)root);
-		auto program = ((LanguageParser::ProgramContext*)ruleRoot);
-		std::cout << "\n**********************************************\n" << std::endl;
-		std::cout << program->toStringTree() << std::endl;
-		program->children;
-		*/
+		logia_compiler->print_ast();
+		logia_compiler->build();
 	}
 	catch (std::exception e)
 	{
 		std::cout << "Error: " << e.what() << std::endl;
 	}
+	delete logia_compiler;
 
 	return 0;
 }
