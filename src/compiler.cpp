@@ -71,9 +71,14 @@ namespace logia
 
     Compiler::~Compiler()
     {
-        delete this->parser;
+        // parser will remove this
+        this->root = nullptr;
+
+        this->parser->removeErrorListeners();
         delete this->errorListener;
-        delete this->root;
+
+        delete this->parser;
+
         delete this->tokens;
         delete this->lexer;
         delete this->input;
@@ -165,5 +170,4 @@ namespace logia
         std::cout << "ast:" << std::endl
                   << this->root->toStringTree(this->parser, true) << std::endl;
     }
-
 }
