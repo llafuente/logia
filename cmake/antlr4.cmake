@@ -18,6 +18,7 @@ FetchContent_Declare(
   GIT_SHALLOW    TRUE
   SOURCE_SUBDIR runtime/Cpp
 )
+set(ANTLR_BUILD_CPP_TESTS OFF)
 FetchContent_MakeAvailable(antlr_runtime)
 
 
