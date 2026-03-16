@@ -23,10 +23,12 @@ include(llvm)
 #
 # fix: Error 69 error LNK2038: mismatch detected for 'RuntimeLibrary': value 'MT_StaticRelease' doesn't match value 'MD_DynamicRelease'
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+include(gtest)
 
 
 project(logia LANGUAGES CXX)
 
+# compiler binary
 message(STATUS "ANTLR_LogiaGrammarLexer_CXX_OUTPUTS ${ANTLR_LogiaGrammarLexer_CXX_OUTPUTS}")
 message(STATUS "ANTLR_LogiaGrammarParser_CXX_OUTPUTS ${ANTLR_LogiaGrammarParser_CXX_OUTPUTS}")
 
@@ -38,13 +40,27 @@ add_executable(logia
   ${ANTLR_LogiaGrammarParser_CXX_OUTPUTS}
 )
 
+target_link_libraries(logia PRIVATE antlr4_static)
+target_link_libraries(logia PRIVATE ${LLVM_LIBS})
+
+
+# compiler unit tests
+include_directories(src)
+
+add_executable(logia_test_suite
+  src/ast.cpp
+  test/test_ast.cpp
+)
+# Register the test with CTest
+add_test(NAME logia_test_ast COMMAND logia_test_suite)
+target_link_libraries(logia_test_suite PRIVATE gtest_main gmock_main)
+
+# target_compile_features(logia PRIVATE cxx_std_20)
+
+
 if (ASAN_ENABLED)
   message(STATUS "Enable ASAN")
   include(sanitizer)
   enable_sanitizer(logia)
+  enable_sanitizer(logia_test_suite)
 endif()
-
-target_link_libraries(logia PRIVATE antlr4_static)
-target_link_libraries(logia PRIVATE ${LLVM_LIBS})
-
-# target_compile_features(logia PRIVATE cxx_std_20)
