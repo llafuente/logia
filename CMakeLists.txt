@@ -2,6 +2,7 @@
 cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
@@ -37,9 +38,13 @@ add_executable(logia
   ${ANTLR_LogiaGrammarParser_CXX_OUTPUTS}
 )
 
-target_link_libraries(logia
-  PRIVATE antlr4_static
-   ${LLVM_LIBS}
-)
+if (ASAN_ENABLED)
+  message(STATUS "Enable ASAN")
+  include(sanitizer)
+  enable_sanitizer(logia)
+endif()
+
+target_link_libraries(logia PRIVATE antlr4_static)
+target_link_libraries(logia PRIVATE ${LLVM_LIBS})
 
 # target_compile_features(logia PRIVATE cxx_std_20)
