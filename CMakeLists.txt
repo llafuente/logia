@@ -22,7 +22,8 @@ include(llvm)
 # logia
 #
 # fix: Error 69 error LNK2038: mismatch detected for 'RuntimeLibrary': value 'MT_StaticRelease' doesn't match value 'MD_DynamicRelease'
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>") # Static
+# set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL") # Dinamic
 include(gtest)
 
 
@@ -40,8 +41,7 @@ add_executable(logia
   ${ANTLR_LogiaGrammarParser_CXX_OUTPUTS}
 )
 
-target_link_libraries(logia PRIVATE antlr4_static)
-target_link_libraries(logia PRIVATE ${LLVM_LIBS})
+
 
 
 # compiler unit tests
@@ -55,12 +55,20 @@ add_executable(logia_test_suite
 add_test(NAME logia_test_ast COMMAND logia_test_suite)
 target_link_libraries(logia_test_suite PRIVATE gtest_main gmock_main)
 
-# target_compile_features(logia PRIVATE cxx_std_20)
+
+foreach(project_name IN ITEMS "logia" "logia_test_suite")
+  message(STATUS "Apply common config to: ${project_name}")
+  
+  target_link_libraries(${project_name} PRIVATE antlr4_static)
+  target_link_libraries(${project_name} PRIVATE ${LLVM_LIBS})
+
+  target_compile_features(${project_name} PRIVATE cxx_std_20)
+
+  if (ASAN_ENABLED)
+    message(STATUS "Enable ASAN")
+    include(sanitizer)
+    enable_sanitizer(${project_name})
+  endif()
+endforeach()
 
 
-if (ASAN_ENABLED)
-  message(STATUS "Enable ASAN")
-  include(sanitizer)
-  enable_sanitizer(logia)
-  enable_sanitizer(logia_test_suite)
-endif()

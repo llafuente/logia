@@ -36,6 +36,16 @@ pyenv.bat install 3.10.11
 pyenv global 3.10.11
 ```
 
+Download and install LLVM
+
+[prebuilt LLVM](https://github.com/vovkos/llvm-package-windows/releases)
+
+* `llvm-**-windows-amd64-msvc17-libcmt-dbg.7z`
+* `llvm-**-windows-amd64-msvc17-libcmt.7z`
+
+
+Or you can build LLVM from source
+
 ```
 cd llvm-source
 mkdir build
@@ -43,7 +53,7 @@ mkdir build
 # Debug build with assetions
 # cmake ..\src\llvm -DCMAKE_BUILD_TYPE=Debug -DLLVM_ENABLE_ASSERTIONS=ON
 # Relase build with assetions (recommended)
-cmake ..\src\llvm -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_ASSERTIONS=ON
+cmake ..\src\llvm -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_ASSERTIONS=ON -DLLVM_BUILD_EXAMPLES=OFF -DLLVM_BUILD_TESTS=OFF
 
 cmake --build . --target install -j8
 ```
