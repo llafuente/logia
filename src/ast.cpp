@@ -1,70 +1,106 @@
 #include "ast.h"
+#include "llvm/IR/TypedPointerType.h"
 namespace logia::AST
 {
-    Body *createProgram()
+    Body *createProgram(llvm::LLVMContext &C)
     {
         auto body = new Body(nullptr, nullptr);
+
+        // we know declare all primitives
+        // any type in the language should use those
+        // it's prohibited to create type using llvm
+        // everything shall be supported at logia::AST::Type
 
         Type *i8 = new Type(nullptr, Primitives::i8);
         i8->Integer.bits = 8;
         i8->Integer.isSigned = true;
+        i8->ir = llvm::Type::getInt8Ty(C);
 
         body->scope[(char *)"λi8"] = i8;
 
         Type *i16 = new Type(nullptr, Primitives::i16);
         i16->Integer.bits = 16;
         i16->Integer.isSigned = true;
+        i16->ir = llvm::Type::getInt16Ty(C);
 
         body->scope[(char *)"λi16"] = i16;
 
         Type *i32 = new Type(nullptr, Primitives::i32);
         i32->Integer.bits = 32;
         i32->Integer.isSigned = true;
+        i32->ir = llvm::Type::getInt32Ty(C);
 
         body->scope[(char *)"λi32"] = i32;
 
         Type *i64 = new Type(nullptr, Primitives::i64);
         i64->Integer.bits = 64;
         i64->Integer.isSigned = true;
+        i64->ir = llvm::Type::getInt64Ty(C);
 
         body->scope[(char *)"λi64"] = i64;
 
         Type *u8 = new Type(nullptr, Primitives::u8);
         u8->Integer.bits = 8;
         u8->Integer.isSigned = true;
+        u8->ir = llvm::Type::getInt8Ty(C);
 
         body->scope[(char *)"λu8"] = u8;
 
         Type *u16 = new Type(nullptr, Primitives::u16);
         u16->Integer.bits = 16;
         u16->Integer.isSigned = true;
+        u16->ir = llvm::Type::getInt16Ty(C);
 
         body->scope[(char *)"λu16"] = u16;
 
         Type *u32 = new Type(nullptr, Primitives::u32);
         u32->Integer.bits = 32;
         u32->Integer.isSigned = true;
+        u32->ir = llvm::Type::getInt32Ty(C);
 
         body->scope[(char *)"λu32"] = u32;
 
         Type *u64 = new Type(nullptr, Primitives::u64);
         u64->Integer.bits = 64;
         u64->Integer.isSigned = true;
+        u64->ir = llvm::Type::getInt64Ty(C);
 
         body->scope[(char *)"λu64"] = u64;
 
+        Type *f16 = new Type(nullptr, Primitives::f16);
+        f16->Float.bits = 16;
+        f16->ir = llvm::Type::getHalfTy(C);
+
+        body->scope[(char *)"λf16"] = f16;
+
         Type *f32 = new Type(nullptr, Primitives::f32);
         f32->Float.bits = 32;
+        f32->ir = llvm::Type::getFloatTy(C);
 
         body->scope[(char *)"λf32"] = f32;
 
         Type *f64 = new Type(nullptr, Primitives::f64);
         f64->Float.bits = 64;
+        f64->ir = llvm::Type::getDoubleTy(C);
 
         body->scope[(char *)"λf64"] = f64;
 
+        Type *f128 = new Type(nullptr, Primitives::f128);
+        f128->Float.bits = 64;
+        f128->ir = llvm::Type::getFP128Ty(C);
+
+        body->scope[(char *)"λf128"] = f128;
+
+        Type *lvoid = new Type(nullptr, Primitives::Void);
+        lvoid->ir = llvm::Type::getVoidTy(C);
+
+        body->scope[(char *)"λf128"] = f128;
+
+        // TODO study opaque pointers, while seem what we need
         Type *ptr = new Type(nullptr, Primitives::ptr);
-        body->scope[(char *)"λptr"] = f64;
+        // opaque pointer, do not store information about pointee
+        ptr->ir = llvm::PointerType::get(C, 0);
+        body->scope[(char *)"λptr"] = ptr;
 
         return body;
     }
@@ -80,16 +116,16 @@ namespace logia::AST
         return (Type *)body->lookup(name);
     }
 
-    Type *createFunctionType(Body *body, char *name, Type *return_type)
+    Type *createFunctionType(Body *parentBody, char *name, Type *return_type)
     {
-        Type *ast = new Type(nullptr, Primitives::PRIMITIVE_FUNCTION);
-        ast->Function.name = name;
-        ast->Function.return_type = return_type;
-        ast->Function.body = new Body(nullptr, body);
+        Type *f = new Type(nullptr, Primitives::PRIMITIVE_FUNCTION);
+        f->Function.name = name;
+        f->Function.return_type = return_type;
+        f->Function.body = new Body(nullptr, parentBody);
 
-        body->set(name, ast);
+        parentBody->set(name, f);
 
-        return ast;
+        return f;
     }
 
     FloatLiteral *createFloatLiteral(Body *body, double value)
@@ -119,4 +155,183 @@ namespace logia::AST
     {
         return new ReturnStmt(nullptr, ret);
     }
+
+    ///
+    /// toString
+    ///
+
+    std::string Body::toString()
+    {
+        char buffer[36];
+        return std::string(this->parent ? "body[" : "program[") + std::string(itoa(this->children.size(), buffer, 10)) + "] ";
+    }
+    std::string Type::toString()
+    {
+        switch (this->type)
+        {
+        case Primitives::PRIMITIVE_FUNCTION:
+            return "Type[Function]";
+        case Primitives::Void:
+            return "Type[Void]";
+        case Primitives::i8:
+            return "Type[i8]";
+        }
+
+        return "Type[?]";
+    }
+
+    std::string CallExpression::toString()
+    {
+        char buffer[36];
+        auto name = (StringLiteral *)this->locator;
+        return std::string("CallExpression: ") + name->text + "(" + std::string(itoa(this->arguments.size(), buffer, 10)) +  " args)";
+    }
+
+    std::string IntegerLiteral::toString()
+    {
+        std::cout << this->type << std::endl;
+        std::cout << this->type->toString() << std::endl;
+        std::cout << this->ivalue << std::endl;
+        std::cout << this->uvalue << std::endl;
+
+        char buffer[36];
+        return std::string("IntegerLiteral[") + this->type->toString()  + "] = " + std::string(itoa(this->ivalue, buffer, 10));
+    }
+
+    std::string FloatLiteral::toString()
+    {
+        return "FloatLiteral";
+    }
+
+    std::string StringLiteral::toString()
+    {
+        return "StringLiteral";
+    }
+
+    std::string ReturnStmt::toString()
+    {
+        return "ReturnStmt";
+    }
+
+    ///
+    /// codegen
+    ///
+
+    llvm::Value *Body::codegen(logia::Backend *codegen)
+    {
+        llvm::BasicBlock *BB = nullptr;
+        if (this->parent)
+        {
+            BB = llvm::BasicBlock::Create(codegen->context, "entry", nullptr);
+        }
+
+        std::cout << this->toString() << std::endl;
+
+        for (int i = 0; i < this->children.size(); i++)
+        {
+            // update insert point on everystatement as visitor may change it!
+            if (BB)
+            {
+                codegen->builder->SetInsertPoint(BB);
+            }
+            Node *n = this->children[i];
+            std::cout << "codegen.statement[" << i << "] " << n->toString() << std::endl;
+            n->codegen(codegen);
+        }
+        return BB;
+    }
+
+    llvm::Value *Type::codegen(logia::Backend *codegen)
+    {
+        std::cout << this->toString() << std::endl;
+        // cache, because type are unique and we will be visiting this a lot
+        if (this->ir)
+        {
+            return (llvm::Value *)this->ir;
+        }
+
+        switch (this->type)
+        {
+        case Primitives::PRIMITIVE_FUNCTION:
+        {
+            int pcount = this->Function.parameters.size();
+            this->Function.parametersIR.reserve(pcount);
+            for (int i = 0; i < pcount; ++i)
+            {
+                this->Function.parametersIR.push_back((llvm::Type *)this->Function.parameters[i]->type->codegen(codegen));
+            }
+            this->Function.return_type->codegen(codegen);
+            this->ir = (llvm::Type *)llvm::FunctionType::get(this->Function.return_type->ir,
+                                                             this->Function.parametersIR, // parameter list
+                                                             false);                      // not variadic
+
+            this->Function.functionIR = llvm::Function::Create((llvm::FunctionType *)this->ir, llvm::Function::ExternalLinkage, 0, this->Function.name, codegen->module.get());
+
+            // Create a basic block and insert a return
+
+            llvm::BasicBlock *BB = (llvm::BasicBlock *)this->Function.body->codegen(codegen);
+            BB->insertInto(this->Function.functionIR);
+
+            return (llvm::Value *)this->ir;
+        }
+        break;
+        }
+
+        // TODO
+        throw std::exception("TODO!");
+    }
+
+    llvm::Value *CallExpression::codegen(logia::Backend *codegen)
+    {
+        std::cout << this->toString() << std::endl;
+
+        // Look up the name in the global module table.
+        auto name = (StringLiteral *)this->locator;
+        llvm::Function *CalleeF = codegen->module->getFunction(name->text);
+        if (!CalleeF)
+            throw std::exception("Unknown function referenced");
+
+        // If argument mismatch error.
+        if (CalleeF->arg_size() != this->arguments.size())
+            throw std::exception("Incorrect # arguments passed");
+
+        std::vector<llvm::Value *> ArgsV;
+        for (unsigned i = 0, e = this->arguments.size(); i != e; ++i)
+        {
+            std::cout << "argument[" << i << "]" << std::endl;
+            ArgsV.push_back(this->arguments[i]->codegen(codegen));
+            if (!ArgsV.back())
+                return nullptr;
+        }
+
+        return codegen->builder->CreateCall(CalleeF, ArgsV, "call");
+    }
+
+    llvm::Value *IntegerLiteral::codegen(logia::Backend *codegen)
+    {
+        std::cout << this->toString() << std::endl;
+        return llvm::ConstantInt::get((llvm::Type*)this->type->codegen(codegen), llvm::APInt(this->type->Integer.bits, this->ivalue, this->type->Integer.isSigned));
+    }
+
+    llvm::Value *FloatLiteral::codegen(logia::Backend *codegen)
+    {
+        std::cout << this->toString() << std::endl;
+        throw std::exception("todo");
+    }
+
+    llvm::Value *StringLiteral::codegen(logia::Backend *codegen)
+    {
+        std::cout << this->toString() << std::endl;
+        throw std::exception("todo");
+    }
+
+    llvm::Value *ReturnStmt::codegen(logia::Backend *codegen)
+    {
+        std::cout << this->toString() << std::endl;
+        if(!this->expr) {
+            codegen->builder->CreateRetVoid();
+        }
+        return codegen->builder->CreateRet(this->expr->codegen(codegen));
+    }
+
 }

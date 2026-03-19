@@ -1,7 +1,9 @@
 #pragma once
 
 #include "antlr4-runtime.h"
+#include "backend.h"
 #include <cstdlib> // for itoa
+#include "utils.h"
 
 namespace logia::AST
 {
@@ -24,7 +26,8 @@ namespace logia::AST
 
         std::vector<Node *> getChildren() { return children; }
 
-        virtual std::string toString()
+        virtual std::string toString() = 0;
+/*
         {
             char buffer[36];
             itoa(this->children.size(), buffer, 10);
@@ -33,7 +36,7 @@ namespace logia::AST
             // TODO
             // return this->getText();
         }
-
+*/
         std::string toStringTree(std::string padding = "")
         {
             std::cout << this->children.size() << std::endl;
@@ -52,45 +55,56 @@ namespace logia::AST
             }
             return out;
         }
+
+        virtual llvm::Value* codegen(logia::Backend *codegen) = 0;
     };
 
     struct Type;
 
-    namespace Primitives
+    enum class Primitives
     {
-        enum Primitives
-        {
-            Void,
+        Void,
 
-            i8,
-            i16,
-            i32,
-            i64,
-            u8,
-            u16,
-            u32,
-            u64,
-            f32,
-            f64,
-            f128,
+        i8,
+        i16,
+        i32,
+        i64,
+        u8,
+        u16,
+        u32,
+        u64,
+        f16,
+        f32,
+        f64,
+        f128,
 
-            // aliases but very special...
-            Int,
-            Bool,
-            size,
-            ptrdiff,
-            address,
-            Typeid,
+        /*
+        Method	Bit Width	Description
+        *Type::getHalfTy(context)	16	IEEE 754 half precision
+        Type::getBFloatTy(context)	16	Brain floating point
+        *Type::getFloatTy(context)	32	IEEE 754 single precision
+        *Type::getDoubleTy(context)	64	IEEE 754 double precision
+        *Type::getFP128Ty(context)	128	IEEE 754 quadruple precision
+        Type::getX86_FP80Ty(context)	80	x87 extended precision
+        Type::getPPC_FP128Ty(context)	128	PowerPC double-double
+        */
 
-            ptr,
-            Enum,
-            Struct,
-            interface,
-            PRIMITIVE_FUNCTION,
-            // this is a pointer to function, but we may need to declare at this level
-            callable,
-        };
-    }
+        // aliases but very special...
+        Int,
+        Bool,
+        size,
+        ptrdiff,
+        address,
+        Typeid,
+
+        ptr,
+        Enum,
+        Struct,
+        interface,
+        PRIMITIVE_FUNCTION,
+        // this is a pointer to function, but we may need to declare at this level
+        callable,
+    };
 
     enum StructPropertyType
     {
@@ -156,12 +170,12 @@ namespace logia::AST
         }
         Node *lookup(char *name)
         {
-            std::cout << "lookup" << name << std::endl;
             Body *p = this;
             Node *f;
             do
             {
-                f = scope[name];
+                std::cout << p->toString() << ".lookup(" << name << ")" << std::endl;
+                f = p->scope[name];
                 if (f != nullptr)
                 {
                     return f;
@@ -171,6 +185,9 @@ namespace logia::AST
 
             return nullptr;
         }
+        
+        std::string toString() override;
+        llvm::Value* codegen(logia::Backend *codegen) override;
     };
 
     struct FunctionType
@@ -178,8 +195,10 @@ namespace logia::AST
         char *name;
         std::string docstring;
         std::vector<FunctionParameters *> parameters;
+        std::vector<llvm::Type *> parametersIR;
         Type *return_type;
         Body *body;
+        llvm::Function *functionIR;
     };
 
     struct StructType
@@ -194,9 +213,11 @@ namespace logia::AST
     struct Type : public Node
     {
     public:
-        Primitives::Primitives type = Primitives::Void;
+        Primitives type = Primitives::Void;
         // modifiers
         bool readonly = false;
+
+        llvm::Type *ir = nullptr;
 
         // type properties
         union
@@ -207,7 +228,7 @@ namespace logia::AST
             FloatProperties Float;
         };
 
-        Type(antlr4::ParserRuleContext *rule, Primitives::Primitives type) : Node(rule)
+        Type(antlr4::ParserRuleContext *rule, Primitives type) : Node(rule)
         {
             this->type = type;
         }
@@ -215,10 +236,8 @@ namespace logia::AST
 
         bool isFunction() { return this->type == Primitives::PRIMITIVE_FUNCTION; };
 
-        std::string toString() override
-        {
-            return "Type";
-        }
+        std::string toString() override;
+        llvm::Value* codegen(logia::Backend *codegen) override;
     };
 
     struct Expression : Node
@@ -240,6 +259,8 @@ namespace logia::AST
             this->locator = locator;
             this->arguments = arguments;
         }
+        std::string toString() override;
+        llvm::Value* codegen(logia::Backend *codegen) override;
     };
     struct MemberAccessExpression : Expression
     {
@@ -254,6 +275,8 @@ namespace logia::AST
         {
             this->text = text;
         }
+        std::string toString() override;
+        llvm::Value* codegen(logia::Backend *codegen) override;
     };
 
     struct FloatLiteral : Expression
@@ -267,6 +290,8 @@ namespace logia::AST
             this->value = value;
             this->type = type;
         }
+        std::string toString() override;
+        llvm::Value* codegen(logia::Backend *codegen) override;
     };
     struct IntegerLiteral : Expression
     {
@@ -276,14 +301,18 @@ namespace logia::AST
 
         IntegerLiteral(antlr4::ParserRuleContext *rule, Type *type, int64_t value) : Expression(rule)
         {
+            LOGIA_ASSERT(type);
             this->ivalue = value;
             this->type = type;
         }
         IntegerLiteral(antlr4::ParserRuleContext *rule, Type *type, uint64_t value) : Expression(rule)
         {
+            LOGIA_ASSERT(type);
             this->uvalue = value;
             this->type = type;
         }
+        std::string toString() override;
+        llvm::Value* codegen(logia::Backend *codegen) override;
     };
 
     struct ReturnStmt : Node
@@ -293,11 +322,13 @@ namespace logia::AST
         {
             this->expr = expr;
         }
+        std::string toString() override;
+        llvm::Value* codegen(logia::Backend *codegen) override;
     };
 
     // shortcuts api
 
-    Body *createProgram();
+    Body *createProgram(llvm::LLVMContext &C);
 
     Body *createBody(Body *parent);
 
