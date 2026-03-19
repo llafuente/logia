@@ -9,29 +9,30 @@ TEST(AST_Type, createFunctionType)
   auto back = new logia::Backend();
   auto program = logia::AST::createProgram(back->context);
   // has value
-  EXPECT_TRUE(logia::AST::getTypeByName(program, strdup("λi8")));
+  EXPECT_TRUE(logia::AST::ast_get_type_by_name(program, strdup("λi8")));
   // and is unique everytime
-  EXPECT_EQ(logia::AST::getTypeByName(program, strdup("λi8")), logia::AST::getTypeByName(program, strdup("λi8")));
+  EXPECT_EQ(logia::AST::ast_get_type_by_name(program, strdup("λi8")), logia::AST::ast_get_type_by_name(program, strdup("λi8")));
 
-  logia::AST::Type *func = logia::AST::createFunctionType(program, strdup("main"), logia::AST::getTypeByName(program, strdup("λi8")));
+  logia::AST::Type *func = logia::AST::createFunctionType(program, strdup("main"), logia::AST::ast_get_type_by_name(program, strdup("λi8")));
   EXPECT_TRUE(func);
   program->add_statement(func);
 
   EXPECT_EQ(func->type, logia::AST::Primitives::PRIMITIVE_FUNCTION);
 
   // can look for main function as it's declared inside program
-  EXPECT_EQ(func, logia::AST::getTypeByName(program, strdup("main")));
+  EXPECT_EQ(func, logia::AST::ast_get_type_by_name(program, strdup("main")));
 
 
   EXPECT_EQ(func->Function.body->parent, program);
 
-  EXPECT_TRUE(logia::AST::getTypeByName(func->Function.body, strdup("λi8")));
-  EXPECT_TRUE(logia::AST::getTypeByName(func->Function.body, strdup("λi64")));
+  EXPECT_TRUE(logia::AST::ast_get_type_by_name(func->Function.body, strdup("λi8")));
+  EXPECT_TRUE(logia::AST::ast_get_type_by_name(func->Function.body, strdup("λi64")));
 
   auto firstArg = createSignedIntegerLiteral(func->Function.body, 17);
   auto secondArg = createSignedIntegerLiteral(func->Function.body, 21);
-  auto callFuncName = createStringLiteral(program, strdup("logia_operator_add_i64_i64"));
+  auto callFuncName = createStringLiteral(strdup("logia_operator_add_i64_i64"));
 
+  std::cout << "locator = " << callFuncName->toString() << std::endl;
   func->Function.body->add_statement(createReturn(createCallExpression(callFuncName, {firstArg, secondArg})));
 
   program->codegen(back);
