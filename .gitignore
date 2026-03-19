@@ -1,5 +1,7 @@
 # Ignore CMake build directories
-build/
+/build/
+/build-debug/
+/build-release/
 CMakeFiles/
 cmake_install.cmake
 *.cmake.cache
@@ -40,3 +42,4 @@ cmake_install.cmake
 *.ilk
 *.obj
 *.pdb
+
