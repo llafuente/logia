@@ -97,7 +97,7 @@ namespace logia::AST
         Type *lvoid = new Type(nullptr, body, Primitives::Void);
         lvoid->ir = llvm::Type::getVoidTy(C);
 
-        body->scope[(char *)"λf128"] = f128;
+        body->scope[(char *)"λvoid"] = lvoid;
 
         // TODO study opaque pointers, while seem what we need
         Type *ptr = new Type(nullptr, body, Primitives::ptr);
@@ -185,6 +185,10 @@ namespace logia::AST
             return "Type[Void]";
         case Primitives::i8:
             return "Type[i8]";
+        case Primitives::i64:
+            return "Type[i64]";
+        case Primitives::Struct:
+            return "Type[struct]";
         }
 
         return "Type[?]";
@@ -240,13 +244,15 @@ namespace logia::AST
         for (int i = 0; i < this->children.size(); i++)
         {
             // update insert point on everystatement as visitor may change it!
+            // REVIEW builder should be a param for codegen, this will be a problem soon.
             if (BB)
             {
                 codegen->builder->SetInsertPoint(BB);
             }
+            // update insert point on everystatement as visitor may change it!
             Node *n = this->children[i];
             std::cout << "codegen.statement[" << i << "] " << n->toString() << std::endl;
-            n->codegen(codegen);
+            auto inst = n->codegen(codegen);
         }
         return BB;
     }
@@ -268,7 +274,7 @@ namespace logia::AST
             this->Function.parametersIR.reserve(pcount);
             for (int i = 0; i < pcount; ++i)
             {
-                this->Function.parametersIR.push_back((llvm::Type *)this->Function.parameters[i]->type->codegen(codegen));
+                this->Function.parametersIR.push_back((llvm::Type *)this->Function.parameters[i].type->codegen(codegen));
             }
             this->Function.return_type->codegen(codegen);
             this->ir = (llvm::Type *)llvm::FunctionType::get(this->Function.return_type->ir,
@@ -282,6 +288,26 @@ namespace logia::AST
             llvm::BasicBlock *BB = (llvm::BasicBlock *)this->Function.body->codegen(codegen);
             BB->insertInto(this->Function.functionIR);
 
+            return (llvm::Value *)this->ir;
+        }
+        break;
+        case Primitives::Struct:
+        {
+            auto max = this->Struct.properties.size();
+            std::vector<llvm::Type *> elements;
+            elements.reserve(max);
+            for (int i = 0; i < max; ++i)
+            {
+                auto p = &this->Struct.properties[i];
+                if (p->isField())
+                {
+                    elements.push_back((llvm::Type *)p->type->codegen(codegen));
+                }
+            }
+            auto st = llvm::StructType::create(codegen->context, this->Struct.name);
+            st->setBody(elements);
+
+            this->ir = st;
             return (llvm::Value *)this->ir;
         }
         break;
@@ -315,6 +341,7 @@ namespace logia::AST
         }
 
         return codegen->builder->CreateCall(CalleeF, ArgsV, "call");
+        // return (llvm::Value*) llvm::CallInst::Create(CalleeF, ArgsV, "call");
     }
 
     llvm::Value *IntegerLiteral::codegen(logia::Backend *codegen)
@@ -340,8 +367,10 @@ namespace logia::AST
         std::cout << this->toString() << std::endl;
         if (!this->expr)
         {
-            codegen->builder->CreateRetVoid();
+            return codegen->builder->CreateRetVoid();
+            // return llvm::ReturnInst::Create(codegen->context);
         }
+        // return llvm::ReturnInst::Create(codegen->context, this->expr->codegen(codegen));
         return codegen->builder->CreateRet(this->expr->codegen(codegen));
     }
 
@@ -350,6 +379,10 @@ namespace logia::AST
     //
     Type *ast_create_function_type(Body *parentBody, char *name, Type *return_type)
     {
+        LOGIA_ASSERT(parentBody);
+        LOGIA_ASSERT(name);
+        LOGIA_ASSERT(return_type);
+
         Type *t = new Type(nullptr, parentBody, Primitives::PRIMITIVE_FUNCTION);
         new (&t->Function) FunctionType();
         t->Function.name = name;
@@ -381,9 +414,18 @@ namespace logia::AST
     //
     // ast fill
     //
+    LOGIA_API void ast_function_add_param(Type *s, Type *param_type, std::string &&param_name, Expression *param_default_value)
+    {
+        LOGIA_ASSERT(s);
+        LOGIA_ASSERT(s->isFunction());
+        // LOGIA_ASSERT(*prop_name);
+
+        auto param = s->Function.parameters.emplace_back(param_name, param_type, param_default_value);
+    }
     LOGIA_API void ast_struct_add_field(Type *s, Type *prop_type, std::string &&prop_name, Expression *prop_default_value)
     {
         LOGIA_ASSERT(s);
+        LOGIA_ASSERT(s->isStruct());
         // LOGIA_ASSERT(*prop_name);
 
         auto prop = s->Struct.properties.emplace_back(prop_name, "", StructPropertyType::STRUCT_PROPERTY_TYPE_FIELD, prop_type, prop_default_value);

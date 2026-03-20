@@ -7,6 +7,7 @@ TEST(AST_Type, ast_create_function_type)
   using namespace logia::AST;
 
   auto back = new logia::Backend();
+  back->load_intrinsics();
   auto program = logia::AST::createProgram(back->context);
   // has value
   EXPECT_TRUE(logia::AST::ast_get_type_by_name(program, strdup("λi8")));
@@ -58,10 +59,10 @@ TEST(AST_Type, ast_create_function_type)
   EXPECT_EQ(func->Function.body->parentNode, func);
 
   program->codegen(back);
-  back->emitTargetLLVMIR("xxx.ll");
-  back->emitTargetObjectFile("xxx.obj");
-  back->emitTargetAssemblyFile("xxx.asm");
-  back->emitTargetExecutable("xxx.exe");
+  back->emitTargetLLVMIR("./tmp/maincall.ll");
+  back->emitTargetObjectFile("./tmp/maincall.obj");
+  back->emitTargetAssemblyFile("./tmp/maincall.asm");
+  back->emitTargetExecutable("./tmp/maincall.exe");
   back->applyLLVMOptimizers();
   int exit_code = back->run_jit();
   EXPECT_EQ(exit_code, 38);
@@ -88,4 +89,21 @@ TEST(AST_Type, ast_create_struct_type)
   EXPECT_FALSE(string_t->Struct.properties[0].isAlias());
   EXPECT_FALSE(string_t->Struct.properties[0].isGetter());
   EXPECT_FALSE(string_t->Struct.properties[0].isSetter());
+
+  // invalid ?
+  // program->add_statement(string_t);
+
+  logia::AST::Type* func = logia::AST::ast_create_function_type(program, strdup("main"), logia::AST::ast_get_type_by_name(program, strdup("λvoid")));
+  EXPECT_TRUE(func);
+
+  ast_function_add_param(func, string_t, "first", nullptr);
+
+  program->add_statement(func);
+
+  program->codegen(back);
+  back->emitTargetLLVMIR("./tmp/struct.ll");
+
+  delete back;
+
+
 }

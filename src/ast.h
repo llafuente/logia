@@ -151,6 +151,12 @@ namespace logia::AST
         std::string name;
         Type *type;
         Node *defaultValue;
+        FunctionParameters(
+            std::string _name,
+            Type *_type,
+            Node *_defaultValue) : name(_name), type(_type), defaultValue(_defaultValue)
+        {
+        }
     };
 
     /*
@@ -251,7 +257,7 @@ namespace logia::AST
     {
         char *name;
         std::string docstring;
-        std::vector<FunctionParameters *> parameters;
+        std::vector<FunctionParameters> parameters;
         std::vector<llvm::Type *> parametersIR;
         Type *return_type;
         Body *body;
@@ -292,6 +298,7 @@ namespace logia::AST
         ~Type() {}
 
         bool isFunction() { return this->type == Primitives::PRIMITIVE_FUNCTION; };
+        bool isStruct() { return this->type == Primitives::Struct; };
 
         std::string toString() override;
         llvm::Value *codegen(logia::Backend *codegen) override;
@@ -408,6 +415,7 @@ namespace logia::AST
     //
     // ast fill
     //
+    LOGIA_API void ast_function_add_param(Type *s, Type *param_type, std::string &&param_name, Expression *param_default_value);
     LOGIA_API void ast_struct_add_field(Type *s, Type *prop_type, std::string &&prop_name, Expression *prop_default_value);
 
     //

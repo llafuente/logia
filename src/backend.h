@@ -49,7 +49,10 @@ namespace logia
          * 
          */
         ~Backend();
-
+        /**
+         * Load intrinsics from file
+         */
+        void load_intrinsics();
 
         /**
          * Creates a TargetMachine with current host configuration

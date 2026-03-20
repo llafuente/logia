@@ -50,17 +50,9 @@ namespace logia
             std::cout << "target: " << T.getBackendName() << " | " << T.getName() << std::endl;
         }
 
-#ifdef CODEGEN_INTRINSICS
-        llvm::SMDiagnostic diag;
-        module = llvm::parseIRFile("intrinsics/intrinsics.ll", diag, context);
-        if (!module)
-        {
-            diag.print("intrinsics.ll", llvm::errs());
-            throw std::exception("could not parse or read intrinsics.ll");
-        }
-#else
-        llvm_module = new llvm::Module("logia", context);
-#endif
+        // default empty module!
+        this->module = std::make_unique<llvm::Module>("logia", context);
+
 
         // REVIEW use linker to have intrinsics + mainModule ?
         // linkInModule https://www.youtube.com/watch?v=h6HkwpE7UqM
@@ -70,6 +62,16 @@ namespace logia
 
     Backend::~Backend()
     {
+    }
+
+    void Backend::load_intrinsics() {
+        llvm::SMDiagnostic diag;
+        module = llvm::parseIRFile("intrinsics/intrinsics.ll", diag, context);
+        if (!module)
+        {
+            diag.print("intrinsics.ll", llvm::errs());
+            throw std::exception("could not parse or read intrinsics.ll");
+        }
     }
 
     void Backend::applyLLVMOptimizers()
