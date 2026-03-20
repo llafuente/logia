@@ -133,15 +133,15 @@ namespace logia::AST
 
     FloatLiteral *createFloatLiteral(Body *body, double value)
     {
-        return new FloatLiteral(nullptr, body, (Type *)body->lookup(strdup("λf64")), value);
+        return new FloatLiteral(nullptr, nullptr, (Type *)body->lookup(strdup("λf64")), value);
     }
     IntegerLiteral *createSignedIntegerLiteral(Body *body, int64_t value)
     {
-        return new IntegerLiteral(nullptr, body, (Type *)body->lookup(strdup("λi64")), value);
+        return new IntegerLiteral(nullptr, nullptr, (Type *)body->lookup(strdup("λi64")), value);
     }
     IntegerLiteral *createUnsignedIntegerLiteral(Body *body, uint64_t value)
     {
-        return new IntegerLiteral(nullptr, body, (Type *)body->lookup(strdup("λu64")), value);
+        return new IntegerLiteral(nullptr, nullptr, (Type *)body->lookup(strdup("λu64")), value);
     }
 
     LOGIA_API CallExpression *createCallExpression(Expression *locator, std::vector<Expression *> arguments)

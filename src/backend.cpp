@@ -238,7 +238,7 @@ namespace logia
         return true;
     }
 
-    void Backend::run_jit()
+    int Backend::run_jit()
     {
         std::cout << "Backend::run_jit()" << std::endl;
 
@@ -370,6 +370,6 @@ namespace logia
             session->reportError(std::move(Err));
         }
 
-        std::cout << "??" << std::endl;
+        return result;
     }
 }

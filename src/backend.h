@@ -78,6 +78,6 @@ namespace logia
         /**
          * Runs module main function into current process
          */
-        void run_jit();
+        int run_jit();
     };
 }
