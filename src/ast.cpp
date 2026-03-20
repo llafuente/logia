@@ -112,23 +112,10 @@ namespace logia::AST
     {
         LOGIA_ASSERT(parentNode);
 
-        auto parentBody = (Body*) ast_find_closest_parent(parentNode, ast_types::BODY);
+        auto parentBody = (Body *)ast_find_closest_parent(parentNode, ast_types::BODY);
         LOGIA_ASSERT(parentBody);
 
         return new Body(nullptr, parentNode, parentBody);
-    }
-
-
-    Type *createFunctionType(Body *parentBody, char *name, Type *return_type)
-    {
-        Type *f = new Type(nullptr, parentBody, Primitives::PRIMITIVE_FUNCTION);
-        f->Function.name = name;
-        f->Function.return_type = return_type;
-        f->Function.body = new Body(nullptr, f, parentBody);
-
-        parentBody->set(name, f);
-
-        return f;
     }
 
     FloatLiteral *createFloatLiteral(Body *body, double value)
@@ -148,11 +135,12 @@ namespace logia::AST
     {
         LOGIA_ASSERT((locator->type & ast_types::EXPRESSION) != 0);
         // TODO LOGIA_ASSERT_ALL(arguments, .type & ast_types::EXPRESSION != 0);
-        
+
         auto callexpr = new CallExpression(nullptr, nullptr, locator, arguments);
 
         locator->parentNode = callexpr;
-        for (int i = 0; i < arguments.size(); ++i) {
+        for (int i = 0; i < arguments.size(); ++i)
+        {
             arguments[i]->parentNode = callexpr;
         }
 
@@ -160,7 +148,7 @@ namespace logia::AST
     }
     LOGIA_API StringLiteral *createStringLiteral(char *text)
     {
-        //TODO review remove parentNode from constructor, is a leaf right?
+        // TODO review remove parentNode from constructor, is a leaf right?
         return new StringLiteral(nullptr, nullptr, text);
     }
 
@@ -176,7 +164,8 @@ namespace logia::AST
     ///
 
     // utils
-    std::string __itoa(int i) {
+    std::string __itoa(int i)
+    {
         char buffer[36];
         return std::string(itoa(i, buffer, 10));
     }
@@ -205,7 +194,7 @@ namespace logia::AST
     {
         char buffer[36];
         auto name = (StringLiteral *)this->locator;
-        return std::string("CallExpression: ") + name->text + "(" + std::string(itoa(this->arguments.size(), buffer, 10)) +  " args)";
+        return std::string("CallExpression: ") + name->text + "(" + std::string(itoa(this->arguments.size(), buffer, 10)) + " args)";
     }
 
     std::string IntegerLiteral::toString()
@@ -216,7 +205,7 @@ namespace logia::AST
         std::cout << this->uvalue << std::endl;
 
         char buffer[36];
-        return std::string("IntegerLiteral[") + this->type->toString()  + "] = " + std::string(itoa(this->ivalue, buffer, 10));
+        return std::string("IntegerLiteral[") + this->type->toString() + "] = " + std::string(itoa(this->ivalue, buffer, 10));
     }
 
     std::string FloatLiteral::toString()
@@ -331,7 +320,7 @@ namespace logia::AST
     llvm::Value *IntegerLiteral::codegen(logia::Backend *codegen)
     {
         std::cout << this->toString() << std::endl;
-        return llvm::ConstantInt::get((llvm::Type*)this->type->codegen(codegen), llvm::APInt(this->type->Integer.bits, this->ivalue, this->type->Integer.isSigned));
+        return llvm::ConstantInt::get((llvm::Type *)this->type->codegen(codegen), llvm::APInt(this->type->Integer.bits, this->ivalue, this->type->Integer.isSigned));
     }
 
     llvm::Value *FloatLiteral::codegen(logia::Backend *codegen)
@@ -349,10 +338,55 @@ namespace logia::AST
     llvm::Value *ReturnStmt::codegen(logia::Backend *codegen)
     {
         std::cout << this->toString() << std::endl;
-        if(!this->expr) {
+        if (!this->expr)
+        {
             codegen->builder->CreateRetVoid();
         }
         return codegen->builder->CreateRet(this->expr->codegen(codegen));
+    }
+
+    //
+    // ast creation
+    //
+    Type *ast_create_function_type(Body *parentBody, char *name, Type *return_type)
+    {
+        Type *t = new Type(nullptr, parentBody, Primitives::PRIMITIVE_FUNCTION);
+        new (&t->Function) FunctionType();
+        t->Function.name = name;
+        t->Function.return_type = return_type;
+        t->Function.body = new Body(nullptr, t, parentBody);
+
+        parentBody->set(name, t);
+
+        return t;
+    }
+
+    LOGIA_API Type *ast_create_struct_type(Body *current, char *name)
+    {
+        LOGIA_ASSERT(current);
+        LOGIA_ASSERT(name);
+
+        auto parentBody = (Body *)ast_find_closest_parent(current, ast_types::BODY);
+        LOGIA_ASSERT(parentBody);
+
+        Type *t = new Type(nullptr, nullptr, Primitives::Struct);
+        new (&t->Struct) StructType();
+        t->Struct.name = name;
+
+        parentBody->set(name, t);
+
+        return t;
+    }
+
+    //
+    // ast fill
+    //
+    LOGIA_API void ast_struct_add_field(Type *s, Type *prop_type, std::string &&prop_name, Expression *prop_default_value)
+    {
+        LOGIA_ASSERT(s);
+        // LOGIA_ASSERT(*prop_name);
+
+        auto prop = s->Struct.properties.emplace_back(prop_name, "", StructPropertyType::STRUCT_PROPERTY_TYPE_FIELD, prop_type, prop_default_value);
     }
 
     //
@@ -412,23 +446,26 @@ namespace logia::AST
     //
     // ast-traverese/search
     //
-    LOGIA_API Node* ast_find_closest_parent(Node* current, ast_types mask_type) {
+    LOGIA_API Node *ast_find_closest_parent(Node *current, ast_types mask_type)
+    {
         LOGIA_ASSERT(current);
         // REVIEW Start at the current node? or 1 level up?
-        //LOGIA_ASSERT(current->parentNode);
-        //current = current->parentNode;
-        do {
-            if (((int)current->type & (int) mask_type) != 0) {
+        // LOGIA_ASSERT(current->parentNode);
+        // current = current->parentNode;
+        do
+        {
+            if (((int)current->type & (int)mask_type) != 0)
+            {
                 return current;
             }
-        } while(current != nullptr);
+        } while (current != nullptr);
 
         return nullptr;
     }
 
     LOGIA_API Type *ast_get_type_by_name(Node *current, char *name)
     {
-        auto body = (Body*) ast_find_closest_parent(current, ast_types::BODY);
+        auto body = (Body *)ast_find_closest_parent(current, ast_types::BODY);
         LOGIA_ASSERT(body); // this shall exists!
         // TODO cast if possible or nullptr!
         return (Type *)body->lookup(name);

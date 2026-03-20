@@ -2,10 +2,10 @@
 #include "gtest/gtest.h"
 #include <Windows.h>
 
-TEST(AST_Type, createFunctionType)
+TEST(AST_Type, ast_create_function_type)
 {
   using namespace logia::AST;
-  
+
   auto back = new logia::Backend();
   auto program = logia::AST::createProgram(back->context);
   // has value
@@ -15,9 +15,9 @@ TEST(AST_Type, createFunctionType)
   // no parent
   EXPECT_EQ(program->parentNode, nullptr);
 
-  logia::AST::Type *func = logia::AST::createFunctionType(program, strdup("main"), logia::AST::ast_get_type_by_name(program, strdup("λi8")));
+  logia::AST::Type *func = logia::AST::ast_create_function_type(program, strdup("main"), logia::AST::ast_get_type_by_name(program, strdup("λi8")));
   EXPECT_TRUE(func);
-  
+
   EXPECT_EQ(program->children.size(), 0);
   program->add_statement(func);
   EXPECT_EQ(program->children.size(), 1);
@@ -35,9 +35,8 @@ TEST(AST_Type, createFunctionType)
   EXPECT_TRUE(logia::AST::ast_get_type_by_name(func->Function.body, strdup("λi8")));
   EXPECT_TRUE(logia::AST::ast_get_type_by_name(func->Function.body, strdup("λi64")));
 
-
   auto firstArg = createSignedIntegerLiteral(func->Function.body, 17);
-  auto secondArg = createSignedIntegerLiteral(func->Function.body, 21);  
+  auto secondArg = createSignedIntegerLiteral(func->Function.body, 21);
   auto callFuncName = createStringLiteral(strdup("logia_operator_add_i64_i64"));
   std::cout << "locator = " << callFuncName->toString() << std::endl;
 
@@ -69,6 +68,24 @@ TEST(AST_Type, createFunctionType)
 
   delete back;
 
-  //std::cout << "toStringTree" << std::endl;
-  //std::cout << program->toStringTree();
+  // std::cout << "toStringTree" << std::endl;
+  // std::cout << program->toStringTree();
+}
+
+TEST(AST_Type, ast_create_struct_type)
+{
+  using namespace logia::AST;
+
+  auto back = new logia::Backend();
+  auto program = logia::AST::createProgram(back->context);
+
+  auto string_t = ast_create_struct_type(program, strdup("string"));
+  EXPECT_EQ(string_t->Struct.properties.size(), 0);
+  ast_struct_add_field(string_t, (logia::AST::Type *)program->lookup(strdup("λi64")), "capacity", nullptr);
+  EXPECT_EQ(string_t->Struct.properties.size(), 1);
+
+  EXPECT_TRUE(string_t->Struct.properties[0].isField());
+  EXPECT_FALSE(string_t->Struct.properties[0].isAlias());
+  EXPECT_FALSE(string_t->Struct.properties[0].isGetter());
+  EXPECT_FALSE(string_t->Struct.properties[0].isSetter());
 }

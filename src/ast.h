@@ -7,6 +7,10 @@
 
 namespace logia::AST
 {
+    // foward declaration
+    struct Type;
+    struct Expression;
+
     enum ast_types : uint32_t
     {
         // flags
@@ -89,8 +93,6 @@ namespace logia::AST
         virtual llvm::Value *codegen(logia::Backend *codegen) = 0;
     };
 
-    struct Type;
-
     enum class Primitives
     {
         Void,
@@ -136,7 +138,7 @@ namespace logia::AST
         callable,
     };
 
-    enum StructPropertyType
+    enum class StructPropertyType
     {
         STRUCT_PROPERTY_TYPE_FIELD,
         STRUCT_PROPERTY_TYPE_ALIAS,
@@ -151,16 +153,40 @@ namespace logia::AST
         Node *defaultValue;
     };
 
+    /*
+     * `fields`: Named values that are stored in memory inside the structure.
+     * `setters` and `getters`: Named values that aren't stored in memory (Syntactic sugar)
+     * `alias`: Named values that points to a field, setter or getter and has the same type (Syntactic sugar)
+     * `methods`: named function that manipulates the struct, there is an implicit first argument `this`.
+     * `properties`: Set of `fields` + `aliases` + `getters` + `setters`
+     * `members`: Set of `fields` + `aliases` + `getters` + `setters` + `methods` + `types`.
+     */
+
     struct StructProperty
     {
         std::string name;
         std::string docstring;
-        enum StructPropertyType type;
+        enum StructPropertyType kind;
+        Type *type;
+        Expression *default_value;
 
-        bool isField() { return this->type == STRUCT_PROPERTY_TYPE_FIELD; };
-        bool isAlias() { return this->type == STRUCT_PROPERTY_TYPE_ALIAS; };
-        bool isGetter() { return this->type == STRUCT_PROPERTY_TYPE_GETTER; };
-        bool isSetter() { return this->type == STRUCT_PROPERTY_TYPE_SETTER; };
+        StructProperty(
+            std::string _name,
+            std::string _docstring,
+            enum StructPropertyType _kind,
+            Type *_type,
+            Expression *_default_value) : name(_name),
+                                          docstring(_docstring),
+                                          kind(_kind),
+                                          type(_type),
+                                          default_value(_default_value)
+        {
+        }
+
+        bool isField() { return this->kind == StructPropertyType::STRUCT_PROPERTY_TYPE_FIELD; };
+        bool isAlias() { return this->kind == StructPropertyType::STRUCT_PROPERTY_TYPE_ALIAS; };
+        bool isGetter() { return this->kind == StructPropertyType::STRUCT_PROPERTY_TYPE_GETTER; };
+        bool isSetter() { return this->kind == StructPropertyType::STRUCT_PROPERTY_TYPE_SETTER; };
     };
 
     struct IntegerProperties
@@ -237,7 +263,7 @@ namespace logia::AST
 
         std::string name;
         std::string docstring;
-        std::vector<StructProperty *> properties;
+        std::vector<StructProperty> properties;
         std::vector<Type *> methods;
     };
 
@@ -363,8 +389,6 @@ namespace logia::AST
 
     LOGIA_API Body *createBody(Node *parentNode);
 
-    Type *createFunctionType(Body *body, char *name, Type *return_type);
-
     FloatLiteral *createFloatLiteral(Body *body, double value);
     IntegerLiteral *createSignedIntegerLiteral(Body *body, int64_t value);
     IntegerLiteral *createUnsignedIntegerLiteral(Body *body, uint64_t value);
@@ -374,6 +398,17 @@ namespace logia::AST
     LOGIA_API StringLiteral *createStringLiteral(char *text);
 
     LOGIA_API ReturnStmt *createReturn(Expression *ret);
+
+    //
+    // ast creation
+    //
+    LOGIA_API Type *ast_create_function_type(Body *body, char *name, Type *return_type);
+    LOGIA_API Type *ast_create_struct_type(Body *body, char *name);
+
+    //
+    // ast fill
+    //
+    LOGIA_API void ast_struct_add_field(Type *s, Type *prop_type, std::string &&prop_name, Expression *prop_default_value);
 
     //
     // ast query
