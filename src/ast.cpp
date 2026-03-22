@@ -203,10 +203,10 @@ namespace logia::AST
 
     std::string IntegerLiteral::toString()
     {
-        std::cout << this->type << std::endl;
-        std::cout << this->type->toString() << std::endl;
-        std::cout << this->ivalue << std::endl;
-        std::cout << this->uvalue << std::endl;
+        DEBUG() << this->type << std::endl;
+        DEBUG() << this->type->toString() << std::endl;
+        DEBUG() << this->ivalue << std::endl;
+        DEBUG() << this->uvalue << std::endl;
 
         char buffer[36];
         return std::string("IntegerLiteral[") + this->type->toString() + "] = " + std::string(itoa(this->ivalue, buffer, 10));
@@ -239,7 +239,7 @@ namespace logia::AST
             BB = llvm::BasicBlock::Create(codegen->context, "entry", nullptr);
         }
 
-        std::cout << this->toString() << std::endl;
+        DEBUG() << this->toString() << std::endl;
 
         for (int i = 0; i < this->children.size(); i++)
         {
@@ -251,7 +251,7 @@ namespace logia::AST
             }
             // update insert point on everystatement as visitor may change it!
             Node *n = this->children[i];
-            std::cout << "codegen.statement[" << i << "] " << n->toString() << std::endl;
+            DEBUG() << "codegen.statement[" << i << "] " << n->toString() << std::endl;
             auto inst = n->codegen(codegen);
         }
         return BB;
@@ -259,7 +259,7 @@ namespace logia::AST
 
     llvm::Value *Type::codegen(logia::Backend *codegen)
     {
-        std::cout << this->toString() << std::endl;
+        DEBUG() << this->toString() << std::endl;
         // cache, because type are unique and we will be visiting this a lot
         if (this->ir)
         {
@@ -319,7 +319,7 @@ namespace logia::AST
 
     llvm::Value *CallExpression::codegen(logia::Backend *codegen)
     {
-        std::cout << this->toString() << std::endl;
+        DEBUG() << this->toString() << std::endl;
 
         // Look up the name in the global module table.
         auto name = (StringLiteral *)this->locator;
@@ -334,7 +334,7 @@ namespace logia::AST
         std::vector<llvm::Value *> ArgsV;
         for (unsigned i = 0, e = this->arguments.size(); i != e; ++i)
         {
-            std::cout << "argument[" << i << "]" << std::endl;
+            DEBUG() << "argument[" << i << "]" << std::endl;
             ArgsV.push_back(this->arguments[i]->codegen(codegen));
             if (!ArgsV.back())
                 return nullptr;
@@ -347,19 +347,19 @@ namespace logia::AST
 
     llvm::Value *IntegerLiteral::codegen(logia::Backend *codegen)
     {
-        std::cout << this->toString() << std::endl;
+        DEBUG() << this->toString() << std::endl;
         return llvm::ConstantInt::get((llvm::Type *)this->type->codegen(codegen), llvm::APInt(this->type->Integer.bits, this->ivalue, this->type->Integer.isSigned));
     }
 
     llvm::Value *FloatLiteral::codegen(logia::Backend *codegen)
     {
-        std::cout << this->toString() << std::endl;
+        DEBUG() << this->toString() << std::endl;
         throw std::exception("todo");
     }
 
     llvm::Value *StringLiteral::codegen(logia::Backend *codegen)
     {
-        std::cout << this->toString() << std::endl;
+        DEBUG() << this->toString() << std::endl;
         // NOTE module is required or 0xc0000005
         // !getType()->isVoidTy() && "Cannot assign a name to void values!"??
         return codegen->builder->CreateGlobalString(this->text, ".str", 0, &*codegen->module, true);
@@ -383,7 +383,7 @@ namespace logia::AST
 
     llvm::Value *ReturnStmt::codegen(logia::Backend *codegen)
     {
-        std::cout << this->toString() << std::endl;
+        DEBUG() << this->toString() << std::endl;
         if (!this->expr)
         {
             return codegen->builder->CreateRetVoid();

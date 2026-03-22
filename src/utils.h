@@ -3,15 +3,26 @@
 #include <iostream>
 #include <cstdlib>
 #include <csignal>
+#include <fstream>
+#include <string>
+
+#define DEBUG() logia_log_file
+
+extern std::ofstream logia_log_file;
+/**
+ * Initialize log
+ */
+bool logia_init_log(char* file_name);
+void logia_deinit_log();
 
 // Define export/import macros for Windows
 #ifdef _WIN32
-    #define LOGIA_EXPORT __declspec(dllexport)
-    #define LOGIA_API extern "C" LOGIA_EXPORT
+#define LOGIA_EXPORT __declspec(dllexport)
+#define LOGIA_API extern "C" LOGIA_EXPORT
 #else
-    // On Linux/macOS, use GCC visibility attributes
-    #define LOGIA_EXPORT __attribute__((visibility("default")))
-    #define LOGIA_API extern "C" LOGIA_EXPORT
+// On Linux/macOS, use GCC visibility attributes
+#define LOGIA_EXPORT __attribute__((visibility("default")))
+#define LOGIA_API extern "C" LOGIA_EXPORT
 #endif
 
 void print_stack_trace();

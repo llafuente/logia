@@ -24,6 +24,8 @@
 
 #include <memory>
 
+#include "utils.h"
+
 // cross compile support ?
 #define CODEGEN_NATIVE
 #define CODEGEN_INTRINSICS intrinsics / intrinsics.ll
@@ -44,10 +46,10 @@ namespace logia
         llvm::InitializeAllAsmPrinters();
 #endif
 
-        std::cout << "List available targets: " << std::endl;
+        DEBUG() << "List available targets: " << std::endl;
         for (auto &T : llvm::TargetRegistry::targets())
         {
-            std::cout << "target: " << T.getBackendName() << " | " << T.getName() << std::endl;
+            DEBUG() << "target: " << T.getBackendName() << " | " << T.getName() << std::endl;
         }
 
         // default empty module!
@@ -134,8 +136,8 @@ namespace logia
 
     llvm::Expected<llvm::TargetMachine *> Backend::createHostTargetMachine(llvm::Triple triple)
     {
-        std::cout << "createHostTargetMachine(" << triple.str() << ")" << std::endl;
-        std::cout << "getDefaultExceptionHandling(" << (int)triple.getDefaultExceptionHandling() << ")" << std::endl;
+        DEBUG() << "createHostTargetMachine(" << triple.str() << ")" << std::endl;
+        DEBUG() << "getDefaultExceptionHandling(" << (int)triple.getDefaultExceptionHandling() << ")" << std::endl;
 
         std::string err;
         auto target = llvm::TargetRegistry::lookupTarget(triple, err);
@@ -242,7 +244,7 @@ namespace logia
 
     int Backend::run_jit()
     {
-        std::cout << "Backend::run_jit()" << std::endl;
+        DEBUG() << "Backend::run_jit()" << std::endl;
 
         // create orc-jit
         // * execute in the current process -> session
@@ -278,8 +280,8 @@ namespace logia
                 }
         */
         /*
-                std::cout << "CPU" << TM->getTargetCPU().str() << std::endl;
-                std::cout << "Features" << TM->getTargetFeatureString().str() << std::endl;
+                DEBUG() << "CPU" << TM->getTargetCPU().str() << std::endl;
+                DEBUG() << "Features" << TM->getTargetFeatureString().str() << std::endl;
 
                 auto JIT_builder = llvm::orc::JITTargetMachineBuilder(TM->getTargetTriple())
                     .setCPU(TM->getTargetCPU().str())
@@ -361,7 +363,6 @@ namespace logia
         // auto *main_fn = (FuncType)(symbol->getAddress().getValue());
         auto *main_fn = (FuncType)(symbol->getAddress().getValue());
         int result = main_fn();
-        std::cerr << "main = " << result << std::endl;
         if (result != 0)
         {
             std::cerr << "[Error] Main function run error:" << result << std::endl;
