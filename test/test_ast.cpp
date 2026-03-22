@@ -78,6 +78,7 @@ TEST(AST_Type, ast_create_struct_type)
   using namespace logia::AST;
 
   auto back = new logia::Backend();
+  back->load_intrinsics();
   auto program = logia::AST::createProgram(back->context);
 
   auto string_t = ast_create_struct_type(program, strdup("string"));
@@ -93,17 +94,31 @@ TEST(AST_Type, ast_create_struct_type)
   // invalid ?
   // program->add_statement(string_t);
 
-  logia::AST::Type* func = logia::AST::ast_create_function_type(program, strdup("main"), logia::AST::ast_get_type_by_name(program, strdup("λvoid")));
+  logia::AST::Type* func = logia::AST::ast_create_function_type(program, strdup("main"), logia::AST::ast_get_type_by_name(program, strdup("λi32")));
   EXPECT_TRUE(func);
 
   ast_function_add_param(func, string_t, "first", nullptr);
 
   program->add_statement(func);
 
+  auto hello_world = createStringLiteral(strdup("Hello world!"));
+  auto callFuncName = createStringLiteral(strdup("logia_print_stdout"));
+  func->Function.body->add_statement(createCallExpression(callFuncName, {hello_world}));
+
+  auto exit_code_value = createSignedIntegerLiteral(func->Function.body, 0);
+  func->Function.body->add_statement(createReturn(exit_code_value));
+  EXPECT_EQ(program->children.size(), 1);
+  EXPECT_EQ(func->Function.body->statements.size(), 2);
+
   program->codegen(back);
   back->emitTargetLLVMIR("./tmp/struct.ll");
+
+  int exit_code = back->run_jit();
+  EXPECT_EQ(exit_code, 0);
 
   delete back;
 
 
 }
+
+

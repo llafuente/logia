@@ -219,7 +219,7 @@ namespace logia::AST
 
     std::string StringLiteral::toString()
     {
-        return std::string("StringLiteral{name: ") + this->text + ", type: " + ast_types_to_string(this->type) + "}";
+        return std::string("StringLiteral{text: ") + this->text + ", type: " + ast_types_to_string(this->type) + "}";
     }
 
     std::string ReturnStmt::toString()
@@ -339,8 +339,9 @@ namespace logia::AST
             if (!ArgsV.back())
                 return nullptr;
         }
-
-        return codegen->builder->CreateCall(CalleeF, ArgsV, "call");
+        // NOTE name is not what i expect -> blank!
+        return codegen->builder->CreateCall(CalleeF, ArgsV);
+        //return codegen->builder->CreateCall(CalleeF, ArgsV, "call");
         // return (llvm::Value*) llvm::CallInst::Create(CalleeF, ArgsV, "call");
     }
 
@@ -359,7 +360,25 @@ namespace logia::AST
     llvm::Value *StringLiteral::codegen(logia::Backend *codegen)
     {
         std::cout << this->toString() << std::endl;
-        throw std::exception("todo");
+        // NOTE module is required or 0xc0000005
+        // !getType()->isVoidTy() && "Cannot assign a name to void values!"??
+        return codegen->builder->CreateGlobalString(this->text, ".str", 0, &*codegen->module, true);
+/*
+        llvm::Constant *strConst = llvm::ConstantDataArray::getString(codegen->context, this->text, true);
+
+        // Create a global variable to hold the string
+        llvm::GlobalVariable *gvar = new llvm::GlobalVariable(
+            codegen->module,
+            strConst->getType(),
+            true, // isConstant
+            llvm::GlobalValue::PrivateLinkage,
+            strConst,
+            ".str");
+
+        gvar->setAlignment(llvm::Align(1));
+
+        return gvar;
+*/
     }
 
     llvm::Value *ReturnStmt::codegen(logia::Backend *codegen)
