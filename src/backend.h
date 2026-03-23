@@ -18,46 +18,57 @@
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetOptions.h"
 
-
 #include "llvm/IR/PassManager.h"
 #include "llvm/Passes/PassBuilder.h"
+#include "llvm/ExecutionEngine/Orc/Core.h"
 
 namespace logia
 {
     /**
-     * 
+     * Data necesary to move from AST to IR/ASM/Binary/JIT
      */
-    class Backend
+    struct Backend
     {
     public:
+        /**
+         * llvm context
+         */
         llvm::LLVMContext context;
+        // NOTE module is unique_ptr because parseIRFile return it
+        /**
+         * llvm module (global variables, functions, libraries)
+         */
         std::unique_ptr<llvm::Module> module = nullptr;
-        // Used for generating LLVM instructions;
+        /**
+         * Used for generating LLVM instructions (globally)
+         * 
+         * Overriden in each function/block scope
+         */
         llvm::IRBuilder<> *builder;
-        /*
-        std::unique_ptr<llvm::ModuleAnalysisManager> ModuleAnalysis;
-        std::unique_ptr<llvm::FunctionAnalysisManager> FunctionAnalysis;
-        std::unique_ptr<llvm::LoopAnalysisManager> LoopAnalysis;
-        std::unique_ptr<llvm::CGSCCAnalysisManager> CGSCCAnalysis;
-        std::unique_ptr<llvm::PassBuilder> PassBuilder;
-        */
+        /**
+         * Current LLVM JIT session
+         */
+        std::unique_ptr<llvm::orc::ExecutionSession> session;
         /**
          * Initialize LLVM
          */
         Backend();
         /**
-         * 
+         *
          */
         ~Backend();
         /**
          * Load intrinsics from file
          */
-        void load_intrinsics();
-
+        void load_intrinsics(char* filepath = (char*)"intrinsics/intrinsics.ll");
+        /**
+         * Add intrinsics to current module
+         */
+        void add_intrinsic(void *fn_ref, char *fn_name);
         /**
          * Creates a TargetMachine with current host configuration
          */
-        llvm::Expected<llvm::TargetMachine*> createHostTargetMachine(llvm::Triple triple);
+        llvm::Expected<llvm::TargetMachine *> createHostTargetMachine(llvm::Triple triple);
         /**
          * Applys LLVM optimizers to current module using  API PassBuilder
          */
@@ -78,6 +89,11 @@ namespace logia
          * Generates module binary
          */
         bool emitTargetExecutable(std::string fileName);
+        /**
+         * Prepare LLVM to JIT
+         * This is necesary to expose intrinsics to comptime
+         */
+        void prepare_jit();
         /**
          * Runs module main function into current process
          */

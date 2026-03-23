@@ -22,13 +22,16 @@
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/Support/Error.h"
 
+#include "llvm/Support/Compiler.h"
+#include "llvm/ExecutionEngine/Orc/MaterializationUnit.h"
+#include <llvm/ExecutionEngine/Orc/LLJIT.h>
+
 #include <memory>
 
 #include "utils.h"
 
 // cross compile support ?
 #define CODEGEN_NATIVE
-#define CODEGEN_INTRINSICS intrinsics / intrinsics.ll
 
 namespace logia
 {
@@ -45,7 +48,7 @@ namespace logia
         llvm::InitializeAllAsmParsers();
         llvm::InitializeAllAsmPrinters();
 #endif
-
+        DEBUG() << "Backend()" << std::endl;
         DEBUG() << "List available targets: " << std::endl;
         for (auto &T : llvm::TargetRegistry::targets())
         {
@@ -55,25 +58,54 @@ namespace logia
         // default empty module!
         this->module = std::make_unique<llvm::Module>("logia", context);
 
-
         // REVIEW use linker to have intrinsics + mainModule ?
         // linkInModule https://www.youtube.com/watch?v=h6HkwpE7UqM
 
         builder = new llvm::IRBuilder<>(context);
+
+        auto EPC = llvm::orc::SelfExecutorProcessControl::Create();
+        if (!EPC)
+        {
+            llvm::errs() << EPC.takeError();
+            throw std::exception("Error creating SelfExecutorProcessControl");
+        }
+
+        session = std::make_unique<llvm::orc::ExecutionSession>(std::move(*EPC));
+        session->createBareJITDylib("<main>");
     }
 
     Backend::~Backend()
     {
     }
 
-    void Backend::load_intrinsics() {
+    void Backend::load_intrinsics(char* filepath)
+    {
         llvm::SMDiagnostic diag;
-        module = llvm::parseIRFile("intrinsics/intrinsics.ll", diag, context);
+        module = llvm::parseIRFile(filepath, diag, context);
         if (!module)
         {
             diag.print("intrinsics.ll", llvm::errs());
             throw std::exception("could not parse or read intrinsics.ll");
         }
+    }
+
+    void Backend::add_intrinsic(void *fn_ref, char *fn_name)
+    {
+
+        auto ptr = llvm::pointerToJITTargetAddress(fn_ref);
+        llvm::orc::SymbolMap symbols(10);
+
+        // std::pair<llvm::orc::SymbolStringPtr, llvm::orc::ExecutorSymbolDef> &&KV
+        // llvm::orc::ExecutorSymbolDef ss({llvm::JITEvaluatedSymbol(ptr, llvm::JITSymbolFlags::Callable), llvm::JITSymbolFlags::Exported});
+        llvm::orc::ExecutorSymbolDef ss({
+            llvm::orc::ExecutorAddr(ptr),
+            llvm::JITSymbolFlags::Exported,
+        });
+        symbols.insert({session->intern(fn_name), ss});
+
+        auto dylib = session->getJITDylibByName("<main>");
+        dylib->define(
+            llvm::orc::absoluteSymbols(std::move(symbols)));
     }
 
     void Backend::applyLLVMOptimizers()
@@ -159,7 +191,8 @@ namespace logia
         return llvm::Expected<llvm::TargetMachine *>(TM);
     }
 
-    bool generateFile(std::string fileName, llvm::CodeGenFileType FileType, llvm::Module* module, llvm::TargetMachine *TheTargetMachine) {
+    bool generateFile(std::string fileName, llvm::CodeGenFileType FileType, llvm::Module *module, llvm::TargetMachine *TheTargetMachine)
+    {
 
         std::error_code EC;
         llvm::raw_fd_ostream dest(fileName, EC, llvm::sys::fs::FileAccess::FA_Write);
@@ -184,7 +217,8 @@ namespace logia
         return true;
     }
 
-    bool Backend::emitTargetLLVMIR(std::string fileName = "main") {
+    bool Backend::emitTargetLLVMIR(std::string fileName = "main.ll")
+    {
         std::error_code EC;
         llvm::raw_fd_ostream dest(fileName, EC, llvm::sys::fs::FileAccess::FA_Write);
 
@@ -193,14 +227,14 @@ namespace logia
             llvm::errs() << "Could not open file: " << EC.message();
             return false;
         }
-        
+
         module->print(dest, nullptr);
         dest.flush();
 
         return true;
     }
 
-    bool Backend::emitTargetObjectFile(std::string fileName = "main")
+    bool Backend::emitTargetObjectFile(std::string fileName = "main.o")
     {
         // Initialize the target registry etc.
         auto triple = llvm::Triple(llvm::sys::getDefaultTargetTriple());
@@ -219,7 +253,8 @@ namespace logia
         return generateFile(fileName, llvm::CodeGenFileType::ObjectFile, &(*module), *TheTargetMachine);
     }
 
-    bool Backend::emitTargetAssemblyFile(std::string fileName = "main") {
+    bool Backend::emitTargetAssemblyFile(std::string fileName = "main.asm")
+    {
         // Initialize the target registry etc.
         auto triple = llvm::Triple(llvm::sys::getDefaultTargetTriple());
 
@@ -237,14 +272,15 @@ namespace logia
         return generateFile(fileName, llvm::CodeGenFileType::AssemblyFile, &(*module), *TheTargetMachine);
     }
 
-    bool Backend::emitTargetExecutable(std::string fileName) {
+    bool Backend::emitTargetExecutable(std::string fileName)
+    {
         // & "C:\Program Files\LLVM\bin\clang.exe" .\xxx.obj -o xxx.exe
         return true;
     }
 
     int Backend::run_jit()
     {
-        DEBUG() << "Backend::run_jit()" << std::endl;
+        DEBUG() << "()" << std::endl;
 
         // create orc-jit
         // * execute in the current process -> session
@@ -253,20 +289,12 @@ namespace logia
         // * find main
         // * execute
 
-        auto EPC = llvm::orc::SelfExecutorProcessControl::Create();
-        if (!EPC)
-        {
-            llvm::errs() << EPC.takeError();
-            throw std::exception("Error creating SelfExecutorProcessControl");
-        }
-        auto session = std::make_unique<llvm::orc::ExecutionSession>(std::move(*EPC));
-
         auto triple = session->getExecutorProcessControl().getTargetTriple();
 
         auto ETM = this->createHostTargetMachine(triple);
         if (!ETM)
         {
-            llvm::errs() << EPC.takeError();
+            llvm::errs() << ETM.takeError();
             throw std::exception("Error creating createHostTargetMachine");
         }
         auto TM = *ETM;
@@ -294,6 +322,8 @@ namespace logia
         */
         // .setCodeGenOptLevel(llvm::CodeGenOptLevel::Aggressive);
 
+        auto dylib = session->getJITDylibByName("<main>");
+
         auto data_layout = JIT_builder.getDefaultDataLayoutForTarget();
         if (!data_layout)
         {
@@ -315,9 +345,9 @@ namespace logia
                                                       std::make_unique<llvm::orc::ConcurrentIRCompiler>(std::move(JIT_builder)));
 
         // session->createJITDylib()
-        auto &dylib = session->createBareJITDylib("<main>");
+        // auto &cdylib = session->createBareJITDylib("<compiler>");
 
-        dylib.addGenerator(
+        dylib->addGenerator(
             llvm::cantFail(llvm::orc::DynamicLibrarySearchGenerator::GetForCurrentProcess(
                 data_layout->getGlobalPrefix())));
 
@@ -327,7 +357,7 @@ namespace logia
             objectLayer.setAutoClaimResponsibilityForObjectSymbols(true);
         }
 
-        auto RT = dylib.getDefaultResourceTracker();
+        auto RT = dylib->getDefaultResourceTracker();
         llvm::orc::ThreadSafeContext context(std::make_unique<llvm::LLVMContext>());
         llvm::orc::ThreadSafeModule TSM(std::move(this->module), context);
 
@@ -346,12 +376,11 @@ namespace logia
                     throw std::exception("Error createTargetMachine");
                 }
         */
-        llvm::orc::SymbolStringPool SSP;
-
+        // llvm::orc::SymbolStringPool SSP;
         // LLVM_ABI Expected<ExecutorSymbolDef> lookup(const JITDylibSearchOrder &SearchOrder, SymbolStringPtr Symbol, SymbolState RequiredState = SymbolState::Ready);
         // auto symbol = session->lookup(llvm::orc::JITDylibSearchOrder(), SSP.intern(func_name_name));
         auto mangle_name = mangle("main");
-        std::vector<llvm::orc::JITDylib *> SearchOrder = {&dylib};
+        std::vector<llvm::orc::JITDylib *> SearchOrder = {dylib};
         auto symbol = session->lookup(SearchOrder, mangle_name);
         if (!symbol)
         {

@@ -225,7 +225,13 @@ namespace logia::AST
         {
             this->parent = parent;
         }
-        void add_statement(Node *node)
+        void unshift_statement(Node* node)
+        {
+            node->parentNode = this;
+            statements.insert(statements.begin(), node);
+            addChild(node);
+        }
+        void push_statement(Node *node)
         {
             node->parentNode = this;
             statements.push_back(node);
@@ -293,6 +299,11 @@ namespace logia::AST
         std::vector<FunctionParameters> parameters;
         std::vector<llvm::Type *> parametersIR;
         Type *return_type;
+        
+        /**
+         * intrinsic are defined in the compiler process or in the module bootstrap
+         */
+        bool intrinsic;
         Body *body;
         llvm::Function *functionIR;
     };
@@ -465,27 +476,27 @@ namespace logia::AST
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
     };
 
-    // shortcuts api
-    LOGIA_API Body *createBody(Node *parentNode);
-
-    FloatLiteral *createFloatLiteral(Body *body, double value);
-    IntegerLiteral *createSignedIntegerLiteral(Body *body, int64_t value);
-    IntegerLiteral *createUnsignedIntegerLiteral(Body *body, uint64_t value);
-
-    LOGIA_API CallExpression *createCallExpression(Expression *locator, std::vector<Expression *> arguments);
-
-    LOGIA_API StringLiteral *createStringLiteral(char *text);
-
-    LOGIA_API ReturnStmt *createReturn(Expression *ret);
+    //
+    // logia AST c api
+    // this can be used in comptime execution
+    //
 
     //
     // ast creation
     //
-    LOGIA_API Program *ast_create_program(llvm::LLVMContext &C);
-    LOGIA_API Type *ast_create_function_type(Body *body, char *name, Type *return_type);
-    LOGIA_API Type *ast_create_struct_type(Body *body, char *name);
-    LOGIA_API VarDeclStmt *ast_create_var_decl(Node *current, char *name, Type *type, Expression *expr);
-    LOGIA_API Identifier *ast_create_identifier(Node *current, char *name);
+    LOGIA_API LOGIA_LEND Body *ast_create_body(Node *parentNode);
+    LOGIA_API LOGIA_LEND FloatLiteral *ast_create_float_lit(Body *body, double value);
+    LOGIA_API LOGIA_LEND IntegerLiteral *ast_create_int_lit(Body *body, int64_t value);
+    LOGIA_API LOGIA_LEND IntegerLiteral *ast_create_uint_lit(Body *body, uint64_t value);
+    LOGIA_API LOGIA_LEND CallExpression *ast_create_call_expr(Expression *locator, std::vector<Expression *> arguments);
+    LOGIA_API LOGIA_LEND StringLiteral *ast_create_string_literal(char *text);
+    LOGIA_API LOGIA_LEND ReturnStmt *ast_create_return(Expression *ret);
+    LOGIA_API LOGIA_LEND Program *ast_create_program(llvm::LLVMContext &C);
+    LOGIA_API LOGIA_LEND Type *ast_create_function_type(Body *body, char *name, Type *return_type);
+    LOGIA_API LOGIA_LEND Type *ast_create_instrinsic(Program *program, char *name, Type *return_type);
+    LOGIA_API LOGIA_LEND Type *ast_create_struct_type(Body *body, char *name);
+    LOGIA_API LOGIA_LEND VarDeclStmt *ast_create_var_decl(Node *current, char *name, Type *type, Expression *expr);
+    LOGIA_API LOGIA_LEND Identifier *ast_create_identifier(Node *current, char *name);
 
     //
     // ast fill

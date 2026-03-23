@@ -35,7 +35,7 @@ TEST(AST_Type, ast_create_function_type)
   EXPECT_TRUE(func);
 
   EXPECT_EQ(program->children.size(), 0);
-  program->add_statement(func);
+  program->push_statement(func);
   EXPECT_EQ(program->children.size(), 1);
 
   EXPECT_EQ(func->type, Primitives::PRIMITIVE_FUNCTION);
@@ -51,25 +51,25 @@ TEST(AST_Type, ast_create_function_type)
   EXPECT_TRUE(ast_get_type_by_name(func->Function.body, strdup("λi8")));
   EXPECT_TRUE(ast_get_type_by_name(func->Function.body, strdup("λi64")));
 
-  auto firstArg = createSignedIntegerLiteral(func->Function.body, 17);
-  auto secondArg = createSignedIntegerLiteral(func->Function.body, 21);
-  auto callFuncName = createStringLiteral(strdup("logia_operator_add_i64_i64"));
+  auto firstArg = ast_create_int_lit(func->Function.body, 17);
+  auto secondArg = ast_create_int_lit(func->Function.body, 21);
+  auto callFuncName = ast_create_string_literal(strdup("logia_operator_add_i64_i64"));
   std::cout << "locator = " << callFuncName->toString() << std::endl;
 
   EXPECT_EQ(firstArg->parentNode, nullptr);
   EXPECT_EQ(secondArg->parentNode, nullptr);
   EXPECT_EQ(callFuncName->parentNode, nullptr);
-  auto callexpr = createCallExpression(callFuncName, {firstArg, secondArg});
+  auto callexpr = ast_create_call_expr(callFuncName, {firstArg, secondArg});
   EXPECT_EQ(firstArg->parentNode, callexpr);
   EXPECT_EQ(secondArg->parentNode, callexpr);
   EXPECT_EQ(callFuncName->parentNode, callexpr);
 
   EXPECT_EQ(callexpr->parentNode, nullptr);
-  auto ret_stmt = createReturn(callexpr);
+  auto ret_stmt = ast_create_return(callexpr);
   EXPECT_EQ(callexpr->parentNode, ret_stmt);
 
   EXPECT_EQ(ret_stmt->parentNode, nullptr);
-  func->Function.body->add_statement(ret_stmt);
+  func->Function.body->push_statement(ret_stmt);
   EXPECT_EQ(ret_stmt->parentNode, func->Function.body);
   EXPECT_EQ(func->Function.body->parentNode, func);
 
@@ -117,14 +117,14 @@ TEST(AST_Type, ast_create_struct_type)
 
   ast_function_add_param(func, string_t, strdup("first"), nullptr);
 
-  program->add_statement(func);
+  program->push_statement(func);
 
-  auto hello_world = createStringLiteral(strdup("Hello world!"));
-  auto callFuncName = createStringLiteral(strdup("logia_print_stdout"));
-  func->Function.body->add_statement(createCallExpression(callFuncName, {hello_world}));
+  auto hello_world = ast_create_string_literal(strdup("Hello world!"));
+  auto callFuncName = ast_create_string_literal(strdup("logia_print_stdout"));
+  func->Function.body->push_statement(ast_create_call_expr(callFuncName, {hello_world}));
 
-  auto exit_code_value = createSignedIntegerLiteral(func->Function.body, 0);
-  func->Function.body->add_statement(createReturn(exit_code_value));
+  auto exit_code_value = ast_create_int_lit(func->Function.body, 0);
+  func->Function.body->push_statement(ast_create_return(exit_code_value));
   EXPECT_EQ(program->children.size(), 1);
   EXPECT_EQ(func->Function.body->statements.size(), 2);
 
@@ -185,27 +185,27 @@ TEST(AST_Type, ast_create_var_decl)
   logia::AST::Type *func = logia::AST::ast_create_function_type(program, strdup("main"), logia::AST::ast_get_type_by_name(program, strdup("λi32")));
   EXPECT_TRUE(func);
 
-  program->add_statement(func);
+  program->push_statement(func);
 
-  auto hello_world = createStringLiteral(strdup("Hello world!"));
+  auto hello_world = ast_create_string_literal(strdup("Hello world!"));
   auto vdecl = ast_create_var_decl(func->Function.body, strdup("hello"), string_t, hello_world);
-  func->Function.body->add_statement(vdecl);
+  func->Function.body->push_statement(vdecl);
   EXPECT_EQ(hello_world->parentNode, func->Function.body->statements[0]);
 
   // print static string
-  auto callFuncName = createStringLiteral(strdup("logia_print_stdout"));
-  auto hello_world2 = createStringLiteral(strdup("Hello world!"));
-  func->Function.body->add_statement(createCallExpression(callFuncName, {hello_world2}));
+  auto callFuncName = ast_create_string_literal(strdup("logia_print_stdout"));
+  auto hello_world2 = ast_create_string_literal(strdup("Hello world!"));
+  func->Function.body->push_statement(ast_create_call_expr(callFuncName, {hello_world2}));
   EXPECT_EQ(hello_world2->parentNode, func->Function.body->statements[1]);
   EXPECT_EQ(callFuncName->parentNode, func->Function.body->statements[1]);
 
   // print static string from variable
   auto ident = (Expression *)ast_create_identifier(func->Function.body, strdup("hello"));
-  func->Function.body->add_statement(createCallExpression(callFuncName, {ident}));
+  func->Function.body->push_statement(ast_create_call_expr(callFuncName, {ident}));
   EXPECT_EQ(ident->parentNode, func->Function.body->statements[2]);
 
-  auto exit_code_value = createSignedIntegerLiteral(func->Function.body, 0);
-  func->Function.body->add_statement(createReturn(exit_code_value));
+  auto exit_code_value = ast_create_int_lit(func->Function.body, 0);
+  func->Function.body->push_statement(ast_create_return(exit_code_value));
   EXPECT_EQ(program->children.size(), 1);
   EXPECT_EQ(func->Function.body->statements.size(), 4);
 
@@ -231,7 +231,7 @@ TEST(AST_Type, ast_create_var_decl)
     program = logia::AST::ast_create_program(back->context);                                                                            \
     main_fn = logia::AST::ast_create_function_type(program, strdup("main"), logia::AST::ast_get_type_by_name(program, strdup("λi32"))); \
     EXPECT_TRUE(main_fn);                                                                                                               \
-    program->add_statement(main_fn);                                                                                                    \
+    program->push_statement(main_fn);                                                                                                   \
     main_body = main_fn->Function.body;                                                                                                 \
   } while (0)
 
@@ -244,16 +244,16 @@ TEST(AST_Type, ast_create_var_decl2)
 
   auto str_a = strdup("a");
   {
-    auto value_a = createSignedIntegerLiteral(program, 11);
+    auto value_a = ast_create_int_lit(program, 11);
     auto vdecl_a = ast_create_var_decl(main_body, str_a, value_a->type, value_a);
-    main_body->add_statement(vdecl_a);
+    main_body->push_statement(vdecl_a);
   }
 
   auto str_b = strdup("b");
   {
-    auto value_b = createSignedIntegerLiteral(program, 12);
+    auto value_b = ast_create_int_lit(program, 12);
     auto vdecl_b = ast_create_var_decl(main_body, str_b, value_b->type, value_b);
-    main_body->add_statement(vdecl_b);
+    main_body->push_statement(vdecl_b);
   }
 
   // print static string from variable
@@ -261,10 +261,10 @@ TEST(AST_Type, ast_create_var_decl2)
     auto ident_a = (Expression *)ast_create_identifier(main_body, str_a);
     auto ident_b = (Expression *)ast_create_identifier(main_body, str_b);
 
-    auto callFuncName = createStringLiteral(strdup("logia_operator_add_i64_i64"));
-    auto sum_expr = createCallExpression(callFuncName, {ident_a, ident_b});
+    auto callFuncName = ast_create_string_literal(strdup("logia_operator_add_i64_i64"));
+    auto sum_expr = ast_create_call_expr(callFuncName, {ident_a, ident_b});
 
-    main_fn->Function.body->add_statement(createReturn(sum_expr));
+    main_fn->Function.body->push_statement(ast_create_return(sum_expr));
   }
 
   program->codegen(back, back->builder);
@@ -273,6 +273,39 @@ TEST(AST_Type, ast_create_var_decl2)
 
   int exit_code = back->run_jit();
   EXPECT_EQ(exit_code, 11 + 12);
+
+  delete back;
+}
+
+extern "C" int logia_compiler_to_jit_test()
+{
+  return 101;
+}
+
+// expose compiler functions to logia
+TEST(AST_Type, logia_compiler_to_jit_test)
+{
+  TEST_INIT_MAIN();
+
+  // this is how you create an intrinsic to use it comptime
+  back->add_intrinsic((void *)(&logia_compiler_to_jit_test), strdup("logia_compiler_to_jit_test"));
+  ast_create_instrinsic(program, strdup("logia_compiler_to_jit_test"), logia::AST::ast_get_type_by_name(program, strdup("λi32")));
+
+  using namespace logia::AST;
+
+  {
+    auto callFuncName = ast_create_string_literal(strdup("logia_compiler_to_jit_test"));
+    auto sum_expr = ast_create_call_expr(callFuncName, {});
+
+    main_fn->Function.body->push_statement(ast_create_return(sum_expr));
+  }
+
+  program->codegen(back, back->builder);
+
+  back->emitTargetLLVMIR("./tmp/logia_compiler_to_jit_test.ll");
+
+  int exit_code = back->run_jit();
+  EXPECT_EQ(exit_code, 101);
 
   delete back;
 }

@@ -107,7 +107,7 @@ namespace logia::AST
         return body;
     }
 
-    LOGIA_API Body *createBody(Node *parentNode)
+    LOGIA_API Body *ast_create_body(Node *parentNode)
     {
         LOGIA_ASSERT(parentNode);
 
@@ -117,45 +117,17 @@ namespace logia::AST
         return new Body(nullptr, parentNode, parentBody);
     }
 
-    FloatLiteral *createFloatLiteral(Body *body, double value)
+    FloatLiteral *ast_create_float_lit(Body *body, double value)
     {
         return new FloatLiteral(nullptr, nullptr, (Type *)body->lookup(strdup("λf64")), value);
     }
-    IntegerLiteral *createSignedIntegerLiteral(Body *body, int64_t value)
+    IntegerLiteral *ast_create_int_lit(Body *body, int64_t value)
     {
         return new IntegerLiteral(nullptr, nullptr, (Type *)body->lookup(strdup("λi64")), value);
     }
-    IntegerLiteral *createUnsignedIntegerLiteral(Body *body, uint64_t value)
+    IntegerLiteral *ast_create_uint_lit(Body *body, uint64_t value)
     {
         return new IntegerLiteral(nullptr, nullptr, (Type *)body->lookup(strdup("λu64")), value);
-    }
-
-    LOGIA_API CallExpression *createCallExpression(Expression *locator, std::vector<Expression *> arguments)
-    {
-        LOGIA_ASSERT((locator->type & ast_types::EXPRESSION) != 0);
-        // TODO LOGIA_ASSERT_ALL(arguments, .type & ast_types::EXPRESSION != 0);
-
-        auto callexpr = new CallExpression(nullptr, nullptr, locator, arguments);
-
-        locator->parentNode = callexpr;
-        for (int i = 0; i < arguments.size(); ++i)
-        {
-            arguments[i]->parentNode = callexpr;
-        }
-
-        return callexpr;
-    }
-    LOGIA_API StringLiteral *createStringLiteral(char *text)
-    {
-        // TODO review remove parentNode from constructor, is a leaf right?
-        return new StringLiteral(nullptr, nullptr, text);
-    }
-
-    LOGIA_API ReturnStmt *createReturn(Expression *ret)
-    {
-        auto stmt = new ReturnStmt(nullptr, nullptr, ret);
-        ret->parentNode = stmt;
-        return stmt;
     }
 
     ///
@@ -248,9 +220,9 @@ namespace logia::AST
     {
         DEBUG() << this->toString() << std::endl;
 
-        for (int i = 0; i < this->children.size(); i++)
+        for (int i = 0; i < this->statements.size(); i++)
         {
-            Node *n = this->children[i];
+            Node *n = this->statements[i];
             DEBUG() << "codegen.statement[" << i << "] " << n->toString() << std::endl;
             auto inst = n->codegen(codegen, builder);
         }
@@ -271,6 +243,7 @@ namespace logia::AST
         {
         case Primitives::PRIMITIVE_FUNCTION:
         {
+
             int pcount = this->Function.parameters.size();
             this->Function.parametersIR.reserve(pcount);
             for (int i = 0; i < pcount; ++i)
@@ -286,12 +259,18 @@ namespace logia::AST
 
             // Create a basic block and insert a return
 
-            llvm::BasicBlock *BB = llvm::BasicBlock::Create(codegen->context, "entry", nullptr);
-            BB->insertInto(this->Function.functionIR);
+            if (!this->Function.intrinsic)
+            {
+                LOGIA_ASSERT(this->Function.body);
 
-            llvm::IRBuilder<> *builderInto = new llvm::IRBuilder<>(codegen->context);
-            builderInto->SetInsertPoint(BB);
-            this->Function.body->codegen(codegen, builderInto);
+                llvm::BasicBlock *BB = llvm::BasicBlock::Create(codegen->context, "entry", nullptr);
+                BB->insertInto(this->Function.functionIR);
+
+                llvm::IRBuilder<> *builderInto = new llvm::IRBuilder<>(codegen->context);
+                builderInto->SetInsertPoint(BB);
+
+                this->Function.body->codegen(codegen, builderInto);
+            }
 
             return (llvm::Value *)this->ir;
         }
@@ -324,13 +303,15 @@ namespace logia::AST
 
     llvm::Value *CallExpression::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
     {
-        // DEBUG() << this->toString() << std::endl;
+        DEBUG() << this->toString() << std::endl;
 
         // Look up the name in the global module table.
         auto name = (StringLiteral *)this->locator;
         llvm::Function *CalleeF = codegen->module->getFunction(name->text);
+        // auto x = codegen->module->getValueSymbolTable();
+        // x->
         if (!CalleeF)
-            throw std::exception("Unknown function referenced");
+            throw std::runtime_error(std::string("Unknown function referenced: ") + name->text);
 
         // If argument mismatch error.
         if (CalleeF->arg_size() != this->arguments.size())
@@ -431,6 +412,34 @@ namespace logia::AST
     //
     // ast creation
     //
+    LOGIA_API CallExpression *ast_create_call_expr(Expression *locator, std::vector<Expression *> arguments)
+    {
+        LOGIA_ASSERT((locator->type & ast_types::EXPRESSION) != 0);
+        // TODO LOGIA_ASSERT_ALL(arguments, .type & ast_types::EXPRESSION != 0);
+
+        auto callexpr = new CallExpression(nullptr, nullptr, locator, arguments);
+
+        locator->parentNode = callexpr;
+        for (int i = 0; i < arguments.size(); ++i)
+        {
+            arguments[i]->parentNode = callexpr;
+        }
+
+        return callexpr;
+    }
+    LOGIA_API StringLiteral *ast_create_string_literal(char *text)
+    {
+        // TODO review remove parentNode from constructor, is a leaf right?
+        return new StringLiteral(nullptr, nullptr, text);
+    }
+
+    LOGIA_API ReturnStmt *ast_create_return(Expression *ret)
+    {
+        auto stmt = new ReturnStmt(nullptr, nullptr, ret);
+        ret->parentNode = stmt;
+        return stmt;
+    }
+
     Type *ast_create_function_type(Body *parentBody, char *name, Type *return_type)
     {
         LOGIA_ASSERT(parentBody);
@@ -444,6 +453,25 @@ namespace logia::AST
         t->Function.body = new Body(nullptr, t, parentBody);
 
         parentBody->set(name, t);
+
+        return t;
+    }
+
+    LOGIA_API LOGIA_LEND Type *ast_create_instrinsic(Program *program, char *name, Type *return_type)
+    {
+        LOGIA_ASSERT(program);
+        LOGIA_ASSERT(name);
+        LOGIA_ASSERT(return_type);
+
+        Type *t = new Type(nullptr, program, Primitives::PRIMITIVE_FUNCTION);
+        new (&t->Function) FunctionType();
+        t->Function.name = name;
+        t->Function.return_type = return_type;
+        t->Function.intrinsic = true;
+        t->Function.body = nullptr;
+
+        program->set(name, t);
+        program->unshift_statement(t);
 
         return t;
     }

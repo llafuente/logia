@@ -7,6 +7,7 @@
 #include <string>
 
 #define DEBUG() logia_log_file
+#define LOGIA_LEND
 
 extern std::ofstream logia_log_file;
 /**
