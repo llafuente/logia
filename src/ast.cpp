@@ -200,8 +200,7 @@ namespace logia::AST
     std::string CallExpression::toString()
     {
         char buffer[36];
-        auto name = (StringLiteral *)this->locator;
-        return std::string("CallExpression: ") + name->text + "(" + std::string(itoa(this->arguments.size(), buffer, 10)) + " args)";
+        return std::string("CallExpression: ") + this->locator->toString() + "(" + std::string(itoa(this->arguments.size(), buffer, 10)) + " args)";
     }
 
     std::string IntegerLiteral::toString()
@@ -222,7 +221,10 @@ namespace logia::AST
 
     std::string StringLiteral::toString()
     {
-        return std::string("StringLiteral{text: ") + this->text + ", type: " + ast_types_to_string(this->type) + "}";
+        auto t = ast_types_to_string(this->type);
+        auto str = std::string("StringLiteral{text: ") + this->text + ", type: " + t + "}";
+        free(t);
+        return str;
     }
 
     std::string ReturnStmt::toString()
@@ -322,7 +324,7 @@ namespace logia::AST
 
     llvm::Value *CallExpression::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
     {
-        DEBUG() << this->toString() << std::endl;
+        // DEBUG() << this->toString() << std::endl;
 
         // Look up the name in the global module table.
         auto name = (StringLiteral *)this->locator;
@@ -471,10 +473,10 @@ namespace logia::AST
         auto parentBody = (Body *)ast_find_closest_parent(current, ast_types::BODY);
         LOGIA_ASSERT(parentBody);
 
-        VarDeclStmt *variable = new VarDeclStmt(nullptr, nullptr, name, type, expr);
+        VarDeclStmt *variable = new VarDeclStmt(nullptr, nullptr, strdup(name), type, expr);
         expr->parentNode = variable;
 
-        parentBody->set(name, variable);
+        parentBody->set(strdup(name), variable);
 
         return variable;
     }
@@ -487,13 +489,13 @@ namespace logia::AST
         auto parentBody = (Body *)ast_find_closest_parent(current, ast_types::BODY);
         LOGIA_ASSERT(parentBody);
 
-        return new Identifier(nullptr, nullptr, name);
+        return new Identifier(nullptr, nullptr, strdup(name));
     }
 
     //
     // ast fill
     //
-    LOGIA_API void ast_function_add_param(Type *s, Type *param_type, std::string &&param_name, Expression *param_default_value)
+    LOGIA_API void ast_function_add_param(Type *s, Type *param_type, char *param_name, Expression *param_default_value)
     {
         LOGIA_ASSERT(s);
         LOGIA_ASSERT(s->isFunction());
@@ -505,13 +507,13 @@ namespace logia::AST
             param_default_value->parentNode = s;
         }
     }
-    LOGIA_API void ast_struct_add_field(Type *s, Type *prop_type, std::string &&prop_name, Expression *prop_default_value)
+    LOGIA_API void ast_struct_add_field(Type *s, Type *prop_type, char *prop_name, Expression *prop_default_value)
     {
         LOGIA_ASSERT(s);
         LOGIA_ASSERT(s->isStruct());
         // LOGIA_ASSERT(*prop_name);
 
-        auto prop = s->Struct.properties.emplace_back(prop_name, "", StructPropertyType::STRUCT_PROPERTY_TYPE_FIELD, prop_type, prop_default_value);
+        auto prop = s->Struct.properties.emplace_back(prop_name, nullptr, StructPropertyType::STRUCT_PROPERTY_TYPE_FIELD, prop_type, prop_default_value);
         if (prop_default_value)
         {
             prop_default_value->parentNode = s;
@@ -522,24 +524,26 @@ namespace logia::AST
     // ast query
     //
 
-    std::string ast_types_to_string(ast_types type)
+    LOGIA_API LOGIA_LEND char *ast_types_to_string(ast_types type)
     {
-        std::string out = "";
+        const char *a;
+        const char *b;
+
         if ((ast_types::EXPRESSION & type) != 0)
         {
-            out += "EXPRESSION.";
+            a = "EXPRESSION.";
         }
         if ((ast_types::STMT & type) != 0)
         {
-            out += "STMT.";
+            a = "STMT.";
         }
         if ((ast_types::TYPE & type) != 0)
         {
-            out += "TYPE.";
+            a = "TYPE.";
         }
         if ((ast_types::BODY & type) != 0)
         {
-            out += "BODY.";
+            a = "BODY.";
         }
 
         // remove all flags
@@ -548,28 +552,32 @@ namespace logia::AST
         switch (type)
         {
         case ast_types::PROGRAM:
-            out += PROGRAM;
+            b = "PROGRAM";
             break;
         case ast_types::FUNCTION:
-            out += FUNCTION;
+            b = "FUNCTION";
             break;
         case ast_types::CALL_EXPRESSION:
-            out += CALL_EXPRESSION;
+            b = "CALL_EXPRESSION";
             break;
         case ast_types::STRING_LITERAL:
-            out += STRING_LITERAL;
+            b = "STRING_LITERAL";
             break;
         case ast_types::FLOAT_LITERAL:
-            out += FLOAT_LITERAL;
+            b = "FLOAT_LITERAL";
             break;
         case ast_types::INTEGER_LITERAL:
-            out += INTEGER_LITERAL;
+            b = "INTEGER_LITERAL";
             break;
         case ast_types::RETURN_STMT:
-            out += RETURN_STMT;
+            b = "RETURN_STMT";
             break;
         }
-        return out;
+        char *dst = (char *)malloc(strlen(a) + strlen(b) + 1);
+        strcpy(dst, a);
+        strcpy(dst, b);
+
+        return dst;
     }
 
     //

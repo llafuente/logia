@@ -15,25 +15,25 @@ namespace logia::AST
     enum ast_types : uint32_t
     {
         // flags
-        EXPRESSION = 0b1000000000000000,
-        STMT = 0b0100000000000000,
-        TYPE = 0b0010000000000000,
-        BODY = 0b0001000000000000,
+        EXPRESSION = (1 << 31),
+        STMT = (1 << 30),
+        TYPE = (1 << 29),
+        BODY = (1 << 28),
 
-        ALL_FLAGS = 0b1111000000000000,
+        ALL_FLAGS = EXPRESSION | STMT | TYPE | BODY,
 
         // types
-        PROGRAM = 0x01,
-        FUNCTION = 0x02,
-        BLOCK = 0x04,
-        CALL_EXPRESSION = 0x10,
-        STRING_LITERAL = 0x100,
-        FLOAT_LITERAL = 0x200,
-        INTEGER_LITERAL = 0x400,
-        IDENTIFIER = 0x0800,
+        PROGRAM = (1 << 1),
+        FUNCTION = (1 << 2),
+        BLOCK = (1 << 3),
+        CALL_EXPRESSION = (1 << 4),
+        STRING_LITERAL = (1 << 5),
+        FLOAT_LITERAL = (1 << 6),
+        INTEGER_LITERAL = (1 << 7),
+        IDENTIFIER = (1 << 8),
 
-        RETURN_STMT = 0x1000,
-        VAR_DECL_STMT = 0x2000
+        RETURN_STMT = (1 << 9),
+        VAR_DECL_STMT = (1 << 10)
         // NOTE: if modified -> ast_types_to_string
     };
 
@@ -152,11 +152,11 @@ namespace logia::AST
 
     struct FunctionParameters
     {
-        std::string name;
+        char *name;
         Type *type;
         Node *defaultValue;
         FunctionParameters(
-            std::string _name,
+            char *_name,
             Type *_type,
             Node *_defaultValue) : name(_name), type(_type), defaultValue(_defaultValue)
         {
@@ -174,15 +174,15 @@ namespace logia::AST
 
     struct StructProperty
     {
-        std::string name;
-        std::string docstring;
+        char *name;
+        char *docstring;
         enum StructPropertyType kind;
         Type *type;
         Expression *default_value;
 
         StructProperty(
-            std::string _name,
-            std::string _docstring,
+            char *_name,
+            char *_docstring,
             enum StructPropertyType _kind,
             Type *_type,
             Expression *_default_value) : name(_name),
@@ -237,15 +237,17 @@ namespace logia::AST
         }
         Node *lookup(char *name)
         {
+            std::string_view name_view(name);
             Body *p = this;
             Node *f;
             do
             {
                 std::cout << p->toString() << ".lookup(" << name << ")" << std::endl;
-                f = p->scope[name];
-                if (f != nullptr)
+                // f = p->scope[name_view];
+                auto it = p->scope.find(name_view);
+                if (it != p->scope.end())
                 {
-                    return f;
+                    return it->second;
                 }
                 p = p->parent;
             } while (p != nullptr);
@@ -263,13 +265,31 @@ namespace logia::AST
         {
             this->type = (ast_types)(ast_types::PROGRAM | ast_types::BODY);
         }
+        ~Program()
+        {
+            /*
+            for (auto &pair : scope)
+            {
+                delete pair.second;    // delete the object
+                pair.second = nullptr; // avoid dangling pointer
+            }
+
+            scope.clear(); // remove all entries
+
+            for (int i = 0; i < statements.size(); ++i) {
+                delete statements[i];
+            }
+            statements.clear();
+            */
+        }
+
         std::string toString() override;
     };
 
     struct FunctionType
     {
         char *name;
-        std::string docstring;
+        char *docstring;
         std::vector<FunctionParameters> parameters;
         std::vector<llvm::Type *> parametersIR;
         Type *return_type;
@@ -279,9 +299,8 @@ namespace logia::AST
 
     struct StructType
     {
-
-        std::string name;
-        std::string docstring;
+        char *name;
+        char *docstring;
         std::vector<StructProperty> properties;
         std::vector<Type *> methods;
     };
@@ -379,12 +398,16 @@ namespace logia::AST
         IntegerLiteral(antlr4::ParserRuleContext *rule, Node *parentNode, Type *type, int64_t value) : Expression(rule, ast_types::INTEGER_LITERAL, parentNode)
         {
             LOGIA_ASSERT(type);
+            this->uvalue = 0;
+
             this->ivalue = value;
             this->type = type;
         }
         IntegerLiteral(antlr4::ParserRuleContext *rule, Node *parentNode, Type *type, uint64_t value) : Expression(rule, ast_types::INTEGER_LITERAL, parentNode)
         {
             LOGIA_ASSERT(type);
+            this->ivalue = 0;
+
             this->uvalue = value;
             this->type = type;
         }
@@ -467,13 +490,13 @@ namespace logia::AST
     //
     // ast fill
     //
-    LOGIA_API void ast_function_add_param(Type *s, Type *param_type, std::string &&param_name, Expression *param_default_value);
-    LOGIA_API void ast_struct_add_field(Type *s, Type *prop_type, std::string &&prop_name, Expression *prop_default_value);
+    LOGIA_API void ast_function_add_param(Type *s, Type *param_type, char *param_name, Expression *param_default_value);
+    LOGIA_API void ast_struct_add_field(Type *s, Type *prop_type, char *prop_name, Expression *prop_default_value);
 
     //
     // ast query
     //
-    LOGIA_API std::string ast_types_to_string(ast_types type);
+    LOGIA_API LOGIA_LEND char *ast_types_to_string(ast_types type);
 
     //
     // ast-traverese/search

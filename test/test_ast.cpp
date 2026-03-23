@@ -101,7 +101,7 @@ TEST(AST_Type, ast_create_struct_type)
 
   auto string_t = ast_create_struct_type(program, strdup("string"));
   EXPECT_EQ(string_t->Struct.properties.size(), 0);
-  ast_struct_add_field(string_t, (logia::AST::Type *)program->lookup(strdup("λi64")), "capacity", nullptr);
+  ast_struct_add_field(string_t, (logia::AST::Type *)program->lookup(strdup("λi64")), strdup("capacity"), nullptr);
   EXPECT_EQ(string_t->Struct.properties.size(), 1);
 
   EXPECT_TRUE(string_t->Struct.properties[0].isField());
@@ -115,7 +115,7 @@ TEST(AST_Type, ast_create_struct_type)
   logia::AST::Type *func = logia::AST::ast_create_function_type(program, strdup("main"), logia::AST::ast_get_type_by_name(program, strdup("λi32")));
   EXPECT_TRUE(func);
 
-  ast_function_add_param(func, string_t, "first", nullptr);
+  ast_function_add_param(func, string_t, strdup("first"), nullptr);
 
   program->add_statement(func);
 
@@ -171,7 +171,7 @@ TEST(AST_Type, ast_create_var_decl)
 
   auto string_t = ast_create_struct_type(program, strdup("string"));
   EXPECT_EQ(string_t->Struct.properties.size(), 0);
-  ast_struct_add_field(string_t, (logia::AST::Type *)program->lookup(strdup("λi64")), "capacity", nullptr);
+  ast_struct_add_field(string_t, (logia::AST::Type *)program->lookup(strdup("λi64")), strdup("capacity"), nullptr);
   EXPECT_EQ(string_t->Struct.properties.size(), 1);
 
   EXPECT_TRUE(string_t->Struct.properties[0].isField());
@@ -215,6 +215,64 @@ TEST(AST_Type, ast_create_var_decl)
 
   int exit_code = back->run_jit();
   EXPECT_EQ(exit_code, 0);
+
+  delete back;
+}
+
+#define TEST_INIT_MAIN()                                                                                                                \
+  logia::Backend *back;                                                                                                                 \
+  logia::AST::Program *program;                                                                                                         \
+  logia::AST::Type *main_fn;                                                                                                            \
+  logia::AST::Body *main_body;                                                                                                          \
+  do                                                                                                                                    \
+  {                                                                                                                                     \
+    back = new logia::Backend();                                                                                                        \
+    back->load_intrinsics();                                                                                                            \
+    program = logia::AST::ast_create_program(back->context);                                                                            \
+    main_fn = logia::AST::ast_create_function_type(program, strdup("main"), logia::AST::ast_get_type_by_name(program, strdup("λi32"))); \
+    EXPECT_TRUE(main_fn);                                                                                                               \
+    program->add_statement(main_fn);                                                                                                    \
+    main_body = main_fn->Function.body;                                                                                                 \
+  } while (0)
+
+// sum 15+20 as variables
+TEST(AST_Type, ast_create_var_decl2)
+{
+  TEST_INIT_MAIN();
+
+  using namespace logia::AST;
+
+  auto str_a = strdup("a");
+  {
+    auto value_a = createSignedIntegerLiteral(program, 11);
+    auto vdecl_a = ast_create_var_decl(main_body, str_a, value_a->type, value_a);
+    main_body->add_statement(vdecl_a);
+  }
+
+  auto str_b = strdup("b");
+  {
+    auto value_b = createSignedIntegerLiteral(program, 12);
+    auto vdecl_b = ast_create_var_decl(main_body, str_b, value_b->type, value_b);
+    main_body->add_statement(vdecl_b);
+  }
+
+  // print static string from variable
+  {
+    auto ident_a = (Expression *)ast_create_identifier(main_body, str_a);
+    auto ident_b = (Expression *)ast_create_identifier(main_body, str_b);
+
+    auto callFuncName = createStringLiteral(strdup("logia_operator_add_i64_i64"));
+    auto sum_expr = createCallExpression(callFuncName, {ident_a, ident_b});
+
+    main_fn->Function.body->add_statement(createReturn(sum_expr));
+  }
+
+  program->codegen(back, back->builder);
+
+  back->emitTargetLLVMIR("./tmp/alloca-integer-sum.ll");
+
+  int exit_code = back->run_jit();
+  EXPECT_EQ(exit_code, 11 + 12);
 
   delete back;
 }
