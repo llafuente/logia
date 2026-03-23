@@ -8,6 +8,7 @@
 namespace logia::AST
 {
     // foward declaration
+    struct Body;
     struct Type;
     struct Expression;
 
@@ -29,7 +30,10 @@ namespace logia::AST
         STRING_LITERAL = 0x100,
         FLOAT_LITERAL = 0x200,
         INTEGER_LITERAL = 0x400,
+        IDENTIFIER = 0x0800,
+
         RETURN_STMT = 0x1000,
+        VAR_DECL_STMT = 0x2000
         // NOTE: if modified -> ast_types_to_string
     };
 
@@ -90,7 +94,7 @@ namespace logia::AST
             return out;
         }
 
-        virtual llvm::Value *codegen(logia::Backend *codegen) = 0;
+        virtual llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) = 0;
     };
 
     enum class Primitives
@@ -209,13 +213,13 @@ namespace logia::AST
     struct Body : public Node
     {
     public:
-        Body *parent;
         std::vector<Node *> statements;
         // wrong char* is not the expected type, no "=="
         // std::map<char*, Node*> scope;
         // std::unordered_map<char*, Node*> scope;
         // string_view works with char*
         std::unordered_map<std::string_view, Node *> scope;
+        Body *parent;
         // TODO remove body as we can reverse the tree and search it!
         Body(antlr4::ParserRuleContext *rule, Node *parentNode, Body *parent) : Node(rule, ast_types::BODY, parentNode)
         {
@@ -250,7 +254,16 @@ namespace logia::AST
         }
 
         std::string toString() override;
-        llvm::Value *codegen(logia::Backend *codegen) override;
+        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+    };
+    class Program : public Body
+    {
+    public:
+        Program(antlr4::ParserRuleContext *rule, Node *parentNode, Body *parent) : Body(rule, parentNode, parent)
+        {
+            this->type = (ast_types)(ast_types::PROGRAM | ast_types::BODY);
+        }
+        std::string toString() override;
     };
 
     struct FunctionType
@@ -301,7 +314,7 @@ namespace logia::AST
         bool isStruct() { return this->type == Primitives::Struct; };
 
         std::string toString() override;
-        llvm::Value *codegen(logia::Backend *codegen) override;
+        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
     };
 
     struct Expression : Node
@@ -324,7 +337,7 @@ namespace logia::AST
             this->arguments = arguments;
         }
         std::string toString() override;
-        llvm::Value *codegen(logia::Backend *codegen) override;
+        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
     };
     struct MemberAccessExpression : Expression
     {
@@ -340,7 +353,7 @@ namespace logia::AST
             this->text = text;
         }
         std::string toString() override;
-        llvm::Value *codegen(logia::Backend *codegen) override;
+        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
     };
 
     struct FloatLiteral : Expression
@@ -355,7 +368,7 @@ namespace logia::AST
             this->type = type;
         }
         std::string toString() override;
-        llvm::Value *codegen(logia::Backend *codegen) override;
+        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
     };
     struct IntegerLiteral : Expression
     {
@@ -376,24 +389,60 @@ namespace logia::AST
             this->type = type;
         }
         std::string toString() override;
-        llvm::Value *codegen(logia::Backend *codegen) override;
+        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
     };
 
-    struct ReturnStmt : Node
+    struct Identifier : Expression
+    {
+        char *identifier;
+        Identifier(antlr4::ParserRuleContext *rule, Node *parentNode, char *identifier) : Expression(rule, ast_types::IDENTIFIER, parentNode)
+        {
+            LOGIA_ASSERT(type);
+            this->identifier = identifier;
+        }
+        std::string toString() override;
+        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+    };
+
+    struct Stmt : Node
+    {
+        // REVIEW strange  why do i need to declare this ?
+        Stmt(antlr4::ParserRuleContext *rule, ast_types type, Node *parentNode) : Node(rule, (ast_types)(type | ast_types::STMT), parentNode) {}
+        std::string toString() override
+        {
+            return "Statement";
+        }
+    };
+
+    struct ReturnStmt : Stmt
     {
         Expression *expr;
-        ReturnStmt(antlr4::ParserRuleContext *rule, Node *parentNode, Expression *expr) : Node(rule, ast_types::RETURN_STMT, parentNode)
+        ReturnStmt(antlr4::ParserRuleContext *rule, Node *parentNode, Expression *expr) : Stmt(rule, ast_types::RETURN_STMT, parentNode)
         {
             this->expr = expr;
         }
         std::string toString() override;
-        llvm::Value *codegen(logia::Backend *codegen) override;
+        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+    };
+
+    struct VarDeclStmt : Stmt
+    {
+        char *name;
+        Type *type;
+        Expression *expr;
+        llvm::AllocaInst *ir;
+
+        VarDeclStmt(antlr4::ParserRuleContext *rule, Node *parentNode, char *name, Type *type, Expression *expr) : Stmt(rule, ast_types::VAR_DECL_STMT, parentNode), ir(nullptr)
+        {
+            this->name = name;
+            this->type = type;
+            this->expr = expr;
+        }
+        std::string toString() override;
+        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
     };
 
     // shortcuts api
-
-    LOGIA_API Body *createProgram(llvm::LLVMContext &C);
-
     LOGIA_API Body *createBody(Node *parentNode);
 
     FloatLiteral *createFloatLiteral(Body *body, double value);
@@ -409,8 +458,11 @@ namespace logia::AST
     //
     // ast creation
     //
+    LOGIA_API Program *ast_create_program(llvm::LLVMContext &C);
     LOGIA_API Type *ast_create_function_type(Body *body, char *name, Type *return_type);
     LOGIA_API Type *ast_create_struct_type(Body *body, char *name);
+    LOGIA_API VarDeclStmt *ast_create_var_decl(Node *current, char *name, Type *type, Expression *expr);
+    LOGIA_API Identifier *ast_create_identifier(Node *current, char *name);
 
     //
     // ast fill
@@ -434,5 +486,6 @@ namespace logia::AST
      * reverse the tree searching for given name
      */
     LOGIA_API Type *ast_get_type_by_name(Node *current, char *name);
+    LOGIA_API VarDeclStmt *ast_get_vardecl_by_name(Node *current, char *name);
 
 }

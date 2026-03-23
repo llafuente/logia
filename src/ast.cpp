@@ -4,10 +4,9 @@
 
 namespace logia::AST
 {
-    LOGIA_API Body *createProgram(llvm::LLVMContext &C)
+    LOGIA_API Program *ast_create_program(llvm::LLVMContext &C)
     {
-        auto body = new Body(nullptr, nullptr, nullptr);
-        body->type = (ast_types)(body->type | ast_types::PROGRAM); // override
+        auto body = new Program(nullptr, nullptr, nullptr);
 
         // we know declare all primitives
         // any type in the language should use those
@@ -169,18 +168,22 @@ namespace logia::AST
         char buffer[36];
         return std::string(itoa(i, buffer, 10));
     }
-
+    std::string Program::toString()
+    {
+        char buffer[36];
+        return std::string("program[") + std::string(itoa(this->children.size(), buffer, 10)) + "] ";
+    }
     std::string Body::toString()
     {
         char buffer[36];
-        return std::string(this->parent ? "body[" : "program[") + std::string(itoa(this->children.size(), buffer, 10)) + "] ";
+        return std::string("body[") + std::string(itoa(this->children.size(), buffer, 10)) + "] ";
     }
     std::string Type::toString()
     {
         switch (this->type)
         {
         case Primitives::PRIMITIVE_FUNCTION:
-            return "Type[Function]";
+            return std::string("Type[Function]") + this->Function.name;
         case Primitives::Void:
             return "Type[Void]";
         case Primitives::i8:
@@ -227,37 +230,33 @@ namespace logia::AST
         return "ReturnStmt";
     }
 
+    std::string VarDeclStmt::toString()
+    {
+        return "VarDeclStmt";
+    }
+    std::string Identifier::toString()
+    {
+        return std::string("Identifier: ") + this->identifier;
+    }
+
     ///
     /// codegen
     ///
-
-    llvm::Value *Body::codegen(logia::Backend *codegen)
+    llvm::Value *Body::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
     {
-        llvm::BasicBlock *BB = nullptr;
-        if (this->parent)
-        {
-            BB = llvm::BasicBlock::Create(codegen->context, "entry", nullptr);
-        }
-
         DEBUG() << this->toString() << std::endl;
 
         for (int i = 0; i < this->children.size(); i++)
         {
-            // update insert point on everystatement as visitor may change it!
-            // REVIEW builder should be a param for codegen, this will be a problem soon.
-            if (BB)
-            {
-                codegen->builder->SetInsertPoint(BB);
-            }
-            // update insert point on everystatement as visitor may change it!
             Node *n = this->children[i];
             DEBUG() << "codegen.statement[" << i << "] " << n->toString() << std::endl;
-            auto inst = n->codegen(codegen);
+            auto inst = n->codegen(codegen, builder);
         }
-        return BB;
+
+        return nullptr;
     }
 
-    llvm::Value *Type::codegen(logia::Backend *codegen)
+    llvm::Value *Type::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
     {
         DEBUG() << this->toString() << std::endl;
         // cache, because type are unique and we will be visiting this a lot
@@ -274,9 +273,9 @@ namespace logia::AST
             this->Function.parametersIR.reserve(pcount);
             for (int i = 0; i < pcount; ++i)
             {
-                this->Function.parametersIR.push_back((llvm::Type *)this->Function.parameters[i].type->codegen(codegen));
+                this->Function.parametersIR.push_back((llvm::Type *)this->Function.parameters[i].type->codegen(codegen, builder));
             }
-            this->Function.return_type->codegen(codegen);
+            this->Function.return_type->codegen(codegen, builder);
             this->ir = (llvm::Type *)llvm::FunctionType::get(this->Function.return_type->ir,
                                                              this->Function.parametersIR, // parameter list
                                                              false);                      // not variadic
@@ -285,8 +284,12 @@ namespace logia::AST
 
             // Create a basic block and insert a return
 
-            llvm::BasicBlock *BB = (llvm::BasicBlock *)this->Function.body->codegen(codegen);
+            llvm::BasicBlock *BB = llvm::BasicBlock::Create(codegen->context, "entry", nullptr);
             BB->insertInto(this->Function.functionIR);
+
+            llvm::IRBuilder<> *builderInto = new llvm::IRBuilder<>(codegen->context);
+            builderInto->SetInsertPoint(BB);
+            this->Function.body->codegen(codegen, builderInto);
 
             return (llvm::Value *)this->ir;
         }
@@ -301,7 +304,7 @@ namespace logia::AST
                 auto p = &this->Struct.properties[i];
                 if (p->isField())
                 {
-                    elements.push_back((llvm::Type *)p->type->codegen(codegen));
+                    elements.push_back((llvm::Type *)p->type->codegen(codegen, builder));
                 }
             }
             auto st = llvm::StructType::create(codegen->context, this->Struct.name);
@@ -317,7 +320,7 @@ namespace logia::AST
         throw std::exception("TODO!");
     }
 
-    llvm::Value *CallExpression::codegen(logia::Backend *codegen)
+    llvm::Value *CallExpression::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
     {
         DEBUG() << this->toString() << std::endl;
 
@@ -335,62 +338,92 @@ namespace logia::AST
         for (unsigned i = 0, e = this->arguments.size(); i != e; ++i)
         {
             DEBUG() << "argument[" << i << "]" << std::endl;
-            ArgsV.push_back(this->arguments[i]->codegen(codegen));
+            ArgsV.push_back(this->arguments[i]->codegen(codegen, builder));
             if (!ArgsV.back())
                 return nullptr;
         }
         // NOTE name is not what i expect -> blank!
-        return codegen->builder->CreateCall(CalleeF, ArgsV);
-        //return codegen->builder->CreateCall(CalleeF, ArgsV, "call");
-        // return (llvm::Value*) llvm::CallInst::Create(CalleeF, ArgsV, "call");
+        return builder->CreateCall(CalleeF, ArgsV);
+        // return builder->CreateCall(CalleeF, ArgsV, "call");
+        //  return (llvm::Value*) llvm::CallInst::Create(CalleeF, ArgsV, "call");
     }
 
-    llvm::Value *IntegerLiteral::codegen(logia::Backend *codegen)
+    llvm::Value *IntegerLiteral::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
     {
         DEBUG() << this->toString() << std::endl;
-        return llvm::ConstantInt::get((llvm::Type *)this->type->codegen(codegen), llvm::APInt(this->type->Integer.bits, this->ivalue, this->type->Integer.isSigned));
+        return llvm::ConstantInt::get((llvm::Type *)this->type->codegen(codegen, builder), llvm::APInt(this->type->Integer.bits, this->ivalue, this->type->Integer.isSigned));
     }
 
-    llvm::Value *FloatLiteral::codegen(logia::Backend *codegen)
+    llvm::Value *FloatLiteral::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
     {
         DEBUG() << this->toString() << std::endl;
         throw std::exception("todo");
     }
 
-    llvm::Value *StringLiteral::codegen(logia::Backend *codegen)
+    llvm::Value *StringLiteral::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
     {
         DEBUG() << this->toString() << std::endl;
         // NOTE module is required or 0xc0000005
         // !getType()->isVoidTy() && "Cannot assign a name to void values!"??
-        return codegen->builder->CreateGlobalString(this->text, ".str", 0, &*codegen->module, true);
-/*
-        llvm::Constant *strConst = llvm::ConstantDataArray::getString(codegen->context, this->text, true);
+        return builder->CreateGlobalString(this->text, ".str", 0, codegen->module.get(), true);
+        /*
+                llvm::Constant *strConst = llvm::ConstantDataArray::getString(codegen->context, this->text, true);
 
-        // Create a global variable to hold the string
-        llvm::GlobalVariable *gvar = new llvm::GlobalVariable(
-            codegen->module,
-            strConst->getType(),
-            true, // isConstant
-            llvm::GlobalValue::PrivateLinkage,
-            strConst,
-            ".str");
+                // Create a global variable to hold the string
+                llvm::GlobalVariable *gvar = new llvm::GlobalVariable(
+                    codegen->module,
+                    strConst->getType(),
+                    true, // isConstant
+                    llvm::GlobalValue::PrivateLinkage,
+                    strConst,
+                    ".str");
 
-        gvar->setAlignment(llvm::Align(1));
+                gvar->setAlignment(llvm::Align(1));
 
-        return gvar;
-*/
+                return gvar;
+        */
     }
 
-    llvm::Value *ReturnStmt::codegen(logia::Backend *codegen)
+    llvm::Value *ReturnStmt::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
     {
         DEBUG() << this->toString() << std::endl;
         if (!this->expr)
         {
-            return codegen->builder->CreateRetVoid();
+            return builder->CreateRetVoid();
             // return llvm::ReturnInst::Create(codegen->context);
         }
-        // return llvm::ReturnInst::Create(codegen->context, this->expr->codegen(codegen));
-        return codegen->builder->CreateRet(this->expr->codegen(codegen));
+        // return llvm::ReturnInst::Create(codegen->context, this->expr->codegen(codegen, builder));
+        return builder->CreateRet(this->expr->codegen(codegen, builder));
+    }
+
+    llvm::Value *VarDeclStmt::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    {
+        if (this->ir != nullptr)
+        {
+            return this->ir;
+        }
+
+        DEBUG() << this->toString() << " into " << builder->GetInsertBlock()->getNumber() << std::endl;
+        auto value = (llvm::Value *)this->expr->codegen(codegen, builder);
+
+        value->getType()->print(llvm::outs());
+
+        // TODO Type should be handled before ?
+        // this->ir = builder->CreateAlloca((llvm::Type*) this->type->codegen(codegen, builder), 0, value);
+        // this->ir = builder->CreateAlloca(value->getType(), 0, value);
+        this->ir = builder->CreateAlloca(value->getType(), 0, nullptr);
+        builder->CreateStore(value, this->ir);
+
+        return this->ir;
+    }
+
+    llvm::Value *Identifier::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    {
+        DEBUG() << this->toString() << std::endl;
+
+        auto decl = ast_get_vardecl_by_name(this, this->identifier);
+
+        return builder->CreateLoad(decl->ir->getAllocatedType(), decl->ir, this->identifier);
     }
 
     //
@@ -430,6 +463,33 @@ namespace logia::AST
         return t;
     }
 
+    LOGIA_API VarDeclStmt *ast_create_var_decl(Node *current, char *name, Type *type, Expression *expr)
+    {
+        LOGIA_ASSERT(current);
+        LOGIA_ASSERT(name);
+
+        auto parentBody = (Body *)ast_find_closest_parent(current, ast_types::BODY);
+        LOGIA_ASSERT(parentBody);
+
+        VarDeclStmt *variable = new VarDeclStmt(nullptr, nullptr, name, type, expr);
+        expr->parentNode = variable;
+
+        parentBody->set(name, variable);
+
+        return variable;
+    }
+
+    LOGIA_API Identifier *ast_create_identifier(Node *current, char *name)
+    {
+        LOGIA_ASSERT(current);
+        LOGIA_ASSERT(name);
+
+        auto parentBody = (Body *)ast_find_closest_parent(current, ast_types::BODY);
+        LOGIA_ASSERT(parentBody);
+
+        return new Identifier(nullptr, nullptr, name);
+    }
+
     //
     // ast fill
     //
@@ -440,6 +500,10 @@ namespace logia::AST
         // LOGIA_ASSERT(*prop_name);
 
         auto param = s->Function.parameters.emplace_back(param_name, param_type, param_default_value);
+        if (param_default_value)
+        {
+            param_default_value->parentNode = s;
+        }
     }
     LOGIA_API void ast_struct_add_field(Type *s, Type *prop_type, std::string &&prop_name, Expression *prop_default_value)
     {
@@ -448,6 +512,10 @@ namespace logia::AST
         // LOGIA_ASSERT(*prop_name);
 
         auto prop = s->Struct.properties.emplace_back(prop_name, "", StructPropertyType::STRUCT_PROPERTY_TYPE_FIELD, prop_type, prop_default_value);
+        if (prop_default_value)
+        {
+            prop_default_value->parentNode = s;
+        }
     }
 
     //
@@ -519,6 +587,7 @@ namespace logia::AST
             {
                 return current;
             }
+            current = current->parentNode;
         } while (current != nullptr);
 
         return nullptr;
@@ -530,6 +599,20 @@ namespace logia::AST
         LOGIA_ASSERT(body); // this shall exists!
         // TODO cast if possible or nullptr!
         return (Type *)body->lookup(name);
+    }
+
+    LOGIA_API VarDeclStmt *ast_get_vardecl_by_name(Node *current, char *name)
+    {
+        auto body = (Body *)ast_find_closest_parent(current, ast_types::BODY);
+        LOGIA_ASSERT(body); // this shall exists!
+        // TODO cast if possible or nullptr!
+        Node *n = body->lookup(name);
+        if (n != nullptr)
+        {
+            LOGIA_ASSERT((n->type & ast_types::VAR_DECL_STMT) != 0);
+            return (VarDeclStmt *)n;
+        }
+        return nullptr;
     }
 
 }
