@@ -14,12 +14,16 @@ namespace logia::AST
 
     enum ast_types : uint32_t
     {
-        // flags
+        // expression flag
         EXPRESSION = (1 << 31),
+        // statement flag
         STMT = (1 << 30),
+        // type flag
         TYPE = (1 << 29),
+        // body flag
         BODY = (1 << 28),
 
+        // all flag bits, to remove them if necessary
         ALL_FLAGS = EXPRESSION | STMT | TYPE | BODY,
 
         // types
@@ -56,25 +60,23 @@ namespace logia::AST
         ~Node() {}
 
         // std::string getText() { return this->rule->getText(); }
-
-        void addChild(Node *t)
+        /**
+         * Adds child at the end
+         */
+        void push_child(Node *child)
         {
-            children.push_back(t);
+            children.push_back(child);
+            child->parentNode = this;
+        }
+        /**
+         * Adds a child at start
+         */
+        void unshift_child(Node *child)
+        {
+            children.insert(children.begin(), child);
+            child->parentNode = this;
         }
 
-        std::vector<Node *> getChildren() { return children; }
-
-        virtual std::string toString() = 0;
-        /*
-                {
-                    char buffer[36];
-                    itoa(this->children.size(), buffer, 10);
-
-                    return std::string("Node(").append(buffer).append(")");
-                    // TODO
-                    // return this->getText();
-                }
-        */
         std::string toStringTree(std::string padding = "")
         {
             std::cout << this->children.size() << std::endl;
@@ -93,53 +95,49 @@ namespace logia::AST
             }
             return out;
         }
-
+        /**
+         * print essential information nto debug
+         */
+        virtual std::string toString() = 0;
+        /**
+         * AST -> LLVM
+         */
         virtual llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) = 0;
     };
 
     enum class Primitives
     {
-        Void,
+        VOID_TY,
 
-        i8,
-        i16,
-        i32,
-        i64,
-        u8,
-        u16,
-        u32,
-        u64,
-        f16,
-        f32,
-        f64,
-        f128,
+        BOOL_TY,
 
-        /*
-        Method	Bit Width	Description
-        *Type::getHalfTy(context)	16	IEEE 754 half precision
-        Type::getBFloatTy(context)	16	Brain floating point
-        *Type::getFloatTy(context)	32	IEEE 754 single precision
-        *Type::getDoubleTy(context)	64	IEEE 754 double precision
-        *Type::getFP128Ty(context)	128	IEEE 754 quadruple precision
-        Type::getX86_FP80Ty(context)	80	x87 extended precision
-        Type::getPPC_FP128Ty(context)	128	PowerPC double-double
-        */
+        I8_TY,
+        I16_TY,
+        I32_TY,
+        I64_TY,
+        U8_TY,
+        U16_TY,
+        U32_TY,
+        U64_TY,
+        F16_TY,
+        F32_TY,
+        F64_TY,
+        F128_TY,
 
         // aliases but very special...
-        Int,
-        Bool,
-        size,
-        ptrdiff,
-        address,
-        Typeid,
+        // Int,
+        // size,
+        // ptrdiff,
+        // address,
+        // Typeid,
 
-        ptr,
-        Enum,
-        Struct,
-        interface,
-        PRIMITIVE_FUNCTION,
+        PTR_TY,
+        // Enum,
+        STRUCT_TY,
+        // interface,
+        FUNCTION_TY,
         // this is a pointer to function, but we may need to declare at this level
-        callable,
+        // callable,
     };
 
     enum class StructPropertyType
@@ -180,19 +178,6 @@ namespace logia::AST
         Type *type;
         Expression *default_value;
 
-        StructProperty(
-            char *_name,
-            char *_docstring,
-            enum StructPropertyType _kind,
-            Type *_type,
-            Expression *_default_value) : name(_name),
-                                          docstring(_docstring),
-                                          kind(_kind),
-                                          type(_type),
-                                          default_value(_default_value)
-        {
-        }
-
         bool isField() { return this->kind == StructPropertyType::STRUCT_PROPERTY_TYPE_FIELD; };
         bool isAlias() { return this->kind == StructPropertyType::STRUCT_PROPERTY_TYPE_ALIAS; };
         bool isGetter() { return this->kind == StructPropertyType::STRUCT_PROPERTY_TYPE_GETTER; };
@@ -202,7 +187,7 @@ namespace logia::AST
     struct IntegerProperties
     {
         int bits;
-        bool isSigned;
+        bool is_signed;
     };
 
     struct FloatProperties
@@ -213,11 +198,9 @@ namespace logia::AST
     struct Body : public Node
     {
     public:
-        std::vector<Node *> statements;
-        // wrong char* is not the expected type, no "=="
-        // std::map<char*, Node*> scope;
-        // std::unordered_map<char*, Node*> scope;
-        // string_view works with char*
+        // NOTE: about cpp
+        // std::unordered_map<char*, Node*> scope; --> wrong char* is not the expected type, no "=="
+        // std::unordered_map<string, Node*> scope; --> misc errors
         std::unordered_map<std::string_view, Node *> scope;
         Body *parent;
         // TODO remove body as we can reverse the tree and search it!
@@ -225,22 +208,12 @@ namespace logia::AST
         {
             this->parent = parent;
         }
-        void unshift_statement(Node* node)
-        {
-            node->parentNode = this;
-            statements.insert(statements.begin(), node);
-            addChild(node);
-        }
-        void push_statement(Node *node)
-        {
-            node->parentNode = this;
-            statements.push_back(node);
-            addChild(node);
-        }
+
         void set(char *name, Node *node)
         {
             this->scope[name] = node;
         }
+
         Node *lookup(char *name)
         {
             std::string_view name_view(name);
@@ -299,7 +272,7 @@ namespace logia::AST
         std::vector<FunctionParameters> parameters;
         std::vector<llvm::Type *> parametersIR;
         Type *return_type;
-        
+
         /**
          * intrinsic are defined in the compiler process or in the module bootstrap
          */
@@ -319,7 +292,7 @@ namespace logia::AST
     struct LOGIA_EXPORT Type : public Node
     {
     public:
-        Primitives type = Primitives::Void;
+        Primitives primitive = Primitives::VOID_TY;
         // modifiers
         bool readonly = false;
 
@@ -334,14 +307,14 @@ namespace logia::AST
             FloatProperties Float;
         };
 
-        Type(antlr4::ParserRuleContext *rule, Node *parentNode, Primitives type) : Node(rule, ast_types::TYPE, parentNode)
+        Type(antlr4::ParserRuleContext *rule, Node *parentNode, Primitives prim) : Node(rule, ast_types::TYPE, parentNode)
         {
-            this->type = type;
+            this->primitive = prim;
         }
         ~Type() {}
 
-        bool isFunction() { return this->type == Primitives::PRIMITIVE_FUNCTION; };
-        bool isStruct() { return this->type == Primitives::Struct; };
+        bool isFunction() { return this->primitive == Primitives::FUNCTION_TY; };
+        bool isStruct() { return this->primitive == Primitives::STRUCT_TY; };
 
         std::string toString() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
@@ -484,30 +457,93 @@ namespace logia::AST
     //
     // ast creation
     //
+    /**
+     * Creates a body (function body/block scope)
+     */
     LOGIA_API LOGIA_LEND Body *ast_create_body(Node *parentNode);
+    /**
+     * Creates a floating point literal
+     */
     LOGIA_API LOGIA_LEND FloatLiteral *ast_create_float_lit(Body *body, double value);
+    /**
+     * Creates a signed integer literal
+     */
     LOGIA_API LOGIA_LEND IntegerLiteral *ast_create_int_lit(Body *body, int64_t value);
+    /**
+     * Creates an unsigned integer literal
+     */
     LOGIA_API LOGIA_LEND IntegerLiteral *ast_create_uint_lit(Body *body, uint64_t value);
+    /**
+     * Creates a call expression
+     */
     LOGIA_API LOGIA_LEND CallExpression *ast_create_call_expr(Expression *locator, std::vector<Expression *> arguments);
+    /**
+     * Creates a string literal
+     */
     LOGIA_API LOGIA_LEND StringLiteral *ast_create_string_literal(char *text);
+    /**
+     * Creates a return statement
+     */
     LOGIA_API LOGIA_LEND ReturnStmt *ast_create_return(Expression *ret);
+    /**
+     * Creates a program
+     */
     LOGIA_API LOGIA_LEND Program *ast_create_program(llvm::LLVMContext &C);
+    /**
+     * Creates a function
+     */
     LOGIA_API LOGIA_LEND Type *ast_create_function_type(Body *body, char *name, Type *return_type);
+    /**
+     * Creates a intrinsic function
+     *
+     * REVIEW TODO this may also need to call backkend::add_intrinsic to keep everything sync.
+     */
     LOGIA_API LOGIA_LEND Type *ast_create_instrinsic(Program *program, char *name, Type *return_type);
+    /**
+     * Creates a struct type
+     */
     LOGIA_API LOGIA_LEND Type *ast_create_struct_type(Body *body, char *name);
+    /**
+     * Creates a variable declaration
+     * Note, to create a constant Type should be readonly.
+     */
     LOGIA_API LOGIA_LEND VarDeclStmt *ast_create_var_decl(Node *current, char *name, Type *type, Expression *expr);
+    /**
+     * Creates an identifier
+     */
     LOGIA_API LOGIA_LEND Identifier *ast_create_identifier(Node *current, char *name);
 
     //
     // ast fill
     //
+    /**
+     * Adds a parameter to a function
+     */
     LOGIA_API void ast_function_add_param(Type *s, Type *param_type, char *param_name, Expression *param_default_value);
+    /**
+     * Adds a field to struct
+     */
     LOGIA_API void ast_struct_add_field(Type *s, Type *prop_type, char *prop_name, Expression *prop_default_value);
 
     //
     // ast query
     //
+    /**
+     * Converts Primitives enum to string
+     */
+    LOGIA_API LOGIA_LEND char *ast_primitives_to_string(Primitives prim);
+    /**
+     * Converts ast_types enum to string
+     */
     LOGIA_API LOGIA_LEND char *ast_types_to_string(ast_types type);
+    /**
+     * callback type for traverse function
+     */
+    typedef bool (*ast_traverse_callback_t)(Node *);
+    /**
+     * traverse subnodes.
+     */
+    void ast_traverse(Node *current, ast_traverse_callback_t cb);
 
     //
     // ast-traverese/search
@@ -517,9 +553,12 @@ namespace logia::AST
      */
     LOGIA_API Node *ast_find_closest_parent(Node *current, ast_types mask_type);
     /**
-     * reverse the tree searching for given name
+     * reverse the tree searching for given name that match with a Type
      */
     LOGIA_API Type *ast_get_type_by_name(Node *current, char *name);
+    /**
+     * reverse the tree searching for given name that match with a vardecl
+     */
     LOGIA_API VarDeclStmt *ast_get_vardecl_by_name(Node *current, char *name);
 
 }

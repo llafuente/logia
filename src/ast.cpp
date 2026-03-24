@@ -11,95 +11,95 @@ namespace logia::AST
         // we know declare all primitives
         // any type in the language should use those
         // it's prohibited to create type using llvm
-        // everything shall be supported at logia::AST::Type
+        // everything shall be supported directly
 
-        Type *i8 = new Type(nullptr, body, Primitives::i8);
+        Type *i8 = new Type(nullptr, body, Primitives::I8_TY);
         i8->Integer.bits = 8;
-        i8->Integer.isSigned = true;
+        i8->Integer.is_signed = true;
         i8->ir = llvm::Type::getInt8Ty(C);
 
         body->scope[(char *)"λi8"] = i8;
 
-        Type *i16 = new Type(nullptr, body, Primitives::i16);
+        Type *i16 = new Type(nullptr, body, Primitives::I16_TY);
         i16->Integer.bits = 16;
-        i16->Integer.isSigned = true;
+        i16->Integer.is_signed = true;
         i16->ir = llvm::Type::getInt16Ty(C);
 
         body->scope[(char *)"λi16"] = i16;
 
-        Type *i32 = new Type(nullptr, body, Primitives::i32);
+        Type *i32 = new Type(nullptr, body, Primitives::I32_TY);
         i32->Integer.bits = 32;
-        i32->Integer.isSigned = true;
+        i32->Integer.is_signed = true;
         i32->ir = llvm::Type::getInt32Ty(C);
 
         body->scope[(char *)"λi32"] = i32;
 
-        Type *i64 = new Type(nullptr, body, Primitives::i64);
+        Type *i64 = new Type(nullptr, body, Primitives::I64_TY);
         i64->Integer.bits = 64;
-        i64->Integer.isSigned = true;
+        i64->Integer.is_signed = true;
         i64->ir = llvm::Type::getInt64Ty(C);
 
         body->scope[(char *)"λi64"] = i64;
 
-        Type *u8 = new Type(nullptr, body, Primitives::u8);
+        Type *u8 = new Type(nullptr, body, Primitives::U8_TY);
         u8->Integer.bits = 8;
-        u8->Integer.isSigned = true;
+        u8->Integer.is_signed = true;
         u8->ir = llvm::Type::getInt8Ty(C);
 
         body->scope[(char *)"λu8"] = u8;
 
-        Type *u16 = new Type(nullptr, body, Primitives::u16);
+        Type *u16 = new Type(nullptr, body, Primitives::U16_TY);
         u16->Integer.bits = 16;
-        u16->Integer.isSigned = true;
+        u16->Integer.is_signed = true;
         u16->ir = llvm::Type::getInt16Ty(C);
 
         body->scope[(char *)"λu16"] = u16;
 
-        Type *u32 = new Type(nullptr, body, Primitives::u32);
+        Type *u32 = new Type(nullptr, body, Primitives::U32_TY);
         u32->Integer.bits = 32;
-        u32->Integer.isSigned = true;
+        u32->Integer.is_signed = true;
         u32->ir = llvm::Type::getInt32Ty(C);
 
         body->scope[(char *)"λu32"] = u32;
 
-        Type *u64 = new Type(nullptr, body, Primitives::u64);
+        Type *u64 = new Type(nullptr, body, Primitives::U64_TY);
         u64->Integer.bits = 64;
-        u64->Integer.isSigned = true;
+        u64->Integer.is_signed = true;
         u64->ir = llvm::Type::getInt64Ty(C);
 
         body->scope[(char *)"λu64"] = u64;
 
-        Type *f16 = new Type(nullptr, body, Primitives::f16);
+        Type *f16 = new Type(nullptr, body, Primitives::F16_TY);
         f16->Float.bits = 16;
         f16->ir = llvm::Type::getHalfTy(C);
 
         body->scope[(char *)"λf16"] = f16;
 
-        Type *f32 = new Type(nullptr, body, Primitives::f32);
+        Type *f32 = new Type(nullptr, body, Primitives::F32_TY);
         f32->Float.bits = 32;
         f32->ir = llvm::Type::getFloatTy(C);
 
         body->scope[(char *)"λf32"] = f32;
 
-        Type *f64 = new Type(nullptr, body, Primitives::f64);
+        Type *f64 = new Type(nullptr, body, Primitives::F64_TY);
         f64->Float.bits = 64;
         f64->ir = llvm::Type::getDoubleTy(C);
 
         body->scope[(char *)"λf64"] = f64;
 
-        Type *f128 = new Type(nullptr, body, Primitives::f128);
+        Type *f128 = new Type(nullptr, body, Primitives::F128_TY);
         f128->Float.bits = 64;
         f128->ir = llvm::Type::getFP128Ty(C);
 
         body->scope[(char *)"λf128"] = f128;
 
-        Type *lvoid = new Type(nullptr, body, Primitives::Void);
+        Type *lvoid = new Type(nullptr, body, Primitives::VOID_TY);
         lvoid->ir = llvm::Type::getVoidTy(C);
 
         body->scope[(char *)"λvoid"] = lvoid;
 
         // TODO study opaque pointers, while seem what we need
-        Type *ptr = new Type(nullptr, body, Primitives::ptr);
+        Type *ptr = new Type(nullptr, body, Primitives::PTR_TY);
         // opaque pointer, do not store information about pointee
         ptr->ir = llvm::PointerType::get(C, 0);
         body->scope[(char *)"λptr"] = ptr;
@@ -152,21 +152,7 @@ namespace logia::AST
     }
     std::string Type::toString()
     {
-        switch (this->type)
-        {
-        case Primitives::PRIMITIVE_FUNCTION:
-            return std::string("Type[Function]") + this->Function.name;
-        case Primitives::Void:
-            return "Type[Void]";
-        case Primitives::i8:
-            return "Type[i8]";
-        case Primitives::i64:
-            return "Type[i64]";
-        case Primitives::Struct:
-            return "Type[struct]";
-        }
-
-        return "Type[?]";
+        return std::string("Type[") + ast_primitives_to_string(this->primitive) + "]";
     }
 
     std::string CallExpression::toString()
@@ -220,9 +206,9 @@ namespace logia::AST
     {
         DEBUG() << this->toString() << std::endl;
 
-        for (int i = 0; i < this->statements.size(); i++)
+        for (int i = 0; i < this->children.size(); i++)
         {
-            Node *n = this->statements[i];
+            Node *n = this->children[i];
             DEBUG() << "codegen.statement[" << i << "] " << n->toString() << std::endl;
             auto inst = n->codegen(codegen, builder);
         }
@@ -239,9 +225,9 @@ namespace logia::AST
             return (llvm::Value *)this->ir;
         }
 
-        switch (this->type)
+        switch (this->primitive)
         {
-        case Primitives::PRIMITIVE_FUNCTION:
+        case Primitives::FUNCTION_TY:
         {
 
             int pcount = this->Function.parameters.size();
@@ -275,7 +261,7 @@ namespace logia::AST
             return (llvm::Value *)this->ir;
         }
         break;
-        case Primitives::Struct:
+        case Primitives::STRUCT_TY:
         {
             auto max = this->Struct.properties.size();
             std::vector<llvm::Type *> elements;
@@ -334,7 +320,7 @@ namespace logia::AST
     llvm::Value *IntegerLiteral::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
     {
         DEBUG() << this->toString() << std::endl;
-        return llvm::ConstantInt::get((llvm::Type *)this->type->codegen(codegen, builder), llvm::APInt(this->type->Integer.bits, this->ivalue, this->type->Integer.isSigned));
+        return llvm::ConstantInt::get((llvm::Type *)this->type->codegen(codegen, builder), llvm::APInt(this->type->Integer.bits, this->ivalue, this->type->Integer.is_signed));
     }
 
     llvm::Value *FloatLiteral::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
@@ -446,7 +432,7 @@ namespace logia::AST
         LOGIA_ASSERT(name);
         LOGIA_ASSERT(return_type);
 
-        Type *t = new Type(nullptr, parentBody, Primitives::PRIMITIVE_FUNCTION);
+        Type *t = new Type(nullptr, parentBody, Primitives::FUNCTION_TY);
         new (&t->Function) FunctionType();
         t->Function.name = name;
         t->Function.return_type = return_type;
@@ -463,7 +449,7 @@ namespace logia::AST
         LOGIA_ASSERT(name);
         LOGIA_ASSERT(return_type);
 
-        Type *t = new Type(nullptr, program, Primitives::PRIMITIVE_FUNCTION);
+        Type *t = new Type(nullptr, program, Primitives::FUNCTION_TY);
         new (&t->Function) FunctionType();
         t->Function.name = name;
         t->Function.return_type = return_type;
@@ -471,7 +457,7 @@ namespace logia::AST
         t->Function.body = nullptr;
 
         program->set(name, t);
-        program->unshift_statement(t);
+        program->unshift_child(t);
 
         return t;
     }
@@ -484,7 +470,7 @@ namespace logia::AST
         auto parentBody = (Body *)ast_find_closest_parent(current, ast_types::BODY);
         LOGIA_ASSERT(parentBody);
 
-        Type *t = new Type(nullptr, nullptr, Primitives::Struct);
+        Type *t = new Type(nullptr, nullptr, Primitives::STRUCT_TY);
         new (&t->Struct) StructType();
         t->Struct.name = name;
 
@@ -552,6 +538,14 @@ namespace logia::AST
     // ast query
     //
 
+    void ast_traverse(Node *current, ast_traverse_callback_t cb)
+    {
+        auto t = current->type;
+        if ((t & ast_types::PROGRAM) != 0)
+        {
+        }
+    }
+
     LOGIA_API LOGIA_LEND char *ast_types_to_string(ast_types type)
     {
         const char *a;
@@ -575,7 +569,7 @@ namespace logia::AST
         }
 
         // remove all flags
-        type = (ast_types)(type & ~ALL_FLAGS);
+        type = (ast_types)(type & ~ast_types::ALL_FLAGS);
 
         switch (type)
         {
@@ -606,6 +600,49 @@ namespace logia::AST
         strcpy(dst, b);
 
         return dst;
+    }
+
+    LOGIA_API LOGIA_LEND char *ast_primitives_to_string(Primitives prim)
+    {
+        switch (prim)
+        {
+        case Primitives::VOID_TY:
+            return strdup("void");
+        case Primitives::I8_TY:
+            return strdup("i8");
+        case Primitives::I16_TY:
+            return strdup("i16");
+        case Primitives::I32_TY:
+            return strdup("i32");
+        case Primitives::I64_TY:
+            return strdup("i64");
+        case Primitives::U8_TY:
+            return strdup("u8");
+        case Primitives::U16_TY:
+            return strdup("u16");
+        case Primitives::U32_TY:
+            return strdup("u32");
+        case Primitives::U64_TY:
+            return strdup("u64");
+        case Primitives::F16_TY:
+            return strdup("f16");
+        case Primitives::F32_TY:
+            return strdup("f32");
+        case Primitives::F64_TY:
+            return strdup("f64");
+        case Primitives::F128_TY:
+            return strdup("f128");
+        case Primitives::BOOL_TY:
+            return strdup("bool");
+        case Primitives::PTR_TY:
+            return strdup("ptr");
+        case Primitives::STRUCT_TY:
+            return strdup("struct");
+        case Primitives::FUNCTION_TY:
+            return strdup("function");
+        default:
+            throw std::exception("unreachable");
+        }
     }
 
     //
@@ -650,5 +687,4 @@ namespace logia::AST
         }
         return nullptr;
     }
-
 }
