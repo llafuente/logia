@@ -1,6 +1,8 @@
 # logia
 
-Compiler for logia language
+Compiler for logia language (logia language spec)[https://github.com/llafuente/language-spec]
+
+Due to the nature of the language, most of the compiler is in fact inside the languae so the compiler sould be used to develop other languages.
 
 ## install/build/develop
 

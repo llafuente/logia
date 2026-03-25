@@ -37,7 +37,8 @@ namespace logia::AST
         IDENTIFIER = (1 << 8),
 
         RETURN_STMT = (1 << 9),
-        VAR_DECL_STMT = (1 << 10)
+        VAR_DECL_STMT = (1 << 10),
+        IF_STMT = (1 << 11)
         // NOTE: if modified -> ast_types_to_string
     };
 
@@ -45,11 +46,26 @@ namespace logia::AST
     struct LOGIA_EXPORT Node
     {
     public:
+        /**
+         * TODO
+         */
         antlr4::ParserRuleContext *rule = nullptr;
-        ast_types type;
+        /**
+         * Node type to be able to cast from node back to the real type
+         */
+        ast_types type = (ast_types)0;
+        /**
+         * parent node to traverse to root
+         */
         Node *parentNode = nullptr;
-
-        std::vector<Node *> children; // normalized list of children
+        /**
+         * Avoid children modification (from API uknow :)
+         */
+        bool freezed = false;
+        /**
+         * My beatiful children, and some not so beatiful.
+         */
+        std::vector<Node *> children = {}; // normalized list of children
 
         Node(antlr4::ParserRuleContext *rule, ast_types type, Node *parentNode)
         {
@@ -59,12 +75,17 @@ namespace logia::AST
         }
         ~Node() {}
 
+        // TODO
         // std::string getText() { return this->rule->getText(); }
         /**
          * Adds child at the end
          */
         void push_child(Node *child)
         {
+            if (freezed)
+            {
+                throw std::exception("Node is freezed");
+            }
             children.push_back(child);
             child->parentNode = this;
         }
@@ -73,6 +94,10 @@ namespace logia::AST
          */
         void unshift_child(Node *child)
         {
+            if (freezed)
+            {
+                throw std::exception("Node is freezed");
+            }
             children.insert(children.begin(), child);
             child->parentNode = this;
         }
@@ -202,15 +227,19 @@ namespace logia::AST
         // std::unordered_map<char*, Node*> scope; --> wrong char* is not the expected type, no "=="
         // std::unordered_map<string, Node*> scope; --> misc errors
         std::unordered_map<std::string_view, Node *> scope;
-        Body *parent;
+        Body *parent = nullptr;
+        llvm::BasicBlock *llvm_basicblock = nullptr;
         // TODO remove body as we can reverse the tree and search it!
         Body(antlr4::ParserRuleContext *rule, Node *parentNode, Body *parent) : Node(rule, ast_types::BODY, parentNode)
         {
             this->parent = parent;
         }
-
+        /**
+         * Register a name in the scope
+         */
         void set(char *name, Node *node)
         {
+            // TODO check for valid ast_types
             this->scope[name] = node;
         }
 
@@ -235,6 +264,12 @@ namespace logia::AST
         }
 
         std::string toString() override;
+        /**
+         * Creates named or returns cached LLVM BasicBlock
+         * 
+         * NOTE: BasicBlocks needs to be created and attached before codegen inside them or raise SEH / parenting issues
+         */
+        llvm::BasicBlock *create_llvm_block(logia::Backend *codegen, char *name);
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
     };
     class Program : public Body
@@ -449,6 +484,35 @@ namespace logia::AST
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
     };
 
+    struct IfStmt : Stmt
+    {
+        char *name;
+        Type *type;
+        Expression *expr;
+        llvm::AllocaInst *ir;
+
+        IfStmt(antlr4::ParserRuleContext *rule, Node *parentNode, Expression *condition) : Stmt(rule, ast_types::IF_STMT, parentNode), ir(nullptr)
+        {
+            this->push_child(condition);
+            this->push_child(new Body(nullptr, this, nullptr)); // thenblock
+            this->push_child(new Body(nullptr, this, nullptr)); // elseblock
+            this->freezed = true;
+        }
+        Expression *get_condition()
+        {
+            return (Expression *)this->children[0];
+        }
+        Body *get_then()
+        {
+            return (Body *)this->children[1];
+        }
+        Body *get_else()
+        {
+            return (Body *)this->children[2];
+        }
+        std::string toString() override;
+        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+    };
     //
     // logia AST c api
     // this can be used in comptime execution
@@ -461,6 +525,10 @@ namespace logia::AST
      * Creates a body (function body/block scope)
      */
     LOGIA_API LOGIA_LEND Body *ast_create_body(Node *parentNode);
+    /**
+     * Creates a string literal
+     */
+    LOGIA_API LOGIA_LEND StringLiteral *ast_create_string_lit(char *text);
     /**
      * Creates a floating point literal
      */
@@ -477,10 +545,6 @@ namespace logia::AST
      * Creates a call expression
      */
     LOGIA_API LOGIA_LEND CallExpression *ast_create_call_expr(Expression *locator, std::vector<Expression *> arguments);
-    /**
-     * Creates a string literal
-     */
-    LOGIA_API LOGIA_LEND StringLiteral *ast_create_string_literal(char *text);
     /**
      * Creates a return statement
      */
@@ -512,7 +576,10 @@ namespace logia::AST
      * Creates an identifier
      */
     LOGIA_API LOGIA_LEND Identifier *ast_create_identifier(Node *current, char *name);
-
+    /**
+     * Creates an identifier
+     */
+    LOGIA_API LOGIA_LEND IfStmt *ast_create_if(Expression *condition);
     //
     // ast fill
     //

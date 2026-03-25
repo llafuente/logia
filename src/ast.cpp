@@ -116,16 +116,20 @@ namespace logia::AST
 
         return new Body(nullptr, parentNode, parentBody);
     }
-
-    FloatLiteral *ast_create_float_lit(Body *body, double value)
+    LOGIA_API LOGIA_LEND StringLiteral *ast_create_string_lit(char *text)
+    {
+        // TODO review remove parentNode from constructor, is a leaf right?
+        return new StringLiteral(nullptr, nullptr, text);
+    }
+    LOGIA_API LOGIA_LEND FloatLiteral *ast_create_float_lit(Body *body, double value)
     {
         return new FloatLiteral(nullptr, nullptr, (Type *)body->lookup(strdup("λf64")), value);
     }
-    IntegerLiteral *ast_create_int_lit(Body *body, int64_t value)
+    LOGIA_API LOGIA_LEND IntegerLiteral *ast_create_int_lit(Body *body, int64_t value)
     {
         return new IntegerLiteral(nullptr, nullptr, (Type *)body->lookup(strdup("λi64")), value);
     }
-    IntegerLiteral *ast_create_uint_lit(Body *body, uint64_t value)
+    LOGIA_API LOGIA_LEND IntegerLiteral *ast_create_uint_lit(Body *body, uint64_t value)
     {
         return new IntegerLiteral(nullptr, nullptr, (Type *)body->lookup(strdup("λu64")), value);
     }
@@ -198,6 +202,23 @@ namespace logia::AST
     {
         return std::string("Identifier: ") + this->identifier;
     }
+    std::string IfStmt::toString()
+    {
+        return std::string("IfStmt: ");
+    }
+
+    llvm::BasicBlock *Body::create_llvm_block(logia::Backend *codegen, char *name)
+    {
+        if (this->llvm_basicblock)
+        {
+            return this->llvm_basicblock;
+        }
+
+        DEBUG() << this->toString() << std::endl;
+
+        this->llvm_basicblock = llvm::BasicBlock::Create(codegen->context, name, nullptr);
+        return this->llvm_basicblock;
+    }
 
     ///
     /// codegen
@@ -206,6 +227,35 @@ namespace logia::AST
     {
         DEBUG() << this->toString() << std::endl;
 
+        // not the main program -> override block!
+        if ((type & ast_types::PROGRAM) == 0)
+        {
+            this->create_llvm_block(codegen, nullptr);
+            builder = new llvm::IRBuilder<>(codegen->context);
+            builder->SetInsertPoint(this->llvm_basicblock);
+            /*
+            auto p = this->parentNode;
+            if ((p->type & ast_types::BLOCK) != 0) {
+                auto p = (Body*) p;
+                BB->insertInto(nullptr, p->llvm_basicblock);
+            } else if ((p->type & ast_types::TYPE) != 0) {
+                auto pfunc = (Type*)(p);
+                BB->insertInto(pfunc->Function.functionIR);
+            }
+            else if ((p->type & ast_types::STMT) != 0) {
+                p->parentNode = p;
+                if ((p->type & ast_types::BLOCK) != 0) {
+                    throw std::runtime_error(std::string("invalid stmt, has no parent body: ") + p->toString());
+                }
+
+                auto pfunc = (Type*)(p);
+
+            } else {
+                throw std::runtime_error(std::string("invalid parent for body: ") + p->toString() );
+            }
+            */
+        }
+
         for (int i = 0; i < this->children.size(); i++)
         {
             Node *n = this->children[i];
@@ -213,7 +263,7 @@ namespace logia::AST
             auto inst = n->codegen(codegen, builder);
         }
 
-        return nullptr;
+        return this->llvm_basicblock;
     }
 
     llvm::Value *Type::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
@@ -249,13 +299,9 @@ namespace logia::AST
             {
                 LOGIA_ASSERT(this->Function.body);
 
-                llvm::BasicBlock *BB = llvm::BasicBlock::Create(codegen->context, "entry", nullptr);
+                auto BB = (llvm::BasicBlock *)this->Function.body->create_llvm_block(codegen, (char *)"entry");
                 BB->insertInto(this->Function.functionIR);
-
-                llvm::IRBuilder<> *builderInto = new llvm::IRBuilder<>(codegen->context);
-                builderInto->SetInsertPoint(BB);
-
-                this->Function.body->codegen(codegen, builderInto);
+                this->Function.body->codegen(codegen, builder);
             }
 
             return (llvm::Value *)this->ir;
@@ -372,7 +418,7 @@ namespace logia::AST
             return this->ir;
         }
 
-        DEBUG() << this->toString() << " into " << builder->GetInsertBlock()->getNumber() << std::endl;
+        DEBUG() << this->toString() << " into ??" << /*builder->GetInsertBlock()->getNumber() <<*/ std::endl;
         auto value = (llvm::Value *)this->expr->codegen(codegen, builder);
 
         value->getType()->print(llvm::outs());
@@ -395,6 +441,28 @@ namespace logia::AST
         return builder->CreateLoad(decl->ir->getAllocatedType(), decl->ir, this->identifier);
     }
 
+    llvm::Value *IfStmt::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    {
+        DEBUG() << this->toString() << std::endl;
+
+        auto condition = this->get_condition()->codegen(codegen, builder);
+        auto then_body = this->get_then();
+        auto else_body = this->get_else();
+        auto then_block = then_body->create_llvm_block(codegen, (char *)"thenblock");
+        auto else_block = else_body->create_llvm_block(codegen, (char *)"elseblock");
+
+        // NOTE create before codegen each block so the blocks are attached to function before codegen
+        auto v = builder->CreateCondBr(condition, then_block, else_block);
+        auto func = builder->GetInsertBlock()->getParent();
+        func->insert(func->end(), then_block);
+        func->insert(func->end(), else_block);
+
+        then_body->codegen(codegen, builder);
+        else_body->codegen(codegen, builder);
+
+        return v;
+    }
+
     //
     // ast creation
     //
@@ -412,11 +480,6 @@ namespace logia::AST
         }
 
         return callexpr;
-    }
-    LOGIA_API StringLiteral *ast_create_string_literal(char *text)
-    {
-        // TODO review remove parentNode from constructor, is a leaf right?
-        return new StringLiteral(nullptr, nullptr, text);
     }
 
     LOGIA_API ReturnStmt *ast_create_return(Expression *ret)
@@ -504,6 +567,13 @@ namespace logia::AST
         LOGIA_ASSERT(parentBody);
 
         return new Identifier(nullptr, nullptr, strdup(name));
+    }
+
+    LOGIA_API LOGIA_LEND IfStmt *ast_create_if(Expression *condition)
+    {
+        LOGIA_ASSERT(condition);
+
+        return new IfStmt(nullptr, nullptr, condition);
     }
 
     //

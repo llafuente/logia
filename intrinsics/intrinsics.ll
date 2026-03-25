@@ -64,8 +64,17 @@ define dso_local i64 @logia_operator_add_i64_i64(i64 noundef %0, i64 noundef %1)
   ret i64 %7
 }
 
-; intrinsics direct way
-; declare dso_local i64 @logia_compiler_to_jit_test() #1
+; Function Attrs: mustprogress noinline nounwind optnone uwtable
+define dso_local zeroext i1 @logia_operator_equal_i64_i64(i64 noundef %0, i64 noundef %1) #2 {
+  %3 = alloca i64, align 8
+  %4 = alloca i64, align 8
+  store i64 %1, ptr %3, align 8
+  store i64 %0, ptr %4, align 8
+  %5 = load i64, ptr %4, align 8
+  %6 = load i64, ptr %3, align 8
+  %7 = icmp eq i64 %5, %6
+  ret i1 %7
+}
 
 attributes #0 = { mustprogress noinline optnone uwtable "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
 attributes #1 = { "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
