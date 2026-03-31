@@ -193,6 +193,11 @@ namespace logia::AST
         return str;
     }
 
+    std::string MemberAccessExpression::toString()
+    {
+        return std::string("MemberAccessExpression: ") + this->left->toString() + "." + this->right->toString();
+    }
+
     std::string ReturnStmt::toString()
     {
         return "ReturnStmt";
@@ -449,6 +454,28 @@ namespace logia::AST
         return builder->CreateLoad(decl->ir->getAllocatedType(), decl->ir, this->identifier);
     }
 
+    llvm::Value* MemberAccessExpression::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) {
+        DEBUG() << this->toString() << std::endl;
+        // TODO handle left side to be a pointer to struct or struct itself, for now we assume it's always a pointer
+        auto leftValue = this->left->codegen(codegen, builder);
+        auto rightIdent = (Identifier*) this->right;
+        auto structType = (Type*) ((llvm::PointerType*) leftValue->getType())->getElementType();
+
+        // find property index
+        int propertyIndex = -1;
+        for (int i = 0; i < structType->Struct.properties.size(); ++i) {
+            if (strcmp(structType->Struct.properties[i].name, rightIdent->identifier) == 0) {
+                propertyIndex = i;
+                break;
+            }
+        }
+        if (propertyIndex == -1) {
+            throw std::runtime_error(std::string("Unknown struct property: ") + rightIdent->identifier);
+        }
+
+        return builder->CreateStructGEP(structType->ir, leftValue, propertyIndex);
+    }
+
     llvm::Value *IfStmt::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
     {
         DEBUG() << this->toString() << std::endl;
@@ -613,6 +640,7 @@ namespace logia::AST
         {
             param_default_value->parentNode = s;
         }
+        s->Function.body->set(param_name, param_type);
     }
     LOGIA_API void ast_struct_add_field(Type *s, Type *prop_type, char *prop_name, Expression *prop_default_value)
     {

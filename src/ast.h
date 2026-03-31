@@ -172,6 +172,7 @@ namespace logia::AST
         STRUCT_PROPERTY_TYPE_ALIAS,
         STRUCT_PROPERTY_TYPE_GETTER,
         STRUCT_PROPERTY_TYPE_SETTER,
+        STRUCT_PROPERTY_TYPE_METHOD,
     };
 
     struct FunctionParameters
@@ -208,7 +209,7 @@ namespace logia::AST
         bool isAlias() { return this->kind == StructPropertyType::STRUCT_PROPERTY_TYPE_ALIAS; };
         bool isGetter() { return this->kind == StructPropertyType::STRUCT_PROPERTY_TYPE_GETTER; };
         bool isSetter() { return this->kind == StructPropertyType::STRUCT_PROPERTY_TYPE_SETTER; };
-    };
+        bool isMethod() { return this->kind == StructPropertyType::STRUCT_PROPERTY_TYPE_METHOD; };
 
     struct IntegerProperties
     {
@@ -447,6 +448,19 @@ namespace logia::AST
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
     };
 
+    struct MemberAccessExpression : Expression
+    {
+        Node *left;
+        Node *right;
+        MemberAccessExpression(antlr4::ParserRuleContext *rule, Node *parentNode, Node *left, Node *right) : Expression(rule, ast_types::EXPRESSION, parentNode)
+        {
+            this->left = left;
+            this->right = right;
+        }
+        std::string toString() override;
+        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder
+    };
+
     struct Stmt : Node
     {
         // REVIEW strange  why do i need to declare this ?
@@ -526,6 +540,7 @@ namespace logia::AST
         std::string toString() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
     };
+    
     //
     // logia AST c api
     // this can be used in comptime execution
