@@ -38,7 +38,8 @@ namespace logia::AST
 
         RETURN_STMT = (1 << 9),
         VAR_DECL_STMT = (1 << 10),
-        IF_STMT = (1 << 11)
+        IF_STMT = (1 << 11),
+        GOTO_STMT = (1 << 12),
         // NOTE: if modified -> ast_types_to_string
     };
 
@@ -509,6 +510,18 @@ namespace logia::AST
         Body *get_else()
         {
             return (Body *)this->children[2];
+        }
+        std::string toString() override;
+        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+    };
+
+    struct GotoStmt : Stmt
+    {
+        char *name;
+
+        GotoStmt(antlr4::ParserRuleContext *rule, Node *parentNode, char *name) : Stmt(rule, ast_types::GOTO_STMT, parentNode)
+        {
+            this->name = name;
         }
         std::string toString() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;

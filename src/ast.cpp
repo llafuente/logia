@@ -133,6 +133,10 @@ namespace logia::AST
     {
         return new IntegerLiteral(nullptr, nullptr, (Type *)body->lookup(strdup("λu64")), value);
     }
+    LOGIA_API LOGIA_LEND GotoStmt *ast_create_goto_stmt(Body *body, char *name)
+    {
+        return new GotoStmt(nullptr, nullptr, name);
+    }
 
     ///
     /// toString
@@ -205,6 +209,10 @@ namespace logia::AST
     std::string IfStmt::toString()
     {
         return std::string("IfStmt: ");
+    }
+    std::string GotoStmt::toString()
+    {
+        return std::string("GotoStmt: ") + this->name;
     }
 
     llvm::BasicBlock *Body::create_llvm_block(logia::Backend *codegen, char *name)
@@ -463,6 +471,21 @@ namespace logia::AST
         return v;
     }
 
+    llvm::Value *GotoStmt::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    {
+        DEBUG() << this->toString() << std::endl;
+        // find label and jump to it
+        // function shall be inside the closest function
+        auto label = ast_find_closest_parent(this, ast_types::FUNCTION_BODY | ast_types::BODY);
+        if (!label)
+        {
+            throw std::runtime_error(std::string("goto statement has no parent function or body: ") + this->toString());
+        }
+        // TODO generate before or wait until generated to continue ?
+        builder->CreateBr(label->llvm_basic_block);
+    }
+
+
     //
     // ast creation
     //
@@ -500,7 +523,7 @@ namespace logia::AST
         t->Function.name = name;
         t->Function.return_type = return_type;
         t->Function.body = new Body(nullptr, t, parentBody);
-
+        t->Function.body->type = (ast_types)(ast_types::FUNCTION | ast_types::BODY);
         parentBody->set(name, t);
 
         return t;
