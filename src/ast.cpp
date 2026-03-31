@@ -476,6 +476,45 @@ namespace logia::AST
         return builder->CreateStructGEP(structType->ir, leftValue, propertyIndex);
     }
 
+    const char* ast_binary_operator_to_string(ast_binary_operator op) {
+        switch (op) {
+            case ast_binary_operator::ADD: return "logia_intrinsics_bin_add";
+            case ast_binary_operator::SUB: return "logia_intrinsics_bin_sub";
+            case ast_binary_operator::MUL: return "logia_intrinsics_bin_mul";
+            case ast_binary_operator::DIV: return "logia_intrinsics_bin_div";
+            case ast_binary_operator::MOD: return "logia_intrinsics_bin_mod";
+            case ast_binary_operator::EQ: return "logia_intrinsics_bin_eq";
+            case ast_binary_operator::NEQ: return "logia_intrinsics_bin_neq";
+            case ast_binary_operator::LT: return "logia_intrinsics_bin_lt";
+            case ast_binary_operator::GT: return "logia_intrinsics_bin_gt";
+            case ast_binary_operator::LEQ: return "logia_intrinsics_bin_leq";
+            case ast_binary_operator::GEQ: return "logia_intrinsics_bin_geq";
+            case ast_binary_operator::AND: return "logia_intrinsics_bin_and";
+            case ast_binary_operator::OR: return "logia_intrinsics_bin_or";
+            case ast_binary_operator::XOR: return "logia_intrinsics_bin_xor";
+            case ast_binary_operator::SHL: return "logia_intrinsics_bin_shl";
+            case ast_binary_operator::SHR: return "logia_intrinsics_bin_shr";
+            default: throw std::runtime_error("Unknown binary operator");
+        }
+    }
+
+    llvm::Value* BinaryExpression::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) {
+        DEBUG() << this->toString() << std::endl;
+        // a binary expression is desugared to a call expression with the operator as function and left and right as arguments
+        auto left = this->get_left()->codegen(codegen, builder);
+        auto right = this->get_right()->codegen(codegen, builder);
+        char* opName = ast_binary_operator_to_string(this->op->op);
+        // TODO concat left type as string to opName
+        // TODO concat right type as string to opName
+        // concat "i64_i64" to opName
+        char fnName[strlen(opName) + 20];
+        sprintf(fnName, "%s_i64_i64", opName);
+
+
+        auto callExpr = new CallExpression(nullptr, nullptr, fnName, std::vector<Expression*>{left, right});
+        return callExpr;
+    }
+
     llvm::Value *IfStmt::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
     {
         DEBUG() << this->toString() << std::endl;

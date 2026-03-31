@@ -461,6 +461,47 @@ namespace logia::AST
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder
     };
 
+    enum class BinaryOperator {
+        ADD,
+        SUB,
+        MUL,
+        DIV,
+        EQ,
+        NEQ,
+        LT,
+        GT,
+        LTE,
+        GTE,
+        AND,
+        OR,
+        NOT,
+        ASSIGN,
+        ADD_ASSIGN,
+        SUB_ASSIGN,
+        MUL_ASSIGN,
+        DIV_ASSIGN,
+        TERNARY
+    };
+
+    struct BinaryExpression : Expression
+    {
+        BinaryOperator *op;
+        BinaryExpression(antlr4::ParserRuleContext *rule, Node *parentNode, BinaryOperator *op, Expression *left, Expression *right) : Expression(rule, ast_types::EXPRESSION, parentNode)
+        {
+            this->op = op;
+            this->add_child(left);
+            this->add_child(right);
+        }
+        Expression* get_left() {
+            return (Expression *)this->children[0];
+        }
+        Expression* get_right() {
+            return (Expression *)this->children[1];
+        }
+        std::string toString() override;
+        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+    };
+
     struct Stmt : Node
     {
         // REVIEW strange  why do i need to declare this ?
