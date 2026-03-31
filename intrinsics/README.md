@@ -5,6 +5,10 @@ List of all logia intrinsics functions.
 # IR
 
 ```
+node .\intrinsics\generate-floating-operators.js > .\intrinsics\floating-operators.cpp
+node .\intrinsics\generate-integer-operators.js > .\intrinsics\integer-operators.cpp
+node .\intrinsics\generate-pointer-operators.js > .\intrinsics\pointer-operators.cpp
+
 node .\intrinsics\intrinsics.js > .\intrinsics\intrinsics.cpp
 & 'C:\Program Files\LLVM\bin\clang++.exe' -S -emit-llvm .\intrinsics\intrinsics.cpp -o .\intrinsics\intrinsics.ll
 ```

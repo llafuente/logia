@@ -1,0 +1,194 @@
+{
+  "operators": [
+    {
+      "operator": "+",
+      "type": "binary",
+      "category": "arithmetic"
+    },
+    {
+      "operator": "-",
+      "type": "binary",
+      "category": "arithmetic"
+    },
+    {
+      "operator": "-",
+      "type": "pre-unary",
+      "category": "arithmetic",
+      "description": "negation"
+    },
+    {
+      "operator": "*",
+      "type": "binary",
+      "category": "arithmetic"
+    },
+    {
+      "operator": "/",
+      "type": "binary",
+      "category": "arithmetic"
+    },
+    {
+      "operator": "%",
+      "type": "binary",
+      "category": "arithmetic"
+    },
+    {
+      "operator": "++",
+      "type": "pre-unary",
+      "category": "arithmetic",
+      "description": "prefix increment"
+    },
+    {
+      "operator": "--",
+      "type": "pre-unary",
+      "category": "arithmetic",
+      "description": "prefix decrement"
+    },
+        {
+      "operator": "++",
+      "type": "post-unary",
+      "category": "arithmetic",
+      "description": "postfix increment"
+    },
+    {
+      "operator": "--",
+      "type": "post-unary",
+      "category": "arithmetic",
+      "description": "postfix decrement"
+    },
+    {
+      "operator": "&",
+      "type": "binary",
+      "category": "bitwise"
+    },
+    {
+      "operator": "|",
+      "type": "binary",
+      "category": "bitwise"
+    },
+    {
+      "operator": "^",
+      "type": "binary",
+      "category": "bitwise"
+    },
+    {
+      "operator": "~",
+      "type": "pre-unary",
+      "category": "bitwise"
+    },
+    {
+      "operator": "<<",
+      "type": "binary",
+      "category": "bitwise"
+    },
+    {
+      "operator": ">>",
+      "type": "binary",
+      "category": "bitwise"
+    },
+    {
+      "operator": "==",
+      "type": "binary",
+      "category": "comparison"
+    },
+    {
+      "operator": "!=",
+      "type": "binary",
+      "category": "comparison"
+    },
+    {
+      "operator": "<",
+      "type": "binary",
+      "category": "comparison"
+    },
+    {
+      "operator": ">",
+      "type": "binary",
+      "category": "comparison"
+    },
+    {
+      "operator": "<=",
+      "type": "binary",
+      "category": "comparison"
+    },
+    {
+      "operator": ">=",
+      "type": "binary",
+      "category": "comparison"
+    },
+    {
+      "operator": "&&",
+      "type": "binary",
+      "category": "logical"
+    },
+    {
+      "operator": "||",
+      "type": "binary",
+      "category": "logical"
+    },
+    {
+      "operator": "!",
+      "type": "pre-unary",
+      "category": "logical"
+    },
+    {
+      "operator": "=",
+      "type": "binary",
+      "category": "assignment"
+    },
+    {
+      "operator": "+=",
+      "type": "binary",
+      "category": "assignment"
+    },
+    {
+      "operator": "-=",
+      "type": "binary",
+      "category": "assignment"
+    },
+    {
+      "operator": "*=",
+      "type": "binary",
+      "category": "assignment"
+    },
+    {
+      "operator": "/=",
+      "type": "binary",
+      "category": "assignment"
+    },
+    {
+      "operator": "%=",
+      "type": "binary",
+      "category": "assignment"
+    },
+    {
+      "operator": "&=",
+      "type": "binary",
+      "category": "assignment"
+    },
+    {
+      "operator": "|=",
+      "type": "binary",
+      "category": "assignment"
+    },
+    {
+      "operator": "^=",
+      "type": "binary",
+      "category": "assignment"
+    },
+    {
+      "operator": "<<=",
+      "type": "binary",
+      "category": "assignment"
+    },
+    {
+      "operator": ">>=",
+      "type": "binary",
+      "category": "assignment"
+    },
+    {
+      "operator": "? :",
+      "type": "ternary",
+      "category": "conditional"
+    }
+  ]
+}
