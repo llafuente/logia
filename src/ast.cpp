@@ -457,8 +457,11 @@ namespace logia::AST
     llvm::Value* MemberAccessExpression::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) {
         DEBUG() << this->toString() << std::endl;
         // TODO handle left side to be a pointer to struct or struct itself, for now we assume it's always a pointer
-        auto leftValue = this->left->codegen(codegen, builder);
-        auto rightIdent = (Identifier*) this->right;
+        auto left = this->get_left();
+        auto right = this->get_right();
+
+        auto leftValue = left->codegen(codegen, builder);
+        auto rightIdent = (Identifier*) right;
         auto structType = (Type*) ((llvm::PointerType*) leftValue->getType())->getElementType();
 
         // find property index
@@ -474,28 +477,6 @@ namespace logia::AST
         }
 
         return builder->CreateStructGEP(structType->ir, leftValue, propertyIndex);
-    }
-
-    const char* ast_binary_operator_to_string(ast_binary_operator op) {
-        switch (op) {
-            case ast_binary_operator::ADD: return "logia_intrinsics_bin_add";
-            case ast_binary_operator::SUB: return "logia_intrinsics_bin_sub";
-            case ast_binary_operator::MUL: return "logia_intrinsics_bin_mul";
-            case ast_binary_operator::DIV: return "logia_intrinsics_bin_div";
-            case ast_binary_operator::MOD: return "logia_intrinsics_bin_mod";
-            case ast_binary_operator::EQ: return "logia_intrinsics_bin_eq";
-            case ast_binary_operator::NEQ: return "logia_intrinsics_bin_neq";
-            case ast_binary_operator::LT: return "logia_intrinsics_bin_lt";
-            case ast_binary_operator::GT: return "logia_intrinsics_bin_gt";
-            case ast_binary_operator::LEQ: return "logia_intrinsics_bin_leq";
-            case ast_binary_operator::GEQ: return "logia_intrinsics_bin_geq";
-            case ast_binary_operator::AND: return "logia_intrinsics_bin_and";
-            case ast_binary_operator::OR: return "logia_intrinsics_bin_or";
-            case ast_binary_operator::XOR: return "logia_intrinsics_bin_xor";
-            case ast_binary_operator::SHL: return "logia_intrinsics_bin_shl";
-            case ast_binary_operator::SHR: return "logia_intrinsics_bin_shr";
-            default: throw std::runtime_error("Unknown binary operator");
-        }
     }
 
     llvm::Value* BinaryExpression::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) {
@@ -846,5 +827,48 @@ namespace logia::AST
             return (VarDeclStmt *)n;
         }
         return nullptr;
+    }
+
+    //
+    // utils
+    //
+    const char* ast_postfix_unary_operator_to_string(PostfixUnaryOperator op) {
+        switch (op) {
+            case PostfixUnaryOperator::INCREMENT: return "logia_intrinsics_postfix_inc";
+            case PostfixUnaryOperator::DECREMENT: return "logia_intrinsics_postfix_dec";
+            default: throw std::runtime_error("Unknown postfix unary operator");
+        }
+    }
+    const char* ast_prefix_unary_operator_to_string(PrefixUnaryOperator op) {
+        switch (op) {
+            case PrefixUnaryOperator::INCREMENT: return "logia_intrinsics_prefix_inc";
+            case PrefixUnaryOperator::DECREMENT: return "logia_intrinsics_prefix_dec";
+            case PrefixUnaryOperator::NEGATION: return "logia_intrinsics_prefix_neg";
+            case PrefixUnaryOperator::BITWISE_NOT: return "logia_intrinsics_prefix_bitwise_not";
+            case PrefixUnaryOperator::LOGICAL_NOT: return "logia_intrinsics_prefix_logical_not";
+            default: throw std::runtime_error("Unknown prefix unary operator");
+        }
+    }
+
+    const char* ast_binary_operator_to_string(ast_binary_operator op) {
+        switch (op) {
+            case ast_binary_operator::ADD: return "logia_intrinsics_bin_add";
+            case ast_binary_operator::SUB: return "logia_intrinsics_bin_sub";
+            case ast_binary_operator::MUL: return "logia_intrinsics_bin_mul";
+            case ast_binary_operator::DIV: return "logia_intrinsics_bin_div";
+            case ast_binary_operator::MOD: return "logia_intrinsics_bin_mod";
+            case ast_binary_operator::EQ: return "logia_intrinsics_bin_eq";
+            case ast_binary_operator::NEQ: return "logia_intrinsics_bin_neq";
+            case ast_binary_operator::LT: return "logia_intrinsics_bin_lt";
+            case ast_binary_operator::GT: return "logia_intrinsics_bin_gt";
+            case ast_binary_operator::LEQ: return "logia_intrinsics_bin_leq";
+            case ast_binary_operator::GEQ: return "logia_intrinsics_bin_geq";
+            case ast_binary_operator::AND: return "logia_intrinsics_bin_and";
+            case ast_binary_operator::OR: return "logia_intrinsics_bin_or";
+            case ast_binary_operator::XOR: return "logia_intrinsics_bin_xor";
+            case ast_binary_operator::SHL: return "logia_intrinsics_bin_shl";
+            case ast_binary_operator::SHR: return "logia_intrinsics_bin_shr";
+            default: throw std::runtime_error("Unknown binary operator");
+        }
     }
 }

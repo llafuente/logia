@@ -210,6 +210,7 @@ namespace logia::AST
         bool isGetter() { return this->kind == StructPropertyType::STRUCT_PROPERTY_TYPE_GETTER; };
         bool isSetter() { return this->kind == StructPropertyType::STRUCT_PROPERTY_TYPE_SETTER; };
         bool isMethod() { return this->kind == StructPropertyType::STRUCT_PROPERTY_TYPE_METHOD; };
+    };
 
     struct IntegerProperties
     {
@@ -229,7 +230,10 @@ namespace logia::AST
         // std::unordered_map<char*, Node*> scope; --> wrong char* is not the expected type, no "=="
         // std::unordered_map<string, Node*> scope; --> misc errors
         std::unordered_map<std::string_view, Node *> scope;
+        // back pointer to fast access
         Body *parent = nullptr;
+        // BasicBlock will be populated at create_llvm_block and cached
+        // NOTE BasicBlock needs to be attached before codegen into them
         llvm::BasicBlock *llvm_basicblock = nullptr;
         // TODO remove body as we can reverse the tree and search it!
         Body(antlr4::ParserRuleContext *rule, Node *parentNode, Body *parent) : Node(rule, ast_types::BODY, parentNode)
@@ -274,29 +278,13 @@ namespace logia::AST
         llvm::BasicBlock *create_llvm_block(logia::Backend *codegen, char *name);
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
     };
+
     class Program : public Body
     {
     public:
         Program(antlr4::ParserRuleContext *rule, Node *parentNode, Body *parent) : Body(rule, parentNode, parent)
         {
             this->type = (ast_types)(ast_types::PROGRAM | ast_types::BODY);
-        }
-        ~Program()
-        {
-            /*
-            for (auto &pair : scope)
-            {
-                delete pair.second;    // delete the object
-                pair.second = nullptr; // avoid dangling pointer
-            }
-
-            scope.clear(); // remove all entries
-
-            for (int i = 0; i < statements.size(); ++i) {
-                delete statements[i];
-            }
-            statements.clear();
-            */
         }
 
         std::string toString() override;
@@ -369,20 +357,30 @@ namespace logia::AST
 
     struct CallExpression : Expression
     {
-        Expression *locator;
+        // TODO remove locator!
+        Expression *locator = nullptr;
+        // TODO remove arguments!
         std::vector<Expression *> arguments;
         CallExpression(antlr4::ParserRuleContext *rule, Node *parentNode, Expression *locator, std::vector<Expression *> arguments) : Expression(rule, ast_types::CALL_EXPRESSION, parentNode)
         {
+            // TODO remove 2
             this->locator = locator;
             this->arguments = arguments;
+
+            this->push_child(locator);
+            for (int i = 0; i < arguments.size(); ++i)
+            {
+                this->push_child(arguments[i]);
+            }
+        }
+        Expression* get_locator() {
+            return this->children[0];
+        }
+        std::vector<Expression*> get_arguments() {
+            return std::vector<Expression*>(this->children.begin() + 1, this->children.end());
         }
         std::string toString() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
-    };
-    struct MemberAccessExpression : Expression
-    {
-        Node *left;
-        Node *right;
     };
 
     struct StringLiteral : Expression
@@ -450,12 +448,16 @@ namespace logia::AST
 
     struct MemberAccessExpression : Expression
     {
-        Node *left;
-        Node *right;
         MemberAccessExpression(antlr4::ParserRuleContext *rule, Node *parentNode, Node *left, Node *right) : Expression(rule, ast_types::EXPRESSION, parentNode)
         {
-            this->left = left;
-            this->right = right;
+            this->push_child(left);
+            this->push_child(right);
+        }
+        Expression* get_left() {
+            return (Expression *)this->children[0];
+        }
+        Expression* get_right() {
+            return (Expression *)this->children[1];
         }
         std::string toString() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder
@@ -480,15 +482,15 @@ namespace logia::AST
         SUB_ASSIGN,
         MUL_ASSIGN,
         DIV_ASSIGN,
-        TERNARY
     };
 
-    struct BinaryExpression : Expression
+    struct BinaryExpression : CallExpression
     {
-        BinaryOperator *op;
-        BinaryExpression(antlr4::ParserRuleContext *rule, Node *parentNode, BinaryOperator *op, Expression *left, Expression *right) : Expression(rule, ast_types::EXPRESSION, parentNode)
+        BinaryOperator op;
+        BinaryExpression(antlr4::ParserRuleContext *rule, Node *parentNode, BinaryOperator op, Expression *left, Expression *right) : Expression(rule, ast_types::EXPRESSION, parentNode)
         {
             this->op = op;
+            this->add_child(ast_create_identifier(nullptr, this, ast_binary_operator_to_string(op)));
             this->add_child(left);
             this->add_child(right);
         }
@@ -497,6 +499,49 @@ namespace logia::AST
         }
         Expression* get_right() {
             return (Expression *)this->children[1];
+        }
+        std::string toString() override;
+    };
+
+    enum class PrefixUnaryOperator {
+        NEG, // -
+        NOT, // !
+        INC, // ++
+        DEC, // --
+    };
+
+    struct PrefixUnaryExpression : CallExpression
+    {
+        PrefixUnaryOperator op;
+        PrefixUnaryExpression(antlr4::ParserRuleContext *rule, Node *parentNode, PrefixUnaryOperator op, Expression *operand) : Expression(rule, ast_types::EXPRESSION, parentNode)
+        {
+            this->op = op;
+            this->add_child(ast_create_identifier(nullptr, this, ast_prefix_unary_operator_to_string(op)));
+            this->add_child(operand);
+        }
+        Expression* get_operand() {
+            return (Expression *)this->children[0];
+        }
+        std::string toString() override;
+        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+    };
+
+    enum class PostfixUnaryOperator {
+        INC, // ++
+        DEC, // --
+    };
+
+    struct PostfixUnaryExpression : CallExpression
+    {
+        PostfixUnaryOperator op;
+        PostfixUnaryExpression(antlr4::ParserRuleContext *rule, Node *parentNode, PostfixUnaryOperator op, Expression *operand) : Expression(rule, ast_types::EXPRESSION, parentNode)
+        {
+            this->op = op;
+            this->add_child(ast_create_identifier(nullptr, this, ast_postfix_unary_operator_to_string(op)));
+            this->add_child(operand);
+        }
+        Expression* get_operand() {
+            return (Expression *)this->children[0];
         }
         std::string toString() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
@@ -697,4 +742,10 @@ namespace logia::AST
      */
     LOGIA_API VarDeclStmt *ast_get_vardecl_by_name(Node *current, char *name);
 
+    //
+    // utils
+    //
+    LOGIA_API const char* ast_postfix_unary_operator_to_string(PostfixUnaryOperator op);
+    LOGIA_API const char* ast_prefix_unary_operator_to_string(PrefixUnaryOperator op);
+    LOGIA_API const char* ast_binary_operator_to_string(ast_binary_operator op);
 }
