@@ -160,6 +160,35 @@ namespace logia::AST
     }
     std::string Type::toString()
     {
+        switch(this->primitive) {
+            case Primitives::FUNCTION_TY:
+            // concat each parameter type
+            std::string params;
+            for (auto &param : this->Function.parameters)
+            {
+                if (!params.empty())
+                {
+                    params += ", ";
+                }
+                params += ast_primitives_to_string(param.type);
+            }
+            return std::string("Type[") + ast_primitives_to_string(this->Function.returnType) + " function " + this->Function.name + "(" + params + ")" + "]";
+            case Primitives::STRUCT_TY:
+                // concat all properties with their type
+                std::string properties;
+                for (auto &prop : this->Struct.properties)
+                {
+                    if (prop.isField()) {
+                        if (!properties.empty())
+                        {
+                            properties += ", ";
+                        }
+                        properties += ast_primitives_to_string(prop.type);
+                    }
+                }
+                return std::string("Type[struct ") + this->Struct.name + " {" + properties + "}";
+        }
+
         return std::string("Type[") + ast_primitives_to_string(this->primitive) + "]";
     }
 
