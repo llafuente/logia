@@ -118,6 +118,7 @@ namespace logia::AST
             for (int i = 0; i < this->children.size(); i++)
             {
                 out += this->children[i]->toStringTree(padding);
+                out += "\n";
             }
             return out;
         }
@@ -372,16 +373,8 @@ namespace logia::AST
 
     struct CallExpression : Expression
     {
-        // TODO remove locator!
-        Expression *locator = nullptr;
-        // TODO remove arguments!
-        std::vector<Expression *> arguments;
         CallExpression(antlr4::ParserRuleContext *rule, Node *parentNode, Expression *locator, std::vector<Expression *> arguments) : Expression(rule, ast_types::CALL_EXPRESSION, parentNode)
         {
-            // TODO remove 2
-            this->locator = locator;
-            this->arguments = arguments;
-
             this->push_child(locator);
             for (int i = 0; i < arguments.size(); ++i)
             {
@@ -392,6 +385,8 @@ namespace logia::AST
         {
             return (Expression *)this->children[0];
         }
+        // TODO this should be std::vector<Expression *>
+        // but casting fail
         std::vector<Node *> get_arguments()
         {
             return std::vector<Node *>(this->children.begin() + 1, this->children.end());
@@ -424,25 +419,23 @@ namespace logia::AST
     {
     public:
         double value;
-        Type *type;
 
         FloatLiteral(antlr4::ParserRuleContext *rule, Node *parentNode, Type *type, double value) : Expression(rule, ast_types::FLOAT_LITERAL, parentNode)
         {
             this->value = value;
-            this->type = type;
+            this->push_child(type);
         }
         std::string toString() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
         Type *get_type() override
         {
-            return this->type;
+            return ( Type *) this->children[0];
         }
     };
     struct IntegerLiteral : Expression
     {
         uint64_t uvalue;
         int64_t ivalue;
-        Type *type;
 
         IntegerLiteral(antlr4::ParserRuleContext *rule, Node *parentNode, Type *type, int64_t value) : Expression(rule, ast_types::INTEGER_LITERAL, parentNode)
         {
@@ -450,7 +443,7 @@ namespace logia::AST
             this->uvalue = 0;
 
             this->ivalue = value;
-            this->type = type;
+            this->push_child(type);
         }
         IntegerLiteral(antlr4::ParserRuleContext *rule, Node *parentNode, Type *type, uint64_t value) : Expression(rule, ast_types::INTEGER_LITERAL, parentNode)
         {
@@ -458,13 +451,13 @@ namespace logia::AST
             this->ivalue = 0;
 
             this->uvalue = value;
-            this->type = type;
+            this->push_child(type);
         }
         std::string toString() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
         Type *get_type() override
         {
-            return this->type;
+            return ( Type *) this->children[0];
         }
     };
 
@@ -603,13 +596,17 @@ namespace logia::AST
 
     struct ReturnStmt : Stmt
     {
-        Expression *expr;
+
         ReturnStmt(antlr4::ParserRuleContext *rule, Node *parentNode, Expression *expr) : Stmt(rule, ast_types::RETURN_STMT, parentNode)
         {
-            this->expr = expr;
+            this->push_child(expr);
         }
         std::string toString() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+
+        Expression* get_expr() {
+            return (Expression*) this->children[0];
+        }
     };
 
     struct VarDeclStmt : Stmt
@@ -632,8 +629,6 @@ namespace logia::AST
     struct IfStmt : Stmt
     {
         char *name;
-        Type *type;
-        Expression *expr;
         llvm::AllocaInst *ir;
 
         IfStmt(antlr4::ParserRuleContext *rule, Node *parentNode, Expression *condition) : Stmt(rule, ast_types::IF_STMT, parentNode), ir(nullptr)

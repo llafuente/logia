@@ -221,18 +221,19 @@ namespace logia::AST
     std::string CallExpression::toString()
     {
         char buffer[36];
-        return std::string("CallExpression: ") + this->locator->toString() + "(" + std::string(itoa(this->arguments.size(), buffer, 10)) + " args)";
+        auto arguments = this->get_arguments();
+        return std::string("CallExpression: ") + this->get_locator()->toString() + "(" + std::string(itoa(arguments.size(), buffer, 10)) + " args)";
     }
 
     std::string IntegerLiteral::toString()
     {
-        DEBUG() << this->type << std::endl;
-        DEBUG() << this->type->toString() << std::endl;
+        DEBUG() << this->get_type() << std::endl;
+        DEBUG() << this->get_type()->toString() << std::endl;
         DEBUG() << this->ivalue << std::endl;
         DEBUG() << this->uvalue << std::endl;
 
         char buffer[36];
-        return std::string("IntegerLiteral[") + this->type->toString() + "] = " + std::string(itoa(this->ivalue, buffer, 10));
+        return std::string("IntegerLiteral[") + this->get_type()->toString() + "] = " + std::string(itoa(this->ivalue, buffer, 10));
     }
 
     std::string FloatLiteral::toString()
@@ -418,22 +419,24 @@ namespace logia::AST
         DEBUG() << this->toString() << std::endl;
 
         // Look up the name in the global module table.
-        auto name = (StringLiteral *)this->locator;
+        auto name = (StringLiteral *)this->get_locator();
         llvm::Function *CalleeF = codegen->module->getFunction(name->text);
+
+        auto arguments = this->get_arguments();
         // auto x = codegen->module->getValueSymbolTable();
         // x->
         if (!CalleeF)
             throw std::runtime_error(std::string("Unknown function referenced: ") + name->text);
 
         // If argument mismatch error.
-        if (CalleeF->arg_size() != this->arguments.size())
+        if (CalleeF->arg_size() != arguments.size())
             throw std::exception("Incorrect # arguments passed");
 
         std::vector<llvm::Value *> ArgsV;
-        for (unsigned i = 0, e = this->arguments.size(); i != e; ++i)
+        for (unsigned i = 0, e = arguments.size(); i != e; ++i)
         {
             DEBUG() << "argument[" << i << "]" << std::endl;
-            ArgsV.push_back(this->arguments[i]->codegen(codegen, builder));
+            ArgsV.push_back(arguments[i]->codegen(codegen, builder));
             if (!ArgsV.back())
                 return nullptr;
         }
@@ -446,7 +449,7 @@ namespace logia::AST
     llvm::Value *IntegerLiteral::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
     {
         DEBUG() << this->toString() << std::endl;
-        return llvm::ConstantInt::get((llvm::Type *)this->type->codegen(codegen, builder), llvm::APInt(this->type->Integer.bits, this->ivalue, this->type->Integer.is_signed));
+        return llvm::ConstantInt::get((llvm::Type *)this->get_type()->codegen(codegen, builder), llvm::APInt(this->get_type()->Integer.bits, this->ivalue, this->get_type()->Integer.is_signed));
     }
 
     llvm::Value *FloatLiteral::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
@@ -482,13 +485,14 @@ namespace logia::AST
     llvm::Value *ReturnStmt::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
     {
         DEBUG() << this->toString() << std::endl;
-        if (!this->expr)
+        auto expr = this->get_expr();
+        if (!expr)
         {
             return builder->CreateRetVoid();
             // return llvm::ReturnInst::Create(codegen->context);
         }
         // return llvm::ReturnInst::Create(codegen->context, this->expr->codegen(codegen, builder));
-        return builder->CreateRet(this->expr->codegen(codegen, builder));
+        return builder->CreateRet(expr->codegen(codegen, builder));
     }
 
     llvm::Value *VarDeclStmt::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
