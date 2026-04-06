@@ -15,13 +15,13 @@ namespace logia::AST
     enum ast_types : uint32_t
     {
         // expression flag
-        EXPRESSION = (1 << 31),
+        EXPRESSION = (1 << 30),
         // statement flag
-        STMT = (1 << 30),
+        STMT = (1 << 29),
         // type flag
-        TYPE = (1 << 29),
+        TYPE = (1 << 28),
         // body flag
-        BODY = (1 << 28),
+        BODY = (1 << 27),
 
         // all flag bits, to remove them if necessary
         ALL_FLAGS = EXPRESSION | STMT | TYPE | BODY,
@@ -129,6 +129,8 @@ namespace logia::AST
          * AST -> LLVM
          */
         virtual llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) = 0;
+
+        virtual Type *get_type() = 0;
     };
 
     enum class Primitives
@@ -272,11 +274,15 @@ namespace logia::AST
         std::string toString() override;
         /**
          * Creates named or returns cached LLVM BasicBlock
-         * 
+         *
          * NOTE: BasicBlocks needs to be created and attached before codegen inside them or raise SEH / parenting issues
          */
         llvm::BasicBlock *create_llvm_block(logia::Backend *codegen, char *name);
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        Type *get_type() override
+        {
+            return nullptr;
+        }
     };
 
     class Program : public Body
@@ -288,6 +294,11 @@ namespace logia::AST
         }
 
         std::string toString() override;
+
+        Type *get_type() override
+        {
+            return nullptr;
+        }
     };
 
     struct FunctionType
@@ -343,6 +354,10 @@ namespace logia::AST
 
         std::string toString() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        Type *get_type() override
+        {
+            return this;
+        }
     };
 
     struct Expression : Node
@@ -373,14 +388,20 @@ namespace logia::AST
                 this->push_child(arguments[i]);
             }
         }
-        Expression* get_locator() {
-            return this->children[0];
+        Expression *get_locator()
+        {
+            return (Expression *)this->children[0];
         }
-        std::vector<Expression*> get_arguments() {
-            return std::vector<Expression*>(this->children.begin() + 1, this->children.end());
+        std::vector<Node *> get_arguments()
+        {
+            return std::vector<Node *>(this->children.begin() + 1, this->children.end());
         }
         std::string toString() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        Type *get_type() override
+        {
+            return this->get_locator()->get_type()->Function.return_type;
+        }
     };
 
     struct StringLiteral : Expression
@@ -392,6 +413,11 @@ namespace logia::AST
         }
         std::string toString() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        Type *get_type() override
+        {
+            // TODO
+            return nullptr;
+        }
     };
 
     struct FloatLiteral : Expression
@@ -407,6 +433,10 @@ namespace logia::AST
         }
         std::string toString() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        Type *get_type() override
+        {
+            return this->type;
+        }
     };
     struct IntegerLiteral : Expression
     {
@@ -432,6 +462,10 @@ namespace logia::AST
         }
         std::string toString() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        Type *get_type() override
+        {
+            return this->type;
+        }
     };
 
     struct Identifier : Expression
@@ -444,6 +478,11 @@ namespace logia::AST
         }
         std::string toString() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        Type *get_type() override
+        {
+            // TODO resolve!
+            return nullptr;
+        }
     };
 
     struct MemberAccessExpression : Expression
@@ -453,21 +492,30 @@ namespace logia::AST
             this->push_child(left);
             this->push_child(right);
         }
-        Expression* get_left() {
+        Expression *get_left()
+        {
             return (Expression *)this->children[0];
         }
-        Expression* get_right() {
+        Expression *get_right()
+        {
             return (Expression *)this->children[1];
         }
         std::string toString() override;
-        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder
+        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        Type *get_type() override
+        {
+            // TODO resolve!
+            return nullptr;
+        }
     };
 
-    enum class BinaryOperator {
+    enum class BinaryOperator
+    {
         ADD,
         SUB,
         MUL,
         DIV,
+        MOD,
         EQ,
         NEQ,
         LT,
@@ -482,69 +530,61 @@ namespace logia::AST
         SUB_ASSIGN,
         MUL_ASSIGN,
         DIV_ASSIGN,
+        XOR,
+        SHL,
+        SHR,
     };
 
     struct BinaryExpression : CallExpression
     {
         BinaryOperator op;
-        BinaryExpression(antlr4::ParserRuleContext *rule, Node *parentNode, BinaryOperator op, Expression *left, Expression *right) : Expression(rule, ast_types::EXPRESSION, parentNode)
+        BinaryExpression(antlr4::ParserRuleContext *rule, Node *parentNode, BinaryOperator op, Expression *left, Expression *right);
+        Expression *get_left()
         {
-            this->op = op;
-            this->add_child(ast_create_identifier(nullptr, this, ast_binary_operator_to_string(op)));
-            this->add_child(left);
-            this->add_child(right);
-        }
-        Expression* get_left() {
             return (Expression *)this->children[0];
         }
-        Expression* get_right() {
+        Expression *get_right()
+        {
             return (Expression *)this->children[1];
         }
         std::string toString() override;
     };
 
-    enum class PrefixUnaryOperator {
-        NEG, // -
-        NOT, // !
-        INC, // ++
-        DEC, // --
+    enum class PrefixUnaryOperator
+    {
+        NEGATION,    // -
+        LOGICAL_NOT, // !
+        INCREMENT,   // ++
+        DECREMENT,   // --
+        BITWISE_NOT, // ~
     };
 
     struct PrefixUnaryExpression : CallExpression
     {
         PrefixUnaryOperator op;
-        PrefixUnaryExpression(antlr4::ParserRuleContext *rule, Node *parentNode, PrefixUnaryOperator op, Expression *operand) : Expression(rule, ast_types::EXPRESSION, parentNode)
+        PrefixUnaryExpression(antlr4::ParserRuleContext *rule, Node *parentNode, PrefixUnaryOperator op, Expression *operand);
+        Expression *get_operand()
         {
-            this->op = op;
-            this->add_child(ast_create_identifier(nullptr, this, ast_prefix_unary_operator_to_string(op)));
-            this->add_child(operand);
-        }
-        Expression* get_operand() {
             return (Expression *)this->children[0];
         }
         std::string toString() override;
-        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
     };
 
-    enum class PostfixUnaryOperator {
-        INC, // ++
-        DEC, // --
+    enum class PostfixUnaryOperator
+    {
+        INCREMENT, // ++
+        DECREMENT, // --
     };
 
     struct PostfixUnaryExpression : CallExpression
     {
         PostfixUnaryOperator op;
-        PostfixUnaryExpression(antlr4::ParserRuleContext *rule, Node *parentNode, PostfixUnaryOperator op, Expression *operand) : Expression(rule, ast_types::EXPRESSION, parentNode)
+        PostfixUnaryExpression(antlr4::ParserRuleContext *rule, Node *parentNode, PostfixUnaryOperator op, Expression *operand);
+        Expression *get_operand()
         {
-            this->op = op;
-            this->add_child(ast_create_identifier(nullptr, this, ast_postfix_unary_operator_to_string(op)));
-            this->add_child(operand);
-        }
-        Expression* get_operand() {
             return (Expression *)this->children[0];
         }
         std::string toString() override;
-        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
     };
 
     struct Stmt : Node
@@ -554,6 +594,10 @@ namespace logia::AST
         std::string toString() override
         {
             return "Statement";
+        }
+        Type *get_type() override
+        {
+            return nullptr;
         }
     };
 
@@ -626,7 +670,7 @@ namespace logia::AST
         std::string toString() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
     };
-    
+
     //
     // logia AST c api
     // this can be used in comptime execution
@@ -745,7 +789,7 @@ namespace logia::AST
     //
     // utils
     //
-    LOGIA_API const char* ast_postfix_unary_operator_to_string(PostfixUnaryOperator op);
-    LOGIA_API const char* ast_prefix_unary_operator_to_string(PrefixUnaryOperator op);
-    LOGIA_API const char* ast_binary_operator_to_string(ast_binary_operator op);
+    LOGIA_API const char *ast_postfix_unary_operator_to_string(PostfixUnaryOperator op);
+    LOGIA_API const char *ast_prefix_unary_operator_to_string(PrefixUnaryOperator op);
+    LOGIA_API const char *ast_binary_operator_to_string(BinaryOperator op);
 }

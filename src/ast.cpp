@@ -4,6 +4,31 @@
 
 namespace logia::AST
 {
+    //
+    // constructors
+    //
+    BinaryExpression::BinaryExpression(antlr4::ParserRuleContext *rule, Node *parentNode, BinaryOperator op, Expression *left, Expression *right) : CallExpression(rule, parentNode, nullptr, {})
+    {
+        this->op = op;
+        this->push_child(ast_create_identifier(this, strdup(ast_binary_operator_to_string(op))));
+        this->push_child(left);
+        this->push_child(right);
+    }
+
+    PrefixUnaryExpression::PrefixUnaryExpression(antlr4::ParserRuleContext *rule, Node *parentNode, PrefixUnaryOperator op, Expression *operand) : CallExpression(rule, parentNode, nullptr, {})
+    {
+        this->op = op;
+        this->push_child(ast_create_identifier(this, strdup(ast_prefix_unary_operator_to_string(op))));
+        this->push_child(operand);
+    }
+
+    PostfixUnaryExpression::PostfixUnaryExpression(antlr4::ParserRuleContext *rule, Node *parentNode, PostfixUnaryOperator op, Expression *operand) : CallExpression(rule, parentNode, nullptr, {})
+    {
+        this->op = op;
+        this->push_child(ast_create_identifier(this, strdup(ast_postfix_unary_operator_to_string(op))));
+        this->push_child(operand);
+    }
+
     LOGIA_API Program *ast_create_program(llvm::LLVMContext &C)
     {
         auto body = new Program(nullptr, nullptr, nullptr);
@@ -160,33 +185,34 @@ namespace logia::AST
     }
     std::string Type::toString()
     {
-        switch(this->primitive) {
-            case Primitives::FUNCTION_TY:
+        std::string list;
+        switch (this->primitive)
+        {
+        case Primitives::FUNCTION_TY:
             // concat each parameter type
-            std::string params;
             for (auto &param : this->Function.parameters)
             {
-                if (!params.empty())
+                if (!list.empty())
                 {
-                    params += ", ";
+                    list += ", ";
                 }
-                params += ast_primitives_to_string(param.type);
+                list += param.type->toString();
             }
-            return std::string("Type[") + ast_primitives_to_string(this->Function.returnType) + " function " + this->Function.name + "(" + params + ")" + "]";
-            case Primitives::STRUCT_TY:
-                // concat all properties with their type
-                std::string properties;
-                for (auto &prop : this->Struct.properties)
+            return std::string("Type[") + this->Function.return_type->toString() + " function " + this->Function.name + "(" + list + ")" + "]";
+        case Primitives::STRUCT_TY:
+            // concat all properties with their type
+            for (auto &prop : this->Struct.properties)
+            {
+                if (prop.isField())
                 {
-                    if (prop.isField()) {
-                        if (!properties.empty())
-                        {
-                            properties += ", ";
-                        }
-                        properties += ast_primitives_to_string(prop.type);
+                    if (!list.empty())
+                    {
+                        list += ", ";
                     }
+                    list += prop.type->toString();
                 }
-                return std::string("Type[struct ") + this->Struct.name + " {" + properties + "}";
+            }
+            return std::string("Type[struct ") + this->Struct.name + " {" + list + "}";
         }
 
         return std::string("Type[") + ast_primitives_to_string(this->primitive) + "]";
@@ -224,7 +250,19 @@ namespace logia::AST
 
     std::string MemberAccessExpression::toString()
     {
-        return std::string("MemberAccessExpression: ") + this->left->toString() + "." + this->right->toString();
+        return std::string("MemberAccessExpression: ") + this->get_left()->toString() + "." + this->get_right()->toString();
+    }
+    std::string BinaryExpression::toString()
+    {
+        return std::string("BinaryExpression: ") + ast_binary_operator_to_string(this->op) + "(" + this->get_left()->toString() + ", " + this->get_right()->toString() + ")";
+    }
+    std::string PrefixUnaryExpression::toString()
+    {
+        return std::string("PrefixUnaryExpression: ") + ast_prefix_unary_operator_to_string(this->op) + "(" + this->get_operand()->toString() + ")";
+    }
+    std::string PostfixUnaryExpression::toString()
+    {
+        return std::string("PostfixUnaryExpression: ") + ast_postfix_unary_operator_to_string(this->op) + "(" + this->get_operand()->toString() + ")";
     }
 
     std::string ReturnStmt::toString()
@@ -483,46 +521,33 @@ namespace logia::AST
         return builder->CreateLoad(decl->ir->getAllocatedType(), decl->ir, this->identifier);
     }
 
-    llvm::Value* MemberAccessExpression::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) {
+    llvm::Value *MemberAccessExpression::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    {
         DEBUG() << this->toString() << std::endl;
         // TODO handle left side to be a pointer to struct or struct itself, for now we assume it's always a pointer
         auto left = this->get_left();
         auto right = this->get_right();
 
         auto leftValue = left->codegen(codegen, builder);
-        auto rightIdent = (Identifier*) right;
-        auto structType = (Type*) ((llvm::PointerType*) leftValue->getType())->getElementType();
+        auto rightIdent = (Identifier *)right;
+        auto structType = left->get_type();
 
         // find property index
         int propertyIndex = -1;
-        for (int i = 0; i < structType->Struct.properties.size(); ++i) {
-            if (strcmp(structType->Struct.properties[i].name, rightIdent->identifier) == 0) {
+        for (int i = 0; i < structType->Struct.properties.size(); ++i)
+        {
+            if (strcmp(structType->Struct.properties[i].name, rightIdent->identifier) == 0)
+            {
                 propertyIndex = i;
                 break;
             }
         }
-        if (propertyIndex == -1) {
+        if (propertyIndex == -1)
+        {
             throw std::runtime_error(std::string("Unknown struct property: ") + rightIdent->identifier);
         }
 
         return builder->CreateStructGEP(structType->ir, leftValue, propertyIndex);
-    }
-
-    llvm::Value* BinaryExpression::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) {
-        DEBUG() << this->toString() << std::endl;
-        // a binary expression is desugared to a call expression with the operator as function and left and right as arguments
-        auto left = this->get_left()->codegen(codegen, builder);
-        auto right = this->get_right()->codegen(codegen, builder);
-        char* opName = ast_binary_operator_to_string(this->op->op);
-        // TODO concat left type as string to opName
-        // TODO concat right type as string to opName
-        // concat "i64_i64" to opName
-        char fnName[strlen(opName) + 20];
-        sprintf(fnName, "%s_i64_i64", opName);
-
-
-        auto callExpr = new CallExpression(nullptr, nullptr, fnName, std::vector<Expression*>{left, right});
-        return callExpr;
     }
 
     llvm::Value *IfStmt::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
@@ -552,15 +577,14 @@ namespace logia::AST
         DEBUG() << this->toString() << std::endl;
         // find label and jump to it
         // function shall be inside the closest function
-        auto label = ast_find_closest_parent(this, ast_types::FUNCTION_BODY | ast_types::BODY);
+        auto label = (Body *)ast_find_closest_parent(this, (ast_types)(ast_types::FUNCTION | ast_types::BODY));
         if (!label)
         {
             throw std::runtime_error(std::string("goto statement has no parent function or body: ") + this->toString());
         }
         // TODO generate before or wait until generated to continue ?
-        builder->CreateBr(label->llvm_basic_block);
+        return builder->CreateBr(label->llvm_basicblock);
     }
-
 
     //
     // ast creation
@@ -861,43 +885,75 @@ namespace logia::AST
     //
     // utils
     //
-    const char* ast_postfix_unary_operator_to_string(PostfixUnaryOperator op) {
-        switch (op) {
-            case PostfixUnaryOperator::INCREMENT: return "logia_intrinsics_postfix_inc";
-            case PostfixUnaryOperator::DECREMENT: return "logia_intrinsics_postfix_dec";
-            default: throw std::runtime_error("Unknown postfix unary operator");
+    const char *ast_postfix_unary_operator_to_string(PostfixUnaryOperator op)
+    {
+        switch (op)
+        {
+        case PostfixUnaryOperator::INCREMENT:
+            return "logia_intrinsics_postfix_inc";
+        case PostfixUnaryOperator::DECREMENT:
+            return "logia_intrinsics_postfix_dec";
+        default:
+            throw std::runtime_error("Unknown postfix unary operator");
         }
     }
-    const char* ast_prefix_unary_operator_to_string(PrefixUnaryOperator op) {
-        switch (op) {
-            case PrefixUnaryOperator::INCREMENT: return "logia_intrinsics_prefix_inc";
-            case PrefixUnaryOperator::DECREMENT: return "logia_intrinsics_prefix_dec";
-            case PrefixUnaryOperator::NEGATION: return "logia_intrinsics_prefix_neg";
-            case PrefixUnaryOperator::BITWISE_NOT: return "logia_intrinsics_prefix_bitwise_not";
-            case PrefixUnaryOperator::LOGICAL_NOT: return "logia_intrinsics_prefix_logical_not";
-            default: throw std::runtime_error("Unknown prefix unary operator");
+    const char *ast_prefix_unary_operator_to_string(PrefixUnaryOperator op)
+    {
+        switch (op)
+        {
+        case PrefixUnaryOperator::INCREMENT:
+            return "logia_intrinsics_prefix_inc";
+        case PrefixUnaryOperator::DECREMENT:
+            return "logia_intrinsics_prefix_dec";
+        case PrefixUnaryOperator::NEGATION:
+            return "logia_intrinsics_prefix_neg";
+        case PrefixUnaryOperator::BITWISE_NOT:
+            return "logia_intrinsics_prefix_bitwise_not";
+        case PrefixUnaryOperator::LOGICAL_NOT:
+            return "logia_intrinsics_prefix_logical_not";
+        default:
+            throw std::runtime_error("Unknown prefix unary operator");
         }
     }
 
-    const char* ast_binary_operator_to_string(ast_binary_operator op) {
-        switch (op) {
-            case ast_binary_operator::ADD: return "logia_intrinsics_bin_add";
-            case ast_binary_operator::SUB: return "logia_intrinsics_bin_sub";
-            case ast_binary_operator::MUL: return "logia_intrinsics_bin_mul";
-            case ast_binary_operator::DIV: return "logia_intrinsics_bin_div";
-            case ast_binary_operator::MOD: return "logia_intrinsics_bin_mod";
-            case ast_binary_operator::EQ: return "logia_intrinsics_bin_eq";
-            case ast_binary_operator::NEQ: return "logia_intrinsics_bin_neq";
-            case ast_binary_operator::LT: return "logia_intrinsics_bin_lt";
-            case ast_binary_operator::GT: return "logia_intrinsics_bin_gt";
-            case ast_binary_operator::LEQ: return "logia_intrinsics_bin_leq";
-            case ast_binary_operator::GEQ: return "logia_intrinsics_bin_geq";
-            case ast_binary_operator::AND: return "logia_intrinsics_bin_and";
-            case ast_binary_operator::OR: return "logia_intrinsics_bin_or";
-            case ast_binary_operator::XOR: return "logia_intrinsics_bin_xor";
-            case ast_binary_operator::SHL: return "logia_intrinsics_bin_shl";
-            case ast_binary_operator::SHR: return "logia_intrinsics_bin_shr";
-            default: throw std::runtime_error("Unknown binary operator");
+    const char *ast_binary_operator_to_string(BinaryOperator op)
+    {
+        switch (op)
+        {
+        case BinaryOperator::ADD:
+            return "logia_intrinsics_bin_add";
+        case BinaryOperator::SUB:
+            return "logia_intrinsics_bin_sub";
+        case BinaryOperator::MUL:
+            return "logia_intrinsics_bin_mul";
+        case BinaryOperator::DIV:
+            return "logia_intrinsics_bin_div";
+        case BinaryOperator::MOD:
+            return "logia_intrinsics_bin_mod";
+        case BinaryOperator::EQ:
+            return "logia_intrinsics_bin_eq";
+        case BinaryOperator::NEQ:
+            return "logia_intrinsics_bin_neq";
+        case BinaryOperator::LT:
+            return "logia_intrinsics_bin_lt";
+        case BinaryOperator::GT:
+            return "logia_intrinsics_bin_gt";
+        case BinaryOperator::LTE:
+            return "logia_intrinsics_bin_lte";
+        case BinaryOperator::GTE:
+            return "logia_intrinsics_bin_gte";
+        case BinaryOperator::AND:
+            return "logia_intrinsics_bin_and";
+        case BinaryOperator::OR:
+            return "logia_intrinsics_bin_or";
+        case BinaryOperator::XOR:
+            return "logia_intrinsics_bin_xor";
+        case BinaryOperator::SHL:
+            return "logia_intrinsics_bin_shl";
+        case BinaryOperator::SHR:
+            return "logia_intrinsics_bin_shr";
+        default:
+            throw std::runtime_error("Unknown binary operator");
         }
     }
 }
