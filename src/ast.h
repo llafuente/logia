@@ -58,7 +58,7 @@ namespace logia::AST
         /**
          * parent node to traverse to root
          */
-        Node *parentNode = nullptr;
+        Node *parent_node = nullptr;
         /**
          * Avoid children modification (from API uknow :)
          */
@@ -68,11 +68,10 @@ namespace logia::AST
          */
         std::vector<Node *> children = {}; // normalized list of children
 
-        Node(antlr4::ParserRuleContext *rule, ast_types type, Node *parentNode)
+        Node(antlr4::ParserRuleContext *rule, ast_types type)
         {
             this->rule = rule;
             this->type = type;
-            this->parentNode = parentNode;
         }
         ~Node() {}
 
@@ -88,7 +87,24 @@ namespace logia::AST
                 throw std::exception("Node is freezed");
             }
             children.push_back(child);
-            child->parentNode = this;
+            this->__attach(child);
+        }
+        inline void __attach(Node *child)
+        {
+            // types are allowed to have parent for the rest -> NO!
+            if (child->parent_node != nullptr)
+            {
+                if ((child->type & ast_types::TYPE) == 0)
+                {
+                    std::cout << "this: " << this->toString() << std::endl;
+                    std::cout << "child: " << child->toString() << std::endl;
+                    LOGIA_ASSERT(false);
+                }
+            }
+            else
+            {
+                child->parent_node = this;
+            }
         }
         /**
          * Adds a child at start
@@ -100,26 +116,27 @@ namespace logia::AST
                 throw std::exception("Node is freezed");
             }
             children.insert(children.begin(), child);
-            child->parentNode = this;
+            this->__attach(child);
         }
 
         std::string toStringTree(std::string padding = "")
         {
-            std::cout << this->children.size() << std::endl;
+            // std::cout << this->children.size() << std::endl;
 
             if (this->children.size() == 0)
-                return padding + this->toString();
+                return padding + "(leaf)" + this->toString();
 
             std::string out;
-            out += this->toString();
+            out += padding + this->toString();
 
             padding += "  ";
 
             for (int i = 0; i < this->children.size(); i++)
             {
+                out += "\r\n";
                 out += this->children[i]->toStringTree(padding);
-                out += "\n";
             }
+            out += "\r\n";
             return out;
         }
         /**
@@ -239,7 +256,7 @@ namespace logia::AST
         // NOTE BasicBlock needs to be attached before codegen into them
         llvm::BasicBlock *llvm_basicblock = nullptr;
         // TODO remove body as we can reverse the tree and search it!
-        Body(antlr4::ParserRuleContext *rule, Node *parentNode, Body *parent) : Node(rule, ast_types::BODY, parentNode)
+        Body(antlr4::ParserRuleContext *rule, Body *parent) : Node(rule, ast_types::BODY)
         {
             this->parent = parent;
         }
@@ -289,7 +306,7 @@ namespace logia::AST
     class Program : public Body
     {
     public:
-        Program(antlr4::ParserRuleContext *rule, Node *parentNode, Body *parent) : Body(rule, parentNode, parent)
+        Program(antlr4::ParserRuleContext *rule, Body *parent) : Body(rule, parent)
         {
             this->type = (ast_types)(ast_types::PROGRAM | ast_types::BODY);
         }
@@ -344,7 +361,7 @@ namespace logia::AST
             FloatProperties Float;
         };
 
-        Type(antlr4::ParserRuleContext *rule, Node *parentNode, Primitives prim) : Node(rule, ast_types::TYPE, parentNode)
+        Type(antlr4::ParserRuleContext *rule, Primitives prim) : Node(rule, ast_types::TYPE)
         {
             this->primitive = prim;
         }
@@ -364,7 +381,7 @@ namespace logia::AST
     struct Expression : Node
     {
         // REVIEW strange  why do i need to declare this ?
-        Expression(antlr4::ParserRuleContext *rule, ast_types type, Node *parentNode) : Node(rule, (ast_types)(type | ast_types::EXPRESSION), parentNode) {}
+        Expression(antlr4::ParserRuleContext *rule, ast_types type) : Node(rule, (ast_types)(type | ast_types::EXPRESSION)) {}
         std::string toString() override
         {
             return "Expression";
@@ -373,7 +390,7 @@ namespace logia::AST
 
     struct CallExpression : Expression
     {
-        CallExpression(antlr4::ParserRuleContext *rule, Node *parentNode, Expression *locator, std::vector<Expression *> arguments) : Expression(rule, ast_types::CALL_EXPRESSION, parentNode)
+        CallExpression(antlr4::ParserRuleContext *rule, Expression *locator, std::vector<Expression *> arguments) : Expression(rule, ast_types::CALL_EXPRESSION)
         {
             this->push_child(locator);
             for (int i = 0; i < arguments.size(); ++i)
@@ -402,7 +419,7 @@ namespace logia::AST
     struct StringLiteral : Expression
     {
         char *text;
-        StringLiteral(antlr4::ParserRuleContext *rule, Node *parentNode, char *text) : Expression(rule, ast_types::STRING_LITERAL, parentNode)
+        StringLiteral(antlr4::ParserRuleContext *rule, char *text) : Expression(rule, ast_types::STRING_LITERAL)
         {
             this->text = text;
         }
@@ -420,7 +437,7 @@ namespace logia::AST
     public:
         double value;
 
-        FloatLiteral(antlr4::ParserRuleContext *rule, Node *parentNode, Type *type, double value) : Expression(rule, ast_types::FLOAT_LITERAL, parentNode)
+        FloatLiteral(antlr4::ParserRuleContext *rule, Type *type, double value) : Expression(rule, ast_types::FLOAT_LITERAL)
         {
             this->value = value;
             this->push_child(type);
@@ -429,7 +446,7 @@ namespace logia::AST
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
         Type *get_type() override
         {
-            return ( Type *) this->children[0];
+            return (Type *)this->children[0];
         }
     };
     struct IntegerLiteral : Expression
@@ -437,7 +454,7 @@ namespace logia::AST
         uint64_t uvalue;
         int64_t ivalue;
 
-        IntegerLiteral(antlr4::ParserRuleContext *rule, Node *parentNode, Type *type, int64_t value) : Expression(rule, ast_types::INTEGER_LITERAL, parentNode)
+        IntegerLiteral(antlr4::ParserRuleContext *rule, Type *type, int64_t value) : Expression(rule, ast_types::INTEGER_LITERAL)
         {
             LOGIA_ASSERT(type);
             this->uvalue = 0;
@@ -445,7 +462,7 @@ namespace logia::AST
             this->ivalue = value;
             this->push_child(type);
         }
-        IntegerLiteral(antlr4::ParserRuleContext *rule, Node *parentNode, Type *type, uint64_t value) : Expression(rule, ast_types::INTEGER_LITERAL, parentNode)
+        IntegerLiteral(antlr4::ParserRuleContext *rule, Type *type, uint64_t value) : Expression(rule, ast_types::INTEGER_LITERAL)
         {
             LOGIA_ASSERT(type);
             this->ivalue = 0;
@@ -457,14 +474,14 @@ namespace logia::AST
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
         Type *get_type() override
         {
-            return ( Type *) this->children[0];
+            return (Type *)this->children[0];
         }
     };
 
     struct Identifier : Expression
     {
         char *identifier;
-        Identifier(antlr4::ParserRuleContext *rule, Node *parentNode, char *identifier) : Expression(rule, ast_types::IDENTIFIER, parentNode)
+        Identifier(antlr4::ParserRuleContext *rule, char *identifier) : Expression(rule, ast_types::IDENTIFIER)
         {
             LOGIA_ASSERT(type);
             this->identifier = identifier;
@@ -480,7 +497,7 @@ namespace logia::AST
 
     struct MemberAccessExpression : Expression
     {
-        MemberAccessExpression(antlr4::ParserRuleContext *rule, Node *parentNode, Node *left, Node *right) : Expression(rule, ast_types::EXPRESSION, parentNode)
+        MemberAccessExpression(antlr4::ParserRuleContext *rule, Node *left, Node *right) : Expression(rule, ast_types::EXPRESSION)
         {
             this->push_child(left);
             this->push_child(right);
@@ -531,7 +548,7 @@ namespace logia::AST
     struct BinaryExpression : CallExpression
     {
         BinaryOperator op;
-        BinaryExpression(antlr4::ParserRuleContext *rule, Node *parentNode, BinaryOperator op, Expression *left, Expression *right);
+        BinaryExpression(antlr4::ParserRuleContext *rule, BinaryOperator op, Expression *left, Expression *right);
         Expression *get_left()
         {
             return (Expression *)this->children[0];
@@ -555,7 +572,7 @@ namespace logia::AST
     struct PrefixUnaryExpression : CallExpression
     {
         PrefixUnaryOperator op;
-        PrefixUnaryExpression(antlr4::ParserRuleContext *rule, Node *parentNode, PrefixUnaryOperator op, Expression *operand);
+        PrefixUnaryExpression(antlr4::ParserRuleContext *rule, PrefixUnaryOperator op, Expression *operand);
         Expression *get_operand()
         {
             return (Expression *)this->children[0];
@@ -572,7 +589,7 @@ namespace logia::AST
     struct PostfixUnaryExpression : CallExpression
     {
         PostfixUnaryOperator op;
-        PostfixUnaryExpression(antlr4::ParserRuleContext *rule, Node *parentNode, PostfixUnaryOperator op, Expression *operand);
+        PostfixUnaryExpression(antlr4::ParserRuleContext *rule, PostfixUnaryOperator op, Expression *operand);
         Expression *get_operand()
         {
             return (Expression *)this->children[0];
@@ -583,7 +600,7 @@ namespace logia::AST
     struct Stmt : Node
     {
         // REVIEW strange  why do i need to declare this ?
-        Stmt(antlr4::ParserRuleContext *rule, ast_types type, Node *parentNode) : Node(rule, (ast_types)(type | ast_types::STMT), parentNode) {}
+        Stmt(antlr4::ParserRuleContext *rule, ast_types type) : Node(rule, (ast_types)(type | ast_types::STMT)) {}
         std::string toString() override
         {
             return "Statement";
@@ -597,15 +614,16 @@ namespace logia::AST
     struct ReturnStmt : Stmt
     {
 
-        ReturnStmt(antlr4::ParserRuleContext *rule, Node *parentNode, Expression *expr) : Stmt(rule, ast_types::RETURN_STMT, parentNode)
+        ReturnStmt(antlr4::ParserRuleContext *rule, Expression *expr) : Stmt(rule, ast_types::RETURN_STMT)
         {
             this->push_child(expr);
         }
         std::string toString() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
 
-        Expression* get_expr() {
-            return (Expression*) this->children[0];
+        Expression *get_expr()
+        {
+            return (Expression *)this->children[0];
         }
     };
 
@@ -613,14 +631,17 @@ namespace logia::AST
     {
         char *name;
         Type *type;
-        Expression *expr;
         llvm::AllocaInst *ir;
 
-        VarDeclStmt(antlr4::ParserRuleContext *rule, Node *parentNode, char *name, Type *type, Expression *expr) : Stmt(rule, ast_types::VAR_DECL_STMT, parentNode), ir(nullptr)
+        VarDeclStmt(antlr4::ParserRuleContext *rule, char *name, Type *type, Expression *expr) : Stmt(rule, ast_types::VAR_DECL_STMT), ir(nullptr)
         {
             this->name = name;
             this->type = type;
-            this->expr = expr;
+            this->push_child(expr);
+        }
+        Expression *get_expr()
+        {
+            return (Expression *)this->children[0];
         }
         std::string toString() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
@@ -631,11 +652,11 @@ namespace logia::AST
         char *name;
         llvm::AllocaInst *ir;
 
-        IfStmt(antlr4::ParserRuleContext *rule, Node *parentNode, Expression *condition) : Stmt(rule, ast_types::IF_STMT, parentNode), ir(nullptr)
+        IfStmt(antlr4::ParserRuleContext *rule, Expression *condition) : Stmt(rule, ast_types::IF_STMT), ir(nullptr)
         {
             this->push_child(condition);
-            this->push_child(new Body(nullptr, this, nullptr)); // thenblock
-            this->push_child(new Body(nullptr, this, nullptr)); // elseblock
+            this->push_child(new Body(nullptr, nullptr)); // thenblock
+            this->push_child(new Body(nullptr, nullptr)); // elseblock
             this->freezed = true;
         }
         Expression *get_condition()
@@ -658,7 +679,7 @@ namespace logia::AST
     {
         char *name;
 
-        GotoStmt(antlr4::ParserRuleContext *rule, Node *parentNode, char *name) : Stmt(rule, ast_types::GOTO_STMT, parentNode)
+        GotoStmt(antlr4::ParserRuleContext *rule, char *name) : Stmt(rule, ast_types::GOTO_STMT)
         {
             this->name = name;
         }

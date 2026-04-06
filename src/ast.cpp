@@ -7,7 +7,7 @@ namespace logia::AST
     //
     // constructors
     //
-    BinaryExpression::BinaryExpression(antlr4::ParserRuleContext *rule, Node *parentNode, BinaryOperator op, Expression *left, Expression *right) : CallExpression(rule, parentNode, nullptr, {})
+    BinaryExpression::BinaryExpression(antlr4::ParserRuleContext *rule, BinaryOperator op, Expression *left, Expression *right) : CallExpression(rule, nullptr, {})
     {
         this->op = op;
         this->push_child(ast_create_identifier(this, strdup(ast_binary_operator_to_string(op))));
@@ -15,14 +15,14 @@ namespace logia::AST
         this->push_child(right);
     }
 
-    PrefixUnaryExpression::PrefixUnaryExpression(antlr4::ParserRuleContext *rule, Node *parentNode, PrefixUnaryOperator op, Expression *operand) : CallExpression(rule, parentNode, nullptr, {})
+    PrefixUnaryExpression::PrefixUnaryExpression(antlr4::ParserRuleContext *rule, PrefixUnaryOperator op, Expression *operand) : CallExpression(rule, nullptr, {})
     {
         this->op = op;
         this->push_child(ast_create_identifier(this, strdup(ast_prefix_unary_operator_to_string(op))));
         this->push_child(operand);
     }
 
-    PostfixUnaryExpression::PostfixUnaryExpression(antlr4::ParserRuleContext *rule, Node *parentNode, PostfixUnaryOperator op, Expression *operand) : CallExpression(rule, parentNode, nullptr, {})
+    PostfixUnaryExpression::PostfixUnaryExpression(antlr4::ParserRuleContext *rule, PostfixUnaryOperator op, Expression *operand) : CallExpression(rule, nullptr, {})
     {
         this->op = op;
         this->push_child(ast_create_identifier(this, strdup(ast_postfix_unary_operator_to_string(op))));
@@ -31,103 +31,117 @@ namespace logia::AST
 
     LOGIA_API Program *ast_create_program(llvm::LLVMContext &C)
     {
-        auto body = new Program(nullptr, nullptr, nullptr);
+        auto body = new Program(nullptr, nullptr);
 
         // we know declare all primitives
         // any type in the language should use those
         // it's prohibited to create type using llvm
         // everything shall be supported directly
 
-        Type *i8 = new Type(nullptr, body, Primitives::I8_TY);
+        Type *i8 = new Type(nullptr, Primitives::I8_TY);
         i8->Integer.bits = 8;
         i8->Integer.is_signed = true;
         i8->ir = llvm::Type::getInt8Ty(C);
+        i8->parent_node = body;
 
         body->scope[(char *)"λi8"] = i8;
 
-        Type *i16 = new Type(nullptr, body, Primitives::I16_TY);
+        Type *i16 = new Type(nullptr, Primitives::I16_TY);
         i16->Integer.bits = 16;
         i16->Integer.is_signed = true;
         i16->ir = llvm::Type::getInt16Ty(C);
+        i16->parent_node = body;
 
         body->scope[(char *)"λi16"] = i16;
 
-        Type *i32 = new Type(nullptr, body, Primitives::I32_TY);
+        Type *i32 = new Type(nullptr, Primitives::I32_TY);
         i32->Integer.bits = 32;
         i32->Integer.is_signed = true;
         i32->ir = llvm::Type::getInt32Ty(C);
+        i32->parent_node = body;
 
         body->scope[(char *)"λi32"] = i32;
 
-        Type *i64 = new Type(nullptr, body, Primitives::I64_TY);
+        Type *i64 = new Type(nullptr, Primitives::I64_TY);
         i64->Integer.bits = 64;
         i64->Integer.is_signed = true;
         i64->ir = llvm::Type::getInt64Ty(C);
+        i64->parent_node = body;
 
         body->scope[(char *)"λi64"] = i64;
 
-        Type *u8 = new Type(nullptr, body, Primitives::U8_TY);
+        Type *u8 = new Type(nullptr, Primitives::U8_TY);
         u8->Integer.bits = 8;
         u8->Integer.is_signed = true;
         u8->ir = llvm::Type::getInt8Ty(C);
+        u8->parent_node = body;
 
         body->scope[(char *)"λu8"] = u8;
 
-        Type *u16 = new Type(nullptr, body, Primitives::U16_TY);
+        Type *u16 = new Type(nullptr, Primitives::U16_TY);
         u16->Integer.bits = 16;
         u16->Integer.is_signed = true;
         u16->ir = llvm::Type::getInt16Ty(C);
+        u16->parent_node = body;
 
         body->scope[(char *)"λu16"] = u16;
 
-        Type *u32 = new Type(nullptr, body, Primitives::U32_TY);
+        Type *u32 = new Type(nullptr, Primitives::U32_TY);
         u32->Integer.bits = 32;
         u32->Integer.is_signed = true;
         u32->ir = llvm::Type::getInt32Ty(C);
+        u32->parent_node = body;
 
         body->scope[(char *)"λu32"] = u32;
 
-        Type *u64 = new Type(nullptr, body, Primitives::U64_TY);
+        Type *u64 = new Type(nullptr, Primitives::U64_TY);
         u64->Integer.bits = 64;
         u64->Integer.is_signed = true;
         u64->ir = llvm::Type::getInt64Ty(C);
+        u64->parent_node = body;
 
         body->scope[(char *)"λu64"] = u64;
 
-        Type *f16 = new Type(nullptr, body, Primitives::F16_TY);
+        Type *f16 = new Type(nullptr, Primitives::F16_TY);
         f16->Float.bits = 16;
         f16->ir = llvm::Type::getHalfTy(C);
+        f16->parent_node = body;
 
         body->scope[(char *)"λf16"] = f16;
 
-        Type *f32 = new Type(nullptr, body, Primitives::F32_TY);
+        Type *f32 = new Type(nullptr, Primitives::F32_TY);
         f32->Float.bits = 32;
         f32->ir = llvm::Type::getFloatTy(C);
+        f32->parent_node = body;
 
         body->scope[(char *)"λf32"] = f32;
 
-        Type *f64 = new Type(nullptr, body, Primitives::F64_TY);
+        Type *f64 = new Type(nullptr, Primitives::F64_TY);
         f64->Float.bits = 64;
         f64->ir = llvm::Type::getDoubleTy(C);
+        f64->parent_node = body;
 
         body->scope[(char *)"λf64"] = f64;
 
-        Type *f128 = new Type(nullptr, body, Primitives::F128_TY);
+        Type *f128 = new Type(nullptr, Primitives::F128_TY);
         f128->Float.bits = 64;
         f128->ir = llvm::Type::getFP128Ty(C);
+        f128->parent_node = body;
 
         body->scope[(char *)"λf128"] = f128;
 
-        Type *lvoid = new Type(nullptr, body, Primitives::VOID_TY);
+        Type *lvoid = new Type(nullptr, Primitives::VOID_TY);
         lvoid->ir = llvm::Type::getVoidTy(C);
+        lvoid->parent_node = body;
 
         body->scope[(char *)"λvoid"] = lvoid;
 
         // TODO study opaque pointers, while seem what we need
-        Type *ptr = new Type(nullptr, body, Primitives::PTR_TY);
+        Type *ptr = new Type(nullptr, Primitives::PTR_TY);
         // opaque pointer, do not store information about pointee
         ptr->ir = llvm::PointerType::get(C, 0);
         body->scope[(char *)"λptr"] = ptr;
+        ptr->parent_node = body;
 
         return body;
     }
@@ -139,28 +153,28 @@ namespace logia::AST
         auto parentBody = (Body *)ast_find_closest_parent(parentNode, ast_types::BODY);
         LOGIA_ASSERT(parentBody);
 
-        return new Body(nullptr, parentNode, parentBody);
+        return new Body(nullptr, parentBody);
     }
     LOGIA_API LOGIA_LEND StringLiteral *ast_create_string_lit(char *text)
     {
         // TODO review remove parentNode from constructor, is a leaf right?
-        return new StringLiteral(nullptr, nullptr, text);
+        return new StringLiteral(nullptr, text);
     }
     LOGIA_API LOGIA_LEND FloatLiteral *ast_create_float_lit(Body *body, double value)
     {
-        return new FloatLiteral(nullptr, nullptr, (Type *)body->lookup(strdup("λf64")), value);
+        return new FloatLiteral(nullptr, (Type *)body->lookup(strdup("λf64")), value);
     }
     LOGIA_API LOGIA_LEND IntegerLiteral *ast_create_int_lit(Body *body, int64_t value)
     {
-        return new IntegerLiteral(nullptr, nullptr, (Type *)body->lookup(strdup("λi64")), value);
+        return new IntegerLiteral(nullptr, (Type *)body->lookup(strdup("λi64")), value);
     }
     LOGIA_API LOGIA_LEND IntegerLiteral *ast_create_uint_lit(Body *body, uint64_t value)
     {
-        return new IntegerLiteral(nullptr, nullptr, (Type *)body->lookup(strdup("λu64")), value);
+        return new IntegerLiteral(nullptr, (Type *)body->lookup(strdup("λu64")), value);
     }
     LOGIA_API LOGIA_LEND GotoStmt *ast_create_goto_stmt(Body *body, char *name)
     {
-        return new GotoStmt(nullptr, nullptr, name);
+        return new GotoStmt(nullptr, name);
     }
 
     ///
@@ -181,7 +195,14 @@ namespace logia::AST
     std::string Body::toString()
     {
         char buffer[36];
-        return std::string("body[") + std::string(itoa(this->children.size(), buffer, 10)) + "] ";
+        std::string scope;
+        for (const auto &pair : this->scope)
+        {
+            scope += scope.empty() ? "" : ", ";
+            scope += pair.first;
+        }
+
+        return std::string("body[") + std::string(itoa(this->children.size(), buffer, 10)) + "] scope: " + scope;
     }
     std::string Type::toString()
     {
@@ -503,7 +524,7 @@ namespace logia::AST
         }
 
         DEBUG() << this->toString() << " into ??" << /*builder->GetInsertBlock()->getNumber() <<*/ std::endl;
-        auto value = (llvm::Value *)this->expr->codegen(codegen, builder);
+        auto value = (llvm::Value *)this->get_expr()->codegen(codegen, builder);
 
         value->getType()->print(llvm::outs());
 
@@ -598,21 +619,14 @@ namespace logia::AST
         LOGIA_ASSERT((locator->type & ast_types::EXPRESSION) != 0);
         // TODO LOGIA_ASSERT_ALL(arguments, .type & ast_types::EXPRESSION != 0);
 
-        auto callexpr = new CallExpression(nullptr, nullptr, locator, arguments);
-
-        locator->parentNode = callexpr;
-        for (int i = 0; i < arguments.size(); ++i)
-        {
-            arguments[i]->parentNode = callexpr;
-        }
+        auto callexpr = new CallExpression(nullptr, locator, arguments);
 
         return callexpr;
     }
 
     LOGIA_API ReturnStmt *ast_create_return(Expression *ret)
     {
-        auto stmt = new ReturnStmt(nullptr, nullptr, ret);
-        ret->parentNode = stmt;
+        auto stmt = new ReturnStmt(nullptr, ret);
         return stmt;
     }
 
@@ -622,12 +636,13 @@ namespace logia::AST
         LOGIA_ASSERT(name);
         LOGIA_ASSERT(return_type);
 
-        Type *t = new Type(nullptr, parentBody, Primitives::FUNCTION_TY);
+        Type *t = new Type(nullptr, Primitives::FUNCTION_TY);
         new (&t->Function) FunctionType();
         t->Function.name = name;
         t->Function.return_type = return_type;
-        t->Function.body = new Body(nullptr, t, parentBody);
+        t->Function.body = new Body(nullptr, parentBody);
         t->Function.body->type = (ast_types)(ast_types::FUNCTION | ast_types::BODY);
+        t->push_child(t->Function.body);
         parentBody->set(name, t);
 
         return t;
@@ -639,7 +654,7 @@ namespace logia::AST
         LOGIA_ASSERT(name);
         LOGIA_ASSERT(return_type);
 
-        Type *t = new Type(nullptr, program, Primitives::FUNCTION_TY);
+        Type *t = new Type(nullptr, Primitives::FUNCTION_TY);
         new (&t->Function) FunctionType();
         t->Function.name = name;
         t->Function.return_type = return_type;
@@ -660,7 +675,7 @@ namespace logia::AST
         auto parentBody = (Body *)ast_find_closest_parent(current, ast_types::BODY);
         LOGIA_ASSERT(parentBody);
 
-        Type *t = new Type(nullptr, nullptr, Primitives::STRUCT_TY);
+        Type *t = new Type(nullptr, Primitives::STRUCT_TY);
         new (&t->Struct) StructType();
         t->Struct.name = name;
 
@@ -677,8 +692,7 @@ namespace logia::AST
         auto parentBody = (Body *)ast_find_closest_parent(current, ast_types::BODY);
         LOGIA_ASSERT(parentBody);
 
-        VarDeclStmt *variable = new VarDeclStmt(nullptr, nullptr, strdup(name), type, expr);
-        expr->parentNode = variable;
+        VarDeclStmt *variable = new VarDeclStmt(nullptr, strdup(name), type, expr);
 
         parentBody->set(strdup(name), variable);
 
@@ -693,14 +707,14 @@ namespace logia::AST
         auto parentBody = (Body *)ast_find_closest_parent(current, ast_types::BODY);
         LOGIA_ASSERT(parentBody);
 
-        return new Identifier(nullptr, nullptr, strdup(name));
+        return new Identifier(nullptr, strdup(name));
     }
 
     LOGIA_API LOGIA_LEND IfStmt *ast_create_if(Expression *condition)
     {
         LOGIA_ASSERT(condition);
 
-        return new IfStmt(nullptr, nullptr, condition);
+        return new IfStmt(nullptr, condition);
     }
 
     //
@@ -713,9 +727,10 @@ namespace logia::AST
         // LOGIA_ASSERT(*prop_name);
 
         auto param = s->Function.parameters.emplace_back(param_name, param_type, param_default_value);
+        // TODO REVIEW default values are not push ?
         if (param_default_value)
         {
-            param_default_value->parentNode = s;
+            param_default_value->parent_node = s;
         }
         s->Function.body->set(param_name, param_type);
     }
@@ -726,9 +741,10 @@ namespace logia::AST
         // LOGIA_ASSERT(*prop_name);
 
         auto prop = s->Struct.properties.emplace_back(prop_name, nullptr, StructPropertyType::STRUCT_PROPERTY_TYPE_FIELD, prop_type, prop_default_value);
+        // TODO REVIEW default values are not push ?
         if (prop_default_value)
         {
-            prop_default_value->parentNode = s;
+            prop_default_value->parent_node = s;
         }
     }
 
@@ -858,7 +874,7 @@ namespace logia::AST
             {
                 return current;
             }
-            current = current->parentNode;
+            current = current->parent_node;
         } while (current != nullptr);
 
         return nullptr;
