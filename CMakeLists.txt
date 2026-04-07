@@ -34,10 +34,23 @@ message(STATUS "ANTLR_LogiaGrammarLexer_CXX_OUTPUTS ${ANTLR_LogiaGrammarLexer_CX
 message(STATUS "ANTLR_LogiaGrammarParser_CXX_OUTPUTS ${ANTLR_LogiaGrammarParser_CXX_OUTPUTS}")
 
 set(LOGIA_SOURCE_FILES
+  src/ast/node.cpp
+  src/ast/types.cpp
+  src/ast/type.cpp
+  src/ast/traverse.cpp
+
+  src/ast/block.cpp
+  src/ast/program.cpp
+  
+  src/ast/stmt.cpp  
+  src/ast/if_stmt.cpp  
+  
+  src/ast/expr.cpp
+  src/ast/constexpr.cpp
+
   src/compiler.cpp
   src/llvmvisitor.cpp  
   src/backend.cpp
-  src/ast.cpp
   src/utils.cpp
 )
 

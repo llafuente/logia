@@ -29,6 +29,7 @@
 #include <memory>
 
 #include "utils.h"
+#include "ast/program.h"
 
 // cross compile support ?
 #define CODEGEN_NATIVE
@@ -72,6 +73,8 @@ namespace logia
 
         session = std::make_unique<llvm::orc::ExecutionSession>(std::move(*EPC));
         session->createBareJITDylib("<main>");
+
+        this->program = AST::ast_create_program(this->context);
     }
 
     Backend::~Backend()
@@ -301,6 +304,8 @@ namespace logia
     int Backend::run_jit()
     {
         DEBUG() << "()" << std::endl;
+        DEBUG() << this->program->to_string_tree() << std::endl;
+        this->program->codegen(this, this->builder);
 
         // create orc-jit
         // * execute in the current process -> session

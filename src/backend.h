@@ -22,6 +22,12 @@
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/ExecutionEngine/Orc/Core.h"
 
+namespace logia {
+    namespace AST {
+        struct Program;
+    }
+}
+
 namespace logia
 {
     /**
@@ -44,11 +50,13 @@ namespace logia
          * 
          * Overriden in each function/block scope
          */
-        llvm::IRBuilder<> *builder;
+        llvm::IRBuilder<> *builder = nullptr;
         /**
          * Current LLVM JIT session
          */
         std::unique_ptr<llvm::orc::ExecutionSession> session;
+
+        ::logia::AST::Program *program = nullptr;
         /**
          * Initialize LLVM
          */
