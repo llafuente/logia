@@ -76,9 +76,10 @@ namespace logia
 
     Backend::~Backend()
     {
+        llvm::errs() << this->session->endSession();
     }
 
-    void Backend::load_intrinsics(char* filepath)
+    void Backend::load_intrinsics(char *filepath)
     {
         llvm::SMDiagnostic diag;
         module = llvm::parseIRFile(filepath, diag, context);
@@ -104,7 +105,7 @@ namespace logia
         symbols.insert({session->intern(fn_name), ss});
 
         auto dylib = session->getJITDylibByName("<main>");
-        dylib->define(
+        llvm::errs() << dylib->define(
             llvm::orc::absoluteSymbols(std::move(symbols)));
     }
 
@@ -181,8 +182,22 @@ namespace logia
             // return llvm::Expected<llvm::TargetMachine*>(llvm::make_error<std::string>(err));
             return llvm::Expected<llvm::TargetMachine *>(llvm::make_error<llvm::StringError>(err, llvm::inconvertibleErrorCode()));
         }
-        auto CPU = "generic";
-        auto Features = "";
+
+        llvm::SubtargetFeatures features;
+        llvm::StringMap<bool> hostFeatures = llvm::sys::getHostCPUFeatures();
+        for (auto &feature : hostFeatures)
+        {
+            features.AddFeature(feature.first(), feature.second);
+        }
+        // auto Features = "";
+        auto Features = features.getString();
+
+        // auto CPU = "generic";
+        auto CPU = llvm::sys::getHostCPUName();
+
+        DEBUG() << "CPU = " << CPU.begin() << std::endl;
+        DEBUG() << "Features = " << Features << std::endl;
+
         // defaults: https://reviews.llvm.org/D36241
         llvm::TargetOptions opt;
         auto reloc = std::optional<llvm::Reloc::Model>();
@@ -193,6 +208,8 @@ namespace logia
 
     bool generateFile(std::string fileName, llvm::CodeGenFileType FileType, llvm::Module *module, llvm::TargetMachine *TheTargetMachine)
     {
+
+        DEBUG() << "(" << fileName << ")" << std::endl;
 
         std::error_code EC;
         llvm::raw_fd_ostream dest(fileName, EC, llvm::sys::fs::FileAccess::FA_Write);
@@ -219,6 +236,7 @@ namespace logia
 
     bool Backend::emitTargetLLVMIR(std::string fileName = "main.ll")
     {
+        DEBUG() << "(" << fileName << ")" << std::endl;
         std::error_code EC;
         llvm::raw_fd_ostream dest(fileName, EC, llvm::sys::fs::FileAccess::FA_Write);
 
@@ -236,6 +254,7 @@ namespace logia
 
     bool Backend::emitTargetObjectFile(std::string fileName = "main.o")
     {
+        DEBUG() << "(" << fileName << ")" << std::endl;
         // Initialize the target registry etc.
         auto triple = llvm::Triple(llvm::sys::getDefaultTargetTriple());
 
@@ -255,6 +274,7 @@ namespace logia
 
     bool Backend::emitTargetAssemblyFile(std::string fileName = "main.asm")
     {
+        DEBUG() << "(" << fileName << ")" << std::endl;
         // Initialize the target registry etc.
         auto triple = llvm::Triple(llvm::sys::getDefaultTargetTriple());
 
