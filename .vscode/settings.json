@@ -1,0 +1,94 @@
+{
+    "python-envs.defaultEnvManager": "ms-python.python:pyenv",
+    "cmake.options.statusBarVisibility": "visible", 
+    "cmake.options.advanced": { 
+
+        "folder": { 
+            "statusBarVisibility": "visible", 
+            "inheritDefault": "visible",
+            "statusBarLength": 20,
+            "projectStatusVisibility": "visible", 
+        }, 
+        "configure": { 
+            "projectStatusVisibility": "visible", 
+        }, 
+        "configurePreset": { 
+            "statusBarVisibility": "visible",
+            "inheritDefault": "visible",
+            "statusBarLength": 20
+        }, 
+        "kit": { 
+            "statusBarVisibility": "visible", 
+            "inheritDefault": "visible", 
+            "statusBarLength": 20 
+        }, 
+        "variant": { 
+            "statusBarVisibility": "visible",
+            "inheritDefault": "visible", 
+        }, 
+        "build": { 
+            "statusBarVisibility": "visible",
+            "inheritDefault": "visible", 
+            "projectStatusVisibility": "visible",
+        }, 
+        "buildPreset": { 
+            "statusBarVisibility": "visible",
+            "inheritDefault": "visible", 
+            "statusBarLength": 20 
+        }, 
+        "buildTarget": { 
+            "statusBarVisibility": "visible",
+            "inheritDefault": "visible", 
+            "statusBarLength": 20 
+        }, 
+        "ctest": { 
+            "statusBarVisibility": "visible", 
+            "inheritDefault": "visible", 
+            "statusBarLength": 20, 
+            "color": true, 
+            "projectStatusVisibility": "visible",
+        }, 
+        "testPreset": { 
+            "statusBarVisibility": "visible",
+            "inheritDefault": "visible", 
+            "statusBarLength": 20
+        },
+        "launchTarget": { 
+            "statusBarVisibility": "visible",
+            "inheritDefault": "visible", 
+            "statusBarLength": 20 
+        }, 
+        "debug": { 
+            "statusBarVisibility": "visible",
+            "inheritDefault": "visible", 
+            "projectStatusVisibility": "visible",
+        },
+        "launch": {
+            "statusBarVisibility": "visible",
+            "inheritDefault": "visible", 
+            "projectStatusVisibility": "visible",
+        },
+        "workflow": {
+            "statusBarVisibility": "visible",
+            "inheritDefault": "visible", 
+            "projectStatusVisibility": "visible",
+        },
+        "workflowPreset": {
+            "statusBarVisibility": "visible",
+            "inheritDefault": "visible", 
+            "projectStatusVisibility": "visible",
+        },
+        "packagePreset": {
+            "statusBarVisibility": "visible", 
+            "inheritDefault": "visible", 
+            "projectStatusVisibility": "visible",
+        }
+    },
+    "cmake.configureSettings": {
+        "Python_EXECUTABLE": "C:/Users/luis/.pyenv/pyenv-win/versions/3.10.11/python.exe",
+        "Python3_ROOT_DIR": "C:/Users/luis/.pyenv/pyenv-win/versions/3.10.11/",
+        "LLVM_DIR": "C:/Program Files (x86)/LLVM/lib/cmake/llvm/"
+    },
+    "cmake.configureArgs": [],
+    "editor.formatOnSave": true
+}
