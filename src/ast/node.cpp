@@ -5,7 +5,6 @@
 
 namespace logia::AST
 {
-
     Node::Node(antlr4::ParserRuleContext *rule, ast_types type)
     {
         this->rule = rule;
@@ -89,5 +88,18 @@ namespace logia::AST
     void Node::on_after_attach()
     {
         this->is_attached = true;
+    }
+
+    //
+    // NoOp
+    //
+    NoOp::NoOp() : Node(nullptr, ast_types::EXPRESSION) {}
+    std::string NoOp::to_string() { return "NoOp"; };
+    llvm::Value *NoOp::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) { return nullptr; }
+    Type *NoOp::get_type() { return nullptr; };
+
+    void NODE_TYPE_ASSERT(Node *node, ast_types ty)
+    {
+        LOGIA_ASSERT(((node->type & ty) == ty) && node->type && "Invalid node type sent");
     }
 }

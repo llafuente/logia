@@ -76,6 +76,26 @@ define dso_local zeroext i1 @logia_operator_equal_i64_i64(i64 noundef %0, i64 no
   ret i1 %7
 }
 
+; Function Attrs: mustprogress noinline nounwind optnone uwtable
+define dso_local void @logia_intrinsics_bin_assign(ptr noundef %0, i64 noundef %1) #2 {
+  %3 = alloca i64, align 8
+  %4 = alloca ptr, align 8
+  store i64 %1, ptr %3, align 8
+  store ptr %0, ptr %4, align 8
+  %5 = load i64, ptr %3, align 8
+  %6 = load ptr, ptr %4, align 8
+  store i64 %5, ptr %6, align 8
+  ret void
+}
+
+; Function Attrs: mustprogress noinline nounwind optnone uwtable
+define dso_local ptr @logia_intrinsics_deref(ptr noundef nonnull align 8 dereferenceable(8) %0) #2 {
+  %2 = alloca ptr, align 8
+  store ptr %0, ptr %2, align 8
+  %3 = load ptr, ptr %2, align 8, !nonnull !9, !align !10
+  ret ptr %3
+}
+
 attributes #0 = { mustprogress noinline optnone uwtable "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
 attributes #1 = { "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
 attributes #2 = { mustprogress noinline nounwind optnone uwtable "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
@@ -94,3 +114,5 @@ attributes #2 = { mustprogress noinline nounwind optnone uwtable "min-legal-vect
 !6 = !{i32 7, !"uwtable", i32 2}
 !7 = !{i32 1, !"MaxTLSAlign", i32 65536}
 !8 = !{!"clang version 22.1.1 (https://github.com/llvm/llvm-project fef02d48c08db859ef83f84232ed78bd9d1c323a)"}
+!9 = !{}
+!10 = !{i64 8}

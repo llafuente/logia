@@ -226,7 +226,7 @@ TEST(AST_Type, ast_create_var_decl)
 
   // print static string from variable
   auto callFuncName2 = ast_create_string_lit(strdup("logia_print_stdout"));
-  auto ident = (Expression *)ast_create_identifier(func->Function.body, strdup("hello"));
+  auto ident = (Expression *)ast_create_identifier(strdup("hello"));
   func->Function.body->push_child(ast_create_call_expr(callFuncName2, {ident}));
   EXPECT_EQ(ident->parent_node, func->Function.body->children[2]);
 
@@ -291,8 +291,8 @@ TEST(AST_Type, ast_create_var_decl2)
 
   // print static string from variable
   {
-    auto ident_a = (Expression *)ast_create_identifier(main_body, str_a);
-    auto ident_b = (Expression *)ast_create_identifier(main_body, str_b);
+    auto ident_a = (Expression *)ast_create_identifier(str_a);
+    auto ident_b = (Expression *)ast_create_identifier(str_b);
 
     auto callFuncName = ast_create_string_lit(strdup("logia_operator_add_i64_i64"));
     auto sum_expr = ast_create_call_expr(callFuncName, {ident_a, ident_b});
@@ -392,8 +392,7 @@ TEST(ast_create_if3, t1)
   using namespace logia::AST;
 
   auto eqeq = ast_create_string_lit(strdup("logia_operator_equal_i64_i64"));
-  auto plus = ast_create_string_lit(strdup("logia_operator_add_i64_i64"));
-  auto plus2 = ast_create_string_lit(strdup("logia_operator_add_i64_i64"));
+
   auto var_id = strdup("tmp");
 
   auto vdecl = ast_create_var_decl(var_id, (logia::AST::Type *)program->lookup(strdup("λi64")), ast_create_int_lit(program, 0));
@@ -404,10 +403,22 @@ TEST(ast_create_if3, t1)
   auto ifstmt = ast_create_if(condition);
   main_body->push_child(ifstmt);
   EXPECT_EQ(ifstmt->get_then()->parent_node, ifstmt);
-  ifstmt->get_then()->push_child(ast_create_call_expr(plus, {ast_create_identifier(ifstmt, var_id), ast_create_int_lit(program, 1)}));
-  ifstmt->get_else()->push_child(ast_create_call_expr(plus2, {ast_create_identifier(ifstmt, var_id), ast_create_int_lit(program, 2)}));
+  {
+    auto fn_add_name = ast_create_string_lit(strdup("logia_operator_add_i64_i64"));
+    auto add = ast_create_call_expr(fn_add_name, {ast_create_identifier(var_id), ast_create_int_lit(program, 1)});
+    auto fn_assignament_name = ast_create_string_lit(strdup("logia_operator_assign_i64_i64"));
+    auto assignament = ast_create_binary_expr(ast_create_identifier(var_id), BinaryOperator::ASSIGN, add);
+    ifstmt->get_then()->push_child(assignament);
+  }
+  {
+    auto fn_add_name = ast_create_string_lit(strdup("logia_operator_add_i64_i64"));
+    auto add = ast_create_call_expr(fn_add_name, {ast_create_identifier(var_id), ast_create_int_lit(program, 2)});
+    auto fn_assignament_name = ast_create_string_lit(strdup("logia_operator_assign_i64_i64"));
+    auto assignament = ast_create_binary_expr(ast_create_identifier(var_id), BinaryOperator::ASSIGN, add);
+    ifstmt->get_else()->push_child(assignament);
+  }
 
-  main_body->push_child(ast_create_return(ast_create_identifier(main_fn, var_id)));
+  main_body->push_child(ast_create_return(ast_create_identifier(var_id)));
 
   EXPECT_NE(main_body->children[2]->parent_node, nullptr);
   EXPECT_NE(main_body->parent_node, nullptr);

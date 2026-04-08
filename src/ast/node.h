@@ -75,4 +75,14 @@ namespace logia::AST
         virtual Type *get_type() = 0;
         virtual void on_after_attach();
     };
+
+    struct NoOp : public Node
+    {
+        NoOp();
+        std::string to_string() override;
+        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        Type *get_type() override;
+    };
+
+    void NODE_TYPE_ASSERT(Node *node, ast_types ty);
 }

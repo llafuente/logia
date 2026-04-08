@@ -39,6 +39,9 @@ namespace logia::AST
     //
     // CallExpression
     //
+    CallExpression::CallExpression() : Expression(nullptr, ast_types::CALL_EXPRESSION)
+    {
+    }
     CallExpression::CallExpression(antlr4::ParserRuleContext *rule, Expression *locator, std::vector<Expression *> arguments) : Expression(rule, ast_types::CALL_EXPRESSION)
     {
         this->push_child(locator);
@@ -63,35 +66,63 @@ namespace logia::AST
     std::string CallExpression::to_string()
     {
         char buffer[36];
+        auto locator = this->get_locator();
+        if (!locator)
+        {
+            return std::string("CallExpression: incomplete");
+        }
+
         auto arguments = this->get_arguments();
-        return std::string("CallExpression: ") + this->get_locator()->to_string() + "(" + std::string(itoa(arguments.size(), buffer, 10)) + " args)";
+        return std::string("CallExpression: ") + locator->to_string() + "(" + std::string(itoa(arguments.size(), buffer, 10)) + " args)";
     }
 
     llvm::Value *CallExpression::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
     {
         DEBUG() << this->to_string() << std::endl;
 
+        if (this->children.size() == 0)
+        {
+            throw std::runtime_error("Incomplete CallExpression");
+        }
+
         // Look up the name in the global module table.
         auto name = (StringLiteral *)this->get_locator();
+
         llvm::Function *CalleeF = codegen->module->getFunction(name->text);
+        if (!CalleeF)
+        {
+            throw std::runtime_error(std::string("Unknown function referenced: ") + name->text);
+        }
 
         auto arguments = this->get_arguments();
-        // auto x = codegen->module->getValueSymbolTable();
-        // x->
-        if (!CalleeF)
-            throw std::runtime_error(std::string("Unknown function referenced: ") + name->text);
-
         // If argument mismatch error.
         if (CalleeF->arg_size() != arguments.size())
+        {
             throw std::exception("Incorrect # arguments passed");
+        }
+        auto arg_itr = CalleeF->arg_begin();
 
         std::vector<llvm::Value *> ArgsV;
         for (unsigned i = 0, e = arguments.size(); i != e; ++i)
         {
+            auto callee_arg = CalleeF->getArg(i);
             DEBUG() << "argument[" << i << "]" << std::endl;
-            ArgsV.push_back(arguments[i]->codegen(codegen, builder));
+            auto caller_arg = arguments[i]->codegen(codegen, builder);
+
+            // check arguments type are compatible one by one
+            if (callee_arg->getType() != caller_arg->getType())
+            {
+                auto message = std::format("Invalid argument {} of type {} expected type {}", i, llvm_type_to_string(caller_arg->getType()), llvm_type_to_string(callee_arg->getType()));
+                DEBUG() << message << std::endl
+                        << arguments[i]->to_string_tree();
+                throw std::runtime_error(message);
+            }
+
+            ArgsV.push_back(caller_arg);
             if (!ArgsV.back())
+            {
                 return nullptr;
+            }
         }
         // NOTE name is not what i expect -> blank!
         return builder->CreateCall(CalleeF, ArgsV);
@@ -157,10 +188,10 @@ namespace logia::AST
         return std::string("BinaryExpression: ") + ast_binary_operator_to_string(this->op) + "(" + this->get_left()->to_string() + ", " + this->get_right()->to_string() + ")";
     }
 
-    BinaryExpression::BinaryExpression(antlr4::ParserRuleContext *rule, BinaryOperator op, Expression *left, Expression *right) : CallExpression(rule, nullptr, {})
+    BinaryExpression::BinaryExpression(antlr4::ParserRuleContext *rule, Expression *left, BinaryOperator op, Expression *right) : CallExpression()
     {
         this->op = op;
-        this->push_child(ast_create_identifier(this, strdup(ast_binary_operator_to_string(op))));
+        this->push_child(ast_create_identifier(strdup(ast_binary_operator_to_string(op))));
         switch (op)
         {
         case BinaryOperator::ASSIGN:
@@ -199,37 +230,58 @@ namespace logia::AST
     //
     std::string PrefixUnaryExpression::to_string()
     {
-        return std::string("PrefixUnaryExpression: ") + ast_prefix_unary_operator_to_string(this->op) + "(" + this->get_operand()->to_string() + ")";
+        return std::string("PrefixUnaryExpression: ") + this->get_locator()->to_string() + "(" + this->get_operand()->to_string() + ")";
     }
 
-    PrefixUnaryExpression::PrefixUnaryExpression(antlr4::ParserRuleContext *rule, PrefixUnaryOperator op, Expression *operand) : CallExpression(rule, nullptr, {})
+    PrefixUnaryExpression::PrefixUnaryExpression(antlr4::ParserRuleContext *rule, PrefixUnaryOperator op, Expression *operand) : CallExpression()
     {
         this->op = op;
-        this->push_child(ast_create_identifier(this, strdup(ast_prefix_unary_operator_to_string(op))));
-        this->push_child(operand);
+        switch (this->op)
+        {
+        case PrefixUnaryOperator::DEREFERENCE:
+            this->push_child(new NoOp());
+            NODE_TYPE_ASSERT(operand, ast_types::IDENTIFIER);
+            this->push_child(operand);
+            break;
+        default:
+            this->push_child(ast_create_identifier(strdup(ast_prefix_unary_operator_to_string(op))));
+            this->push_child(operand);
+        }
+    }
+
+    Expression *PrefixUnaryExpression::get_operand()
+    {
+        return (Expression *)this->children[1];
     }
 
     llvm::Value *PrefixUnaryExpression::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
     {
         DEBUG() << this->to_string() << std::endl;
 
-        auto operand = this->get_operand();
-
-        auto operandValue = operand->codegen(codegen, builder);
-        auto operandType = operandValue->getType();
-
         switch (this->op)
         {
-        case PrefixUnaryOperator::REFERENCE:
-            return builder->CreateIntToPtr(operandValue, operandType);
+        case PrefixUnaryOperator::DEREFERENCE:
+        {
+            auto operand = this->get_operand();
+
+            // auto operandValue = operand->codegen(codegen, builder);
+            auto operandValue = ((Identifier *)this->get_operand())->get_var_decl()->ir;
+            auto operandType = operandValue->getType();
+            // return builder->CreateIntToPtr(operandValue, llvm::PointerType::get(codegen->context, 0));
+            // return builder->CreateLoad(llvm::PointerType::get(codegen->context, 0), operandValue);
+            // return builder->CreateLoad(operandType->getPointerTo(), operandValue, false);
+            auto ptr = builder->CreateAlloca(operandType->getPointerTo(), nullptr, "deref");
+            builder->CreateStore(operandValue, ptr);
+            return builder->CreateLoad(operandType->getPointerTo(), ptr);
+        }
         default:
-            throw std::runtime_error("Unknown prefix unary operator");
+            return CallExpression::codegen(codegen, builder);
         }
     }
 
     LOGIA_API LOGIA_LEND PrefixUnaryExpression *ast_create_ref(Expression *operand)
     {
-        PrefixUnaryExpression *expr = new PrefixUnaryExpression(nullptr, PrefixUnaryOperator::REFERENCE, operand);
+        PrefixUnaryExpression *expr = new PrefixUnaryExpression(nullptr, PrefixUnaryOperator::DEREFERENCE, operand);
         return expr;
     }
 
@@ -244,11 +296,16 @@ namespace logia::AST
         return std::string("PostfixUnaryExpression: ") + ast_postfix_unary_operator_to_string(this->op) + "(" + this->get_operand()->to_string() + ")";
     }
 
-    PostfixUnaryExpression::PostfixUnaryExpression(antlr4::ParserRuleContext *rule, PostfixUnaryOperator op, Expression *operand) : CallExpression(rule, nullptr, {})
+    PostfixUnaryExpression::PostfixUnaryExpression(antlr4::ParserRuleContext *rule, PostfixUnaryOperator op, Expression *operand) : CallExpression()
     {
         this->op = op;
-        this->push_child(ast_create_identifier(this, strdup(ast_postfix_unary_operator_to_string(op))));
+        this->push_child(ast_create_identifier(strdup(ast_postfix_unary_operator_to_string(op))));
         this->push_child(operand);
+    }
+
+    Expression *PostfixUnaryExpression::get_operand()
+    {
+        return (Expression *)this->children[1];
     }
 
     // TODO create
@@ -256,6 +313,11 @@ namespace logia::AST
     //
     // Identifier
     //
+    Identifier::Identifier(antlr4::ParserRuleContext *rule, char *identifier) : Expression(rule, ast_types::IDENTIFIER)
+    {
+        LOGIA_ASSERT(type);
+        this->identifier = identifier;
+    }
     std::string Identifier::to_string()
     {
         return std::string("Identifier: ") + this->identifier;
@@ -270,13 +332,29 @@ namespace logia::AST
         return builder->CreateLoad(decl->ir->getAllocatedType(), decl->ir, this->identifier);
     }
 
-    LOGIA_API Identifier *ast_create_identifier(Node *current, char *name)
+    VarDeclStmt *Identifier::get_var_decl()
     {
-        LOGIA_ASSERT(current);
-        LOGIA_ASSERT(name);
+        return ast_get_vardecl_by_name(this, this->identifier);
+    }
+    Type *get_function_decl()
+    {
+        throw std::runtime_error("not implemented");
+    }
 
-        auto parentBody = (Block *)ast_find_closest_parent(current, ast_types::BODY);
-        LOGIA_ASSERT(parentBody);
+    void Identifier::on_after_attach()
+    {
+        // TODO
+    }
+
+    Type *Identifier::get_type()
+    {
+        // TODO resolve!
+        return nullptr;
+    }
+
+    LOGIA_API Identifier *ast_create_identifier(char *name)
+    {
+        LOGIA_ASSERT(name);
 
         return new Identifier(nullptr, strdup(name));
     }
@@ -300,6 +378,8 @@ namespace logia::AST
     {
         switch (op)
         {
+        // case PrefixUnaryOperator::DEREFERENCE:
+        //     return "logia_intrinsics_deref";
         case PrefixUnaryOperator::INCREMENT:
             return "logia_intrinsics_prefix_inc";
         case PrefixUnaryOperator::DECREMENT:
@@ -319,6 +399,16 @@ namespace logia::AST
     {
         switch (op)
         {
+        case BinaryOperator::ASSIGN:
+            return "logia_intrinsics_bin_assign";
+        case BinaryOperator::ADD_ASSIGN:
+            return "logia_intrinsics_bin_add_assign";
+        case BinaryOperator::SUB_ASSIGN:
+            return "logia_intrinsics_bin_sub_assign";
+        case BinaryOperator::DIV_ASSIGN:
+            return "logia_intrinsics_bin_div_assign";
+        case BinaryOperator::MUL_ASSIGN:
+            return "logia_intrinsics_bin_mul_assign";
         case BinaryOperator::ADD:
             return "logia_intrinsics_bin_add";
         case BinaryOperator::SUB:

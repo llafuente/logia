@@ -2,9 +2,12 @@
 
 #include "ast/node.h"
 #include "ast/type.h"
+#include "ast/stmt.h"
 
 namespace logia::AST
 {
+    struct VarDeclStmt;
+
     struct Expression : Node
     {
         // REVIEW strange  why do i need to declare this ?
@@ -14,6 +17,11 @@ namespace logia::AST
 
     struct CallExpression : Expression
     {
+        /**!
+         * Empty constructor for internal usage of CallExpression
+         * Do not use the constructor to build ASTs
+         */
+        CallExpression();
         CallExpression(antlr4::ParserRuleContext *rule, Expression *locator, std::vector<Expression *> arguments);
         Expression *get_locator();
         // TODO this should be std::vector<Expression *>
@@ -81,7 +89,7 @@ namespace logia::AST
 
     enum class PrefixUnaryOperator
     {
-        REFERENCE,   // &
+        DEREFERENCE, // &
         NEGATION,    // -
         LOGICAL_NOT, // !
         INCREMENT,   // ++
@@ -93,10 +101,7 @@ namespace logia::AST
     {
         PrefixUnaryOperator op;
         PrefixUnaryExpression(antlr4::ParserRuleContext *rule, PrefixUnaryOperator op, Expression *operand);
-        Expression *get_operand()
-        {
-            return (Expression *)this->children[0];
-        }
+        Expression *get_operand();
         std::string to_string() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
     };
@@ -113,34 +118,26 @@ namespace logia::AST
     {
         PostfixUnaryOperator op;
         PostfixUnaryExpression(antlr4::ParserRuleContext *rule, PostfixUnaryOperator op, Expression *operand);
-        Expression *get_operand()
-        {
-            return (Expression *)this->children[0];
-        }
+        Expression *get_operand();
         std::string to_string() override;
     };
 
     struct Identifier : Expression
     {
         char *identifier;
-        Identifier(antlr4::ParserRuleContext *rule, char *identifier) : Expression(rule, ast_types::IDENTIFIER)
-        {
-            LOGIA_ASSERT(type);
-            this->identifier = identifier;
-        }
+        Identifier(antlr4::ParserRuleContext *rule, char *identifier);
+        VarDeclStmt *get_var_decl();
+        Type *get_function_decl();
         std::string to_string() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
-        Type *get_type() override
-        {
-            // TODO resolve!
-            return nullptr;
-        }
+        Type *get_type() override;
+        void on_after_attach() override;
     };
 
     /**
      * Creates an identifier
      */
-    LOGIA_API LOGIA_LEND Identifier *ast_create_identifier(Node *current, char *name);
+    LOGIA_API LOGIA_LEND Identifier *ast_create_identifier(char *name);
 
     //
     // utils
