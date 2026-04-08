@@ -161,8 +161,35 @@ namespace logia::AST
     {
         this->op = op;
         this->push_child(ast_create_identifier(this, strdup(ast_binary_operator_to_string(op))));
-        this->push_child(left);
+        switch (op)
+        {
+        case BinaryOperator::ASSIGN:
+        case BinaryOperator::ADD_ASSIGN:
+        case BinaryOperator::SUB_ASSIGN:
+        case BinaryOperator::MUL_ASSIGN:
+        case BinaryOperator::DIV_ASSIGN:
+            this->push_child(ast_create_ref(left));
+            break;
+        default:
+            this->push_child(left);
+            break;
+        }
         this->push_child(right);
+    }
+
+    Expression *BinaryExpression::get_left()
+    {
+        return (Expression *)this->children[0];
+    }
+    Expression *BinaryExpression::get_right()
+    {
+        return (Expression *)this->children[1];
+    }
+
+    LOGIA_API LOGIA_LEND BinaryExpression *ast_create_binary_expr(Expression *left, BinaryOperator op, Expression *right)
+    {
+        BinaryExpression *expr = new BinaryExpression(nullptr, left, op, right);
+        return expr;
     }
 
     // TODO create
@@ -180,6 +207,30 @@ namespace logia::AST
         this->op = op;
         this->push_child(ast_create_identifier(this, strdup(ast_prefix_unary_operator_to_string(op))));
         this->push_child(operand);
+    }
+
+    llvm::Value *PrefixUnaryExpression::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    {
+        DEBUG() << this->to_string() << std::endl;
+
+        auto operand = this->get_operand();
+
+        auto operandValue = operand->codegen(codegen, builder);
+        auto operandType = operandValue->getType();
+
+        switch (this->op)
+        {
+        case PrefixUnaryOperator::REFERENCE:
+            return builder->CreateIntToPtr(operandValue, operandType);
+        default:
+            throw std::runtime_error("Unknown prefix unary operator");
+        }
+    }
+
+    LOGIA_API LOGIA_LEND PrefixUnaryExpression *ast_create_ref(Expression *operand)
+    {
+        PrefixUnaryExpression *expr = new PrefixUnaryExpression(nullptr, PrefixUnaryOperator::REFERENCE, operand);
+        return expr;
     }
 
     // TODO create

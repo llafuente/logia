@@ -71,20 +71,17 @@ namespace logia::AST
     struct BinaryExpression : CallExpression
     {
         BinaryOperator op;
-        BinaryExpression(antlr4::ParserRuleContext *rule, BinaryOperator op, Expression *left, Expression *right);
-        Expression *get_left()
-        {
-            return (Expression *)this->children[0];
-        }
-        Expression *get_right()
-        {
-            return (Expression *)this->children[1];
-        }
+        BinaryExpression(antlr4::ParserRuleContext *rule, Expression *left, BinaryOperator op, Expression *right);
+        Expression *get_left();
+        Expression *get_right();
         std::string to_string() override;
     };
 
+    LOGIA_API LOGIA_LEND BinaryExpression *ast_create_binary_expr(Expression *left, BinaryOperator op, Expression *right);
+
     enum class PrefixUnaryOperator
     {
+        REFERENCE,   // &
         NEGATION,    // -
         LOGICAL_NOT, // !
         INCREMENT,   // ++
@@ -101,7 +98,10 @@ namespace logia::AST
             return (Expression *)this->children[0];
         }
         std::string to_string() override;
+        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
     };
+
+    LOGIA_API LOGIA_LEND PrefixUnaryExpression *ast_create_ref(Expression *operand);
 
     enum class PostfixUnaryOperator
     {
