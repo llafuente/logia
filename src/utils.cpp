@@ -1,11 +1,20 @@
 #include "utils.h"
+#include "llvm/IR/Type.h"
 
 // debug
 std::ofstream logia_log_file;
 
-bool logia_init_log(char* file_name)
+bool logia_init_log(char *file_name, bool append)
 {
-    logia_log_file.open(file_name, std::ios::out | std::ios::app);
+    if (append)
+    {
+        logia_log_file.open(file_name, std::ios::out | std::ios::app);
+    }
+    else
+    {
+        logia_log_file.open(file_name, std::ios::out | std::ios::trunc);
+    }
+
     if (!logia_log_file.is_open())
     {
         std::cerr << "Error: Could not open log file: " << file_name << "\n";
@@ -14,12 +23,13 @@ bool logia_init_log(char* file_name)
     return true;
 }
 
-void logia_deinit_log() {
-    if (logia_log_file.is_open()) {
+void logia_deinit_log()
+{
+    if (logia_log_file.is_open())
+    {
         logia_log_file.close();
     }
 }
-
 
 #ifdef _WIN32
 
@@ -33,21 +43,23 @@ void logia_deinit_log() {
 #pragma comment(lib, "dbghelp.lib")
 
 // Function to print a stack trace
-void print_stack_trace() {
+void print_stack_trace()
+{
     unsigned int maxFrames = 62;
     // Allocate symbol table
     HANDLE process = GetCurrentProcess();
     SymInitialize(process, NULL, TRUE);
 
-    void* stack[62];
+    void *stack[62];
     USHORT frames = CaptureStackBackTrace(0, maxFrames, stack, NULL);
 
-    SYMBOL_INFO* symbol = (SYMBOL_INFO*)calloc(sizeof(SYMBOL_INFO) + 256 * sizeof(char), 1);
+    SYMBOL_INFO *symbol = (SYMBOL_INFO *)calloc(sizeof(SYMBOL_INFO) + 256 * sizeof(char), 1);
     symbol->MaxNameLen = 255;
     symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
 
     std::cerr << "Stack trace (" << frames << " frames):\n";
-    for (USHORT i = 0; i < frames; i++) {
+    for (USHORT i = 0; i < frames; i++)
+    {
         SymFromAddr(process, (DWORD64)(stack[i]), 0, symbol);
         std::cerr << "  [" << i << "] " << symbol->Name
                   << " - 0x" << std::hex << symbol->Address << std::dec << "\n";
@@ -62,27 +74,31 @@ void print_stack_trace() {
 #include <unistd.h>
 
 // Function to print a stack trace
-void print_stack_trace() {
+void print_stack_trace()
+{
     constexpr int MAX_FRAMES = 64;
-    void* addrlist[MAX_FRAMES];
+    void *addrlist[MAX_FRAMES];
 
     // Get void*'s for all entries on the stack
     int addrlen = backtrace(addrlist, MAX_FRAMES);
 
-    if (addrlen == 0) {
+    if (addrlen == 0)
+    {
         std::cerr << "  <empty stack trace>\n";
         return;
     }
 
     // Print the stack trace to stderr
-    char** symbollist = backtrace_symbols(addrlist, addrlen);
-    if (symbollist == nullptr) {
+    char **symbollist = backtrace_symbols(addrlist, addrlen);
+    if (symbollist == nullptr)
+    {
         perror("backtrace_symbols");
         return;
     }
 
     std::cerr << "Stack trace (" << addrlen << " frames):\n";
-    for (int i = 0; i < addrlen; i++) {
+    for (int i = 0; i < addrlen; i++)
+    {
         std::cerr << "  " << symbollist[i] << "\n";
     }
 
@@ -91,5 +107,11 @@ void print_stack_trace() {
 
 #endif
 
-
-
+std::string llvm_type_to_string(llvm::Type *ty)
+{
+    std::string typeStr;
+    llvm::raw_string_ostream rso(typeStr);
+    ty->print(rso);
+    rso.flush();
+    return typeStr;
+}

@@ -64,7 +64,7 @@ namespace logia::AST
 
     std::string VarDeclStmt::to_string()
     {
-        return "VarDeclStmt";
+        return std::format("VarDeclStmt[{}] ({:p})", this->name, static_cast<void *>(this));
     }
 
     llvm::Value *VarDeclStmt::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
@@ -74,10 +74,8 @@ namespace logia::AST
             return this->ir;
         }
 
-        DEBUG() << this->to_string() << " into ??" << /*builder->GetInsertBlock()->getNumber() <<*/ std::endl;
+        DEBUG() << this->to_string() << std::endl;
         auto value = (llvm::Value *)this->get_expr()->codegen(codegen, builder);
-
-        value->getType()->print(llvm::outs());
 
         // TODO Type should be handled before ?
         // this->ir = builder->CreateAlloca((llvm::Type*) this->type->codegen(codegen, builder), 0, value);
@@ -118,7 +116,7 @@ namespace logia::AST
 
     std::string GotoStmt::to_string()
     {
-        return std::string("GotoStmt: ") + this->name;
+        return std::format("GotoStmt[{}] ({:p})", this->name, static_cast<void *>(this));
     }
 
     ///

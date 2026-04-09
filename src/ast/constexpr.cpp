@@ -11,7 +11,7 @@ namespace logia::AST
     ConstExpression::ConstExpression(antlr4::ParserRuleContext *rule, ast_types type) : Expression(rule, (ast_types)(type | ast_types::CONST)) {}
     std::string ConstExpression::to_string()
     {
-        return "ConstExpression";
+        return std::format("ConstExpression ({:p})", static_cast<void *>(this));
     }
 
     //
@@ -41,13 +41,7 @@ namespace logia::AST
 
     std::string IntegerLiteral::to_string()
     {
-        DEBUG() << this->get_type() << std::endl;
-        DEBUG() << this->get_type()->to_string() << std::endl;
-        DEBUG() << this->ivalue << std::endl;
-        DEBUG() << this->uvalue << std::endl;
-
-        char buffer[36];
-        return std::string("IntegerLiteral[") + this->get_type()->to_string() + "] = " + std::string(itoa(this->ivalue, buffer, 10));
+        return std::format("IntegerLiteral[{}] {}/{} ({:p})", this->get_type()->to_string(), this->ivalue, this->uvalue, static_cast<void *>(this));
     }
 
     llvm::Value *IntegerLiteral::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
@@ -73,13 +67,13 @@ namespace logia::AST
 
     std::string FloatLiteral::to_string()
     {
-        return "FloatLiteral";
+        return std::format("FloatLiteral[{}] {} ({:p})", this->get_type()->to_string(), this->value, static_cast<void *>(this));
     }
 
     llvm::Value *FloatLiteral::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
     {
         DEBUG() << this->to_string() << std::endl;
-        throw std::exception("todo");
+        throw std::runtime_error(__FUNCTION__ "todo");
     }
 
     //
@@ -99,10 +93,7 @@ namespace logia::AST
 
     std::string StringLiteral::to_string()
     {
-        auto t = ast_types_to_string(this->type);
-        auto str = std::string("StringLiteral{text: ") + this->text + ", type: " + t + "}";
-        free(t);
-        return str;
+        return std::format("StringLiteral[{}] ({:p})", this->text, static_cast<void *>(this));
     }
 
     llvm::Value *StringLiteral::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)

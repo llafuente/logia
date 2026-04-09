@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <format>
 
 #include "ast/types.h"
 #include "utils.h"
@@ -45,6 +46,7 @@ namespace logia::AST
         std::vector<Node *> children = {}; // normalized list of children
 
         Node(antlr4::ParserRuleContext *rule, ast_types type);
+        ~Node();
 
         // TODO
         // std::string getText() { return this->rule->getText(); }
@@ -84,5 +86,14 @@ namespace logia::AST
         Type *get_type() override;
     };
 
-    void NODE_TYPE_ASSERT(Node *node, ast_types ty);
+/// @brief Check node contains at least one bit of ty
+/// @param node
+/// @param ty
+#define NODE_TYPE_ASSERT(node, ty)                                                                         \
+    do                                                                                                     \
+    {                                                                                                      \
+        LOGIA_ASSERT(((node->type & ((ast_types)(ty))) != 0) && __FUNCTION__ && "Invalid node type sent"); \
+    } while (false)
 }
+
+// LOGIA_ASSERT(((node->type & ((ast_types)(ty))) != 0) && __FUNCTION__ && "Invalid node type sent", std::format("{} / {}", (int)node->type, ast_types_to_string(node->type))); \

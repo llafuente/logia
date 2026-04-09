@@ -1,3 +1,5 @@
+// ./build-debug/bin/Debug/logia_test_suite.exe --gtest_break_on_failure
+
 #include "ast/node.h"
 #include "ast/traverse.h"
 #include "ast/if_stmt.h"
@@ -15,8 +17,9 @@ void check_all_attached(logia::AST::Program *prg)
 {
   logia::AST::ast_traverse(prg, [](logia::AST::Node *n) -> bool
                            {
+                            DEBUG() << n->to_string() << std::endl;
       if ((n->type & logia::AST::ast_types::PROGRAM) == 0) {
-        EXPECT_TRUE(n->is_attached) << "not attached " << n << " " << n->to_string();
+        EXPECT_TRUE(n->is_attached) << std::format(" not attached {}", n->to_string());
     }
       return true; });
 }
@@ -24,6 +27,10 @@ void check_all_attached(logia::AST::Program *prg)
 // hello world example
 TEST(AST_Type, ast_create_program)
 {
+  DEBUG() << std::endl
+          << "TEST START" << std::endl
+          << std::endl;
+
   using namespace logia::AST;
   auto back = new logia::Backend();
   auto program = back->program;
@@ -44,13 +51,17 @@ TEST(AST_Type, ast_create_program)
 
 TEST(AST_Type, ast_create_function_type)
 {
+  DEBUG() << std::endl
+          << "TEST START" << std::endl
+          << std::endl;
+
   using namespace logia::AST;
 
   auto back = new logia::Backend();
   auto program = back->program;
   back->load_intrinsics();
 
-  Type *func = ast_create_function_type(strdup("main"), ast_get_type_by_name(program, strdup("λi8")));
+  auto func = ast_create_function_type(ast_create_identifier(strdup("main")), ast_get_type_by_name(program, strdup("λi64")));
   EXPECT_TRUE(func);
 
   auto items_before = program->scope.size();
@@ -60,23 +71,24 @@ TEST(AST_Type, ast_create_function_type)
   EXPECT_EQ(program->scope.size(), items_before + 1);
 
   EXPECT_EQ(func->primitive, Primitives::FUNCTION_TY);
-  EXPECT_TRUE(strcmp(func->Function.name, "main") == 0);
+  EXPECT_TRUE(strcmp(func->get_name(), "main") == 0);
 
   // can look for main function as it's declared inside program
   EXPECT_EQ(func, ast_get_type_by_name(program, strdup("main")));
 
-  // correct parenting
-  EXPECT_EQ(func->Function.body->parent_node, func);
-  EXPECT_EQ(func->Function.body->parent, program);
+  // check parenting
+  EXPECT_EQ(func->get_identifier()->parent_node, func);
+  EXPECT_EQ(func->get_return_type()->parent_node, func);
+  EXPECT_EQ(func->get_body()->parent_node, func);
+  EXPECT_EQ(func->get_body()->parent, program);
 
   // function body is connected to program, type available
-  EXPECT_TRUE(ast_get_type_by_name(func->Function.body, strdup("λi8")));
-  EXPECT_TRUE(ast_get_type_by_name(func->Function.body, strdup("λi64")));
+  EXPECT_TRUE(ast_get_type_by_name(func->get_body(), strdup("λi8")));
+  EXPECT_TRUE(ast_get_type_by_name(func->get_body(), strdup("λi64")));
 
-  auto firstArg = ast_create_int_lit(func->Function.body, 17);
-  auto secondArg = ast_create_int_lit(func->Function.body, 21);
-  auto callFuncName = ast_create_string_lit(strdup("logia_operator_add_i64_i64"));
-  std::cout << "locator = " << callFuncName->to_string() << std::endl;
+  auto firstArg = ast_create_int_lit(func->get_body(), 17);
+  auto secondArg = ast_create_int_lit(func->get_body(), 21);
+  auto callFuncName = ast_create_identifier(strdup("logia_operator_add_i64_i64"));
 
   EXPECT_EQ(firstArg->parent_node, nullptr);
   EXPECT_EQ(secondArg->parent_node, nullptr);
@@ -92,17 +104,19 @@ TEST(AST_Type, ast_create_function_type)
   EXPECT_EQ(callexpr->parent_node, ret_stmt);
 
   EXPECT_EQ(ret_stmt->parent_node, nullptr);
-  func->Function.body->push_child(ret_stmt);
-  EXPECT_EQ(ret_stmt->parent_node, func->Function.body);
-  EXPECT_EQ(func->Function.body->parent_node, func);
+  func->get_body()->push_child(ret_stmt);
+  EXPECT_EQ(ret_stmt->parent_node, func->get_body());
+  EXPECT_EQ(func->get_body()->parent_node, func);
 
+  EXPECT_EQ(func->get_identifier()->parent_node, func);
   check_all_attached(program);
 
-  program->codegen(back, back->builder);
   back->emitTargetLLVMIR("./tmp/maincall.ll");
   back->emitTargetObjectFile("./tmp/maincall.obj");
   back->emitTargetAssemblyFile("./tmp/maincall.asm");
-  back->emitTargetExecutable("./tmp/maincall.exe");
+
+  EXPECT_THROW(back->emitTargetExecutable("./tmp/maincall.exe"), std::runtime_error);
+
   back->applyLLVMOptimizers();
   int exit_code = back->run_jit();
   EXPECT_EQ(exit_code, 38);
@@ -113,6 +127,10 @@ TEST(AST_Type, ast_create_function_type)
 // hello world example
 TEST(AST_Type, ast_create_struct_type)
 {
+  DEBUG() << std::endl
+          << "TEST START" << std::endl
+          << std::endl;
+
   using namespace logia::AST;
 
   auto back = new logia::Backend();
@@ -132,21 +150,21 @@ TEST(AST_Type, ast_create_struct_type)
   // invalid ?
   // program->add_statement(string_t);
 
-  logia::AST::Type *func = logia::AST::ast_create_function_type(strdup("main"), logia::AST::ast_get_type_by_name(program, strdup("λi32")));
+  auto func = logia::AST::ast_create_function_type(ast_create_identifier(strdup("main")), logia::AST::ast_get_type_by_name(program, strdup("λi32")));
   EXPECT_TRUE(func);
 
-  ast_function_add_param(func, string_t, strdup("first"), nullptr);
+  func->add_param(string_t, ast_create_identifier(strdup("first")), nullptr);
 
   program->push_child(func);
 
   auto hello_world = ast_create_string_lit(strdup("Hello world!"));
-  auto callFuncName = ast_create_string_lit(strdup("logia_print_stdout"));
-  func->Function.body->push_child(ast_create_call_expr(callFuncName, {hello_world}));
+  auto callFuncName = ast_create_identifier(strdup("logia_print_stdout"));
+  func->get_body()->push_child(ast_create_call_expr(callFuncName, {hello_world}));
 
-  auto exit_code_value = ast_create_int_lit(func->Function.body, 0);
-  func->Function.body->push_child(ast_create_return(exit_code_value));
+  auto exit_code_value = ast_create_int_lit(func->get_body(), 0);
+  func->get_body()->push_child(ast_create_return(exit_code_value));
   EXPECT_EQ(program->children.size(), 1);
-  EXPECT_EQ(func->Function.body->children.size(), 2);
+  EXPECT_EQ(func->get_body()->children.size(), 2);
 
   check_all_attached(program);
 
@@ -185,6 +203,10 @@ TEST(AST_Type, ast_create_struct_type)
 // hello world example
 TEST(AST_Type, ast_create_var_decl)
 {
+  DEBUG() << std::endl
+          << "TEST START" << std::endl
+          << std::endl;
+
   using namespace logia::AST;
 
   auto back = new logia::Backend();
@@ -204,36 +226,36 @@ TEST(AST_Type, ast_create_var_decl)
   // invalid ?
   // program->add_statement(string_t);
 
-  logia::AST::Type *func = logia::AST::ast_create_function_type(strdup("main"), logia::AST::ast_get_type_by_name(program, strdup("λi32")));
+  auto func = logia::AST::ast_create_function_type(ast_create_identifier(strdup("main")), logia::AST::ast_get_type_by_name(program, strdup("λi32")));
   EXPECT_TRUE(func);
 
   program->push_child(func);
 
-  EXPECT_EQ(func->Function.body->scope.size(), 0);
+  EXPECT_EQ(func->get_body()->scope.size(), 0);
   auto hello_world = ast_create_string_lit(strdup("Hello world!"));
   auto vdecl = ast_create_var_decl(strdup("hello"), string_t, hello_world);
-  func->Function.body->push_child(vdecl);
+  func->get_body()->push_child(vdecl);
   EXPECT_EQ(hello_world->parent_node, vdecl);
-  EXPECT_EQ(vdecl->parent_node, func->Function.body);
-  EXPECT_EQ(func->Function.body->scope.size(), 1);
+  EXPECT_EQ(vdecl->parent_node, func->get_body());
+  EXPECT_EQ(func->get_body()->scope.size(), 1);
 
   // print static string
-  auto callFuncName = ast_create_string_lit(strdup("logia_print_stdout"));
+  auto callFuncName = ast_create_identifier(strdup("logia_print_stdout"));
   auto hello_world2 = ast_create_string_lit(strdup("Hello world!"));
-  func->Function.body->push_child(ast_create_call_expr(callFuncName, {hello_world2}));
-  EXPECT_EQ(hello_world2->parent_node, func->Function.body->children[1]);
-  EXPECT_EQ(callFuncName->parent_node, func->Function.body->children[1]);
+  func->get_body()->push_child(ast_create_call_expr(callFuncName, {hello_world2}));
+  EXPECT_EQ(hello_world2->parent_node, func->get_body()->children[1]);
+  EXPECT_EQ(callFuncName->parent_node, func->get_body()->children[1]);
 
   // print static string from variable
-  auto callFuncName2 = ast_create_string_lit(strdup("logia_print_stdout"));
+  auto callFuncName2 = ast_create_identifier(strdup("logia_print_stdout"));
   auto ident = (Expression *)ast_create_identifier(strdup("hello"));
-  func->Function.body->push_child(ast_create_call_expr(callFuncName2, {ident}));
-  EXPECT_EQ(ident->parent_node, func->Function.body->children[2]);
+  func->get_body()->push_child(ast_create_call_expr(callFuncName2, {ident}));
+  EXPECT_EQ(ident->parent_node, func->get_body()->children[2]);
 
-  auto exit_code_value = ast_create_int_lit(func->Function.body, 0);
-  func->Function.body->push_child(ast_create_return(exit_code_value));
+  auto exit_code_value = ast_create_int_lit(func->get_body(), 0);
+  func->get_body()->push_child(ast_create_return(exit_code_value));
   EXPECT_EQ(program->children.size(), 1);
-  EXPECT_EQ(func->Function.body->children.size(), 4);
+  EXPECT_EQ(func->get_body()->children.size(), 4);
 
   check_all_attached(program);
 
@@ -247,20 +269,20 @@ TEST(AST_Type, ast_create_var_decl)
   delete back;
 }
 
-#define LOGIA_BACKEND_START()                                                                                                  \
-  logia::Backend *back;                                                                                                        \
-  logia::AST::Program *program;                                                                                                \
-  logia::AST::Type *main_fn;                                                                                                   \
-  logia::AST::Block *main_body;                                                                                                \
-  do                                                                                                                           \
-  {                                                                                                                            \
-    back = new logia::Backend();                                                                                               \
-    program = back->program;                                                                                                   \
-    back->load_intrinsics();                                                                                                   \
-    main_fn = logia::AST::ast_create_function_type(strdup("main"), logia::AST::ast_get_type_by_name(program, strdup("λi64"))); \
-    EXPECT_TRUE(main_fn);                                                                                                      \
-    program->push_child(main_fn);                                                                                              \
-    main_body = main_fn->Function.body;                                                                                        \
+#define LOGIA_BACKEND_START()                                                                                                                                     \
+  logia::Backend *back;                                                                                                                                           \
+  logia::AST::Program *program;                                                                                                                                   \
+  logia::AST::Function *main_fn;                                                                                                                                  \
+  logia::AST::Block *main_body;                                                                                                                                   \
+  do                                                                                                                                                              \
+  {                                                                                                                                                               \
+    back = new logia::Backend();                                                                                                                                  \
+    program = back->program;                                                                                                                                      \
+    back->load_intrinsics();                                                                                                                                      \
+    main_fn = logia::AST::ast_create_function_type(logia::AST::ast_create_identifier(strdup("main")), logia::AST::ast_get_type_by_name(program, strdup("λi64"))); \
+    EXPECT_TRUE(main_fn);                                                                                                                                         \
+    program->push_child(main_fn);                                                                                                                                 \
+    main_body = main_fn->get_body();                                                                                                                              \
   } while (0)
 
 #define LOGIA_BACKEND_END() \
@@ -272,6 +294,10 @@ TEST(AST_Type, ast_create_var_decl)
 // sum 15+20 as variables
 TEST(AST_Type, ast_create_var_decl2)
 {
+  DEBUG() << std::endl
+          << "TEST START" << std::endl
+          << std::endl;
+
   LOGIA_BACKEND_START();
   using namespace logia::AST;
 
@@ -294,10 +320,10 @@ TEST(AST_Type, ast_create_var_decl2)
     auto ident_a = (Expression *)ast_create_identifier(str_a);
     auto ident_b = (Expression *)ast_create_identifier(str_b);
 
-    auto callFuncName = ast_create_string_lit(strdup("logia_operator_add_i64_i64"));
+    auto callFuncName = ast_create_identifier(strdup("logia_operator_add_i64_i64"));
     auto sum_expr = ast_create_call_expr(callFuncName, {ident_a, ident_b});
 
-    main_fn->Function.body->push_child(ast_create_return(sum_expr));
+    main_fn->get_body()->push_child(ast_create_return(sum_expr));
   }
 
   check_all_attached(program);
@@ -320,18 +346,22 @@ extern "C" int logia_compiler_to_jit_test()
 // expose compiler functions to logia
 TEST(AST_Type, logia_compiler_to_jit_test)
 {
+  DEBUG() << std::endl
+          << "TEST START" << std::endl
+          << std::endl;
+
   LOGIA_BACKEND_START();
   using namespace logia::AST;
 
   // this is how you create an intrinsic to use it comptime
   back->add_intrinsic((void *)(&logia_compiler_to_jit_test), strdup("logia_compiler_to_jit_test"));
-  ast_create_instrinsic(program, strdup("logia_compiler_to_jit_test"), ast_get_type_by_name(program, strdup("λi32")));
+  ast_create_instrinsic(program, ast_create_identifier(strdup("logia_compiler_to_jit_test")), ast_get_type_by_name(program, strdup("λi32")));
 
   {
-    auto callFuncName = ast_create_string_lit(strdup("logia_compiler_to_jit_test"));
+    auto callFuncName = ast_create_identifier(strdup("logia_compiler_to_jit_test"));
     auto sum_expr = ast_create_call_expr(callFuncName, {});
 
-    main_fn->Function.body->push_child(ast_create_return(sum_expr));
+    main_fn->get_body()->push_child(ast_create_return(sum_expr));
   }
 
   check_all_attached(program);
@@ -349,10 +379,14 @@ TEST(AST_Type, logia_compiler_to_jit_test)
 // expose compiler functions to logia
 TEST(ast_create_if2, t1)
 {
+  DEBUG() << std::endl
+          << "TEST START" << std::endl
+          << std::endl;
+
   LOGIA_BACKEND_START();
   using namespace logia::AST;
 
-  auto callFuncName = ast_create_string_lit(strdup("logia_operator_equal_i64_i64"));
+  auto callFuncName = ast_create_identifier(strdup("logia_operator_equal_i64_i64"));
   auto condition = ast_create_call_expr(callFuncName, {ast_create_int_lit(program, 11), ast_create_int_lit(program, 11)});
 
   auto ifstmt = ast_create_if(condition);
@@ -388,10 +422,14 @@ function main() i64 {
 */
 TEST(ast_create_if3, t1)
 {
+  DEBUG() << std::endl
+          << "TEST START" << std::endl
+          << std::endl;
+
   LOGIA_BACKEND_START();
   using namespace logia::AST;
 
-  auto eqeq = ast_create_string_lit(strdup("logia_operator_equal_i64_i64"));
+  auto eqeq = ast_create_identifier(strdup("logia_operator_equal_i64_i64"));
 
   auto var_id = strdup("tmp");
 
@@ -404,14 +442,14 @@ TEST(ast_create_if3, t1)
   main_body->push_child(ifstmt);
   EXPECT_EQ(ifstmt->get_then()->parent_node, ifstmt);
   {
-    auto fn_add_name = ast_create_string_lit(strdup("logia_operator_add_i64_i64"));
+    auto fn_add_name = ast_create_identifier(strdup("logia_operator_add_i64_i64"));
     auto add = ast_create_call_expr(fn_add_name, {ast_create_identifier(var_id), ast_create_int_lit(program, 1)});
     auto fn_assignament_name = ast_create_string_lit(strdup("logia_operator_assign_i64_i64"));
     auto assignament = ast_create_binary_expr(ast_create_identifier(var_id), BinaryOperator::ASSIGN, add);
     ifstmt->get_then()->push_child(assignament);
   }
   {
-    auto fn_add_name = ast_create_string_lit(strdup("logia_operator_add_i64_i64"));
+    auto fn_add_name = ast_create_identifier(strdup("logia_operator_add_i64_i64"));
     auto add = ast_create_call_expr(fn_add_name, {ast_create_identifier(var_id), ast_create_int_lit(program, 2)});
     auto fn_assignament_name = ast_create_string_lit(strdup("logia_operator_assign_i64_i64"));
     auto assignament = ast_create_binary_expr(ast_create_identifier(var_id), BinaryOperator::ASSIGN, add);

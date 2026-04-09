@@ -16,12 +16,13 @@ namespace logia::AST
 
     Node *Block::lookup(char *name)
     {
+        DEBUG() << name << std::endl;
+
         std::string_view name_view(name);
         Block *p = this;
         Node *f;
         do
         {
-            std::cout << p->to_string() << ".lookup(" << name << ")" << std::endl;
             // f = p->scope[name_view];
             auto it = p->scope.find(name_view);
             if (it != p->scope.end())
@@ -42,14 +43,14 @@ namespace logia::AST
     std::string Block::to_string()
     {
         char buffer[36];
-        std::string scope;
+        std::string list;
         for (const auto &pair : this->scope)
         {
-            scope += scope.empty() ? "" : ", ";
-            scope += pair.first;
+            list += list.empty() ? "" : ", ";
+            list += pair.first;
         }
 
-        return std::string("body[") + std::string(itoa(this->children.size(), buffer, 10)) + "] scope: " + scope;
+        return std::format("Block[{} statements] scope[{}] ({:p})", this->children.size(), list, static_cast<void *>(this));
     }
 
     void Block::on_after_attach()
@@ -79,6 +80,7 @@ namespace logia::AST
     llvm::Value *Block::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
     {
         DEBUG() << this->to_string() << std::endl;
+        this->is_codegen = true;
 
         // not the main program -> override block!
         if ((type & ast_types::PROGRAM) == 0)

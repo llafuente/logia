@@ -8,6 +8,10 @@
 
 namespace logia::AST
 {
+    struct Identifier;
+    struct Type;
+    struct Expression;
+
     enum class Primitives
     {
         VOID_TY,
@@ -57,16 +61,13 @@ namespace logia::AST
         STRUCT_PROPERTY_TYPE_METHOD,
     };
 
-    struct Type;
-    struct Expression;
-
     struct FunctionParameters
     {
-        char *name;
+        Identifier *name;
         Type *type;
         Node *defaultValue;
         FunctionParameters(
-            char *_name,
+            Identifier *_name,
             Type *_type,
             Node *_defaultValue) : name(_name), type(_type), defaultValue(_defaultValue)
         {
@@ -110,23 +111,6 @@ namespace logia::AST
         int bits;
     };
 
-    struct FunctionType
-    {
-    public:
-        char *name;
-        char *docstring;
-        std::vector<FunctionParameters> parameters;
-        std::vector<llvm::Type *> parametersIR;
-        Type *return_type;
-
-        /**
-         * intrinsic are defined in the compiler process or in the module bootstrap
-         */
-        bool intrinsic;
-        Block *body;
-        llvm::Function *functionIR;
-    };
-
     struct StructType
     {
     public:
@@ -143,18 +127,18 @@ namespace logia::AST
         // modifiers
         bool readonly = false;
 
-        llvm::Type *ir = nullptr;
+        llvm::Type *llvm_type = nullptr;
 
         // type properties
         union
         {
-            FunctionType Function;
             StructType Struct;
             IntegerProperties Integer;
             FloatProperties Float;
         };
 
         Type(antlr4::ParserRuleContext *rule, Primitives prim);
+        ~Type();
 
         bool isFunction();
         bool isStruct();
@@ -165,25 +149,54 @@ namespace logia::AST
         void on_after_attach() override;
     };
 
+    struct LOGIA_EXPORT Function : public Type
+    {
+    public:
+        char *docstring;
+        std::vector<FunctionParameters> parameters;
+        std::vector<llvm::Type *> parametersIR;
+
+        /**
+         * intrinsic are defined in the compiler process or in the module bootstrap
+         */
+        bool intrinsic;
+        llvm::Function *functionIR;
+
+        Function(antlr4::ParserRuleContext *rule, Identifier *id, Type *return_type = nullptr, bool is_intrinsic = false);
+        ~Function();
+
+        char *get_name(); // shortcut
+        Identifier *get_identifier();
+        Type *get_return_type();
+        Block *get_body();
+        uint32_t get_mandatory_parameters_size();
+        uint32_t get_optional_parameters_size();
+
+        /// @brief Adds a parameter to a function
+        /// @param param_type
+        /// @param param_name
+        /// @param param_default_value
+        void add_param(Type *param_type, Identifier *param_name, Expression *param_default_value);
+
+        std::string to_string() override;
+        void on_after_attach() override;
+        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+    };
+
     /**
      * Creates a function
      */
-    LOGIA_API LOGIA_LEND Type *ast_create_function_type(char *name, Type *return_type);
+    LOGIA_API LOGIA_LEND Function *ast_create_function_type(Identifier *name, Type *return_type);
     /**
      * Creates a intrinsic function
      *
      * REVIEW TODO this may also need to call backkend::add_intrinsic to keep everything sync.
      */
-    LOGIA_API LOGIA_LEND Type *ast_create_instrinsic(Program *program, char *name, Type *return_type);
+    LOGIA_API LOGIA_LEND Type *ast_create_instrinsic(Program *program, Identifier *id, Type *return_type);
     /**
      * Creates a struct type
      */
     LOGIA_API LOGIA_LEND Type *ast_create_struct_type(char *name);
-
-    /**
-     * Adds a parameter to a function
-     */
-    LOGIA_API void ast_function_add_param(Type *s, Type *param_type, char *param_name, Expression *param_default_value);
 
     /**
      * Adds a field to struct

@@ -11,13 +11,13 @@ namespace logia::AST
     Expression::Expression(antlr4::ParserRuleContext *rule, ast_types type) : Node(rule, (ast_types)(type | ast_types::EXPRESSION)) {}
     std::string Expression::to_string()
     {
-        return "Expression";
+        return std::format("Expression ({:p})", static_cast<void *>(this));
     }
 
     //
     // MemberAccessExpression
     //
-    MemberAccessExpression::MemberAccessExpression(antlr4::ParserRuleContext *rule, Node *left, Node *right) : Expression(rule, ast_types::EXPRESSION)
+    MemberAccessExpression::MemberAccessExpression(antlr4::ParserRuleContext *rule, Node *left, Node *right) : Expression(rule, (ast_types)(ast_types::EXPRESSION | ast_types::MEMBER_ACCESS))
     {
         this->push_child(left);
         this->push_child(right);
@@ -44,6 +44,9 @@ namespace logia::AST
     }
     CallExpression::CallExpression(antlr4::ParserRuleContext *rule, Expression *locator, std::vector<Expression *> arguments) : Expression(rule, ast_types::CALL_EXPRESSION)
     {
+        LOGIA_ASSERT(locator && "locator is mantadory");
+        NODE_TYPE_ASSERT(locator, ast_types::IDENTIFIER | ast_types::MEMBER_ACCESS, locator->to_string());
+
         this->push_child(locator);
         for (int i = 0; i < arguments.size(); ++i)
         {
@@ -60,12 +63,14 @@ namespace logia::AST
     }
     Type *CallExpression::get_type()
     {
-        return this->get_locator()->get_type()->Function.return_type;
+        Function *f = (Function *)this->get_locator()->get_type();
+        // CallExpression should point to a function
+        NODE_TYPE_ASSERT(f, (ast_types)(ast_types::TYPE & ast_types::FUNCTION));
+        return f->get_return_type();
     }
 
     std::string CallExpression::to_string()
     {
-        char buffer[36];
         auto locator = this->get_locator();
         if (!locator)
         {
@@ -73,7 +78,7 @@ namespace logia::AST
         }
 
         auto arguments = this->get_arguments();
-        return std::string("CallExpression: ") + locator->to_string() + "(" + std::string(itoa(arguments.size(), buffer, 10)) + " args)";
+        return std::format("CallExpression[{} arguments] ({:p})", arguments.size(), static_cast<void *>(this));
     }
 
     llvm::Value *CallExpression::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
@@ -86,12 +91,12 @@ namespace logia::AST
         }
 
         // Look up the name in the global module table.
-        auto name = (StringLiteral *)this->get_locator();
+        auto name = (Identifier *)this->get_locator();
 
-        llvm::Function *CalleeF = codegen->module->getFunction(name->text);
+        llvm::Function *CalleeF = codegen->module->getFunction(name->identifier);
         if (!CalleeF)
         {
-            throw std::runtime_error(std::string("Unknown function referenced: ") + name->text);
+            throw std::runtime_error(std::string("Unknown function referenced: ") + name->identifier);
         }
 
         auto arguments = this->get_arguments();
@@ -132,9 +137,6 @@ namespace logia::AST
 
     LOGIA_API CallExpression *ast_create_call_expr(Expression *locator, std::vector<Expression *> arguments)
     {
-        LOGIA_ASSERT((locator->type & ast_types::EXPRESSION) != 0);
-        // TODO LOGIA_ASSERT_ALL(arguments, .type & ast_types::EXPRESSION != 0);
-
         auto callexpr = new CallExpression(nullptr, locator, arguments);
 
         return callexpr;
@@ -145,7 +147,7 @@ namespace logia::AST
     //
     std::string MemberAccessExpression::to_string()
     {
-        return std::string("MemberAccessExpression: ") + this->get_left()->to_string() + "." + this->get_right()->to_string();
+        return std::format("MemberAccessExpression[left {} / right {}] ({:p})", this->get_left()->to_string(), this->get_right()->to_string(), static_cast<void *>(this));
     }
 
     llvm::Value *MemberAccessExpression::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
@@ -174,7 +176,7 @@ namespace logia::AST
             throw std::runtime_error(std::string("Unknown struct property: ") + rightIdent->identifier);
         }
 
-        return builder->CreateStructGEP(structType->ir, leftValue, propertyIndex);
+        return builder->CreateStructGEP(structType->llvm_type, leftValue, propertyIndex);
     }
 
     // TODO create
@@ -185,7 +187,7 @@ namespace logia::AST
 
     std::string BinaryExpression::to_string()
     {
-        return std::string("BinaryExpression: ") + ast_binary_operator_to_string(this->op) + "(" + this->get_left()->to_string() + ", " + this->get_right()->to_string() + ")";
+        return std::format("BinaryExpression[{}({}, {}) ({:p})", ast_binary_operator_to_string(this->op), this->get_left()->to_string(), this->get_right()->to_string(), static_cast<void *>(this));
     }
 
     BinaryExpression::BinaryExpression(antlr4::ParserRuleContext *rule, Expression *left, BinaryOperator op, Expression *right) : CallExpression()
@@ -230,7 +232,7 @@ namespace logia::AST
     //
     std::string PrefixUnaryExpression::to_string()
     {
-        return std::string("PrefixUnaryExpression: ") + this->get_locator()->to_string() + "(" + this->get_operand()->to_string() + ")";
+        return std::format("PrefixUnaryExpression[{}({}) ({:p})", ast_prefix_unary_operator_to_string(this->op), this->get_operand()->to_string(), static_cast<void *>(this));
     }
 
     PrefixUnaryExpression::PrefixUnaryExpression(antlr4::ParserRuleContext *rule, PrefixUnaryOperator op, Expression *operand) : CallExpression()
@@ -293,7 +295,7 @@ namespace logia::AST
 
     std::string PostfixUnaryExpression::to_string()
     {
-        return std::string("PostfixUnaryExpression: ") + ast_postfix_unary_operator_to_string(this->op) + "(" + this->get_operand()->to_string() + ")";
+        return std::format("PostfixUnaryExpression[{}({})] ({:p})", ast_postfix_unary_operator_to_string(this->op), this->get_operand()->to_string(), static_cast<void *>(this));
     }
 
     PostfixUnaryExpression::PostfixUnaryExpression(antlr4::ParserRuleContext *rule, PostfixUnaryOperator op, Expression *operand) : CallExpression()
@@ -320,7 +322,7 @@ namespace logia::AST
     }
     std::string Identifier::to_string()
     {
-        return std::string("Identifier: ") + this->identifier;
+        return std::format("Identifier[{}] ({:p})", this->identifier, static_cast<void *>(this));
     }
 
     llvm::Value *Identifier::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
@@ -343,6 +345,7 @@ namespace logia::AST
 
     void Identifier::on_after_attach()
     {
+        Expression::on_after_attach();
         // TODO
     }
 
@@ -378,8 +381,8 @@ namespace logia::AST
     {
         switch (op)
         {
-        // case PrefixUnaryOperator::DEREFERENCE:
-        //     return "logia_intrinsics_deref";
+        case PrefixUnaryOperator::DEREFERENCE:
+            return "logia_intrinsics_deref";
         case PrefixUnaryOperator::INCREMENT:
             return "logia_intrinsics_prefix_inc";
         case PrefixUnaryOperator::DECREMENT:

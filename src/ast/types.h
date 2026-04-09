@@ -35,6 +35,8 @@ namespace logia::AST
         IF_STMT = (1 << 11),
         GOTO_STMT = (1 << 12),
         // NOTE: if modified -> ast_types_to_string
+
+        MEMBER_ACCESS = (1 << 13),
     };
 
     /**

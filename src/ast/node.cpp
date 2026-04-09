@@ -10,6 +10,10 @@ namespace logia::AST
         this->rule = rule;
         this->type = type;
     }
+    Node::~Node()
+    {
+        // TODO
+    }
 
     void Node::push_child(Node *child)
     {
@@ -72,8 +76,7 @@ namespace logia::AST
 
     std::string Node::to_string_tree(std::string padding)
     {
-        // std::string out = std::vformat(std::string("{}({:p}) {}\r\n"), std::make_format_args(padding, static_cast<void*>(this), this->to_string()));
-        std::string out = std::format("{} {} ({:p})\n", padding, this->to_string(), static_cast<void *>(this));
+        std::string out = std::format("{} {} (parent {:p})\n", padding, this->to_string(), static_cast<void *>(this->parent_node));
 
         padding += "  ";
 
@@ -97,9 +100,4 @@ namespace logia::AST
     std::string NoOp::to_string() { return "NoOp"; };
     llvm::Value *NoOp::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) { return nullptr; }
     Type *NoOp::get_type() { return nullptr; };
-
-    void NODE_TYPE_ASSERT(Node *node, ast_types ty)
-    {
-        LOGIA_ASSERT(((node->type & ty) == ty) && node->type && "Invalid node type sent");
-    }
 }

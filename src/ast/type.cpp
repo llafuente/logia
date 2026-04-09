@@ -55,23 +55,16 @@ namespace logia::AST
     {
         this->primitive = prim;
     }
+    Type::~Type()
+    {
+        // TODO
+    }
 
     std::string Type::to_string()
     {
         std::string list;
         switch (this->primitive)
         {
-        case Primitives::FUNCTION_TY:
-            // concat each parameter type
-            for (auto &param : this->Function.parameters)
-            {
-                if (!list.empty())
-                {
-                    list += ", ";
-                }
-                list += param.type->to_string();
-            }
-            return std::string("Type[") + this->Function.return_type->to_string() + " function " + this->Function.name + "(" + list + ")" + "]";
         case Primitives::STRUCT_TY:
             // concat all properties with their type
             for (auto &prop : this->Struct.properties)
@@ -85,10 +78,11 @@ namespace logia::AST
                     list += prop.type->to_string();
                 }
             }
-            return std::string("Type[struct ") + this->Struct.name + " {" + list + "}";
+
+            return std::format("Type[struct {}] {} ({:p})", this->Struct.name, list, static_cast<void *>(this->parent_node));
         }
 
-        return std::string("Type[") + ast_primitives_to_string(this->primitive) + "]";
+        return std::format("Type[{}] ({:p})", ast_primitives_to_string(this->primitive), static_cast<void *>(this->parent_node));
     }
 
     bool Type::isFunction() { return this->primitive == Primitives::FUNCTION_TY; };
@@ -109,16 +103,7 @@ namespace logia::AST
             auto parentBody = (Block *)ast_find_closest_parent(this, ast_types::BODY);
             LOGIA_ASSERT(parentBody);
 
-            if (this->isFunction())
-            {
-                parentBody->set(this->Function.name, this);
-                // aka not intrinsic
-                if (this->Function.body != nullptr)
-                {
-                    this->unshift_child(this->Function.body);
-                }
-            }
-            else if (this->isStruct())
+            if (this->isStruct())
             {
                 parentBody->set(this->Struct.name, this);
             }
@@ -132,43 +117,13 @@ namespace logia::AST
     {
         DEBUG() << this->to_string() << std::endl;
         // cache, because type are unique and we will be visiting this a lot
-        if (this->ir)
+        if (this->llvm_type)
         {
-            return (llvm::Value *)this->ir;
+            return (llvm::Value *)this->llvm_type;
         }
 
         switch (this->primitive)
         {
-        case Primitives::FUNCTION_TY:
-        {
-
-            int pcount = this->Function.parameters.size();
-            this->Function.parametersIR.reserve(pcount);
-            for (int i = 0; i < pcount; ++i)
-            {
-                this->Function.parametersIR.push_back((llvm::Type *)this->Function.parameters[i].type->codegen(codegen, builder));
-            }
-            this->Function.return_type->codegen(codegen, builder);
-            this->ir = (llvm::Type *)llvm::FunctionType::get(this->Function.return_type->ir,
-                                                             this->Function.parametersIR, // parameter list
-                                                             false);                      // not variadic
-
-            this->Function.functionIR = llvm::Function::Create((llvm::FunctionType *)this->ir, llvm::Function::ExternalLinkage, 0, this->Function.name, codegen->module.get());
-
-            // Create a basic block and insert a return
-
-            if (!this->Function.intrinsic)
-            {
-                LOGIA_ASSERT(this->Function.body);
-
-                auto BB = (llvm::BasicBlock *)this->Function.body->create_llvm_block(codegen, (char *)"entry");
-                BB->insertInto(this->Function.functionIR);
-                this->Function.body->codegen(codegen, builder);
-            }
-
-            return (llvm::Value *)this->ir;
-        }
-        break;
         case Primitives::STRUCT_TY:
         {
             auto max = this->Struct.properties.size();
@@ -185,63 +140,181 @@ namespace logia::AST
             auto st = llvm::StructType::create(codegen->context, this->Struct.name);
             st->setBody(elements);
 
-            this->ir = st;
-            return (llvm::Value *)this->ir;
+            this->llvm_type = st;
+            return (llvm::Value *)this->llvm_type;
         }
         break;
         }
 
         // TODO
-        throw std::exception("TODO!");
+        throw std::exception(__FUNCTION__ "todo");
     }
 
-    LOGIA_API LOGIA_LEND Type *ast_create_function_type(char *name, Type *return_type)
+    //
+    // Function
+    //
+
+    Function::Function(antlr4::ParserRuleContext *rule, Identifier *id, Type *return_type, bool is_intrinsic) : Type(rule, Primitives::FUNCTION_TY)
     {
-        LOGIA_ASSERT(name);
-        LOGIA_ASSERT(return_type);
+        LOGIA_ASSERT(id && "id parameters is required");
+        NODE_TYPE_ASSERT(id, ast_types::IDENTIFIER);
 
-        Type *t = new Type(nullptr, Primitives::FUNCTION_TY);
-        new (&t->Function) FunctionType();
-        t->Function.name = name;
-        t->Function.return_type = return_type;
-        t->Function.body = ast_create_block();
-        t->Function.body->type = (ast_types)(ast_types::FUNCTION | ast_types::BODY);
+        if (return_type == nullptr)
+        {
+            return_type = new Type(nullptr, Primitives::VOID_TY);
+        }
+        NODE_TYPE_ASSERT(return_type, ast_types::TYPE);
 
-        return t;
+        this->push_child(id);          // get_name
+        this->push_child(return_type); // get_return_type
+
+        // NOTE need to push something as arguments will be +3
+        if (is_intrinsic)
+        {
+            this->push_child(new NoOp()); // get_body
+        }
+        else
+        {
+            auto block = ast_create_block();
+            block->type = (ast_types)(ast_types::FUNCTION | ast_types::BODY);
+            this->push_child(block); // get_body
+        }
+        this->intrinsic = is_intrinsic;
     }
 
-    LOGIA_API LOGIA_LEND Type *ast_create_instrinsic(Program *program, char *name, Type *return_type)
+    Function::~Function()
+    {
+        // TODO
+    }
+
+    std::string Function::to_string()
+    {
+        std::string list;
+        // concat each parameter type
+        for (auto &param : this->parameters)
+        {
+            if (!list.empty())
+            {
+                list += ", ";
+            }
+            list += param.type->to_string();
+        }
+        return std::format("Type[{} function {} ({})] ({:p})", this->get_return_type()->to_string(), this->get_name(), list, static_cast<void *>(this->parent_node));
+    }
+
+    char *Function::get_name()
+    {
+        return get_identifier()->identifier;
+    }
+
+    Identifier *Function::get_identifier()
+    {
+        return (Identifier *)this->children[0];
+    }
+
+    Type *Function::get_return_type()
+    {
+        return (Type *)this->children[1];
+    }
+
+    Block *Function::get_body()
+    {
+        return (Block *)this->children[2];
+    }
+
+    uint32_t get_mandatory_parameters_size()
+    {
+        throw std::runtime_error(__FUNCTION__ "todo");
+    }
+    uint32_t get_optional_parameters_size()
+    {
+        throw std::runtime_error(__FUNCTION__ "todo");
+    }
+
+    // register myself into closest block
+    void Function::on_after_attach()
+    {
+        // only once, when a type is used it will be attached many times as references
+        if (!this->is_attached)
+        {
+            this->is_attached = true;
+
+            auto parentBody = (Block *)ast_find_closest_parent(this, ast_types::BODY);
+            parentBody->set(this->get_name(), this);
+
+            // register params
+            for (auto param : this->parameters)
+            {
+                this->get_body()->set(param.name->identifier, param.type);
+            }
+        }
+    }
+
+    llvm::Value *Function::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    {
+
+        int pcount = this->parameters.size();
+        this->parametersIR.reserve(pcount);
+        for (int i = 0; i < pcount; ++i)
+        {
+            this->parametersIR.push_back((llvm::Type *)this->parameters[i].type->codegen(codegen, builder));
+        }
+        auto rtype = this->get_return_type();
+        rtype->codegen(codegen, builder);
+        this->llvm_type = (llvm::Type *)llvm::FunctionType::get(rtype->llvm_type,
+                                                                this->parametersIR, // parameter list
+                                                                false);             // not variadic
+
+        this->functionIR = llvm::Function::Create((llvm::FunctionType *)this->llvm_type, llvm::Function::ExternalLinkage, 0, this->get_name(), codegen->module.get());
+
+        // Create a basic block and insert a return
+
+        if (!this->intrinsic)
+        {
+            auto block = this->get_body();
+            LOGIA_ASSERT(typeid(*block) == typeid(Block) && "Invalid function body type");
+
+            auto BB = (llvm::BasicBlock *)block->create_llvm_block(codegen, (char *)"entry");
+            BB->insertInto(this->functionIR);
+            block->codegen(codegen, builder);
+        }
+
+        return (llvm::Value *)this->llvm_type;
+    }
+
+    LOGIA_API LOGIA_LEND Function *ast_create_function_type(Identifier *id, Type *return_type)
+    {
+        return new Function(nullptr, id, return_type);
+    }
+
+    LOGIA_API LOGIA_LEND Type *ast_create_instrinsic(Program *program, Identifier *id, Type *return_type)
     {
         LOGIA_ASSERT(program);
-        LOGIA_ASSERT(name);
-        LOGIA_ASSERT(return_type);
+        NODE_TYPE_ASSERT(program, ast_types::PROGRAM);
 
-        Type *t = new Type(nullptr, Primitives::FUNCTION_TY);
-        new (&t->Function) FunctionType();
-        t->Function.name = name;
-        t->Function.return_type = return_type;
-        t->Function.intrinsic = true;
-        t->Function.body = nullptr;
+        auto f = new Function(nullptr, id, return_type, true);
 
-        program->set(name, t);
-        program->unshift_child(t);
+        // NOTE it will attach itself to program scope
+        program->unshift_child(f);
 
-        return t;
+        return f;
     }
 
-    LOGIA_API void ast_function_add_param(Type *s, Type *param_type, char *param_name, Expression *param_default_value)
+    void Function::add_param(Type *param_type, Identifier *param_name, Expression *param_default_value)
     {
-        LOGIA_ASSERT(s);
-        LOGIA_ASSERT(s->isFunction());
-        // LOGIA_ASSERT(*prop_name);
+        LOGIA_ASSERT(this->isFunction());
+        LOGIA_ASSERT(!this->is_attached && "Function type should be created before attached");
 
-        auto param = s->Function.parameters.emplace_back(param_name, param_type, param_default_value);
+        NODE_TYPE_ASSERT(param_type, ast_types::TYPE);
+        NODE_TYPE_ASSERT(param_name, ast_types::IDENTIFIER);
+
         // TODO REVIEW default values are not push ?
         if (param_default_value)
         {
-            param_default_value->parent_node = s;
+            NODE_TYPE_ASSERT(param_default_value, ast_types::EXPRESSION | ast_types::CONST);
+            param_default_value->parent_node = this;
         }
-        s->Function.body->set(param_name, param_type);
+        auto param = this->parameters.emplace_back(param_name, param_type, param_default_value);
     }
 
     LOGIA_API LOGIA_LEND Type *ast_create_struct_type(char *name)

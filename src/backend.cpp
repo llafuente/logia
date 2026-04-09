@@ -49,7 +49,7 @@ namespace logia
         llvm::InitializeAllAsmParsers();
         llvm::InitializeAllAsmPrinters();
 #endif
-        DEBUG() << "Backend()" << std::endl;
+        DEBUG() << "()" << std::endl;
         DEBUG() << "List available targets: " << std::endl;
         for (auto &T : llvm::TargetRegistry::targets())
         {
@@ -95,7 +95,6 @@ namespace logia
 
     void Backend::add_intrinsic(void *fn_ref, char *fn_name)
     {
-
         auto ptr = llvm::pointerToJITTargetAddress(fn_ref);
         llvm::orc::SymbolMap symbols(10);
 
@@ -211,7 +210,6 @@ namespace logia
 
     bool generateFile(std::string fileName, llvm::CodeGenFileType FileType, llvm::Module *module, llvm::TargetMachine *TheTargetMachine)
     {
-
         DEBUG() << "(" << fileName << ")" << std::endl;
 
         std::error_code EC;
@@ -240,6 +238,11 @@ namespace logia
     bool Backend::emitTargetLLVMIR(std::string fileName = "main.ll")
     {
         DEBUG() << "(" << fileName << ")" << std::endl;
+        if (!program->is_codegen)
+        {
+            this->program->codegen(this, this->builder);
+        }
+
         std::error_code EC;
         llvm::raw_fd_ostream dest(fileName, EC, llvm::sys::fs::FileAccess::FA_Write);
 
@@ -258,6 +261,11 @@ namespace logia
     bool Backend::emitTargetObjectFile(std::string fileName = "main.o")
     {
         DEBUG() << "(" << fileName << ")" << std::endl;
+        if (!program->is_codegen)
+        {
+            this->program->codegen(this, this->builder);
+        }
+
         // Initialize the target registry etc.
         auto triple = llvm::Triple(llvm::sys::getDefaultTargetTriple());
 
@@ -278,6 +286,11 @@ namespace logia
     bool Backend::emitTargetAssemblyFile(std::string fileName = "main.asm")
     {
         DEBUG() << "(" << fileName << ")" << std::endl;
+        if (!program->is_codegen)
+        {
+            this->program->codegen(this, this->builder);
+        }
+
         // Initialize the target registry etc.
         auto triple = llvm::Triple(llvm::sys::getDefaultTargetTriple());
 
@@ -297,6 +310,13 @@ namespace logia
 
     bool Backend::emitTargetExecutable(std::string fileName)
     {
+        if (!program->is_codegen)
+        {
+            this->program->codegen(this, this->builder);
+        }
+
+        throw std::runtime_error(__FUNCTION__ "todo");
+
         // & "C:\Program Files\LLVM\bin\clang.exe" .\xxx.obj -o xxx.exe
         return true;
     }
@@ -304,8 +324,13 @@ namespace logia
     int Backend::run_jit()
     {
         DEBUG() << "()" << std::endl;
-        DEBUG() << this->program->to_string_tree() << std::endl;
-        this->program->codegen(this, this->builder);
+        DEBUG() << std::endl
+                << this->program->to_string_tree() << std::endl;
+
+        if (!program->is_codegen)
+        {
+            this->program->codegen(this, this->builder);
+        }
 
         // create orc-jit
         // * execute in the current process -> session
@@ -419,7 +444,7 @@ namespace logia
         int result = main_fn();
         if (result != 0)
         {
-            std::cerr << "[Error] Main function run error:" << result << std::endl;
+            ERROR() << "Main function run error:" << result << std::endl;
         }
 
         if (auto Err = session->endSession())
