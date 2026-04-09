@@ -7,6 +7,7 @@
 namespace logia::AST
 {
     struct VarDeclStmt;
+    struct Identifier;
 
     struct Expression : Node
     {
@@ -22,11 +23,15 @@ namespace logia::AST
          * Do not use the constructor to build ASTs
          */
         CallExpression();
-        CallExpression(antlr4::ParserRuleContext *rule, Expression *locator, std::vector<Expression *> arguments);
+        CallExpression(antlr4::ParserRuleContext *rule, Expression *locator, std::vector<Expression *> positional_arguments);
         Expression *get_locator();
         // TODO this should be std::vector<Expression *>
         // but casting fail
         std::vector<Node *> get_arguments();
+
+        void add_named_argument(Identifier *id, Expression *expr);
+        void add_positional_argument(Expression *expr);
+
         std::string to_string() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
         Type *get_type() override;

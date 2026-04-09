@@ -42,24 +42,62 @@ namespace logia::AST
     CallExpression::CallExpression() : Expression(nullptr, ast_types::CALL_EXPRESSION)
     {
     }
-    CallExpression::CallExpression(antlr4::ParserRuleContext *rule, Expression *locator, std::vector<Expression *> arguments) : Expression(rule, ast_types::CALL_EXPRESSION)
+    CallExpression::CallExpression(antlr4::ParserRuleContext *rule, Expression *locator, std::vector<Expression *> positional_arguments) : Expression(rule, ast_types::CALL_EXPRESSION)
     {
         LOGIA_ASSERT(locator && "locator is mantadory");
         NODE_TYPE_ASSERT(locator, ast_types::IDENTIFIER | ast_types::MEMBER_ACCESS, locator->to_string());
 
         this->push_child(locator);
-        for (int i = 0; i < arguments.size(); ++i)
+        for (int i = 0; i < positional_arguments.size(); ++i)
         {
-            this->push_child(arguments[i]);
+            this->add_positional_argument(positional_arguments[i]);
         }
     }
+
+    void CallExpression::add_named_argument(Identifier *id, Expression *expr)
+    {
+        LOGIA_ASSERT(id && "id is mantadory");
+        LOGIA_ASSERT(expr && "expr is mantadory");
+        NODE_TYPE_ASSERT(id, ast_types::IDENTIFIER, expr->to_string());
+        NODE_TYPE_ASSERT(expr, ast_types::EXPRESSION, expr->to_string());
+
+        this->push_child(id);
+        this->push_child(expr);
+    }
+    void CallExpression::add_positional_argument(Expression *expr)
+    {
+        LOGIA_ASSERT(expr && "expr is mantadory");
+        NODE_TYPE_ASSERT(expr, ast_types::EXPRESSION, expr->to_string());
+
+        this->push_child(ast_create_identifier((char*)"")); // TODO maybe empty identifier ?!
+        this->push_child(expr);
+    }
+
     Expression *CallExpression::get_locator()
     {
         return (Expression *)this->children[0];
     }
     std::vector<Node *> CallExpression::get_arguments()
     {
-        return std::vector<Node *>(this->children.begin() + 1, this->children.end());
+        auto v = std::vector<Node *>();
+        v.reserve((this->children.size() - 1) / 2);
+        // TODO this will sort and match the callee parameters
+        // return std::vector<Node *>(this->children.begin() + 1, this->children.end());
+
+        DEBUG() << v.size() << "/" << v.capacity() << "/" << this->children.size() << std::endl;
+
+        for (int i = 1; i < this->children.size();)
+        {
+            // TODO handle position and named
+            // solve locator because we will need it to check
+            DEBUG() << "name [" << i << "]= " << this->children[i]->to_string() << std::endl;
+            ++i;
+            DEBUG() << "argument[" << i << "] = " << this->children[i]->to_string() << std::endl;
+            v.push_back(children[i]);
+            ++i;
+        }
+
+        return v;
     }
     Type *CallExpression::get_type()
     {
@@ -103,7 +141,7 @@ namespace logia::AST
         // If argument mismatch error.
         if (CalleeF->arg_size() != arguments.size())
         {
-            throw std::exception("Incorrect # arguments passed");
+            throw std::runtime_error(std::format("Expected arguments {} arguments passed {}", CalleeF->arg_size(), arguments.size()));
         }
         auto arg_itr = CalleeF->arg_begin();
 
@@ -203,13 +241,13 @@ namespace logia::AST
         case BinaryOperator::SUB_ASSIGN:
         case BinaryOperator::MUL_ASSIGN:
         case BinaryOperator::DIV_ASSIGN:
-            this->push_child(ast_create_ref(left));
+            this->add_positional_argument(ast_create_ref(left));
             break;
         default:
-            this->push_child(left);
+            this->add_positional_argument(left);
             break;
         }
-        this->push_child(right);
+        this->add_positional_argument(right);
     }
 
     Expression *BinaryExpression::get_left()
@@ -249,7 +287,7 @@ namespace logia::AST
             break;
         default:
             this->push_child(ast_create_identifier(strdup(ast_prefix_unary_operator_to_string(op))));
-            this->push_child(operand);
+            this->add_positional_argument(operand);
         }
     }
 
@@ -304,7 +342,7 @@ namespace logia::AST
     {
         this->op = op;
         this->push_child(ast_create_identifier(strdup(ast_postfix_unary_operator_to_string(op))));
-        this->push_child(operand);
+        this->add_positional_argument(operand);
     }
 
     Expression *PostfixUnaryExpression::get_operand()

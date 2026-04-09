@@ -99,7 +99,7 @@ TEST(AST_Type, ast_create_function_type)
   EXPECT_EQ(secondArg->parent_node, nullptr);
   EXPECT_EQ(callFuncName->parent_node, nullptr);
   auto callexpr = ast_create_call_expr(callFuncName, {firstArg, secondArg});
-  EXPECT_EQ(callexpr->children.size(), 3);
+  EXPECT_EQ(callexpr->get_arguments().size(), 2);
   EXPECT_EQ(firstArg->parent_node, callexpr);
   EXPECT_EQ(secondArg->parent_node, callexpr);
   EXPECT_EQ(callFuncName->parent_node, callexpr);
