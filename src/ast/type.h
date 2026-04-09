@@ -111,15 +111,6 @@ namespace logia::AST
         int bits;
     };
 
-    struct StructType
-    {
-    public:
-        char *name;
-        char *docstring;
-        std::vector<StructProperty> properties;
-        std::vector<Type *> methods;
-    };
-
     struct LOGIA_EXPORT Type : public Node
     {
     public:
@@ -132,7 +123,6 @@ namespace logia::AST
         // type properties
         union
         {
-            StructType Struct;
             IntegerProperties Integer;
             FloatProperties Float;
         };
@@ -147,6 +137,30 @@ namespace logia::AST
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
         Type *get_type() override;
         void on_after_attach() override;
+    };
+
+    struct LOGIA_EXPORT Struct : public Type
+    {
+        char *name;
+        char *docstring;
+        std::vector<StructProperty> properties;
+        std::vector<Type *> methods;
+
+        Struct(antlr4::ParserRuleContext *rule, Identifier *id);
+
+        char *get_name();
+        Identifier *get_identifier();
+
+        /**
+         * Adds a field to struct
+         */
+        void add_field(Type *prop_type, char *prop_name, Expression *prop_default_value);
+
+        uint32_t get_field_index(Identifier *id);
+
+        std::string to_string() override;
+        void on_after_attach() override;
+        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
     };
 
     struct LOGIA_EXPORT Function : public Type
@@ -196,10 +210,5 @@ namespace logia::AST
     /**
      * Creates a struct type
      */
-    LOGIA_API LOGIA_LEND Type *ast_create_struct_type(char *name);
-
-    /**
-     * Adds a field to struct
-     */
-    LOGIA_API void ast_struct_add_field(Type *s, Type *prop_type, char *prop_name, Expression *prop_default_value);
+    LOGIA_API LOGIA_LEND Struct *ast_create_struct_type(Identifier *id);
 }

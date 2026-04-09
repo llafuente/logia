@@ -159,13 +159,15 @@ namespace logia::AST
 
         auto leftValue = left->codegen(codegen, builder);
         auto rightIdent = (Identifier *)right;
-        auto structType = left->get_type();
+        auto left_type = left->get_type();
+        LOGIA_ASSERT(left_type->isStruct() && "left should be a struct");
+        auto struct_ty = (Struct *)left_type;
 
         // find property index
         int propertyIndex = -1;
-        for (int i = 0; i < structType->Struct.properties.size(); ++i)
+        for (int i = 0; i < struct_ty->properties.size(); ++i)
         {
-            if (strcmp(structType->Struct.properties[i].name, rightIdent->identifier) == 0)
+            if (strcmp(struct_ty->properties[i].name, rightIdent->identifier) == 0)
             {
                 propertyIndex = i;
                 break;
@@ -176,7 +178,7 @@ namespace logia::AST
             throw std::runtime_error(std::string("Unknown struct property: ") + rightIdent->identifier);
         }
 
-        return builder->CreateStructGEP(structType->llvm_type, leftValue, propertyIndex);
+        return builder->CreateStructGEP(struct_ty->llvm_type, leftValue, propertyIndex);
     }
 
     // TODO create

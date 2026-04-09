@@ -137,15 +137,26 @@ TEST(AST_Type, ast_create_struct_type)
   auto program = back->program;
   back->load_intrinsics();
 
-  auto string_t = ast_create_struct_type(strdup("string"));
-  EXPECT_EQ(string_t->Struct.properties.size(), 0);
-  ast_struct_add_field(string_t, (logia::AST::Type *)program->lookup(strdup("λi64")), strdup("capacity"), nullptr);
-  EXPECT_EQ(string_t->Struct.properties.size(), 1);
+  auto string_t = ast_create_struct_type(ast_create_identifier(strdup("string")));
+  EXPECT_EQ(string_t->properties.size(), 0);
+  string_t->add_field((logia::AST::Type *)program->lookup(strdup("λi64")), strdup("capacity"), nullptr);
+  EXPECT_EQ(string_t->properties.size(), 1);
+  EXPECT_EQ(string_t->get_field_index(ast_create_identifier(strdup("capacity"))), 0);
 
-  EXPECT_TRUE(string_t->Struct.properties[0].isField());
-  EXPECT_FALSE(string_t->Struct.properties[0].isAlias());
-  EXPECT_FALSE(string_t->Struct.properties[0].isGetter());
-  EXPECT_FALSE(string_t->Struct.properties[0].isSetter());
+  string_t->add_field((logia::AST::Type *)program->lookup(strdup("λi64")), strdup("length"), nullptr);
+  EXPECT_EQ(string_t->properties.size(), 2);
+  EXPECT_EQ(string_t->get_field_index(ast_create_identifier(strdup("length"))), 1);
+
+  string_t->add_field((logia::AST::Type *)program->lookup(strdup("λptr")), strdup("value"), nullptr);
+  EXPECT_EQ(string_t->properties.size(), 3);
+  EXPECT_EQ(string_t->get_field_index(ast_create_identifier(strdup("value"))), 2);
+
+  EXPECT_EQ(string_t->get_field_index(ast_create_identifier(strdup("xxx"))), -1);
+
+  EXPECT_TRUE(string_t->properties[0].isField());
+  EXPECT_FALSE(string_t->properties[0].isAlias());
+  EXPECT_FALSE(string_t->properties[0].isGetter());
+  EXPECT_FALSE(string_t->properties[0].isSetter());
 
   // invalid ?
   // program->add_statement(string_t);
@@ -213,15 +224,17 @@ TEST(AST_Type, ast_create_var_decl)
   auto program = back->program;
   back->load_intrinsics();
 
-  auto string_t = ast_create_struct_type(strdup("string"));
-  EXPECT_EQ(string_t->Struct.properties.size(), 0);
-  ast_struct_add_field(string_t, (logia::AST::Type *)program->lookup(strdup("λi64")), strdup("capacity"), nullptr);
-  EXPECT_EQ(string_t->Struct.properties.size(), 1);
+  auto string_t = ast_create_struct_type(ast_create_identifier(strdup("string")));
+  EXPECT_EQ(string_t->properties.size(), 0);
+  string_t->add_field((logia::AST::Type *)program->lookup(strdup("λi64")), strdup("capacity"), nullptr);
+  string_t->add_field((logia::AST::Type *)program->lookup(strdup("λi64")), strdup("length"), nullptr);
+  string_t->add_field((logia::AST::Type *)program->lookup(strdup("λptr")), strdup("value"), nullptr);
+  EXPECT_EQ(string_t->properties.size(), 3);
 
-  EXPECT_TRUE(string_t->Struct.properties[0].isField());
-  EXPECT_FALSE(string_t->Struct.properties[0].isAlias());
-  EXPECT_FALSE(string_t->Struct.properties[0].isGetter());
-  EXPECT_FALSE(string_t->Struct.properties[0].isSetter());
+  EXPECT_TRUE(string_t->properties[0].isField());
+  EXPECT_FALSE(string_t->properties[0].isAlias());
+  EXPECT_FALSE(string_t->properties[0].isGetter());
+  EXPECT_FALSE(string_t->properties[0].isSetter());
 
   // invalid ?
   // program->add_statement(string_t);

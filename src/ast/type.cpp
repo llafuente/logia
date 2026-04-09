@@ -62,26 +62,6 @@ namespace logia::AST
 
     std::string Type::to_string()
     {
-        std::string list;
-        switch (this->primitive)
-        {
-        case Primitives::STRUCT_TY:
-            // concat all properties with their type
-            for (auto &prop : this->Struct.properties)
-            {
-                if (prop.isField())
-                {
-                    if (!list.empty())
-                    {
-                        list += ", ";
-                    }
-                    list += prop.type->to_string();
-                }
-            }
-
-            return std::format("Type[struct {}] {} ({:p})", this->Struct.name, list, static_cast<void *>(this->parent_node));
-        }
-
         return std::format("Type[{}] ({:p})", ast_primitives_to_string(this->primitive), static_cast<void *>(this->parent_node));
     }
 
@@ -100,16 +80,7 @@ namespace logia::AST
         {
             this->is_attached = true;
 
-            auto parentBody = (Block *)ast_find_closest_parent(this, ast_types::BODY);
-            LOGIA_ASSERT(parentBody);
-
-            if (this->isStruct())
-            {
-                parentBody->set(this->Struct.name, this);
-            }
-            // TODO enum, if needed :)
-
-            // the rest of types has no name, because primitives are handled at ast_create_program
+            // NOTE the rest of types has no name, because primitives are handled at ast_create_program
         }
     }
 
@@ -122,32 +93,107 @@ namespace logia::AST
             return (llvm::Value *)this->llvm_type;
         }
 
-        switch (this->primitive)
-        {
-        case Primitives::STRUCT_TY:
-        {
-            auto max = this->Struct.properties.size();
-            std::vector<llvm::Type *> elements;
-            elements.reserve(max);
-            for (int i = 0; i < max; ++i)
-            {
-                auto p = &this->Struct.properties[i];
-                if (p->isField())
-                {
-                    elements.push_back((llvm::Type *)p->type->codegen(codegen, builder));
-                }
-            }
-            auto st = llvm::StructType::create(codegen->context, this->Struct.name);
-            st->setBody(elements);
-
-            this->llvm_type = st;
-            return (llvm::Value *)this->llvm_type;
-        }
-        break;
-        }
-
         // TODO
         throw std::exception(__FUNCTION__ "todo");
+    }
+
+    //
+    // Struct
+    //
+
+    Struct::Struct(antlr4::ParserRuleContext *rule, Identifier *id) : Type(rule, Primitives::STRUCT_TY)
+    {
+        LOGIA_ASSERT(id && "id parameters is required");
+        NODE_TYPE_ASSERT(id, ast_types::IDENTIFIER);
+
+        this->push_child(id); // get_name
+    }
+
+    char *Struct::get_name()
+    {
+        return get_identifier()->identifier;
+    }
+
+    Identifier *Struct::get_identifier()
+    {
+        return (Identifier *)this->children[0];
+    }
+
+    uint32_t Struct::get_field_index(Identifier *id)
+    {
+        uint32_t count = 0;
+        for (auto &prop : this->properties)
+        {
+            if (prop.isField())
+            {
+                if (strcmp(id->identifier, prop.name) == 0)
+                {
+                    return count;
+                }
+                ++count;
+            }
+        }
+        return -1;
+    }
+
+    std::string Struct::to_string()
+    {
+        std::string list;
+        // concat all properties with their type
+        for (auto &prop : this->properties)
+        {
+            if (prop.isField())
+            {
+                if (!list.empty())
+                {
+                    list += ", ";
+                }
+                list += prop.type->to_string();
+            }
+        }
+
+        return std::format("Type[struct {}] {} ({:p})", this->get_name(), list, static_cast<void *>(this->parent_node));
+    }
+
+    void Struct::on_after_attach()
+    {
+        // once guard
+        if (!this->is_attached)
+        {
+            this->is_attached = true;
+
+            auto parentBody = (Block *)ast_find_closest_parent(this, ast_types::BODY);
+            LOGIA_ASSERT(parentBody);
+
+            parentBody->set(this->get_name(), this);
+        }
+    }
+
+    llvm::Value *Struct::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    {
+        DEBUG() << this->to_string() << std::endl;
+        // cache, because type are unique and we will be visiting this a lot
+        if (this->llvm_type)
+        {
+            return (llvm::Value *)this->llvm_type;
+        }
+
+        auto max = this->properties.size();
+        std::vector<llvm::Type *> elements;
+        elements.reserve(max);
+        for (int i = 0; i < max; ++i)
+        {
+            auto p = &this->properties[i];
+            if (p->isField())
+            {
+                elements.push_back((llvm::Type *)p->type->codegen(codegen, builder));
+            }
+        }
+        auto st = llvm::StructType::create(codegen->context, this->get_name());
+        st->setBody(elements);
+
+        this->llvm_type = st;
+        return (llvm::Value *)this->llvm_type;
     }
 
     //
@@ -317,28 +363,22 @@ namespace logia::AST
         auto param = this->parameters.emplace_back(param_name, param_type, param_default_value);
     }
 
-    LOGIA_API LOGIA_LEND Type *ast_create_struct_type(char *name)
+    LOGIA_API LOGIA_LEND Struct *ast_create_struct_type(Identifier *id)
     {
-        LOGIA_ASSERT(name);
-
-        Type *t = new Type(nullptr, Primitives::STRUCT_TY);
-        new (&t->Struct) StructType();
-        t->Struct.name = name;
-
-        return t;
+        return new Struct(nullptr, id);
     }
 
-    LOGIA_API void ast_struct_add_field(Type *s, Type *prop_type, char *prop_name, Expression *prop_default_value)
+    void Struct::add_field(Type *prop_type, char *prop_name, Expression *prop_default_value)
     {
-        LOGIA_ASSERT(s);
-        LOGIA_ASSERT(s->isStruct());
+        LOGIA_ASSERT(this);
+        LOGIA_ASSERT(this->isStruct());
         // LOGIA_ASSERT(*prop_name);
 
-        auto prop = s->Struct.properties.emplace_back(prop_name, nullptr, StructPropertyType::STRUCT_PROPERTY_TYPE_FIELD, prop_type, prop_default_value);
+        auto prop = this->properties.emplace_back(prop_name, nullptr, StructPropertyType::STRUCT_PROPERTY_TYPE_FIELD, prop_type, prop_default_value);
         // TODO REVIEW default values are not push ?
         if (prop_default_value)
         {
-            prop_default_value->parent_node = s;
+            prop_default_value->parent_node = this;
         }
     }
 
