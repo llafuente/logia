@@ -165,9 +165,9 @@ namespace logia::AST
 
         // find property index
         int propertyIndex = -1;
-        for (int i = 0; i < struct_ty->properties.size(); ++i)
+        for (int i = 0; i < struct_ty->fields.size(); ++i)
         {
-            if (strcmp(struct_ty->properties[i].name, rightIdent->identifier) == 0)
+            if (strcmp(struct_ty->fields[i].name->identifier, rightIdent->identifier) == 0)
             {
                 propertyIndex = i;
                 break;

@@ -119,19 +119,35 @@ namespace logia::AST
         return (Identifier *)this->children[0];
     }
 
+    Identifier *Struct::get_alias_to(Identifier *from)
+    {
+        for (auto &prop : this->aliases)
+        {
+            if (strcmp(from->identifier, prop.from->identifier) == 0)
+            {
+                return prop.to;
+            }
+        }
+
+        return nullptr;
+    }
+
     uint32_t Struct::get_field_index(Identifier *id)
     {
-        uint32_t count = 0;
-        for (auto &prop : this->properties)
+        auto to = this->get_alias_to(id);
+        if (to != nullptr)
         {
-            if (prop.isField())
+            id = to;
+        }
+
+        uint32_t count = 0;
+        for (auto &prop : this->fields)
+        {
+            if (strcmp(id->identifier, prop.name->identifier) == 0)
             {
-                if (strcmp(id->identifier, prop.name) == 0)
-                {
-                    return count;
-                }
-                ++count;
+                return count;
             }
+            ++count;
         }
         return -1;
     }
@@ -140,16 +156,13 @@ namespace logia::AST
     {
         std::string list;
         // concat all properties with their type
-        for (auto &prop : this->properties)
+        for (auto &prop : this->fields)
         {
-            if (prop.isField())
+            if (!list.empty())
             {
-                if (!list.empty())
-                {
-                    list += ", ";
-                }
-                list += prop.type->to_string();
+                list += ", ";
             }
+            list += prop.type->to_string();
         }
 
         return std::format("Type[struct {}] {} ({:p})", this->get_name(), list, static_cast<void *>(this->parent_node));
@@ -178,16 +191,13 @@ namespace logia::AST
             return (llvm::Value *)this->llvm_type;
         }
 
-        auto max = this->properties.size();
+        auto max = this->fields.size();
         std::vector<llvm::Type *> elements;
         elements.reserve(max);
         for (int i = 0; i < max; ++i)
         {
-            auto p = &this->properties[i];
-            if (p->isField())
-            {
-                elements.push_back((llvm::Type *)p->type->codegen(codegen, builder));
-            }
+            auto t = this->fields[i].type;
+            elements.push_back((llvm::Type *)t->codegen(codegen, builder));
         }
         auto st = llvm::StructType::create(codegen->context, this->get_name());
         st->setBody(elements);
@@ -368,18 +378,33 @@ namespace logia::AST
         return new Struct(nullptr, id);
     }
 
-    void Struct::add_field(Type *prop_type, char *prop_name, Expression *prop_default_value)
+    void Struct::add_field(Type *prop_type, Identifier *prop_name, Expression *prop_default_value)
     {
         LOGIA_ASSERT(this);
         LOGIA_ASSERT(this->isStruct());
-        // LOGIA_ASSERT(*prop_name);
 
-        auto prop = this->properties.emplace_back(prop_name, nullptr, StructPropertyType::STRUCT_PROPERTY_TYPE_FIELD, prop_type, prop_default_value);
+        LOGIA_ASSERT(prop_type && "type is required for fields");
+        NODE_TYPE_ASSERT(prop_type, ast_types::TYPE);
+        LOGIA_ASSERT(prop_name && "name is required for fields");
+        NODE_TYPE_ASSERT(prop_name, ast_types::IDENTIFIER);
+
+        auto prop = this->fields.emplace_back(prop_name, prop_type, prop_default_value, nullptr);
         // TODO REVIEW default values are not push ?
         if (prop_default_value)
         {
             prop_default_value->parent_node = this;
         }
+    }
+
+    void Struct::add_alias(Identifier *from, Identifier *to)
+    {
+        LOGIA_ASSERT(from);
+        LOGIA_ASSERT(to);
+
+        // TODO exists to ?
+        // TODO exists from ?
+
+        auto prop = this->aliases.emplace_back(from, to);
     }
 
 }

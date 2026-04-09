@@ -52,15 +52,6 @@ namespace logia::AST
      */
     LOGIA_API LOGIA_LEND char *ast_primitives_to_string(Primitives prim);
 
-    enum class StructPropertyType
-    {
-        STRUCT_PROPERTY_TYPE_FIELD,
-        STRUCT_PROPERTY_TYPE_ALIAS,
-        STRUCT_PROPERTY_TYPE_GETTER,
-        STRUCT_PROPERTY_TYPE_SETTER,
-        STRUCT_PROPERTY_TYPE_METHOD,
-    };
-
     struct FunctionParameters
     {
         Identifier *name;
@@ -72,30 +63,6 @@ namespace logia::AST
             Node *_defaultValue) : name(_name), type(_type), defaultValue(_defaultValue)
         {
         }
-    };
-
-    /*
-     * `fields`: Named values that are stored in memory inside the structure.
-     * `setters` and `getters`: Named values that aren't stored in memory (Syntactic sugar)
-     * `alias`: Named values that points to a field, setter or getter and has the same type (Syntactic sugar)
-     * `methods`: named function that manipulates the struct, there is an implicit first argument `this`.
-     * `properties`: Set of `fields` + `aliases` + `getters` + `setters`
-     * `members`: Set of `fields` + `aliases` + `getters` + `setters` + `methods` + `types`.
-     */
-
-    struct StructProperty
-    {
-        char *name;
-        char *docstring;
-        enum StructPropertyType kind;
-        Type *type;
-        Expression *default_value;
-
-        bool isField() { return this->kind == StructPropertyType::STRUCT_PROPERTY_TYPE_FIELD; };
-        bool isAlias() { return this->kind == StructPropertyType::STRUCT_PROPERTY_TYPE_ALIAS; };
-        bool isGetter() { return this->kind == StructPropertyType::STRUCT_PROPERTY_TYPE_GETTER; };
-        bool isSetter() { return this->kind == StructPropertyType::STRUCT_PROPERTY_TYPE_SETTER; };
-        bool isMethod() { return this->kind == StructPropertyType::STRUCT_PROPERTY_TYPE_METHOD; };
     };
 
     struct IntegerProperties
@@ -139,11 +106,42 @@ namespace logia::AST
         void on_after_attach() override;
     };
 
+    struct StructAlias
+    {
+    public:
+        Identifier *from;
+        Identifier *to;
+        char *docstring;
+        StructAlias(Identifier *_from, Identifier *_to, char *_docstring = nullptr) : from(_from), to(_to), docstring(_docstring) {}
+    };
+
+    struct StructField
+    {
+        Identifier *name;
+        Type *type;
+        Expression *default_value;
+        char *docstring;
+
+        StructField(
+            Identifier *_name,
+            Type *_type,
+            Expression *_default_value, char *_docstring = nullptr) : docstring(_docstring), name(_name), type(_type), default_value(_default_value) {}
+    };
+
+    /*
+     * `fields`: Named values that are stored in memory inside the structure.
+     * `setters` and `getters`: Named values that aren't stored in memory (Syntactic sugar)
+     * `alias`: Named values that points to a field, setter or getter and has the same type (Syntactic sugar)
+     * `methods`: named function that manipulates the struct, there is an implicit first argument `this`.
+     * `properties`: Set of `fields` + `aliases` + `getters` + `setters`
+     * `members`: Set of `fields` + `aliases` + `getters` + `setters` + `methods` + `types`.
+     */
+
     struct LOGIA_EXPORT Struct : public Type
     {
-        char *name;
         char *docstring;
-        std::vector<StructProperty> properties;
+        std::vector<StructField> fields;
+        std::vector<StructAlias> aliases;
         std::vector<Type *> methods;
 
         Struct(antlr4::ParserRuleContext *rule, Identifier *id);
@@ -154,8 +152,9 @@ namespace logia::AST
         /**
          * Adds a field to struct
          */
-        void add_field(Type *prop_type, char *prop_name, Expression *prop_default_value);
-
+        void add_field(Type *prop_type, Identifier *prop_name, Expression *prop_default_value = nullptr);
+        void add_alias(Identifier *from, Identifier *to);
+        Identifier *get_alias_to(Identifier *from);
         uint32_t get_field_index(Identifier *id);
 
         std::string to_string() override;
