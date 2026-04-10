@@ -65,13 +65,6 @@ namespace logia::AST
         }
     };
 
-    struct IntegerProperties
-    {
-    public:
-        int bits;
-        bool is_signed;
-    };
-
     struct FloatProperties
     {
     public:
@@ -90,7 +83,6 @@ namespace logia::AST
         // type properties
         union
         {
-            IntegerProperties Integer;
             FloatProperties Float;
         };
 
@@ -101,8 +93,26 @@ namespace logia::AST
         bool isStruct();
 
         std::string to_string() override;
+        virtual std::string get_repr(); // TODO do it pure virtual asap :)
+
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
         Type *get_type() override;
+        void on_after_attach() override;
+    };
+
+    struct Integer : public Type
+    {
+    public:
+        int bits;
+        bool is_signed;
+        // NOTE Integer is a primitive, won't have rule
+        Integer(bool is_signed, int bits);
+        ~Integer();
+
+        std::string to_string() override;
+        std::string get_repr() override;
+
+        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
         void on_after_attach() override;
     };
 

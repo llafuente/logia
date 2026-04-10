@@ -41,9 +41,15 @@ TEST(AST_Type, ast_create_program)
   auto program = back->program;
 
   EXPECT_EQ(program->parent_node, nullptr);
-  EXPECT_EQ(program->children.size(), 0);
+  EXPECT_EQ(program->children.size(), 10);
   // This shall be updated as we add more primitives
-  EXPECT_EQ(program->scope.size(), 14);
+  EXPECT_EQ(program->scope.size(), 16);
+
+  std::cout << program->to_string() << std::endl;
+  std::cout << program->children[0]->get_type()->get_repr();
+
+  EXPECT_EQ(strcmp(program->children[0]->get_type()->get_repr().c_str(), "i8"), 0);
+  EXPECT_EQ(strcmp(program->children[1]->get_type()->get_repr().c_str(), "i16"), 0);
 
   // has value
   EXPECT_TRUE(logia::AST::ast_get_type_by_name(program, strdup("λi8")));
@@ -64,15 +70,15 @@ TEST(AST_Type, ast_create_function_type)
 
   auto back = new logia::Backend();
   auto program = back->program;
+  auto start_program_children = program->children.size();
   back->load_intrinsics();
 
   auto func = ast_create_function_type(ident("main"), ast_get_type_by_name(program, strdup("λi64")));
   EXPECT_TRUE(func);
 
   auto items_before = program->scope.size();
-  EXPECT_EQ(program->children.size(), 0);
   program->push_child(func);
-  EXPECT_EQ(program->children.size(), 1);
+  EXPECT_EQ(program->children.size(), start_program_children + 1);
   EXPECT_EQ(program->scope.size(), items_before + 1);
 
   EXPECT_EQ(func->primitive, Primitives::FUNCTION_TY);
@@ -123,7 +129,7 @@ TEST(AST_Type, ast_create_function_type)
   EXPECT_THROW(back->emitTargetExecutable("./tmp/maincall.exe"), std::runtime_error);
 
   back->applyLLVMOptimizers();
-  int exit_code = back->run_jit();
+  int exit_code = back->run_jit("main");
   EXPECT_EQ(exit_code, 38);
 
   delete back;
@@ -140,6 +146,7 @@ TEST(AST_Type, ast_create_struct_type)
 
   auto back = new logia::Backend();
   auto program = back->program;
+  auto start_program_children = program->children.size();
   back->load_intrinsics();
 
   auto string_t = ast_create_struct_type(ident("string"));
@@ -174,7 +181,7 @@ TEST(AST_Type, ast_create_struct_type)
 
   auto exit_code_value = ast_create_int_lit(func->get_body(), "0");
   func->get_body()->push_child(ast_create_return(exit_code_value));
-  EXPECT_EQ(program->children.size(), 1);
+  EXPECT_EQ(program->children.size(), start_program_children + 1);
   EXPECT_EQ(func->get_body()->children.size(), 2);
 
   check_all_attached(program);
@@ -184,13 +191,13 @@ TEST(AST_Type, ast_create_struct_type)
   back->emitTargetLLVMIR("./tmp/struct.ll");
 
   // NOTE works, but for an unkown reason yet, we can't jit again.
-  int exit_code = back->run_jit();
+  int exit_code = back->run_jit("main");
   /*
   // capture stdout is not working on JIT, but works with simple fprint/std::cout...
   // need more inverstigation, maybe it's something inside ORC
   if (start_stdout_capture())
   {
-    int exit_code = back->run_jit();
+    int exit_code = back->run_jit("main");
     // fprintf(stdout, "Hello world!");
     // std::cout << "Hello world!";
 
@@ -222,6 +229,7 @@ TEST(AST_Type, ast_create_var_decl)
 
   auto back = new logia::Backend();
   auto program = back->program;
+  auto start_program_children = program->children.size();
   back->load_intrinsics();
 
   auto string_t = ast_create_struct_type(ident("string"));
@@ -273,7 +281,8 @@ TEST(AST_Type, ast_create_var_decl)
 
   auto exit_code_value = ast_create_int_lit(func->get_body(), "0");
   func->get_body()->push_child(ast_create_return(exit_code_value));
-  EXPECT_EQ(program->children.size(), 1);
+
+  EXPECT_EQ(program->children.size(), start_program_children + 1);
   EXPECT_EQ(func->get_body()->children.size(), 4);
 
   check_all_attached(program);
@@ -284,7 +293,7 @@ TEST(AST_Type, ast_create_var_decl)
 
   back->emitTargetLLVMIR("./tmp/hellow-world-alloca.ll");
 
-  int exit_code = back->run_jit();
+  int exit_code = back->run_jit("main");
   EXPECT_EQ(exit_code, 0);
 
   delete back;
@@ -353,7 +362,7 @@ TEST(AST_Type, ast_create_var_decl2)
 
   back->emitTargetLLVMIR("./tmp/alloca-integer-sum.ll");
 
-  int exit_code = back->run_jit();
+  int exit_code = back->run_jit("main");
   EXPECT_EQ(exit_code, 11 + 12);
 
   LOGIA_BACKEND_END();
@@ -391,7 +400,7 @@ TEST(AST_Type, logia_compiler_to_jit_test)
 
   back->emitTargetLLVMIR("./tmp/logia_compiler_to_jit_test.ll");
 
-  int exit_code = back->run_jit();
+  int exit_code = back->run_jit("main");
   EXPECT_EQ(exit_code, 101);
 
   LOGIA_BACKEND_END();
@@ -421,7 +430,7 @@ TEST(ast_create_if2, t1)
   program->codegen(back, back->builder);
   back->emitTargetLLVMIR("./tmp/logia_compiler_if2.ll");
 
-  int exit_code = back->run_jit();
+  int exit_code = back->run_jit("main");
   EXPECT_EQ(exit_code, 1);
 
   LOGIA_BACKEND_END();
@@ -488,7 +497,7 @@ TEST(ast_create_if3, t1)
   program->codegen(back, back->builder);
   back->emitTargetLLVMIR("./tmp/logia_compiler_if3.ll");
 
-  int exit_code = back->run_jit();
+  int exit_code = back->run_jit("main");
   EXPECT_EQ(exit_code, 1);
 
   LOGIA_BACKEND_END();

@@ -321,7 +321,7 @@ namespace logia
         return true;
     }
 
-    int Backend::run_jit()
+    int Backend::run_jit(const char *fn_name)
     {
         DEBUG() << "()" << std::endl;
         DEBUG() << std::endl
@@ -429,15 +429,16 @@ namespace logia
         // llvm::orc::SymbolStringPool SSP;
         // LLVM_ABI Expected<ExecutorSymbolDef> lookup(const JITDylibSearchOrder &SearchOrder, SymbolStringPtr Symbol, SymbolState RequiredState = SymbolState::Ready);
         // auto symbol = session->lookup(llvm::orc::JITDylibSearchOrder(), SSP.intern(func_name_name));
-        auto mangle_name = mangle("main");
+        auto mangle_name = mangle(fn_name);
         std::vector<llvm::orc::JITDylib *> SearchOrder = {dylib};
         auto symbol = session->lookup(SearchOrder, mangle_name);
         if (!symbol)
         {
             llvm::errs() << symbol.takeError();
-            throw std::exception("could not find main function");
+            throw std::runtime_error(std::format("could not find function {}", fn_name));
         }
 
+        // REVIEW how we support to execute different functions, we just have multiple "entries" ?
         using FuncType = int (*)();
         // auto *main_fn = (FuncType)(symbol->getAddress().getValue());
         auto *main_fn = (FuncType)(symbol->getAddress().getValue());

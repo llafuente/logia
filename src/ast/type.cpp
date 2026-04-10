@@ -65,6 +65,11 @@ namespace logia::AST
         return std::format("Type[{}] ({:p})", ast_primitives_to_string(this->primitive), static_cast<void *>(this->parent_node));
     }
 
+    std::string Type::get_repr()
+    {
+        return this->to_string();
+    }
+
     bool Type::isFunction() { return this->primitive == Primitives::FUNCTION_TY; };
     bool Type::isStruct() { return this->primitive == Primitives::STRUCT_TY; };
 
@@ -95,6 +100,64 @@ namespace logia::AST
 
         // TODO
         throw std::exception(__FUNCTION__ "todo");
+    }
+
+    //
+    // Integer
+    //
+
+    Integer::Integer(bool is_signed, int bits) : Type(nullptr, Primitives::I8_TY), is_signed(is_signed), bits(bits) {}
+    Integer::~Integer() {}
+
+    std::string Integer::to_string()
+    {
+        return std::format("Type[{}]", this->get_repr());
+    }
+    std::string Integer::get_repr()
+    {
+        return std::format("{}{}", (this->is_signed ? "i" : "u"), this->bits);
+    }
+
+    llvm::Value *Integer::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    {
+        switch (this->bits)
+        {
+        case 8:
+            this->llvm_type = llvm::Type::getInt8Ty(codegen->context);
+            break;
+        case 16:
+            this->llvm_type = llvm::Type::getInt16Ty(codegen->context);
+            break;
+        case 32:
+            this->llvm_type = llvm::Type::getInt32Ty(codegen->context);
+            break;
+        case 64:
+            this->llvm_type = llvm::Type::getInt64Ty(codegen->context);
+            break;
+        case 128:
+            this->llvm_type = llvm::Type::getInt128Ty(codegen->context);
+            break;
+        default:
+            throw std::runtime_error("Not supported number og bits");
+        }
+
+        LOGIA_ASSERT(this->llvm_type);
+
+        return (llvm::Value *)this->llvm_type;
+    }
+    void Integer::on_after_attach()
+    {
+        // once guard
+        if (!this->is_attached)
+        {
+            this->is_attached = true;
+
+            auto parentBody = (Block *)ast_find_closest_parent(this, ast_types::BODY);
+            LOGIA_ASSERT(parentBody);
+
+            auto name = std::format("λ{}", this->get_repr());
+            parentBody->set(name.c_str(), this);
+        }
     }
 
     //

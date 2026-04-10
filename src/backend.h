@@ -22,8 +22,10 @@
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/ExecutionEngine/Orc/Core.h"
 
-namespace logia {
-    namespace AST {
+namespace logia
+{
+    namespace AST
+    {
         struct Program;
     }
 }
@@ -47,7 +49,7 @@ namespace logia
         std::unique_ptr<llvm::Module> module = nullptr;
         /**
          * Used for generating LLVM instructions (globally)
-         * 
+         *
          * Overriden in each function/block scope
          */
         llvm::IRBuilder<> *builder = nullptr;
@@ -68,7 +70,7 @@ namespace logia
         /**
          * Load intrinsics from file
          */
-        void load_intrinsics(char* filepath = (char*)"intrinsics/intrinsics.ll");
+        void load_intrinsics(char *filepath = (char *)"intrinsics/intrinsics.ll");
         /**
          * Add intrinsics to current module
          */
@@ -105,6 +107,6 @@ namespace logia
         /**
          * Runs module main function into current process
          */
-        int run_jit();
+        int run_jit(const char *fn_name);
     };
 }
