@@ -8,13 +8,13 @@ namespace logia::AST
     {
     }
 
-    void Block::set(char *name, Node *node)
+    void Block::set(const char *name, Node *node)
     {
         // TODO check for valid ast_types
-        this->scope[name] = node;
+        this->scope[strdup(name)] = node;
     }
 
-    Node *Block::lookup(char *name)
+    Node *Block::lookup(const char *name)
     {
         DEBUG() << name << std::endl;
 

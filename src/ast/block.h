@@ -22,9 +22,9 @@ namespace logia::AST
         /**
          * Register a name in the scope
          */
-        void set(char *name, Node *node);
+        void set(const char *name, Node *node);
 
-        Node *lookup(char *name);
+        Node *lookup(const char *name);
 
         std::string to_string() override;
         /**
