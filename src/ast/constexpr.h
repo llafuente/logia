@@ -36,11 +36,13 @@ namespace logia::AST
 
     struct IntegerLiteral : ConstExpression
     {
-        uint64_t uvalue;
-        int64_t ivalue;
+        char* number_str;
 
-        IntegerLiteral(antlr4::ParserRuleContext *rule, Type *type, int64_t value);
-        IntegerLiteral(antlr4::ParserRuleContext *rule, Type *type, uint64_t value);
+        IntegerLiteral(antlr4::ParserRuleContext *rule, const char* number_as_text, Type *type);
+
+        uint64_t as_unsigned();
+        int64_t as_signed();
+
         std::string to_string() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
         Type *get_type() override;
@@ -57,9 +59,9 @@ namespace logia::AST
     /**
      * Creates a signed integer literal
      */
-    LOGIA_API LOGIA_LEND IntegerLiteral *ast_create_int_lit(Block *body, int64_t value);
+    LOGIA_API LOGIA_LEND IntegerLiteral *ast_create_int_lit(Block *body, const char *numberstr);
     /**
      * Creates an unsigned integer literal
      */
-    LOGIA_API LOGIA_LEND IntegerLiteral *ast_create_uint_lit(Block *body, uint64_t value);
+    LOGIA_API LOGIA_LEND IntegerLiteral *ast_create_uint_lit(Block *body, const char *numberstr);
 }

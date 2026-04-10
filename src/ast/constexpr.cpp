@@ -18,36 +18,69 @@ namespace logia::AST
     // IntegerLiteral
     //
 
-    IntegerLiteral::IntegerLiteral(antlr4::ParserRuleContext *rule, Type *type, int64_t value) : ConstExpression(rule, ast_types::INTEGER_LITERAL)
+    IntegerLiteral::IntegerLiteral(antlr4::ParserRuleContext *rule, const char* number_as_text, Type *type) : ConstExpression(rule, ast_types::INTEGER_LITERAL)
     {
+        LOGIA_ASSERT(number_as_text);
         LOGIA_ASSERT(type);
-        this->uvalue = 0;
-
-        this->ivalue = value;
+        // TODO number literals with dashes need to be cleaned right ?
+        // TODO 0x???
+        // TODO 0b???
+        this->number_str = strdup(number_as_text);
         this->push_child(type);
     }
-    IntegerLiteral::IntegerLiteral(antlr4::ParserRuleContext *rule, Type *type, uint64_t value) : ConstExpression(rule, ast_types::INTEGER_LITERAL)
-    {
-        LOGIA_ASSERT(type);
-        this->ivalue = 0;
 
-        this->uvalue = value;
-        this->push_child(type);
-    }
     Type *IntegerLiteral::get_type()
     {
         return (Type *)this->children[0];
     }
 
+    // ?? https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/atoi64-atoi64-l-wtoi64-wtoi64-l?view=msvc-170
+
+    uint64_t IntegerLiteral::as_unsigned()
+    {
+        char *end = nullptr;
+        uint64_t result = strtoull(this->number_str, &end, 10);
+
+        // Check for conversion errors
+        if (errno == ERANGE)
+        {
+            throw std::runtime_error("Error: number out of 64-bit range.");
+            return 1;
+        }
+        if (end == this->number_str)
+        {
+            throw std::runtime_error("Error: no digits found.");
+        }
+        return result;
+    }
+
+    int64_t IntegerLiteral::as_signed()
+    {
+        char *end = nullptr;
+        int64_t result = strtoll(this->number_str, &end, 10);
+
+        // Check for conversion errors
+        if (errno == ERANGE)
+        {
+            throw std::runtime_error("Error: number out of 64-bit range.");
+            return 1;
+        }
+        if (end == this->number_str)
+        {
+            throw std::runtime_error("Error: no digits found.");
+        }
+        return result;
+    }
+
     std::string IntegerLiteral::to_string()
     {
-        return std::format("IntegerLiteral[{}] {}/{} ({:p})", this->get_type()->to_string(), this->ivalue, this->uvalue, static_cast<void *>(this));
+        return std::format("IntegerLiteral[{}] {} ({:p})", this->get_type()->to_string(), this->number_str, static_cast<void *>(this));
     }
 
     llvm::Value *IntegerLiteral::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
     {
         DEBUG() << this->to_string() << std::endl;
-        return llvm::ConstantInt::get((llvm::Type *)this->get_type()->codegen(codegen, builder), llvm::APInt(this->get_type()->Integer.bits, this->ivalue, this->get_type()->Integer.is_signed));
+        return llvm::ConstantInt::get((llvm::Type *)this->get_type()->codegen(codegen, builder), llvm::APInt(this->get_type()->Integer.bits, this->as_signed(), this->get_type()->Integer.is_signed));
     }
 
     //
@@ -129,13 +162,13 @@ namespace logia::AST
     {
         return new FloatLiteral(nullptr, (Type *)body->lookup(strdup("λf64")), value);
     }
-    LOGIA_API LOGIA_LEND IntegerLiteral *ast_create_int_lit(Block *body, int64_t value)
+    LOGIA_API LOGIA_LEND IntegerLiteral *ast_create_int_lit(Block *body, const char *numberstr)
     {
-        return new IntegerLiteral(nullptr, (Type *)body->lookup(strdup("λi64")), value);
+        return new IntegerLiteral(nullptr, numberstr, (Type*)body->lookup(strdup("λi64")));
     }
-    LOGIA_API LOGIA_LEND IntegerLiteral *ast_create_uint_lit(Block *body, uint64_t value)
+    LOGIA_API LOGIA_LEND IntegerLiteral *ast_create_uint_lit(Block *body, const char *numberstr)
     {
-        return new IntegerLiteral(nullptr, (Type *)body->lookup(strdup("λu64")), value);
+        return new IntegerLiteral(nullptr, numberstr, (Type*)body->lookup(strdup("λu64")));
     }
 
 }
