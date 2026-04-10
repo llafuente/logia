@@ -5,6 +5,27 @@
     "version": "0.2.0",
     "configurations": [
       {
+        "type": "cppvsdbg",
+        "request": "launch",
+        "name": "Debug logia with cppvsdbg",
+        "program": "${workspaceFolder}/build-debug/bin/Debug/logia.exe",
+        "args": ["run", ".\\test\\logia\\sum.logia", "--print"],
+        "cwd": "${workspaceFolder}",
+        // build ?
+        //"preLaunchTask": "CMake: build",
+      },
+      {
+        "type": "cppvsdbg",
+        "request": "launch",
+        "name": "Debug logia tests with cppvsdbg",
+        "program": "${workspaceFolder}/build-debug/bin/Debug/logia_test_suite.exe",
+        "args": [],
+        "cwd": "${workspaceFolder}",
+        // build ?
+        //"preLaunchTask": "CMake: build",
+      },
+      {
+        // lldb is so slow... maybe made in python
         "type": "lldb",
         "request": "launch",
         "name": "Debug logia tests LLDB",

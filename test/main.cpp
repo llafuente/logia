@@ -6,12 +6,12 @@ int main(int argc, char **argv)
 {
   SetConsoleOutputCP(65001); // CP_UTF8
 
-  logia_init_log((char *)"./logialog.log");
+  logia_init_log((char *)"./logia-tests.log");
 
   testing::InitGoogleTest(&argc, argv);
 
   // filter test in code, usefull to debug only one test
-  // testing::GTEST_FLAG(filter) = "*if3*";
+  // testing::GTEST_FLAG(filter) = "*ast_create_function_type*";
 
   return RUN_ALL_TESTS();
 }

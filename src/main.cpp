@@ -36,8 +36,6 @@ public:
 	}
 };
 
-
-
 /*
 std::string file_read(const std::string& filePath) {
 	std::ifstream file(filePath, std::ios::in | std::ios::binary);
@@ -81,6 +79,7 @@ int main(int argc, const char *argv[])
 {
 	SetConsoleOutputCP(65001); // CP_UTF8
 
+	logia_init_log((char *)"./logia.log");
 	logia::Compiler *logia_compiler = new logia::Compiler();
 
 	try
@@ -165,23 +164,38 @@ int main(int argc, const char *argv[])
 		}
 
 		logia_compiler->read(file_path);
-		if (print_file_contents) {
-            std::cout << "File Contents:" << std::endl
-                      << logia_compiler->text << std::endl;
-        
+		if (print_file_contents)
+		{
+			std::cout << "File Contents:" << std::endl
+					  << logia_compiler->text << std::endl;
 		}
-		antlr4::ParserRuleContext *tree = logia_compiler->check();
-		logia_compiler->compile();
-		if (emit_llvm) {
+		antlr4::ParserRuleContext *tree = logia_compiler->parse();
+
+		logia_compiler->print_cst();
+		logia_compiler->build_ast();
+		logia_compiler->print_ast();
+
+		if (run_main)
+		{
+			logia_compiler->backend->run_jit("main");
+		}
+		if (run_test)
+		{
+			throw std::runtime_error(__FUNCTION__ "todo");
+			// TODO
+			// create main_test, that will gather all tests from file
+			logia_compiler->backend->run_jit("main_test");
+		}
+		if (emit_llvm)
+		{
 			// std::cout << logia_compiler->module->llvm()
 		}
-		logia_compiler->print_ast();
-		logia_compiler->build();
 	}
 	catch (std::exception e)
 	{
 		std::cout << "Error: " << e.what() << std::endl;
 	}
+	std::cout << "bye bye!: " << std::endl;
 	delete logia_compiler;
 
 	return 0;

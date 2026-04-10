@@ -252,22 +252,23 @@ expressions
 */
 
 constant
-    : 'true'                  # trueLiteralExpr
-    | 'false'                 # falseLiteralExpr
-    | 'null'                  # nullLiteralExpr
-    | 'type'                  # typeLiteralExpr
-    | 'default'               # defaultValueExpr
-    | 'new'                   # newValueExpr
-    | 'cast'                  # castLiteralExpr
-    | stringLiteral           # stringLiteralExpr
-    | numberLiteral           # numberLiteralExpr
-    | identifier              # identifierExpr
-    | preprocessorExpr        # preprocessorExpr2
-    | regularExpressionLiteral # regExExpr
-    | 'struct'                 # structTypeLit
-    | 'mask'                   # maskTypeLit
-    | 'enum'                   # enumTypeLit
-    | 'function'               # functionTypeLit
+    : 'true'
+    | 'false'
+    | 'null'
+    | 'default'
+    | stringLiteral
+    | numberLiteral
+    | identifier
+    | preprocessorExpr
+    | regularExpressionLiteral
+    // TODO REVIEW FOLLOWING constants ?
+    // | 'type'                  # typeLiteralExpr
+    // | 'struct'                 # structTypeLit
+    // | 'cast'                  # castLiteralExpr
+    // | 'new'                   # newValueExpr
+    // | 'mask'                   # maskTypeLit
+    // | 'enum'                   # enumTypeLit
+    // | 'function'               # functionTypeLit
     ;
 
 regularExpressionLiteral: RegularExpressionLiteral;
@@ -297,31 +298,31 @@ identifierName
     ;
 
 postfixExpr
-    : postfixExpr ('![' | '?[' | '[') expression ']'                                  # postfixBracesMemberAccessExpr
-    | postfixExpr ('!.' | '?.' | '.') identifierName templateId?                      # postfixDotMemberAccessExpr
+    : expr1=postfixExpr ('![' | '?[' | '[') expression ']'
+    | expr2=postfixExpr ('!.' | '?.' | '.') identifierName templateId?
     // TODO slice operator
-    | postfixExpr '[' expression ':' expression ']'                                   # postfixSliceExpr
-    | postfixExpr '.' '.' primaryExpr                                                # rangeExpr
+    | expr3=postfixExpr '[' expression ':' expression ']'
+    | expr4=postfixExpr '.' '.' primaryExpr
     // function call
-    | postfixExpr '(' argumentExprList? ')'                                           # postfixCallExpr
-    //| postfixExpr '.' '#' identifier '(' preprocessorMacroCallArgumentList? ')'     # preprocessorMemberMacroCallExpr
-    | postfixExpr ( '++' | '--' )+                                                    # postfixIndecrementExpr
-    | primaryExpr                                                                    # primaryExprFwExpr
+    | expr5=postfixExpr '(' arguments=argumentExprList? ')'
+    //| postfixExpr '.' '#' identifier '(' preprocessorMacroCallArgumentList? ')'
+    | expr6='#' // reserved this inthe for later use!
+    | expr7=postfixExpr ( '++' | '--' )+
+    | primaryExpr
     ;
 
 namedArgument
-    : identifier '=' conditionalExpr
+    : name=identifier '=' expr=conditionalExpr
     ;
 
-orderedArgument
-    : conditionalExpr
-    | anonymousfunctionDecl
+positionalArgument
+    : conditionalExpr| anonymousfunctionDecl
     ;
 
 
 argumentExprList
-  : (namedArgument | orderedArgument) (',' (namedArgument | orderedArgument))*
-  // TODO 
+  : (namedArgument | positionalArgument) (',' (namedArgument | positionalArgument))*
+  // TODO
   // send as object
   // expand from struct / variable
   // use spread operator? ...b ...{}
@@ -329,6 +330,7 @@ argumentExprList
   ;
 
 
+// NOTE:  there is no sizeof operator, it's a property of each type
 unaryExpr
     // defined at memory-management
     : unaryNewExpression
@@ -338,23 +340,23 @@ unaryExpr
     | unaryCloneExpression
     // defined at unit-test
     | unaryMockExpr
-
-    // NOTE:  there is not sizeof operator, it's a property of each type
-    //| ('++' |  '--')* (left=postfixExpr | unaryOperators castExpr)
-    | ('++' |  '--')* (left=postfixExpr | unaryOperators left=postfixExpr)
+    // NOTE multiple inc/dec makes no sense!
+    | op=unaryOperators operand=postfixExpr
+    | operand=postfixExpr
     ;
 
 unaryOperators
-    :   '@' | '&' | '*' | '+' | '-' | '~' | '!' | 'not'
+    // TODO REVIEW '@' | '&' | '*'
+    :  '+' | '-' | '~' | '!' | 'not' | '++' |  '--'
     ;
 
 castExpr
-    :   'cast' left=unaryExpr
+    :   'cast' left=unaryExpr // TODO, syntax not  final
     |   left=unaryExpr
     ;
 
 multiplicativeExpr
-    :   left=multiplicativeExpr operator=multiplicativeOperators right=castExpr
+    :   left=multiplicativeExpr op=multiplicativeOperators right=castExpr
     |   right=castExpr
     ;
 
@@ -365,7 +367,7 @@ multiplicativeOperators
     ;
 
 additiveExpr
-    : left=additiveExpr operator=additiveOperators right=multiplicativeExpr
+    : left=additiveExpr op=additiveOperators right=multiplicativeExpr
     | right=multiplicativeExpr
     ;
 
@@ -375,7 +377,7 @@ additiveOperators
     ;
 
 shiftExpr
-    : left=shiftExpr operator=shiftOperators right=additiveExpr
+    : left=shiftExpr op=shiftOperators right=additiveExpr
     | right=additiveExpr
     ;
 
@@ -385,7 +387,7 @@ shiftOperators
     ;
 
 relationalExpr
-    : left=relationalExpr operator=relational_operators right=shiftExpr
+    : left=relationalExpr op=relational_operators right=shiftExpr
     | right=shiftExpr
     ;
 
@@ -397,7 +399,7 @@ relational_operators
     ;
 
 equalityExpr
-    : left=equalityExpr operator=equality_operators right=relationalExpr
+    : left=equalityExpr op=equality_operators right=relationalExpr
     | right=relationalExpr
     ;
 
@@ -425,28 +427,23 @@ value_equality_operators
     ;
 
 andExpr
-    //:   left=equalityExpr ( operator='&' right=andExpr)*
-    :   left=equalityExpr ( operator='&' right=andExpr)?
+    :   left=equalityExpr ( op='&' right=andExpr)?
     ;
 
 exclusiveOrExpr
-    //:   left=andExpr (operator='^' right=exclusiveOrExpr)*
-    :   left=andExpr (operator='^' right=exclusiveOrExpr)?
+    :   left=andExpr (op='^' right=exclusiveOrExpr)?
     ;
 
 inclusiveOrExpr
-    //:   left=exclusiveOrExpr (operator='|' right=inclusiveOrExpr)*
-    :   left=exclusiveOrExpr (operator='|' right=inclusiveOrExpr)?
+    :   left=exclusiveOrExpr (op='|' right=inclusiveOrExpr)?
     ;
 
 logicalAndExpr
-    //:   inclusiveOrExpr (('&&' | 'and') logicalAndExpr)*
-    :   left=inclusiveOrExpr (operator=('&&' | 'and') right=logicalAndExpr)?
+    :   left=inclusiveOrExpr (op=('&&' | 'and') right=logicalAndExpr)?
     ;
 
 logicalOrExpr
-    //:   left=logicalAndExpr (('||' |'or') logicalOrExpr)*
-    :   left=logicalAndExpr (operator=('||' |'or') right=logicalOrExpr)?
+    :   left=logicalAndExpr (op=('||' |'or') right=logicalOrExpr)?
     ;
 
 conditionalExpr
@@ -477,7 +474,7 @@ rhsExpr
   : errorHandlingExprs
   | conditionalExpr
   | tokenizeExpr
-  | anonymousFunctionDef functionBody
+  | anonymousfunctionDecl
   ;
 // NOTE comma is not an operator!
 operators
@@ -501,7 +498,7 @@ operators
 //file: spec\language\functions.md
 
 returnStmt
-  : 'return' rhsExpr?
+  : 'return' expr=rhsExpr?
   ;
 
 deferStmt
@@ -619,11 +616,11 @@ labeledStatement
   : identifier ':' endOfStmt* (functionBodyStmt | blockStatement)
   ;
 
-globalImportVarList 
+globalImportVarList
   : globalImportVar+
   ;
 
-globalImportVar 
+globalImportVar
   : 'global' identifier (',' identifier)* endOfStmt
   ;
 
@@ -632,24 +629,23 @@ blockStatement
   ;
 
 functionBodyStmt
-  : labeledStatement endOfStmt
-  | blockStatement endOfStmt
-  | comments endOfStmt
-  | aliasDeclStmt endOfStmt
-  | typeDecl endOfStmt
-  | functionDecl endOfStmt
-  | selectionStmts endOfStmt
+  : (labeledStatement
+  | blockStatement
+  | comments
+  | aliasDeclStmt
+  | typeDecl
+  | functionDecl
+  | selectionStmts
   // function exclusive
-  | returnStmt endOfStmt
-  | deferStmt endOfStmt
-  | blockVariableDeclStmt endOfStmt
-  | errorHandlingStmts endOfStmt
-  | retryUntilWhileStmt endOfStmt
+  | returnStmt
+  | deferStmt
+  | blockVariableDeclStmt
+  | errorHandlingStmts
+  | retryUntilWhileStmt
   // preprocessor
-  | preprocessorStmts endOfStmt
+  | preprocessorStmts
   // expression at the bottom to fix some preprocessor issues
-  | expression endOfStmt
-  | endOfStmt
+  | expression)? endOfStmt
   ;
 
 functionParameterList

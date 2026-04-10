@@ -9,6 +9,8 @@
 #include "llvmvisitor.h"
 #include "windows.h"
 
+#include "ast/constexpr.h"
+
 namespace logia
 {
 
@@ -72,7 +74,7 @@ namespace logia
     Compiler::~Compiler()
     {
         // parser will remove this
-        this->root = nullptr;
+        this->cst_tree = nullptr;
 
         this->parser->removeErrorListeners();
         delete this->errorListener;
@@ -141,33 +143,48 @@ namespace logia
 
     void Compiler::compile()
     {
-/*
-    llvm::InitializeAllTargetInfos();
-    llvm::InitializeAllTargets();
-    llvm::InitializeAllTargetMCs();
-    llvm::InitializeAllAsmParsers();
-    llvm::InitializeAllAsmPrinters();
-*/
+        /*
+            llvm::InitializeAllTargetInfos();
+            llvm::InitializeAllTargets();
+            llvm::InitializeAllTargetMCs();
+            llvm::InitializeAllAsmParsers();
+            llvm::InitializeAllAsmPrinters();
+        */
     }
 
-    antlr4::ParserRuleContext *Compiler::check()
+    antlr4::ParserRuleContext *Compiler::parse()
     {
         if (this->is_program)
         {
-            return this->root = this->parser->program();
+            this->cst_tree = this->parser->program();
         }
-        return this->root = this->parser->packageProgram();
+        else
+        {
+            this->cst_tree = this->parser->packageProgram();
+        }
+
+        return this->cst_tree;
     }
 
-    void Compiler::build()
+    void Compiler::print_cst()
     {
-        LLVMVisitor *llvmVisitor = new LLVMVisitor();
-        llvmVisitor->visit(this->root);
+        std::cout << "cst:" << std::endl
+                  << this->cst_tree->toStringTree(this->parser, true) << std::endl;
+    }
+
+    void Compiler::build_ast()
+    {
+        this->backend = new Backend();
+        this->backend->load_intrinsics();
+
+        LLVMVisitor *llvmVisitor = new LLVMVisitor(this->backend->program);
+        llvmVisitor->visit(this->cst_tree);
+        this->ast_tree = this->backend->program;
     }
 
     void Compiler::print_ast()
     {
         std::cout << "ast:" << std::endl
-                  << this->root->toStringTree(this->parser, true) << std::endl;
+                  << this->ast_tree->to_string_tree() << std::endl;
     }
 }

@@ -3,6 +3,9 @@
 #include "antlr4-runtime.h"
 #include "LogiaParser.h"
 #include "LogiaLexer.h"
+#include "utils.h"
+
+#include "ast/program.h"
 
 namespace logia
 {
@@ -26,12 +29,22 @@ namespace logia
 
     struct Compiler
     {
+        // CST - antlr
         LogiaParser *parser;
         antlr4::ANTLRErrorListener *errorListener;
-        antlr4::ParserRuleContext *root;
         antlr4::CommonTokenStream *tokens;
         LogiaLexer *lexer;
         antlr4::ANTLRInputStream *input;
+        antlr4::ParserRuleContext *cst_tree;
+
+        // AST
+
+        AST::Program *ast_tree;
+
+        // CODEGEN
+        Backend *backend;
+
+        // aux
         char *text;
 
         // options
@@ -42,10 +55,11 @@ namespace logia
 
         char *file_read(const char *file_path);
         void read(const char *file_path);
-        antlr4::ParserRuleContext *check();
+        antlr4::ParserRuleContext *parse();
         void compile();
-        void build();
+        void print_cst();
 
+        void build_ast();
         void print_ast();
     };
 
