@@ -18,7 +18,7 @@ namespace logia::AST
     // IntegerLiteral
     //
 
-    IntegerLiteral::IntegerLiteral(antlr4::ParserRuleContext *rule, const char* number_as_text, Type *type) : ConstExpression(rule, ast_types::INTEGER_LITERAL)
+    IntegerLiteral::IntegerLiteral(antlr4::ParserRuleContext *rule, const char *number_as_text, Type *type) : ConstExpression(rule, ast_types::INTEGER_LITERAL)
     {
         LOGIA_ASSERT(number_as_text);
         LOGIA_ASSERT(type);
@@ -80,7 +80,8 @@ namespace logia::AST
     llvm::Value *IntegerLiteral::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
     {
         DEBUG() << this->to_string() << std::endl;
-        return llvm::ConstantInt::get((llvm::Type *)this->get_type()->codegen(codegen, builder), llvm::APInt(this->get_type()->Integer.bits, this->as_signed(), this->get_type()->Integer.is_signed));
+        auto type = (Integer *)this->children[0];
+        return llvm::ConstantInt::get((llvm::Type *)this->get_type()->codegen(codegen, builder), llvm::APInt(type->bits, this->as_signed(), type->is_signed));
     }
 
     //
@@ -164,11 +165,11 @@ namespace logia::AST
     }
     LOGIA_API LOGIA_LEND IntegerLiteral *ast_create_int_lit(Block *body, const char *numberstr)
     {
-        return new IntegerLiteral(nullptr, numberstr, (Type*)body->lookup(strdup("λi64")));
+        return new IntegerLiteral(nullptr, numberstr, (Type *)body->lookup(strdup("λi64")));
     }
     LOGIA_API LOGIA_LEND IntegerLiteral *ast_create_uint_lit(Block *body, const char *numberstr)
     {
-        return new IntegerLiteral(nullptr, numberstr, (Type*)body->lookup(strdup("λu64")));
+        return new IntegerLiteral(nullptr, numberstr, (Type *)body->lookup(strdup("λu64")));
     }
 
 }

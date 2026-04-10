@@ -58,27 +58,29 @@ namespace logia::AST
 
     enum class BinaryOperator
     {
-        ADD,        // +
-        SUB,        // -
-        MUL,        // *
-        DIV,        // /
-        MOD,        // %
-        EQ,         // ==
-        NEQ,        // !=
-        LT,         // <
-        GT,         // >
-        LTE,        // <=
-        GTE,        // >=
-        AND,        // &&
-        OR,         // ||
-        ASSIGN,     // =
-        ADD_ASSIGN, // +=
-        SUB_ASSIGN, // -=
-        MUL_ASSIGN, // *=
-        DIV_ASSIGN, // /=
-        XOR,        // ^
-        SHL,        // <<
-        SHR,        // >>
+        ADD,         // +
+        SUB,         // -
+        MUL,         // *
+        DIV,         // /
+        MOD,         // %
+        EQ,          // ==
+        NEQ,         // !=
+        LT,          // <
+        GT,          // >
+        LTE,         // <=
+        GTE,         // >=
+        AND,         // &&
+        OR,          // ||
+        ASSIGN,      // =
+        ADD_ASSIGN,  // +=
+        SUB_ASSIGN,  // -=
+        MUL_ASSIGN,  // *=
+        DIV_ASSIGN,  // /=
+        BITWISE_OR,  // |
+        BITWISE_AND, // &
+        XOR,         // ^
+        SHL,         // <<
+        SHR,         // >>
     };
 
     struct BinaryExpression : CallExpression
@@ -112,6 +114,8 @@ namespace logia::AST
     };
 
     LOGIA_API LOGIA_LEND PrefixUnaryExpression *ast_create_ref(Expression *operand);
+
+    LOGIA_API LOGIA_LEND PrefixUnaryExpression *ast_create_preunary_expr(PrefixUnaryOperator op, Expression *operand);
 
     enum class PostfixUnaryOperator
     {

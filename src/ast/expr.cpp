@@ -69,7 +69,7 @@ namespace logia::AST
         LOGIA_ASSERT(expr && "expr is mantadory");
         NODE_TYPE_ASSERT(expr, ast_types::EXPRESSION, expr->to_string());
 
-        this->push_child(ast_create_identifier((char*)"")); // TODO maybe empty identifier ?!
+        this->push_child(ast_create_identifier((char *)"")); // TODO maybe empty identifier ?!
         this->push_child(expr);
     }
 
@@ -325,6 +325,11 @@ namespace logia::AST
     {
         PrefixUnaryExpression *expr = new PrefixUnaryExpression(nullptr, PrefixUnaryOperator::DEREFERENCE, operand);
         return expr;
+    }
+
+    LOGIA_API LOGIA_LEND PrefixUnaryExpression *ast_create_preunary_expr(PrefixUnaryOperator op, Expression *operand)
+    {
+        return new PrefixUnaryExpression(nullptr, op, operand);
     }
 
     // TODO create
