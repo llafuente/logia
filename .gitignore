@@ -43,4 +43,5 @@ cmake_install.cmake
 *.obj
 *.pdb
 
-logialog.txt
+logia.log
+logia-tests.log
