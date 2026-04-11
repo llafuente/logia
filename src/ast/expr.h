@@ -58,29 +58,29 @@ namespace logia::AST
 
     enum class BinaryOperator
     {
-        ADD,         // +
-        SUB,         // -
-        MUL,         // *
-        DIV,         // /
-        MOD,         // %
-        EQ,          // ==
-        NEQ,         // !=
-        LT,          // <
-        GT,          // >
-        LTE,         // <=
-        GTE,         // >=
-        AND,         // &&
-        OR,          // ||
-        ASSIGN,      // =
-        ADD_ASSIGN,  // +=
-        SUB_ASSIGN,  // -=
-        MUL_ASSIGN,  // *=
-        DIV_ASSIGN,  // /=
-        BITWISE_OR,  // |
-        BITWISE_AND, // &
-        XOR,         // ^
-        SHL,         // <<
-        SHR,         // >>
+        ADD,                 // +
+        SUB,                 // -
+        MUL,                 // *
+        DIV,                 // /
+        MOD,                 // %
+        LOGIAL_EQ,           // ==
+        LOGIAL_NEQ,          // !=
+        LOGIAL_LT,           // <
+        LOGIAL_GT,           // >
+        LOGIAL_LTE,          // <=
+        LOGIAL_GTE,          // >=
+        LOGICAL_AND,         // &&
+        LOGICAL_OR,          // ||
+        ASSIGN,              // =
+        ADD_ASSIGN,          // +=
+        SUB_ASSIGN,          // -=
+        MUL_ASSIGN,          // *=
+        DIV_ASSIGN,          // /=
+        BITWISE_OR,          // |
+        BITWISE_AND,         // &
+        BITWISE_XOR,         // ^
+        BITWISE_LEFT_SHIFT,  // <<
+        BITWISE_RIGHT_SHIFT, // >>
     };
 
     struct BinaryExpression : CallExpression
@@ -153,5 +153,5 @@ namespace logia::AST
     //
     LOGIA_API const char *ast_postfix_unary_operator_to_string(PostfixUnaryOperator op);
     LOGIA_API const char *ast_prefix_unary_operator_to_string(PrefixUnaryOperator op);
-    LOGIA_API const char *ast_binary_operator_to_string(BinaryOperator op);
+    LOGIA_API const char *ast_binary_operator_to_string(BinaryOperator op, Type *left, Type *right);
 }

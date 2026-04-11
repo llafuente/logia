@@ -227,13 +227,15 @@ namespace logia::AST
 
     std::string BinaryExpression::to_string()
     {
-        return std::format("BinaryExpression[{}({}, {}) ({:p})", ast_binary_operator_to_string(this->op), this->get_left()->to_string(), this->get_right()->to_string(), static_cast<void *>(this));
+        auto id = (Identifier *)this->get_locator();
+        return std::format("BinaryExpression[{}({}, {}) ({:p})", id->identifier, this->get_left()->to_string(), this->get_right()->to_string(), static_cast<void *>(this));
     }
 
     BinaryExpression::BinaryExpression(antlr4::ParserRuleContext *rule, Expression *left, BinaryOperator op, Expression *right) : CallExpression()
     {
         this->op = op;
-        this->push_child(ast_create_identifier(strdup(ast_binary_operator_to_string(op))));
+
+        this->push_child(ast_create_identifier(strdup(ast_binary_operator_to_string(op, left->get_type(), right->get_type()))));
         switch (op)
         {
         case BinaryOperator::ASSIGN:
@@ -443,52 +445,74 @@ namespace logia::AST
         }
     }
 
-    const char *ast_binary_operator_to_string(BinaryOperator op)
+    char ast_binary_operator_to_string_buffer[256];
+    const char *ast_binary_operator_to_string(BinaryOperator op, Type *left, Type *right)
     {
         switch (op)
         {
         case BinaryOperator::ASSIGN:
-            return "logia_intrinsics_bin_assign";
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_assign_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
         case BinaryOperator::ADD_ASSIGN:
-            return "logia_intrinsics_bin_add_assign";
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_add_assign_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
         case BinaryOperator::SUB_ASSIGN:
-            return "logia_intrinsics_bin_sub_assign";
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_sub_assign_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
         case BinaryOperator::DIV_ASSIGN:
-            return "logia_intrinsics_bin_div_assign";
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_div_assign_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
         case BinaryOperator::MUL_ASSIGN:
-            return "logia_intrinsics_bin_mul_assign";
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_mul_assign_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
         case BinaryOperator::ADD:
-            return "logia_intrinsics_bin_add";
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_add_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
         case BinaryOperator::SUB:
-            return "logia_intrinsics_bin_sub";
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_sub_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
         case BinaryOperator::MUL:
-            return "logia_intrinsics_bin_mul";
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_mul_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
         case BinaryOperator::DIV:
-            return "logia_intrinsics_bin_div";
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_div_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
         case BinaryOperator::MOD:
-            return "logia_intrinsics_bin_mod";
-        case BinaryOperator::EQ:
-            return "logia_intrinsics_bin_eq";
-        case BinaryOperator::NEQ:
-            return "logia_intrinsics_bin_neq";
-        case BinaryOperator::LT:
-            return "logia_intrinsics_bin_lt";
-        case BinaryOperator::GT:
-            return "logia_intrinsics_bin_gt";
-        case BinaryOperator::LTE:
-            return "logia_intrinsics_bin_lte";
-        case BinaryOperator::GTE:
-            return "logia_intrinsics_bin_gte";
-        case BinaryOperator::AND:
-            return "logia_intrinsics_bin_and";
-        case BinaryOperator::OR:
-            return "logia_intrinsics_bin_or";
-        case BinaryOperator::XOR:
-            return "logia_intrinsics_bin_xor";
-        case BinaryOperator::SHL:
-            return "logia_intrinsics_bin_shl";
-        case BinaryOperator::SHR:
-            return "logia_intrinsics_bin_shr";
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_mod_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
+        case BinaryOperator::LOGIAL_EQ:
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_eq_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
+        case BinaryOperator::LOGIAL_NEQ:
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_neq_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
+        case BinaryOperator::LOGIAL_LT:
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_lt_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
+        case BinaryOperator::LOGIAL_GT:
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_gt_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
+        case BinaryOperator::LOGIAL_LTE:
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_lte_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
+        case BinaryOperator::LOGIAL_GTE:
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_gte_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
+        case BinaryOperator::LOGICAL_AND:
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_and_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
+        case BinaryOperator::LOGICAL_OR:
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_or_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
+        case BinaryOperator::BITWISE_XOR:
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_xor_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
+        case BinaryOperator::BITWISE_LEFT_SHIFT:
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_shl_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
+        case BinaryOperator::BITWISE_RIGHT_SHIFT:
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_shr_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
         default:
             throw std::runtime_error("Unknown binary operator");
         }

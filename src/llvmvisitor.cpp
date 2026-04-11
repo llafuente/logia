@@ -72,7 +72,7 @@ namespace logia
         if (context->right != nullptr)
         {
             auto right = ANY_VOIDP_CAST(AST::Expression *, this->visitLogicalOrExpr(context->right));
-            return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::OR, right));
+            return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::LOGICAL_OR, right));
         }
         return ANY_VOIDP_STORE(left);
     }
@@ -85,7 +85,7 @@ namespace logia
         if (context->right != nullptr)
         {
             auto right = ANY_VOIDP_CAST(AST::Expression *, this->visitLogicalAndExpr(context->right));
-            return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::OR, right));
+            return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::LOGICAL_OR, right));
         }
         return ANY_VOIDP_STORE(left);
     }
