@@ -2,7 +2,19 @@
     "tasks": [
         {
             "type": "cmake",
-            "label": "CMake: build",
+            "label": "CMake: build compiler",
+            "command": "build",
+            "targets": [
+                "logia"
+            ],
+            "preset": "__defaultBuildPreset__",
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        },
+        {
+            "type": "cmake",
+            "label": "CMake: build tests",
             "command": "build",
             "targets": [
                 "logia_test_suite"
@@ -14,10 +26,13 @@
         },
         {
             "type": "shell",
-            "label": "test",
+            "label": "tests",
             "command": "${workspaceFolder}/build-debug/bin/Debug/logia_test_suite.exe",
             "detail": "run test",
-            "dependsOn": ["CMake: build"]
+            "dependsOn": [
+                "CMake: build tests"
+            ],
+            "problemMatcher": [],
         }
     ],
     "version": "2.0.0"
