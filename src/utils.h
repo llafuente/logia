@@ -21,6 +21,7 @@
 // #define DEBUG() logia_log_file << __FUNCTION__ << ":" << __LINE__ << " "
 
 #define LOGIA_LEND
+#define LOGIA_CLONE
 
 extern std::ofstream logia_log_file;
 /**

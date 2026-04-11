@@ -69,9 +69,10 @@ namespace logia
         std::any visitMayBeConstant(LogiaParser::MayBeConstantContext *context) override;
         std::any visitConstant(LogiaParser::ConstantContext *context) override;
 
-        std::any visitReturnStmt(LogiaParser::ReturnStmtContext *context) override;
-
         std::any visitIdentifier(LogiaParser::IdentifierContext *context) override;
+        std::any visitStringLiteral(LogiaParser::StringLiteralContext *context) override;
+
+        std::any visitReturnStmt(LogiaParser::ReturnStmtContext *context) override;
 
         std::any visitType(LogiaParser::TypeContext *context) override;
         //

@@ -113,7 +113,7 @@ namespace logia
         if (context->right != nullptr)
         {
             auto right = ANY_VOIDP_CAST(AST::Expression *, this->visitExclusiveOrExpr(context->right));
-            return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::XOR, right));
+            return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::BITWISE_XOR, right));
         }
         return ANY_VOIDP_STORE(left);
     }
@@ -157,10 +157,10 @@ namespace logia
             case LogiaParser::ALMOSTEQUAL_TK:
             // value equality
             case LogiaParser::EQUALEQUAL_TK:
-                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::EQ, right));
+                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::LOGIAL_EQ, right));
             // value inequality
             case LogiaParser::NOT_EQUAL_TK:
-                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::NEQ, right));
+                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::LOGIAL_NEQ, right));
             }
             // TODO:  '<' '>'
             throw std::runtime_error(__FUNCTION__ "unreachable");
@@ -182,13 +182,13 @@ namespace logia
             switch (context->op->start->getType())
             {
             case LogiaParser::LT_TK:
-                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::LT, right));
+                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::LOGIAL_LT, right));
             case LogiaParser::LESS_EQUAL_TK:
-                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::LTE, right));
+                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::LOGIAL_LTE, right));
             case LogiaParser::GT_TK:
-                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::GT, right));
+                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::LOGIAL_GT, right));
             case LogiaParser::GREATER_EQUAL_TK:
-                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::GTE, right));
+                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::LOGIAL_GTE, right));
             }
             throw std::runtime_error(__FUNCTION__ "unreachable");
         }
@@ -209,9 +209,9 @@ namespace logia
             switch (context->op->start->getType())
             {
             case LogiaParser::LT_TK:
-                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::SHL, right));
+                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::BITWISE_LEFT_SHIFT, right));
             case LogiaParser::GT_TK:
-                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::SHR, right));
+                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::BITWISE_RIGHT_SHIFT, right));
             }
             throw std::runtime_error(__FUNCTION__ "unreachable");
         }
@@ -460,11 +460,9 @@ namespace logia
 
         VISIT_FORDWARD(numberLiteral, visitNumberLiteral);
         VISIT_FORDWARD(identifier, visitIdentifier);
+        VISIT_FORDWARD(stringLiteral, visitStringLiteral);
 
-        if (context->stringLiteral() != nullptr)
-        {
-        }
-        else if (context->preprocessorExpr() != nullptr)
+        if (context->preprocessorExpr() != nullptr)
         {
         }
         else if (context->regularExpressionLiteral() != nullptr)
@@ -494,6 +492,15 @@ namespace logia
         return ANY_VOIDP_STORE(ident);
     }
 
+    std::any LLVMVisitor::visitStringLiteral(LogiaParser::StringLiteralContext *context)
+    {
+        DEBUG() << context->getText() << std::endl;
+
+        auto str = AST::ast_create_string_lit(context->STRING_LITERAL()->getText().c_str());
+        str->rule = context;
+
+        return ANY_VOIDP_STORE(str);
+    }
     std::any LLVMVisitor::visitType(LogiaParser::TypeContext *context)
     {
         DEBUG() << context->getText() << std::endl;

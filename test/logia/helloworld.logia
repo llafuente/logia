@@ -1,0 +1,4 @@
+function main() int {
+    logia_print_stdout("hello world")
+    return 0;
+}

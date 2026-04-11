@@ -36,9 +36,9 @@ namespace logia::AST
 
     struct IntegerLiteral : ConstExpression
     {
-        char* number_str;
+        char *number_str;
 
-        IntegerLiteral(antlr4::ParserRuleContext *rule, const char* number_as_text, Type *type);
+        IntegerLiteral(antlr4::ParserRuleContext *rule, const char *number_as_text, Type *type);
 
         uint64_t as_unsigned();
         int64_t as_signed();
@@ -51,7 +51,7 @@ namespace logia::AST
     /**
      * Creates a string literal
      */
-    LOGIA_API LOGIA_LEND StringLiteral *ast_create_string_lit(char *text);
+    LOGIA_API LOGIA_LEND StringLiteral *ast_create_string_lit(LOGIA_CLONE const char *text);
     /**
      * Creates a floating point literal
      */

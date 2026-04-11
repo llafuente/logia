@@ -154,10 +154,9 @@ namespace logia::AST
         */
     }
 
-    LOGIA_API LOGIA_LEND StringLiteral *ast_create_string_lit(char *text)
+    LOGIA_API LOGIA_LEND StringLiteral *ast_create_string_lit(LOGIA_CLONE const char *text)
     {
-        // TODO review remove parentNode from constructor, is a leaf right?
-        return new StringLiteral(nullptr, text);
+        return new StringLiteral(nullptr, strdup(text));
     }
     LOGIA_API LOGIA_LEND FloatLiteral *ast_create_float_lit(Block *body, double value)
     {
