@@ -1,4 +1,4 @@
-#include "compiler.h"
+#include "logia/frontend.h"
 
 #include <llvm/Support/TargetSelect.h>
 
@@ -6,7 +6,7 @@
 #include "LogiaParser.h"
 #include "LogiaLexer.h"
 
-#include "llvmvisitor.h"
+#include "logia/cst2ast.h"
 #include "windows.h"
 
 #include "ast/constexpr.h"
@@ -71,7 +71,7 @@ namespace logia
     void ErrorListener::reportAttemptingFullContext(antlr4::Parser *recognizer, const antlr4::dfa::DFA &dfa, size_t startIndex, size_t stopIndex, const antlrcpp::BitSet &conflictingAlts, antlr4::atn::ATNConfigSet *configs) {}
     void ErrorListener::reportContextSensitivity(antlr4::Parser *recognizer, const antlr4::dfa::DFA &dfa, size_t startIndex, size_t stopIndex, size_t prediction, antlr4::atn::ATNConfigSet *configs) {}
 
-    Compiler::~Compiler()
+    Frontend::~Frontend()
     {
         // parser will remove this
         this->cst_tree = nullptr;
@@ -87,7 +87,7 @@ namespace logia
         free(this->text);
     }
 
-    char *Compiler::file_read(const char *file_path)
+    char *Frontend::file_read(const char *file_path)
     {
         FILE *file;
         auto err = fopen_s(&file, file_path, "rb");
@@ -124,7 +124,7 @@ namespace logia
         return buffer;
     }
 
-    void Compiler::read(const char *file_path)
+    void Frontend::read(const char *file_path)
     {
         if (this->verbose)
         {
@@ -141,7 +141,7 @@ namespace logia
         this->parser->addErrorListener(this->errorListener);
     }
 
-    void Compiler::compile()
+    void Frontend::compile()
     {
         /*
             llvm::InitializeAllTargetInfos();
@@ -152,7 +152,7 @@ namespace logia
         */
     }
 
-    antlr4::ParserRuleContext *Compiler::parse()
+    antlr4::ParserRuleContext *Frontend::parse()
     {
         if (this->is_program)
         {
@@ -166,23 +166,23 @@ namespace logia
         return this->cst_tree;
     }
 
-    void Compiler::print_cst()
+    void Frontend::print_cst()
     {
         std::cerr << "cst:" << std::endl
                   << this->cst_tree->toStringTree(this->parser, true) << std::endl;
     }
 
-    void Compiler::build_ast()
+    void Frontend::build_ast()
     {
         this->backend = new Backend();
         this->backend->load_intrinsics();
 
-        LLVMVisitor *llvmVisitor = new LLVMVisitor(this->backend->program);
+        CST2AST *llvmVisitor = new CST2AST(this->backend->program);
         llvmVisitor->visit(this->cst_tree);
         this->ast_tree = this->backend->program;
     }
 
-    void Compiler::print_ast()
+    void Frontend::print_ast()
     {
         std::cerr << "ast:" << std::endl
                   << this->ast_tree->to_string_tree() << std::endl;

@@ -7,7 +7,6 @@
 #include "ast/block.h"
 
 #include "utils.h"
-#include "backend.h"
 
 #include "antlr4-runtime.h"
 #include "llvm/IR/IRBuilder.h"

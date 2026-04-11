@@ -27,7 +27,7 @@ namespace logia
         void reportContextSensitivity(antlr4::Parser *recognizer, const antlr4::dfa::DFA &dfa, size_t startIndex, size_t stopIndex, size_t prediction, antlr4::atn::ATNConfigSet *configs) override;
     };
 
-    struct Compiler
+    struct Frontend
     {
         // CST - antlr
         LogiaParser *parser;
@@ -51,7 +51,7 @@ namespace logia
         bool is_program = true;
         bool verbose = false;
 
-        ~Compiler();
+        ~Frontend();
 
         char *file_read(const char *file_path);
         void read(const char *file_path);

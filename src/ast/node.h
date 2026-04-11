@@ -5,7 +5,7 @@
 
 #include "ast/types.h"
 #include "utils.h"
-#include "backend.h"
+#include "logia/backend.h"
 
 #include "antlr4-runtime.h"
 #include "llvm/IR/IRBuilder.h"

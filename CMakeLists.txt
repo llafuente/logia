@@ -36,6 +36,9 @@ message(STATUS "ANTLR_LogiaGrammarParser_CXX_OUTPUTS ${ANTLR_LogiaGrammarParser_
 set(LOGIA_SOURCE_FILES
   src/logia/help.cpp
   src/logia/run.cpp
+  src/logia/cst2ast.cpp  
+  src/logia/frontend.cpp
+  src/logia/backend.cpp
 
   src/ast/node.cpp
   src/ast/types.cpp
@@ -51,9 +54,6 @@ set(LOGIA_SOURCE_FILES
   src/ast/expr.cpp
   src/ast/constexpr.cpp
 
-  src/compiler.cpp
-  src/llvmvisitor.cpp  
-  src/backend.cpp
   src/utils.cpp
 )
 
@@ -98,7 +98,8 @@ foreach(project_name IN ITEMS "logia" "logia_test_suite")
   target_link_libraries(${project_name} PRIVATE antlr4_static)
   target_link_libraries(${project_name} PRIVATE ${LLVM_LIBS})
 
-  target_compile_features(${project_name} PRIVATE cxx_std_20)
+  #target_compile_features(${project_name} PRIVATE cxx_std_20)
+  target_compile_features(${project_name} PRIVATE cxx_std_23)
 
   if (ASAN_ENABLED)
     message(STATUS "Enable ASAN")

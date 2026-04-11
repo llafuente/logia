@@ -14,32 +14,18 @@
 
 namespace logia
 {
-    class Program : public LogiaParser::ProgramContext
-    {
-    public:
-        std::vector<int> *v;
-
-        Program(antlr4::ParserRuleContext *parent, size_t invokingState)
-            : LogiaParser::ProgramContext(parent, invokingState) {}
-        ~Program() override
-        {
-
-            delete v;
-        }
-    };
-
     /**
      * This class defines an abstract visitor for a parse tree
      * produced by LogiaParser.
      */
     // do not extend LogiaParserVisitor or we will have to impl 100% of methods!
-    class LLVMVisitor : public LogiaParserBaseVisitor
+    class CST2AST : public LogiaParserBaseVisitor
     {
     public:
         logia::AST::Program *program;
         logia::AST::Block *block;
 
-        LLVMVisitor(logia::AST::Program *_program);
+        CST2AST(logia::AST::Program *_program);
 
         std::any visitProgram(LogiaParser::ProgramContext *context) override;
 

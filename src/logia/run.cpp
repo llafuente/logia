@@ -1,6 +1,6 @@
 #include <iostream>
 #include "logia/help.h"
-#include "compiler.h"
+#include "logia/frontend.h"
 #include <Windows.h>
 
 namespace logia
@@ -12,7 +12,7 @@ namespace logia
             print_usage("run");
             return 0;
         }
-        logia::Compiler *logia_compiler = new logia::Compiler();
+        logia::Frontend *frontend = new logia::Frontend();
         const char *file_path = argv[0];
 
         // parse common options
@@ -32,7 +32,7 @@ namespace logia
             }
             else if (strcmp("--package", argv[i]) == 0)
             {
-                logia_compiler->is_program = false;
+                frontend->is_program = false;
                 continue;
             }
             else if (strcmp("--print", argv[i]) == 0)
@@ -58,7 +58,7 @@ namespace logia
             else if (strcmp("--verbose", argv[i]) == 0)
             {
                 verbose = true;
-                logia_compiler->verbose = true;
+                frontend->verbose = true;
                 continue;
             }
             std::cerr << "ignore unkown option: " << argv[i] << std::endl;
@@ -77,35 +77,35 @@ namespace logia
             std::cout
                 << "* file: " << file_path << std::endl
                 << "* print: " << (print ? "yes" : "no") << std::endl
-                << "* program: " << (logia_compiler->is_program ? "yes" : "no") << std::endl;
+                << "* program: " << (frontend->is_program ? "yes" : "no") << std::endl;
         }
 
-        logia_compiler->read(file_path);
+        frontend->read(file_path);
         if (print)
         {
             std::cerr << "File Contents:" << std::endl
-                      << logia_compiler->text << std::endl;
+                      << frontend->text << std::endl;
         }
-        antlr4::ParserRuleContext *tree = logia_compiler->parse();
+        antlr4::ParserRuleContext *tree = frontend->parse();
 
         if (print_cst)
         {
-            logia_compiler->print_cst();
+            frontend->print_cst();
         }
-        logia_compiler->build_ast();
+        frontend->build_ast();
         if (print_ast)
         {
-            logia_compiler->print_ast();
+            frontend->print_ast();
         }
 
         if (emit_llvm)
         {
             // logia_compiler->backend->module->print(llvm::outs(), nullptr);
-            logia_compiler->backend->module->print(llvm::errs(), nullptr);
+            frontend->backend->module->print(llvm::errs(), nullptr);
         }
 
-        auto ret = logia_compiler->backend->run_jit("main");
-        delete logia_compiler;
+        auto ret = frontend->backend->run_jit("main");
+        delete frontend;
         return ret;
     }
 

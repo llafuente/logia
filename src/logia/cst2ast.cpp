@@ -1,4 +1,4 @@
-#include "llvmvisitor.h"
+#include "logia/cst2ast.h"
 
 #include "ast/constexpr.h"
 
@@ -18,12 +18,12 @@
 namespace logia
 {
 
-    LLVMVisitor::LLVMVisitor(logia::AST::Program *_program) : program(_program)
+    CST2AST::CST2AST(logia::AST::Program *_program) : program(_program)
     {
         this->block = this->program;
     }
 
-    std::any LLVMVisitor::visitProgram(LogiaParser::ProgramContext *context)
+    std::any CST2AST::visitProgram(LogiaParser::ProgramContext *context)
     {
         DEBUG() << context->getText() << std::endl;
 
@@ -33,7 +33,7 @@ namespace logia
     //
     // Expressions
     //
-    std::any LLVMVisitor::visitNumberLiteral(LogiaParser::NumberLiteralContext *context)
+    std::any CST2AST::visitNumberLiteral(LogiaParser::NumberLiteralContext *context)
     {
         DEBUG() << context->getText() << std::endl;
 
@@ -42,7 +42,7 @@ namespace logia
     }
 
     // rhsExpr it's just a container not needed
-    std::any LLVMVisitor::visitRhsExpr(LogiaParser::RhsExprContext *context)
+    std::any CST2AST::visitRhsExpr(LogiaParser::RhsExprContext *context)
     {
         DEBUG() << context->getText() << std::endl;
 
@@ -54,7 +54,7 @@ namespace logia
         throw std::runtime_error(__FUNCTION__ "unreachable");
     }
 
-    std::any LLVMVisitor::visitConditionalExpr(LogiaParser::ConditionalExprContext *context)
+    std::any CST2AST::visitConditionalExpr(LogiaParser::ConditionalExprContext *context)
     {
         DEBUG() << context->getText() << std::endl;
 
@@ -63,7 +63,7 @@ namespace logia
 
         return this->visitLogicalOrExpr(context->condition);
     }
-    std::any LLVMVisitor::visitLogicalOrExpr(LogiaParser::LogicalOrExprContext *context)
+    std::any CST2AST::visitLogicalOrExpr(LogiaParser::LogicalOrExprContext *context)
     {
         DEBUG() << context->getText() << std::endl;
 
@@ -76,7 +76,7 @@ namespace logia
         }
         return ANY_VOIDP_STORE(left);
     }
-    std::any LLVMVisitor::visitLogicalAndExpr(LogiaParser::LogicalAndExprContext *context)
+    std::any CST2AST::visitLogicalAndExpr(LogiaParser::LogicalAndExprContext *context)
     {
         DEBUG() << context->getText() << std::endl;
 
@@ -90,7 +90,7 @@ namespace logia
         return ANY_VOIDP_STORE(left);
     }
 
-    std::any LLVMVisitor::visitInclusiveOrExpr(LogiaParser::InclusiveOrExprContext *context)
+    std::any CST2AST::visitInclusiveOrExpr(LogiaParser::InclusiveOrExprContext *context)
     {
         DEBUG() << context->getText() << std::endl;
 
@@ -104,7 +104,7 @@ namespace logia
         return ANY_VOIDP_STORE(left);
     }
 
-    std::any LLVMVisitor::visitExclusiveOrExpr(LogiaParser::ExclusiveOrExprContext *context)
+    std::any CST2AST::visitExclusiveOrExpr(LogiaParser::ExclusiveOrExprContext *context)
     {
         DEBUG() << context->getText() << std::endl;
 
@@ -118,7 +118,7 @@ namespace logia
         return ANY_VOIDP_STORE(left);
     }
 
-    std::any LLVMVisitor::visitAndExpr(LogiaParser::AndExprContext *context)
+    std::any CST2AST::visitAndExpr(LogiaParser::AndExprContext *context)
     {
         DEBUG() << context->getText() << std::endl;
 
@@ -132,7 +132,7 @@ namespace logia
         return ANY_VOIDP_STORE(left);
     }
 
-    std::any LLVMVisitor::visitEqualityExpr(LogiaParser::EqualityExprContext *context)
+    std::any CST2AST::visitEqualityExpr(LogiaParser::EqualityExprContext *context)
     {
         // right associative
         DEBUG() << context->getText() << std::endl;
@@ -168,7 +168,7 @@ namespace logia
         return ANY_VOIDP_STORE(right);
     }
 
-    std::any LLVMVisitor::visitRelationalExpr(LogiaParser::RelationalExprContext *context)
+    std::any CST2AST::visitRelationalExpr(LogiaParser::RelationalExprContext *context)
     {
         // right associative
         DEBUG() << context->getText() << std::endl;
@@ -195,7 +195,7 @@ namespace logia
         return ANY_VOIDP_STORE(right);
     }
 
-    std::any LLVMVisitor::visitShiftExpr(LogiaParser::ShiftExprContext *context)
+    std::any CST2AST::visitShiftExpr(LogiaParser::ShiftExprContext *context)
     {
         // right associative
         DEBUG() << context->getText() << std::endl;
@@ -218,7 +218,7 @@ namespace logia
         return ANY_VOIDP_STORE(right);
     }
 
-    std::any LLVMVisitor::visitAdditiveExpr(LogiaParser::AdditiveExprContext *context)
+    std::any CST2AST::visitAdditiveExpr(LogiaParser::AdditiveExprContext *context)
     {
         // right associative
         DEBUG() << context->getText() << std::endl;
@@ -241,7 +241,7 @@ namespace logia
         return ANY_VOIDP_STORE(right);
     }
 
-    std::any LLVMVisitor::visitMultiplicativeExpr(LogiaParser::MultiplicativeExprContext *context)
+    std::any CST2AST::visitMultiplicativeExpr(LogiaParser::MultiplicativeExprContext *context)
     {
         // right associative
         DEBUG() << context->getText() << std::endl;
@@ -266,14 +266,14 @@ namespace logia
         return ANY_VOIDP_STORE(right);
     }
 
-    std::any LLVMVisitor::visitCastExpr(LogiaParser::CastExprContext *context)
+    std::any CST2AST::visitCastExpr(LogiaParser::CastExprContext *context)
     {
         DEBUG() << context->getText() << std::endl;
         // TODO syntax not final
         return this->visitUnaryExpr(context->left);
     }
 
-    std::any LLVMVisitor::visitUnaryExpr(LogiaParser::UnaryExprContext *context)
+    std::any CST2AST::visitUnaryExpr(LogiaParser::UnaryExprContext *context)
     {
         DEBUG() << context->getText() << std::endl;
         VISIT_FORDWARD(unaryNewExpression, visitUnaryNewExpression);
@@ -314,7 +314,7 @@ namespace logia
         return ANY_VOIDP_STORE(operand);
     }
 
-    std::any LLVMVisitor::visitPostfixExpr(LogiaParser::PostfixExprContext *context)
+    std::any CST2AST::visitPostfixExpr(LogiaParser::PostfixExprContext *context)
     {
         DEBUG() << context->getText() << std::endl;
 
@@ -354,7 +354,7 @@ namespace logia
         }
         throw std::runtime_error(__FUNCTION__ " todo");
     }
-    std::any LLVMVisitor::postfixCallExpr(LogiaParser::PostfixExprContext *locator, LogiaParser::ArgumentExprListContext *arguments)
+    std::any CST2AST::postfixCallExpr(LogiaParser::PostfixExprContext *locator, LogiaParser::ArgumentExprListContext *arguments)
     {
         auto ast_locator = ANY_VOIDP_CAST(AST::Expression *, this->visitPostfixExpr(locator));
         auto callexpr = AST::ast_create_call_expr(ast_locator, {});
@@ -407,7 +407,7 @@ namespace logia
         return ANY_VOIDP_STORE(callexpr);
     }
 
-    std::any LLVMVisitor::visitPrimaryExpr(LogiaParser::PrimaryExprContext *context)
+    std::any CST2AST::visitPrimaryExpr(LogiaParser::PrimaryExprContext *context)
     {
         DEBUG() << context->getText() << std::endl;
 
@@ -423,7 +423,7 @@ namespace logia
         throw std::runtime_error(__FUNCTION__ " todo");
     }
 
-    std::any LLVMVisitor::visitMayBeConstant(LogiaParser::MayBeConstantContext *context)
+    std::any CST2AST::visitMayBeConstant(LogiaParser::MayBeConstantContext *context)
     {
         DEBUG() << context->getText() << std::endl;
 
@@ -442,7 +442,7 @@ namespace logia
         throw std::runtime_error(__FUNCTION__ " todo");
     }
 
-    std::any LLVMVisitor::visitConstant(LogiaParser::ConstantContext *context)
+    std::any CST2AST::visitConstant(LogiaParser::ConstantContext *context)
     {
         DEBUG() << context->getText() << std::endl;
         // token literals, like true/false
@@ -472,7 +472,7 @@ namespace logia
         throw std::runtime_error(__FUNCTION__ " todo");
     }
 
-    std::any LLVMVisitor::visitReturnStmt(LogiaParser::ReturnStmtContext *context)
+    std::any CST2AST::visitReturnStmt(LogiaParser::ReturnStmtContext *context)
     {
         DEBUG() << context->getText() << std::endl;
 
@@ -482,7 +482,7 @@ namespace logia
         return ANY_VOIDP_STORE(AST::ast_create_return(ret_expr));
     }
 
-    std::any LLVMVisitor::visitIdentifier(LogiaParser::IdentifierContext *context)
+    std::any CST2AST::visitIdentifier(LogiaParser::IdentifierContext *context)
     {
         DEBUG() << context->getText() << std::endl;
 
@@ -492,7 +492,7 @@ namespace logia
         return ANY_VOIDP_STORE(ident);
     }
 
-    std::any LLVMVisitor::visitStringLiteral(LogiaParser::StringLiteralContext *context)
+    std::any CST2AST::visitStringLiteral(LogiaParser::StringLiteralContext *context)
     {
         DEBUG() << context->getText() << std::endl;
 
@@ -501,7 +501,7 @@ namespace logia
 
         return ANY_VOIDP_STORE(str);
     }
-    std::any LLVMVisitor::visitType(LogiaParser::TypeContext *context)
+    std::any CST2AST::visitType(LogiaParser::TypeContext *context)
     {
         DEBUG() << context->getText() << std::endl;
 
@@ -509,7 +509,7 @@ namespace logia
         return nullptr;
     }
 
-    std::any LLVMVisitor::visitFunctionDecl(LogiaParser::FunctionDeclContext *context)
+    std::any CST2AST::visitFunctionDecl(LogiaParser::FunctionDeclContext *context)
     {
         DEBUG() << context->getText() << std::endl;
 
@@ -532,7 +532,7 @@ namespace logia
         return ANY_VOIDP_STORE(fn);
     }
 
-    std::any LLVMVisitor::visitFunctionBody(LogiaParser::FunctionBodyContext *context)
+    std::any CST2AST::visitFunctionBody(LogiaParser::FunctionBodyContext *context)
     {
         DEBUG() << context->getText() << std::endl;
         DEBUG() << context->globalImportVarList() << std::endl;
@@ -567,7 +567,7 @@ namespace logia
         return nullptr;
     }
 
-    std::any LLVMVisitor::visitFunctionBodyStmt(LogiaParser::FunctionBodyStmtContext *context)
+    std::any CST2AST::visitFunctionBodyStmt(LogiaParser::FunctionBodyStmtContext *context)
     {
 
         VISIT_FORDWARD(labeledStatement, visitLabeledStatement);
@@ -592,7 +592,7 @@ namespace logia
     }
 
     // Fallback: delegate to children
-    antlrcpp::Any LLVMVisitor::visitChildren(antlr4::tree::ParseTree *node)
+    antlrcpp::Any CST2AST::visitChildren(antlr4::tree::ParseTree *node)
     {
         std::any result = 0;
         for (size_t i = 0; i < node->children.size(); i++)
