@@ -34,6 +34,9 @@ message(STATUS "ANTLR_LogiaGrammarLexer_CXX_OUTPUTS ${ANTLR_LogiaGrammarLexer_CX
 message(STATUS "ANTLR_LogiaGrammarParser_CXX_OUTPUTS ${ANTLR_LogiaGrammarParser_CXX_OUTPUTS}")
 
 set(LOGIA_SOURCE_FILES
+  src/logia/help.cpp
+  src/logia/run.cpp
+
   src/ast/node.cpp
   src/ast/types.cpp
   src/ast/type.cpp
@@ -71,6 +74,7 @@ add_executable(logia_test_suite
   test/main.cpp
   test/test_utils.cpp
   test/test_ast.cpp
+  test/test_logia.cpp
   ${LOGIA_SOURCE_FILES}
   ${ANTLR_LogiaGrammarLexer_CXX_OUTPUTS}
   ${ANTLR_LogiaGrammarParser_CXX_OUTPUTS}

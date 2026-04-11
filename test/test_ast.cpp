@@ -99,7 +99,7 @@ TEST(AST_Type, ast_create_function_type)
 
   auto firstArg = ast_create_int_lit(func->get_body(), "17");
   auto secondArg = ast_create_int_lit(func->get_body(), "21");
-  auto callFuncName = ident("logia_operator_add_i64_i64");
+  auto callFuncName = ident("logia_intrinsics_bin_add_i64_i64");
 
   EXPECT_EQ(firstArg->parent_node, nullptr);
   EXPECT_EQ(secondArg->parent_node, nullptr);
@@ -350,7 +350,7 @@ TEST(AST_Type, ast_create_var_decl2)
     auto ident_a = (Expression *)ast_create_identifier(str_a);
     auto ident_b = (Expression *)ast_create_identifier(str_b);
 
-    auto callFuncName = ident("logia_operator_add_i64_i64");
+    auto callFuncName = ident("logia_intrinsics_bin_add_i64_i64");
     auto sum_expr = ast_create_call_expr(callFuncName, {ident_a, ident_b});
 
     main_fn->get_body()->push_child(ast_create_return(sum_expr));
@@ -416,7 +416,7 @@ TEST(ast_create_if2, t1)
   LOGIA_BACKEND_START();
   using namespace logia::AST;
 
-  auto callFuncName = ident("logia_operator_equal_i64_i64");
+  auto callFuncName = ident("logia_intrinsics_bin_eq_i64_i64");
   auto condition = ast_create_call_expr(callFuncName, {ast_create_int_lit(program, "11"), ast_create_int_lit(program, "11")});
 
   auto ifstmt = ast_create_if(condition);
@@ -459,7 +459,7 @@ TEST(ast_create_if3, t1)
   LOGIA_BACKEND_START();
   using namespace logia::AST;
 
-  auto eqeq = ident("logia_operator_equal_i64_i64");
+  auto eqeq = ident("logia_intrinsics_bin_eq_i64_i64");
 
   auto var_id = strdup("tmp");
 
@@ -472,14 +472,14 @@ TEST(ast_create_if3, t1)
   main_body->push_child(ifstmt);
   EXPECT_EQ(ifstmt->get_then()->parent_node, ifstmt);
   {
-    auto fn_add_name = ident("logia_operator_add_i64_i64");
+    auto fn_add_name = ident("logia_intrinsics_bin_add_i64_i64");
     auto add = ast_create_call_expr(fn_add_name, {ast_create_identifier(var_id), ast_create_int_lit(program, "1")});
     auto fn_assignament_name = ast_create_string_lit(strdup("logia_operator_assign_i64_i64"));
     auto assignament = ast_create_binary_expr(ast_create_identifier(var_id), BinaryOperator::ASSIGN, add);
     ifstmt->get_then()->push_child(assignament);
   }
   {
-    auto fn_add_name = ident("logia_operator_add_i64_i64");
+    auto fn_add_name = ident("logia_intrinsics_bin_add_i64_i64");
     auto add = ast_create_call_expr(fn_add_name, {ast_create_identifier(var_id), ast_create_int_lit(program, "2")});
     auto fn_assignament_name = ast_create_string_lit(strdup("logia_operator_assign_i64_i64"));
     auto assignament = ast_create_binary_expr(ast_create_identifier(var_id), BinaryOperator::ASSIGN, add);

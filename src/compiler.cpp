@@ -168,7 +168,7 @@ namespace logia
 
     void Compiler::print_cst()
     {
-        std::cout << "cst:" << std::endl
+        std::cerr << "cst:" << std::endl
                   << this->cst_tree->toStringTree(this->parser, true) << std::endl;
     }
 
@@ -184,7 +184,7 @@ namespace logia
 
     void Compiler::print_ast()
     {
-        std::cout << "ast:" << std::endl
+        std::cerr << "ast:" << std::endl
                   << this->ast_tree->to_string_tree() << std::endl;
     }
 }
