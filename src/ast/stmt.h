@@ -10,6 +10,7 @@ namespace logia::AST
     struct Block;
     struct Type;
     struct Expression;
+    struct Identifier;
 
     struct Stmt : Node
     {
@@ -28,15 +29,18 @@ namespace logia::AST
 
     struct VarDeclStmt : Stmt
     {
-        char *name;
         Type *type;
         llvm::AllocaInst *ir;
 
-        VarDeclStmt(antlr4::ParserRuleContext *rule, char *name, Type *type, Expression *expr);
+        VarDeclStmt(antlr4::ParserRuleContext *rule, Identifier *id, Type *type, Expression *expr);
         Expression *get_expr();
+        const char *get_name();
+        Identifier *get_identifier();
         std::string to_string() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
         void on_after_attach() override;
+        Type *get_type() override;
+        bool pre_type_inference() override;
     };
 
     struct GotoStmt : Stmt
@@ -56,6 +60,6 @@ namespace logia::AST
      * Creates a variable declaration
      * Note, to create a constant Type should be readonly.
      */
-    LOGIA_API LOGIA_LEND VarDeclStmt *ast_create_var_decl(char *name, Type *type, Expression *expr);
+    LOGIA_API LOGIA_LEND VarDeclStmt *ast_create_var_decl(Identifier *id, Type *type, Expression *expr);
 
 }

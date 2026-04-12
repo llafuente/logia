@@ -156,7 +156,7 @@ namespace logia::AST
 
         Struct(antlr4::ParserRuleContext *rule, Identifier *id);
 
-        char *get_name();
+        const char *get_name();
         Identifier *get_identifier();
 
         /**
@@ -188,7 +188,7 @@ namespace logia::AST
         Function(antlr4::ParserRuleContext *rule, Identifier *id, Type *return_type = nullptr, bool is_intrinsic = false);
         ~Function();
 
-        char *get_name(); // shortcut
+        const char *get_name(); // shortcut
         Identifier *get_identifier();
         Type *get_return_type();
         Block *get_body();

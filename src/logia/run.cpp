@@ -22,6 +22,7 @@ namespace logia
         bool print_cst = false;
         bool print_ast = false;
         bool emit_llvm = false;
+        const char *llfile = nullptr;
         bool verbose = false;
 
         // skip first, it's entry point file
@@ -54,7 +55,13 @@ namespace logia
             }
             else if (strcmp("--emit-llvm", argv[i]) == 0)
             {
+                if (i + 1 == argc)
+                {
+                    std::cerr << "expected a file after --emit-llvm, ignored" << std::endl;
+                    continue;
+                }
                 emit_llvm = true;
+                llfile = argv[++i];
                 continue;
             }
             else if (strcmp("--verbose", argv[i]) == 0)
@@ -98,8 +105,9 @@ namespace logia
 
         if (emit_llvm)
         {
+            frontend->backend->emitTargetLLVMIR(llfile);
             // logia_compiler->backend->module->print(llvm::outs(), nullptr);
-            frontend->backend->module->print(llvm::errs(), nullptr);
+            // frontend->backend->module->print(llvm::errs(), nullptr);
         }
 
         auto ret = frontend->backend->run_jit("main");

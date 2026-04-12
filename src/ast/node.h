@@ -23,6 +23,8 @@ namespace logia::AST
     public:
         unsigned char is_attached : 1 = false;
         unsigned char is_codegen : 1 = false;
+        unsigned char is_typed : 1 = false;
+
 
         /**
          * TODO
@@ -76,6 +78,9 @@ namespace logia::AST
 
         virtual Type *get_type() = 0;
         virtual void on_after_attach();
+        void type_inference();
+        virtual bool pre_type_inference();
+        virtual void post_type_inference();
     };
 
     struct NoOp : public Node

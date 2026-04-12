@@ -69,6 +69,14 @@ namespace logia
         std::any visitFunctionBodyStmt(LogiaParser::FunctionBodyStmtContext *context) override;
         std::any visitEndOfStmt(LogiaParser::EndOfStmtContext *context) override;
 
+        //
+        // variables
+        //
+        // std::any visitBlockVariableDeclStmt(LogiaParser::BlockVariableDeclStmtContext *context) override;
+        // std::any visitFileVariableDeclStmt(LogiaParser::FileVariableDeclStmtContext *context) override;
+        std::any visitInferVariableDeclStmt(LogiaParser::InferVariableDeclStmtContext *context) override;
+        std::any visitTypedVariableDeclStmt(LogiaParser::TypedVariableDeclStmtContext *context) override;
+
         // Fallback: delegate to children
         antlrcpp::Any visitChildren(antlr4::tree::ParseTree *node) override;
     };

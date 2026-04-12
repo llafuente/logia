@@ -172,7 +172,7 @@ namespace logia::AST
         this->push_child(id); // get_name
     }
 
-    char *Struct::get_name()
+    const char *Struct::get_name()
     {
         return get_identifier()->identifier;
     }
@@ -321,7 +321,7 @@ namespace logia::AST
         return std::format("Type[{} function {} ({})] ({:p})", this->get_return_type()->to_string(), this->get_name(), list, static_cast<void *>(this->parent_node));
     }
 
-    char *Function::get_name()
+    const char *Function::get_name()
     {
         return get_identifier()->identifier;
     }

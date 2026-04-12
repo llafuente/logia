@@ -27,6 +27,13 @@ namespace logia::AST
     /**
      * reverse the tree searching for given name that match with a vardecl
      */
-    LOGIA_API VarDeclStmt *ast_get_vardecl_by_name(Node *current, char *name);
+    LOGIA_API VarDeclStmt *ast_get_vardecl_by_name(Node *current, const char *name);
+
+    /// @brief Reverse the tree and return the first Block
+    /// @remarks Garanteed to be non-null if Node is attached.
+    /// @param current
+    /// @param name
+    /// @return
+    LOGIA_API Block *ast_get_block(Node *current);
 
 }

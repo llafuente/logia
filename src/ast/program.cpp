@@ -85,4 +85,11 @@ namespace logia::AST
 
         return body;
     }
+    llvm::Value* Program::codegen(logia::Backend* codegen, llvm::IRBuilder<>* builder) {
+        if (!is_typed) {
+            is_typed = true;
+            this->type_inference();
+        }
+        return Block::codegen(codegen, builder);
+    }
 }

@@ -601,6 +601,45 @@ namespace logia
         return ANY_VOIDP_STORE(new AST::NoOp());
     }
 
+    //
+    // variables
+    //
+    std::any CST2AST::visitInferVariableDeclStmt(LogiaParser::InferVariableDeclStmtContext *context)
+    {
+        auto ident = ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(context->identifier()));
+        AST::Expression *expr = nullptr;
+
+        auto rhs = context->rhsExpr();
+        if (rhs != nullptr)
+        {
+            expr = ANY_VOIDP_CAST(AST::Expression *, this->visitRhsExpr(rhs));
+        }
+
+        auto decl = AST::ast_create_var_decl(ident, nullptr, expr);
+        decl->rule = context;
+
+        return ANY_VOIDP_STORE(decl);
+    }
+    std::any CST2AST::visitTypedVariableDeclStmt(LogiaParser::TypedVariableDeclStmtContext *context)
+    {
+        auto ident = ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(context->identifier()));
+        AST::Expression *expr = nullptr;
+
+        auto rhs = context->rhsExpr();
+        if (rhs != nullptr)
+        {
+            expr = ANY_VOIDP_CAST(AST::Expression *, this->visitRhsExpr(rhs));
+        }
+
+        auto type = (AST::Type *)this->program->lookup((char *)"λi64");
+        // TODO!!!
+
+        auto decl = AST::ast_create_var_decl(ident, type, expr);
+        decl->rule = context;
+
+        return ANY_VOIDP_STORE(decl);
+    }
+
     // Fallback: delegate to children
     antlrcpp::Any CST2AST::visitChildren(antlr4::tree::ParseTree *node)
     {

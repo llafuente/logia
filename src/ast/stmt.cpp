@@ -51,20 +51,30 @@ namespace logia::AST
     //
     //
     //
-    VarDeclStmt::VarDeclStmt(antlr4::ParserRuleContext *rule, char *name, Type *type, Expression *expr) : Stmt(rule, ast_types::VAR_DECL_STMT), ir(nullptr)
+    VarDeclStmt::VarDeclStmt(antlr4::ParserRuleContext *rule, Identifier *id, Type *type, Expression *expr) : Stmt(rule, ast_types::VAR_DECL_STMT), ir(nullptr)
     {
-        this->name = name;
         this->type = type;
+        this->push_child(id);
         this->push_child(expr);
     }
+
+    const char *VarDeclStmt::get_name()
+    {
+        return this->get_identifier()->identifier;
+    }
+    Identifier *VarDeclStmt::get_identifier()
+    {
+        return (Identifier *)this->children[0];
+    }
+
     Expression *VarDeclStmt::get_expr()
     {
-        return (Expression *)this->children[0];
+        return (Expression *)this->children[1];
     }
 
     std::string VarDeclStmt::to_string()
     {
-        return std::format("VarDeclStmt[{}] ({:p})", this->name, static_cast<void *>(this));
+        return std::format("VarDeclStmt[{}] ({:p})", this->get_name(), static_cast<void *>(this));
     }
 
     llvm::Value *VarDeclStmt::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
@@ -140,17 +150,17 @@ namespace logia::AST
     //
     // ast creation
     //
-    LOGIA_API ReturnStmt *ast_create_return(Expression *ret)
+    LOGIA_API LOGIA_LEND ReturnStmt *ast_create_return(Expression *ret)
     {
         auto stmt = new ReturnStmt(nullptr, ret);
         return stmt;
     }
 
-    LOGIA_API VarDeclStmt *ast_create_var_decl(char *name, Type *type, Expression *expr)
+    LOGIA_API LOGIA_LEND VarDeclStmt *ast_create_var_decl(Identifier *id, Type *type, Expression *expr)
     {
-        LOGIA_ASSERT(name);
+        LOGIA_ASSERT(id);
 
-        VarDeclStmt *variable = new VarDeclStmt(nullptr, strdup(name), type, expr);
+        VarDeclStmt *variable = new VarDeclStmt(nullptr, id, type, expr);
 
         return variable;
     }
@@ -163,7 +173,22 @@ namespace logia::AST
             auto parentBody = (Block *)ast_find_closest_parent(this, ast_types::BODY);
             LOGIA_ASSERT(parentBody);
 
-            parentBody->set(strdup(name), this);
+            parentBody->set(this->get_name(), this);
         }
+    }
+    Type *VarDeclStmt::get_type()
+    {
+        if (this->type == nullptr)
+        {
+            this->type = this->get_expr()->get_type();
+        }
+        return this->type;
+    }
+
+    bool VarDeclStmt::pre_type_inference()
+    {
+        // TODO determine type if possible
+        // TODO what we do when we cant ? push somewhere and back later ?
+        return true;
     }
 }

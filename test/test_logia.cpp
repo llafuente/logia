@@ -16,9 +16,16 @@
 
 int test_single_file(const char *file)
 {
-    const char *argv[1];
+    const char *argv[3];
     argv[0] = file;
-    return logia::logia_run(1, argv);
+    argv[1] = "--emit-llvm";
+    auto len = strlen(file);
+    auto llfile = std::format("{}{}", file, ".ll");
+    argv[2] = llfile.c_str();
+
+    auto ret = logia::logia_run(3, argv);
+
+    return ret;
 }
 
 TEST(run_from_file, sum_logia)
@@ -28,4 +35,5 @@ TEST(run_from_file, sum_logia)
             << std::endl;
 
     EXPECT_EQ(test_single_file(".\\test\\logia\\sum.logia"), 25);
+    EXPECT_EQ(test_single_file(".\\test\\logia\\math.logia"), 21);
 }

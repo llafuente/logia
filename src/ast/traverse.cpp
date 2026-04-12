@@ -44,7 +44,7 @@ namespace logia::AST
         return (Type *)body->lookup(name);
     }
 
-    LOGIA_API VarDeclStmt *ast_get_vardecl_by_name(Node *current, char *name)
+    LOGIA_API VarDeclStmt *ast_get_vardecl_by_name(Node *current, const char *name)
     {
         auto body = (Block *)ast_find_closest_parent(current, ast_types::BODY);
         LOGIA_ASSERT(body); // this shall exists!
@@ -63,6 +63,11 @@ namespace logia::AST
         LOGIA_ASSERT((body->type & ast_types::PROGRAM) != 0);
 
         return nullptr;
+    }
+
+    LOGIA_API Block *ast_get_block(Node *current)
+    {
+        return (Block *)ast_find_closest_parent(current->parent_node, ast_types::BODY);
     }
 
 }

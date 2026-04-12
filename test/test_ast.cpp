@@ -24,11 +24,6 @@ void check_all_attached(logia::AST::Program *prg)
       return true; });
 }
 
-logia::AST::Identifier *ident(const char *name)
-{
-  return logia::AST::ast_create_identifier(strdup(name));
-}
-
 // hello world example
 TEST(AST_Type, ast_create_program)
 {
@@ -73,7 +68,7 @@ TEST(AST_Type, ast_create_function_type)
   auto start_program_children = program->children.size();
   back->load_intrinsics();
 
-  auto func = ast_create_function_type(ident("main"), ast_get_type_by_name(program, strdup("λi64")));
+  auto func = ast_create_function_type(ast_create_identifier("main"), ast_get_type_by_name(program, strdup("λi64")));
   EXPECT_TRUE(func);
 
   auto items_before = program->scope.size();
@@ -99,7 +94,7 @@ TEST(AST_Type, ast_create_function_type)
 
   auto firstArg = ast_create_int_lit(func->get_body(), "17");
   auto secondArg = ast_create_int_lit(func->get_body(), "21");
-  auto callFuncName = ident("logia_intrinsics_bin_add_i64_i64");
+  auto callFuncName = ast_create_identifier("logia_intrinsics_bin_add_i64_i64");
 
   EXPECT_EQ(firstArg->parent_node, nullptr);
   EXPECT_EQ(secondArg->parent_node, nullptr);
@@ -149,34 +144,34 @@ TEST(AST_Type, ast_create_struct_type)
   auto start_program_children = program->children.size();
   back->load_intrinsics();
 
-  auto string_t = ast_create_struct_type(ident("string"));
+  auto string_t = ast_create_struct_type(ast_create_identifier("string"));
   EXPECT_EQ(string_t->fields.size(), 0);
-  string_t->add_field((logia::AST::Type *)program->lookup(strdup("λi64")), ident("capacity"), nullptr);
+  string_t->add_field((logia::AST::Type *)program->lookup(strdup("λi64")), ast_create_identifier("capacity"), nullptr);
   EXPECT_EQ(string_t->fields.size(), 1);
-  EXPECT_EQ(string_t->get_field_index(ident("capacity")), 0);
+  EXPECT_EQ(string_t->get_field_index(ast_create_identifier("capacity")), 0);
 
-  string_t->add_field((logia::AST::Type *)program->lookup(strdup("λi64")), ident("length"), nullptr);
+  string_t->add_field((logia::AST::Type *)program->lookup(strdup("λi64")), ast_create_identifier("length"), nullptr);
   EXPECT_EQ(string_t->fields.size(), 2);
-  EXPECT_EQ(string_t->get_field_index(ident("length")), 1);
+  EXPECT_EQ(string_t->get_field_index(ast_create_identifier("length")), 1);
 
-  string_t->add_field((logia::AST::Type *)program->lookup(strdup("λptr")), ident("value"), nullptr);
+  string_t->add_field((logia::AST::Type *)program->lookup(strdup("λptr")), ast_create_identifier("value"), nullptr);
   EXPECT_EQ(string_t->fields.size(), 3);
-  EXPECT_EQ(string_t->get_field_index(ident("value")), 2);
+  EXPECT_EQ(string_t->get_field_index(ast_create_identifier("value")), 2);
 
-  EXPECT_EQ(string_t->get_field_index(ident("xxx")), -1);
+  EXPECT_EQ(string_t->get_field_index(ast_create_identifier("xxx")), -1);
 
   // invalid ?
   // program->add_statement(string_t);
 
-  auto func = logia::AST::ast_create_function_type(ident("main"), logia::AST::ast_get_type_by_name(program, strdup("λi32")));
+  auto func = logia::AST::ast_create_function_type(ast_create_identifier("main"), logia::AST::ast_get_type_by_name(program, strdup("λi32")));
   EXPECT_TRUE(func);
 
-  func->add_param(string_t, ident("first"), nullptr);
+  func->add_param(string_t, ast_create_identifier("first"), nullptr);
 
   program->push_child(func);
 
   auto hello_world = ast_create_string_lit(strdup("Hello world!"));
-  auto callFuncName = ident("logia_print_stdout");
+  auto callFuncName = ast_create_identifier("logia_print_stdout");
   func->get_body()->push_child(ast_create_call_expr(callFuncName, {hello_world}));
 
   auto exit_code_value = ast_create_int_lit(func->get_body(), "0");
@@ -232,50 +227,50 @@ TEST(AST_Type, ast_create_var_decl)
   auto start_program_children = program->children.size();
   back->load_intrinsics();
 
-  auto string_t = ast_create_struct_type(ident("string"));
+  auto string_t = ast_create_struct_type(ast_create_identifier("string"));
   EXPECT_EQ(string_t->fields.size(), 0);
-  string_t->add_field((logia::AST::Type *)program->lookup(strdup("λi64")), ident("capacity"), nullptr);
-  string_t->add_field((logia::AST::Type *)program->lookup(strdup("λi64")), ident("length"), nullptr);
-  string_t->add_field((logia::AST::Type *)program->lookup(strdup("λptr")), ident("value"), nullptr);
+  string_t->add_field((logia::AST::Type *)program->lookup(strdup("λi64")), ast_create_identifier("capacity"), nullptr);
+  string_t->add_field((logia::AST::Type *)program->lookup(strdup("λi64")), ast_create_identifier("length"), nullptr);
+  string_t->add_field((logia::AST::Type *)program->lookup(strdup("λptr")), ast_create_identifier("value"), nullptr);
   EXPECT_EQ(string_t->fields.size(), 3);
 
   EXPECT_EQ(string_t->aliases.size(), 0);
-  string_t->add_alias(ident("cap"), ident("capacity"));
+  string_t->add_alias(ast_create_identifier("cap"), ast_create_identifier("capacity"));
   EXPECT_EQ(string_t->aliases.size(), 1);
-  string_t->add_alias(ident("len"), ident("length"));
+  string_t->add_alias(ast_create_identifier("len"), ast_create_identifier("length"));
   EXPECT_EQ(string_t->aliases.size(), 2);
 
-  EXPECT_EQ(string_t->get_alias_to(ident("cap")), string_t->aliases[0].to);
-  EXPECT_EQ(string_t->get_alias_to(ident("xxx")), nullptr);
-  EXPECT_EQ(string_t->get_field_index(ident("cap")), 0);
-  EXPECT_EQ(string_t->get_field_index(ident("len")), 1);
+  EXPECT_EQ(string_t->get_alias_to(ast_create_identifier("cap")), string_t->aliases[0].to);
+  EXPECT_EQ(string_t->get_alias_to(ast_create_identifier("xxx")), nullptr);
+  EXPECT_EQ(string_t->get_field_index(ast_create_identifier("cap")), 0);
+  EXPECT_EQ(string_t->get_field_index(ast_create_identifier("len")), 1);
 
   // invalid ?
   // program->add_statement(string_t);
 
-  auto func = logia::AST::ast_create_function_type(ident("main"), logia::AST::ast_get_type_by_name(program, strdup("λi32")));
+  auto func = logia::AST::ast_create_function_type(ast_create_identifier("main"), logia::AST::ast_get_type_by_name(program, strdup("λi32")));
   EXPECT_TRUE(func);
 
   program->push_child(func);
 
   EXPECT_EQ(func->get_body()->scope.size(), 0);
   auto hello_world = ast_create_string_lit(strdup("Hello world!"));
-  auto vdecl = ast_create_var_decl(strdup("hello"), string_t, hello_world);
+  auto vdecl = ast_create_var_decl(ast_create_identifier("hello"), string_t, hello_world);
   func->get_body()->push_child(vdecl);
   EXPECT_EQ(hello_world->parent_node, vdecl);
   EXPECT_EQ(vdecl->parent_node, func->get_body());
   EXPECT_EQ(func->get_body()->scope.size(), 1);
 
   // print static string
-  auto callFuncName = ident("logia_print_stdout");
-  auto hello_world2 = ast_create_string_lit(strdup("Hello world!"));
+  auto callFuncName = ast_create_identifier("logia_print_stdout");
+  auto hello_world2 = ast_create_string_lit("Hello world!");
   func->get_body()->push_child(ast_create_call_expr(callFuncName, {hello_world2}));
   EXPECT_EQ(hello_world2->parent_node, func->get_body()->children[1]);
   EXPECT_EQ(callFuncName->parent_node, func->get_body()->children[1]);
 
   // print static string from variable
-  auto callFuncName2 = ident("logia_print_stdout");
-  auto x = (Expression *)ident("hello");
+  auto callFuncName2 = ast_create_identifier("logia_print_stdout");
+  auto x = (Expression *)ast_create_identifier("hello");
   func->get_body()->push_child(ast_create_call_expr(callFuncName2, {x}));
   EXPECT_EQ(x->parent_node, func->get_body()->children[2]);
 
@@ -331,17 +326,17 @@ TEST(AST_Type, ast_create_var_decl2)
   LOGIA_BACKEND_START();
   using namespace logia::AST;
 
-  auto str_a = strdup("a");
+  auto str_a = "a";
   {
     auto value_a = ast_create_int_lit(program, "11");
-    auto vdecl_a = ast_create_var_decl(str_a, value_a->get_type(), value_a);
+    auto vdecl_a = ast_create_var_decl(ast_create_identifier(str_a), value_a->get_type(), value_a);
     main_body->push_child(vdecl_a);
   }
 
-  auto str_b = strdup("b");
+  auto str_b = "b";
   {
     auto value_b = ast_create_int_lit(program, "12");
-    auto vdecl_b = ast_create_var_decl(str_b, value_b->get_type(), value_b);
+    auto vdecl_b = ast_create_var_decl(ast_create_identifier(str_b), value_b->get_type(), value_b);
     main_body->push_child(vdecl_b);
   }
 
@@ -350,7 +345,7 @@ TEST(AST_Type, ast_create_var_decl2)
     auto ident_a = (Expression *)ast_create_identifier(str_a);
     auto ident_b = (Expression *)ast_create_identifier(str_b);
 
-    auto callFuncName = ident("logia_intrinsics_bin_add_i64_i64");
+    auto callFuncName = ast_create_identifier("logia_intrinsics_bin_add_i64_i64");
     auto sum_expr = ast_create_call_expr(callFuncName, {ident_a, ident_b});
 
     main_fn->get_body()->push_child(ast_create_return(sum_expr));
@@ -385,10 +380,10 @@ TEST(AST_Type, logia_compiler_to_jit_test)
 
   // this is how you create an intrinsic to use it comptime
   back->add_intrinsic((void *)(&logia_compiler_to_jit_test), strdup("logia_compiler_to_jit_test"));
-  ast_create_instrinsic(program, ident("logia_compiler_to_jit_test"), ast_get_type_by_name(program, strdup("λi32")));
+  ast_create_instrinsic(program, ast_create_identifier("logia_compiler_to_jit_test"), ast_get_type_by_name(program, strdup("λi32")));
 
   {
-    auto callFuncName = ident("logia_compiler_to_jit_test");
+    auto callFuncName = ast_create_identifier("logia_compiler_to_jit_test");
     auto sum_expr = ast_create_call_expr(callFuncName, {});
 
     main_fn->get_body()->push_child(ast_create_return(sum_expr));
@@ -416,7 +411,7 @@ TEST(ast_create_if2, t1)
   LOGIA_BACKEND_START();
   using namespace logia::AST;
 
-  auto callFuncName = ident("logia_intrinsics_bin_eq_i64_i64");
+  auto callFuncName = ast_create_identifier("logia_intrinsics_bin_eq_i64_i64");
   auto condition = ast_create_call_expr(callFuncName, {ast_create_int_lit(program, "11"), ast_create_int_lit(program, "11")});
 
   auto ifstmt = ast_create_if(condition);
@@ -459,11 +454,9 @@ TEST(ast_create_if3, t1)
   LOGIA_BACKEND_START();
   using namespace logia::AST;
 
-  auto eqeq = ident("logia_intrinsics_bin_eq_i64_i64");
+  auto eqeq = ast_create_identifier("logia_intrinsics_bin_eq_i64_i64");
 
-  auto var_id = strdup("tmp");
-
-  auto vdecl = ast_create_var_decl(var_id, (logia::AST::Type *)program->lookup(strdup("λi64")), ast_create_int_lit(program, "0"));
+  auto vdecl = ast_create_var_decl(ast_create_identifier("tmp"), (logia::AST::Type *)program->lookup(strdup("λi64")), ast_create_int_lit(program, "0"));
   main_body->push_child(vdecl);
 
   auto condition = ast_create_call_expr(eqeq, {ast_create_int_lit(program, "11"), ast_create_int_lit(program, "11")});
@@ -472,21 +465,21 @@ TEST(ast_create_if3, t1)
   main_body->push_child(ifstmt);
   EXPECT_EQ(ifstmt->get_then()->parent_node, ifstmt);
   {
-    auto fn_add_name = ident("logia_intrinsics_bin_add_i64_i64");
-    auto add = ast_create_call_expr(fn_add_name, {ast_create_identifier(var_id), ast_create_int_lit(program, "1")});
+    auto fn_add_name = ast_create_identifier("logia_intrinsics_bin_add_i64_i64");
+    auto add = ast_create_call_expr(fn_add_name, {ast_create_identifier("tmp"), ast_create_int_lit(program, "1")});
     auto fn_assignament_name = ast_create_string_lit(strdup("logia_operator_assign_i64_i64"));
-    auto assignament = ast_create_binary_expr(ast_create_identifier(var_id), BinaryOperator::ASSIGN, add);
+    auto assignament = ast_create_binary_expr(ast_create_identifier("tmp"), BinaryOperator::ASSIGN, add);
     ifstmt->get_then()->push_child(assignament);
   }
   {
-    auto fn_add_name = ident("logia_intrinsics_bin_add_i64_i64");
-    auto add = ast_create_call_expr(fn_add_name, {ast_create_identifier(var_id), ast_create_int_lit(program, "2")});
+    auto fn_add_name = ast_create_identifier("logia_intrinsics_bin_add_i64_i64");
+    auto add = ast_create_call_expr(fn_add_name, {ast_create_identifier("tmp"), ast_create_int_lit(program, "2")});
     auto fn_assignament_name = ast_create_string_lit(strdup("logia_operator_assign_i64_i64"));
-    auto assignament = ast_create_binary_expr(ast_create_identifier(var_id), BinaryOperator::ASSIGN, add);
+    auto assignament = ast_create_binary_expr(ast_create_identifier("tmp"), BinaryOperator::ASSIGN, add);
     ifstmt->get_else()->push_child(assignament);
   }
 
-  main_body->push_child(ast_create_return(ast_create_identifier(var_id)));
+  main_body->push_child(ast_create_return(ast_create_identifier("tmp")));
 
   EXPECT_NE(main_body->children[2]->parent_node, nullptr);
   EXPECT_NE(main_body->parent_node, nullptr);

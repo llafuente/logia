@@ -77,6 +77,12 @@ namespace logia::AST
     {
         return (Expression *)this->children[0];
     }
+    Expression* CallExpression::get_argument(uint32_t pos) {
+        return (Expression * )this->children[1 + (pos * 2) + 1];
+    }
+    Identifier* CallExpression::get_argument_name(uint32_t pos) {
+        return (Identifier*)this->children[1 + (pos * 2) + 0];
+    }
     std::vector<Node *> CallExpression::get_arguments()
     {
         auto v = std::vector<Node *>();
@@ -234,8 +240,9 @@ namespace logia::AST
     BinaryExpression::BinaryExpression(antlr4::ParserRuleContext *rule, Expression *left, BinaryOperator op, Expression *right) : CallExpression()
     {
         this->op = op;
-
-        this->push_child(ast_create_identifier(strdup(ast_binary_operator_to_string(op, left->get_type(), right->get_type()))));
+        // NOTE start as null, because we may don't know the types yet
+        // this->push_child(ast_create_identifier(strdup(ast_binary_operator_to_string(op, left->get_type(), right->get_type()))));
+        this->push_child(ast_create_identifier(""));
         switch (op)
         {
         case BinaryOperator::ASSIGN:
@@ -243,22 +250,39 @@ namespace logia::AST
         case BinaryOperator::SUB_ASSIGN:
         case BinaryOperator::MUL_ASSIGN:
         case BinaryOperator::DIV_ASSIGN:
+            // 1 NoOp
+            // 2 ref
             this->add_positional_argument(ast_create_ref(left));
             break;
         default:
+            // 1 NoOp
+            // 2 expr
             this->add_positional_argument(left);
             break;
         }
+        // 3 NoOp
+        // 4 expr
         this->add_positional_argument(right);
     }
 
     Expression *BinaryExpression::get_left()
     {
-        return (Expression *)this->children[0];
+        return (Expression *)this->children[2];
     }
     Expression *BinaryExpression::get_right()
     {
-        return (Expression *)this->children[1];
+        return (Expression *)this->children[4];
+    }
+
+    bool BinaryExpression::pre_type_inference()
+    {
+        return true;
+    }
+    void BinaryExpression::post_type_inference()
+    {
+        auto left = this->get_left()->get_type();
+        auto right = this->get_right()->get_type();
+        ((Identifier *)this->get_locator())->identifier = strdup(ast_binary_operator_to_string(op, left, right));
     }
 
     LOGIA_API LOGIA_LEND BinaryExpression *ast_create_binary_expr(Expression *left, BinaryOperator op, Expression *right)
@@ -362,7 +386,7 @@ namespace logia::AST
     //
     // Identifier
     //
-    Identifier::Identifier(antlr4::ParserRuleContext *rule, char *identifier) : Expression(rule, ast_types::IDENTIFIER)
+    Identifier::Identifier(antlr4::ParserRuleContext *rule, const char *identifier) : Expression(rule, ast_types::IDENTIFIER)
     {
         LOGIA_ASSERT(type);
         this->identifier = identifier;
@@ -398,11 +422,17 @@ namespace logia::AST
 
     Type *Identifier::get_type()
     {
-        // TODO resolve!
-        return nullptr;
+        if (this->identifier == nullptr || strlen(this->identifier) == 0)
+        {
+            throw std::runtime_error("Cannot retrieve type. Call type_inference first.");
+        }
+        auto block = ast_get_block(this);
+        auto node = block->lookup(this->identifier);
+
+        return node->get_type();
     }
 
-    LOGIA_API Identifier *ast_create_identifier(char *name)
+    LOGIA_API Identifier *ast_create_identifier(LOGIA_CLONE const char *name)
     {
         LOGIA_ASSERT(name);
 

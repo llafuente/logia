@@ -27,6 +27,8 @@ namespace logia::AST
         Expression *get_locator();
         // TODO this should be std::vector<Expression *>
         // but casting fail
+        Expression* get_argument(uint32_t pos);
+        Identifier* get_argument_name(uint32_t pos);
         std::vector<Node *> get_arguments();
 
         void add_named_argument(Identifier *id, Expression *expr);
@@ -90,6 +92,8 @@ namespace logia::AST
         Expression *get_left();
         Expression *get_right();
         std::string to_string() override;
+        virtual bool pre_type_inference() override;
+        virtual void post_type_inference() override;
     };
 
     LOGIA_API LOGIA_LEND BinaryExpression *ast_create_binary_expr(Expression *left, BinaryOperator op, Expression *right);
@@ -133,8 +137,8 @@ namespace logia::AST
 
     struct Identifier : Expression
     {
-        char *identifier;
-        Identifier(antlr4::ParserRuleContext *rule, char *identifier);
+        const char *identifier;
+        Identifier(antlr4::ParserRuleContext *rule, const char *identifier);
         VarDeclStmt *get_var_decl();
         Type *get_function_decl();
         std::string to_string() override;
@@ -146,7 +150,7 @@ namespace logia::AST
     /**
      * Creates an identifier
      */
-    LOGIA_API LOGIA_LEND Identifier *ast_create_identifier(char *name);
+    LOGIA_API Identifier *ast_create_identifier(LOGIA_CLONE const char *name);
 
     //
     // utils
