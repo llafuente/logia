@@ -57,10 +57,10 @@ namespace logia
         void read(const char *file_path);
         antlr4::ParserRuleContext *parse();
         void compile();
-        void print_cst();
+        void print_cst(std::ostream &out);
 
         void build_ast();
-        void print_ast();
+        void print_ast(std::ostream &out);
     };
 
 }

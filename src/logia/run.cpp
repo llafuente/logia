@@ -3,6 +3,8 @@
 #include "logia/frontend.h"
 #include <Windows.h>
 
+#include "utils.h"
+
 namespace logia
 {
     int logia_run(int argc, const char *argv[])
@@ -88,15 +90,11 @@ namespace logia
         }
         antlr4::ParserRuleContext *tree = frontend->parse();
 
-        if (print_cst)
-        {
-            frontend->print_cst();
-        }
+        frontend->print_cst(print_cst ? std::cerr : logia_log_file);
+
         frontend->build_ast();
-        if (print_ast)
-        {
-            frontend->print_ast();
-        }
+
+        frontend->print_ast(print_ast ? std::cerr : logia_log_file);
 
         if (emit_llvm)
         {

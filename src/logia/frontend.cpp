@@ -166,10 +166,10 @@ namespace logia
         return this->cst_tree;
     }
 
-    void Frontend::print_cst()
+    void Frontend::print_cst(std::ostream &out)
     {
-        std::cerr << "cst:" << std::endl
-                  << this->cst_tree->toStringTree(this->parser, true) << std::endl;
+        out << "cst:" << std::endl
+            << this->cst_tree->toStringTree(this->parser, true) << std::endl;
     }
 
     void Frontend::build_ast()
@@ -182,9 +182,9 @@ namespace logia
         this->ast_tree = this->backend->program;
     }
 
-    void Frontend::print_ast()
+    void Frontend::print_ast(std::ostream &out)
     {
-        std::cerr << "ast:" << std::endl
-                  << this->ast_tree->to_string_tree() << std::endl;
+        out << "ast:" << std::endl
+            << this->ast_tree->to_string_tree() << std::endl;
     }
 }
