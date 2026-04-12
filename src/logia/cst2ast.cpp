@@ -560,7 +560,9 @@ namespace logia
             }
             catch (std::exception e)
             {
+                ERROR() << stmt->toStringTree() << std::endl;
                 ERROR() << e.what() << std::endl;
+                throw e;
             }
         }
 
@@ -588,7 +590,15 @@ namespace logia
         VISIT_FORDWARD(expression, visitExpression);
 
         // empty stmt
-        return nullptr;
+        VISIT_FORDWARD(endOfStmt, visitEndOfStmt);
+
+        throw std::runtime_error(__FUNCTION__ "unreachable");
+    }
+
+    std::any CST2AST::visitEndOfStmt(LogiaParser::EndOfStmtContext *context)
+    {
+        DEBUG() << std::endl;
+        return ANY_VOIDP_STORE(new AST::NoOp());
     }
 
     // Fallback: delegate to children

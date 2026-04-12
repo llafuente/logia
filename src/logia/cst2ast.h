@@ -67,6 +67,7 @@ namespace logia
         std::any visitFunctionDecl(LogiaParser::FunctionDeclContext *context) override;
         std::any visitFunctionBody(LogiaParser::FunctionBodyContext *context) override;
         std::any visitFunctionBodyStmt(LogiaParser::FunctionBodyStmtContext *context) override;
+        std::any visitEndOfStmt(LogiaParser::EndOfStmtContext *context) override;
 
         // Fallback: delegate to children
         antlrcpp::Any visitChildren(antlr4::tree::ParseTree *node) override;
