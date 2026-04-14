@@ -374,6 +374,45 @@ namespace logia::AST
     }
 
     //
+    // TypeDef
+    //
+    // REVIEW, it's a type but it's definition, need to  distinguish both ?
+    TypeDef::TypeDef() : Node(nullptr, ast_types::TYPE) {}
+    TypeDef::~TypeDef() {}
+
+    Type *TypeDef::get_type()
+    {
+        // TODO support more than one!?
+        LOGIA_ASSERT(this->children.size() != 1, "TODO: single resolve atm");
+        // search children!
+        auto id = (Identifier *)this->children[0];
+        auto block = ast_get_block(this);
+        auto node = block->lookup(id->identifier);
+
+        return node->get_type();
+    }
+    std::string TypeDef::to_string()
+    {
+        if (this->children.size())
+        {
+            auto id = (Identifier *)this->children[0];
+            return std::format("TypeDef[{}]", id->identifier);
+        }
+        return std::format("TypeDef[?]");
+    }
+
+    llvm::Value *TypeDef::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    {
+        return this->get_type()->codegen(codegen, builder);
+    }
+
+    Node *TypeDef::resolve()
+    {
+        LOGIA_ASSERT(this->children.size() != 1, "TODO: single resolve atm");
+        return this->children[0]->resolve();
+    }
+
+    //
     // Function
     //
 

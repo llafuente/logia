@@ -198,6 +198,28 @@ namespace logia::AST
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
     };
 
+    // TODO implement templates
+    // TODO implement static values
+    // TODO aggregates ?
+    /// @brief Node to resolve a type by name
+    struct LOGIA_EXPORT TypeDef : public Node
+    {
+        // typeModifiers
+        unsigned char is_readonly : 1 = false;
+        unsigned char lend_memory : 1 = false;
+        unsigned char own_memory : 1 = false;
+        unsigned char uninitialized_memory : 1 = false;
+        unsigned char is_optional : 1 = false;
+
+        TypeDef();
+        ~TypeDef();
+
+        Type *get_type() override;
+        std::string to_string() override;
+        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        Node *resolve() override;
+    };
+
     struct LOGIA_EXPORT Function : public Type
     {
     public:
