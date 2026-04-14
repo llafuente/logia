@@ -29,7 +29,7 @@ namespace logia::AST
         // any type in the language should use those
         // it's prohibited to create type using llvm
         // everything shall be supported directly
-
+        body->push_child(new Integer(true, 1));
         body->push_child(new Integer(true, 8));
         body->push_child(new Integer(true, 16));
         body->push_child(new Integer(true, 32));
@@ -74,6 +74,12 @@ namespace logia::AST
         lvoid->llvm_type = llvm::Type::getVoidTy(C);
         lvoid->parent_node = body;
 
+        // int is an alias of i64
+        // float is an alias of f64
+        body->scope[(char *)"int"] = body->scope[(char *)"λi64"];
+        body->scope[(char *)"float"] = body->scope[(char *)"λf64"];
+        body->scope[(char *)"bool"] = body->scope[(char *)"λi1"];
+
         body->scope[(char *)"λvoid"] = lvoid;
 
         // TODO study opaque pointers, while seem what we need
@@ -85,8 +91,10 @@ namespace logia::AST
 
         return body;
     }
-    llvm::Value* Program::codegen(logia::Backend* codegen, llvm::IRBuilder<>* builder) {
-        if (!is_typed) {
+    llvm::Value *Program::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    {
+        if (!is_typed)
+        {
             is_typed = true;
             this->type_inference();
         }

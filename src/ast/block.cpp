@@ -32,7 +32,7 @@ namespace logia::AST
             p = p->parent;
         } while (p != nullptr);
 
-        return nullptr;
+        throw std::runtime_error(std::format("not found in scope: {}", name));
     }
 
     Type *Block::get_type()

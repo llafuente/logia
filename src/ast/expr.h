@@ -117,6 +117,7 @@ namespace logia::AST
         Expression *get_operand();
         std::string to_string() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        Type* get_type() override;
     };
 
     LOGIA_API LOGIA_LEND PrefixUnaryExpression *ast_create_ref(Expression *operand);

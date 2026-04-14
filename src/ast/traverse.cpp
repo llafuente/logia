@@ -67,7 +67,7 @@ namespace logia::AST
 
     LOGIA_API Block *ast_get_block(Node *current)
     {
-        return (Block *)ast_find_closest_parent(current->parent_node, ast_types::BODY);
+        return (Block *)ast_find_closest_parent(current, ast_types::BODY);
     }
 
 }

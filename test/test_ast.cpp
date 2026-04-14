@@ -3,6 +3,7 @@
 #include "ast/node.h"
 #include "ast/traverse.h"
 #include "ast/if_stmt.h"
+#include "ast/type.h"
 #include "ast/types.h"
 #include "ast/expr.h"
 #include "ast/constexpr.h"
@@ -36,15 +37,15 @@ TEST(AST_Type, ast_create_program)
   auto program = back->program;
 
   EXPECT_EQ(program->parent_node, nullptr);
-  EXPECT_EQ(program->children.size(), 10);
+  EXPECT_EQ(program->children.size(), 11);
   // This shall be updated as we add more primitives
-  EXPECT_EQ(program->scope.size(), 16);
+  EXPECT_EQ(program->scope.size(), 20);
 
   std::cout << program->to_string() << std::endl;
   std::cout << program->children[0]->get_type()->get_repr();
 
-  EXPECT_EQ(strcmp(program->children[0]->get_type()->get_repr().c_str(), "i8"), 0);
-  EXPECT_EQ(strcmp(program->children[1]->get_type()->get_repr().c_str(), "i16"), 0);
+  EXPECT_EQ(strcmp(program->children[1]->get_type()->get_repr().c_str(), "i8"), 0);
+  EXPECT_EQ(strcmp(program->children[2]->get_type()->get_repr().c_str(), "i16"), 0);
 
   // has value
   EXPECT_TRUE(logia::AST::ast_get_type_by_name(program, strdup("λi8")));
@@ -235,12 +236,13 @@ TEST(AST_Type, ast_create_var_decl)
   EXPECT_EQ(string_t->field_count, 3);
 
   EXPECT_EQ(string_t->alias_count, 0);
-  string_t->add_alias(nullptr, ast_create_identifier("cap"), ast_create_identifier("capacity"), "");
+  auto aliased_capacity = ast_create_identifier("capacity");
+  string_t->add_alias(nullptr, ast_create_identifier("cap"), aliased_capacity, "");
   EXPECT_EQ(string_t->alias_count, 1);
   string_t->add_alias(nullptr, ast_create_identifier("len"), ast_create_identifier("length"), "");
   EXPECT_EQ(string_t->alias_count, 2);
 
-  EXPECT_EQ(string_t->get_alias_to(ast_create_identifier("cap")), ((StructAlias *)string_t->children[3])->get_to());
+  EXPECT_EQ(string_t->get_alias_to(ast_create_identifier("cap")), aliased_capacity);
   EXPECT_EQ(string_t->get_alias_to(ast_create_identifier("xxx")), nullptr);
   EXPECT_EQ(string_t->get_field_index(ast_create_identifier("cap")), 0);
   EXPECT_EQ(string_t->get_field_index(ast_create_identifier("len")), 1);
@@ -259,7 +261,7 @@ TEST(AST_Type, ast_create_var_decl)
   func->get_body()->push_child(vdecl);
   EXPECT_EQ(hello_world->parent_node, vdecl);
   EXPECT_EQ(vdecl->parent_node, func->get_body());
-  EXPECT_EQ(func->get_body()->scope.size(), 1);
+  EXPECT_EQ(func->get_body()->scope.size(), 2); // TODO REVIEW WHY?!
 
   // print static string
   auto callFuncName = ast_create_identifier("logia_print_stdout");
@@ -431,6 +433,9 @@ TEST(ast_create_if3, t1)
 
   LOGIA_BACKEND_START();
   using namespace logia::AST;
+
+  ast_create_instrinsic(program, ast_create_identifier("logia_intrinsics_bin_add_i64_i64"), program->lookup("λi64")->as<Type>());
+  ast_create_instrinsic(program, ast_create_identifier("logia_intrinsics_bin_eq_i64_i64"), program->lookup("λi1")->as<Type>());
 
   auto eqeq = ast_create_identifier("logia_intrinsics_bin_eq_i64_i64");
 

@@ -24,11 +24,11 @@ namespace logia::AST
     }
     Expression *MemberAccessExpression::get_left()
     {
-        return (Expression *)this->children[0];
+        return this->get_child<Expression>(0);
     }
     Identifier *MemberAccessExpression::get_right()
     {
-        return (Identifier *)this->children[1];
+        return this->get_child<Identifier>(1);
     }
     Type *MemberAccessExpression::get_type()
     {
@@ -39,7 +39,7 @@ namespace logia::AST
         auto left = this->get_left()->resolve();
         auto left_type = left->get_type();
         LOGIA_ASSERT(left_type->isStruct(), "only structs can be resolved atm.");
-        auto left_as_struct = (Struct *)left_type;
+        auto left_as_struct = left_type->as<Struct>();
         return left_as_struct->get_field_type(this->get_right());
     }
 
@@ -52,7 +52,7 @@ namespace logia::AST
     CallExpression::CallExpression(antlr4::ParserRuleContext *rule, Expression *locator, std::vector<Expression *> positional_arguments) : Expression(rule, ast_types::CALL_EXPRESSION)
     {
         LOGIA_ASSERT(locator && "locator is mantadory");
-        NODE_TYPE_ASSERT(locator, ast_types::IDENTIFIER | ast_types::MEMBER_ACCESS, locator->to_string());
+        node_assert<Identifier, MemberAccessExpression>(locator, __FUNCTION__ ":" TOSTRING(__LINE__));
 
         this->push_child(locator);
         for (int i = 0; i < positional_arguments.size(); ++i)
@@ -65,8 +65,8 @@ namespace logia::AST
     {
         LOGIA_ASSERT(id && "id is mantadory");
         LOGIA_ASSERT(expr && "expr is mantadory");
-        NODE_TYPE_ASSERT(id, ast_types::IDENTIFIER, expr->to_string());
-        NODE_TYPE_ASSERT(expr, ast_types::EXPRESSION, expr->to_string());
+        node_assert<Identifier>(id, __FUNCTION__ ":" TOSTRING(__LINE__));
+        node_assert<Expression>(expr, __FUNCTION__ ":" TOSTRING(__LINE__));
 
         this->push_child(id);
         this->push_child(expr);
@@ -74,7 +74,7 @@ namespace logia::AST
     void CallExpression::add_positional_argument(Expression *expr)
     {
         LOGIA_ASSERT(expr && "expr is mantadory");
-        NODE_TYPE_ASSERT(expr, ast_types::EXPRESSION, expr->to_string());
+        node_assert<Expression>(expr, __FUNCTION__ ":" TOSTRING(__LINE__));
 
         this->push_child(ast_create_identifier((char *)"")); // TODO maybe empty identifier ?!
         this->push_child(expr);
@@ -82,15 +82,15 @@ namespace logia::AST
 
     Expression *CallExpression::get_locator()
     {
-        return (Expression *)this->children[0];
+        return this->get_child<Expression>(0);
     }
     Expression *CallExpression::get_argument(uint32_t pos)
     {
-        return (Expression *)this->children[1 + (pos * 2) + 1];
+        return this->get_child<Expression>(1 + (pos * 2) + 1);
     }
     Identifier *CallExpression::get_argument_name(uint32_t pos)
     {
-        return (Identifier *)this->children[1 + (pos * 2) + 0];
+        return this->get_child<Identifier>(1 + (pos * 2) + 0);
     }
     std::vector<Node *> CallExpression::get_arguments()
     {
@@ -116,9 +116,9 @@ namespace logia::AST
     }
     Type *CallExpression::get_type()
     {
-        Function *f = (Function *)this->get_locator()->get_type();
         // CallExpression should point to a function
-        NODE_TYPE_ASSERT(f, (ast_types)(ast_types::TYPE & ast_types::FUNCTION));
+        Function *f = this->get_locator()->get_type()->as<Function>();
+
         return f->get_return_type();
     }
 
@@ -144,7 +144,7 @@ namespace logia::AST
         }
 
         // Look up the name in the global module table.
-        auto name = (Identifier *)this->get_locator();
+        auto name = this->get_locator()->as<Identifier>();
 
         llvm::Function *CalleeF = codegen->module->getFunction(name->identifier);
         if (!CalleeF)
@@ -211,10 +211,10 @@ namespace logia::AST
         auto right = this->get_right();
 
         auto leftValue = left->codegen(codegen, builder);
-        auto rightIdent = (Identifier *)right;
+        auto rightIdent = right->as<Identifier>();
         auto left_type = left->get_type();
         LOGIA_ASSERT(left_type->isStruct() && "left should be a struct");
-        auto struct_ty = (Struct *)left_type;
+        auto struct_ty = left_type->as<Struct>();
 
         int propertyIndex = struct_ty->get_field_index(rightIdent);
         if (propertyIndex == -1)
@@ -233,7 +233,7 @@ namespace logia::AST
 
     std::string BinaryExpression::to_string()
     {
-        auto id = (Identifier *)this->get_locator();
+        auto id = this->get_locator()->as<Identifier>();
         return std::format("BinaryExpression[{}({}, {}) ({:p})", id->identifier, this->get_left()->to_string(), this->get_right()->to_string(), static_cast<void *>(this));
     }
 
@@ -267,11 +267,11 @@ namespace logia::AST
 
     Expression *BinaryExpression::get_left()
     {
-        return (Expression *)this->get_argument(0);
+        return this->get_argument(0);
     }
     Expression *BinaryExpression::get_right()
     {
-        return (Expression *)this->get_argument(1);
+        return this->get_argument(1);
     }
 
     bool BinaryExpression::pre_type_inference()
@@ -282,7 +282,8 @@ namespace logia::AST
     {
         auto left = this->get_left()->get_type();
         auto right = this->get_right()->get_type();
-        ((Identifier *)this->get_locator())->identifier = strdup(ast_binary_operator_to_string(op, left, right));
+        auto ident = this->get_locator()->as<Identifier>();
+        ident->identifier = strdup(ast_binary_operator_to_string(op, left, right));
     }
 
     LOGIA_API LOGIA_LEND BinaryExpression *ast_create_binary_expr(Expression *left, BinaryOperator op, Expression *right)
@@ -308,18 +309,22 @@ namespace logia::AST
         {
         case PrefixUnaryOperator::DEREFERENCE:
             this->push_child(new NoOp());
-            NODE_TYPE_ASSERT(operand, ast_types::IDENTIFIER);
-            this->push_child(operand);
+            node_assert<Identifier>(operand, __FUNCTION__ ":" TOSTRING(__LINE__));
             break;
         default:
             this->push_child(ast_create_identifier(strdup(ast_prefix_unary_operator_to_string(op))));
-            this->add_positional_argument(operand);
         }
+        this->add_positional_argument(operand);
     }
 
     Expression *PrefixUnaryExpression::get_operand()
     {
-        return (Expression *)this->children[1];
+        return this->get_argument(0);
+    }
+
+    Type* PrefixUnaryExpression::get_type() {
+        // TODO REVIEW impl totally false!
+        return this->get_operand()->get_type();
     }
 
     llvm::Value *PrefixUnaryExpression::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
@@ -333,7 +338,7 @@ namespace logia::AST
             auto operand = this->get_operand();
 
             // auto operandValue = operand->codegen(codegen, builder);
-            auto operandValue = ((Identifier *)this->get_operand())->get_var_decl()->ir;
+            auto operandValue = this->get_operand()->as<Identifier>()->get_var_decl()->ir;
             auto operandType = operandValue->getType();
             // return builder->CreateIntToPtr(operandValue, llvm::PointerType::get(codegen->context, 0));
             // return builder->CreateLoad(llvm::PointerType::get(codegen->context, 0), operandValue);
@@ -378,7 +383,7 @@ namespace logia::AST
 
     Expression *PostfixUnaryExpression::get_operand()
     {
-        return (Expression *)this->children[1];
+        return this->get_child<Expression>(1);
     }
 
     // TODO create

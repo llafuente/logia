@@ -168,6 +168,34 @@ namespace logia::AST
             }
             throw std::runtime_error(std::format("unexpected type {} expected {}", typeid(node).name(), typeid(T).name()));
         }
+
+        /// @brief Retrieve children at given position as given type. If fail throws.
+        /// @tparam T
+        /// @param index
+        /// @return
+        template <class T>
+        bool is_child(uint32_t index)
+        {
+            auto node = this->children[index];
+            if (auto out = dynamic_cast<T *>(node))
+            {
+                return true;
+            }
+            return false;
+        }
+        template <class T>
+        T *as(const char *message = nullptr)
+        {
+            if (auto out = dynamic_cast<T *>(this))
+            {
+                return out;
+            }
+            if (message)
+            {
+                throw std::runtime_error(message);
+            }
+            throw std::runtime_error(std::format("unexpected type {} expected {}", typeid(this).name(), typeid(T).name()));
+        }
     };
 
     struct NoOp : public Node
@@ -186,6 +214,48 @@ namespace logia::AST
     {                                                                                                      \
         LOGIA_ASSERT(((node->type & ((ast_types)(ty))) != 0) && __FUNCTION__ && "Invalid node type sent"); \
     } while (false)
-}
 
-// LOGIA_ASSERT(((node->type & ((ast_types)(ty))) != 0) && __FUNCTION__ && "Invalid node type sent", std::format("{} / {}", (int)node->type, ast_types_to_string(node->type))); \
+    /// @brief Throws if node is not of given type
+    /// @tparam T
+    /// @param node
+    /// @param message
+    template <class T>
+    void node_assert(Node *node, std::string message)
+    {
+        if (dynamic_cast<T *>(node))
+        {
+            return;
+        }
+        throw std::runtime_error(std::format("{}\nExpected type: {}\n{}", message, typeid(T).name(), node->to_string()));
+    }
+
+    /// @brief Throws if node is not of given type
+    /// @tparam T
+    /// @tparam T2
+    /// @param node
+    /// @param message
+    template <class T, class T2>
+    void node_assert(Node *node, std::string message)
+    {
+        if (dynamic_cast<T *>(node) || dynamic_cast<T2 *>(node))
+        {
+            return;
+        }
+        throw std::runtime_error(std::format("{}\nExpected type: {} or {}\n{}", message, typeid(T).name(), typeid(T2).name(), node->to_string()));
+    }
+
+    /// @brief Throws if node is not of given type
+    /// @tparam T
+    /// @tparam T2
+    /// @param node
+    /// @param message
+    template <class T, class T2, class T3>
+    void node_assert(Node *node, std::string message)
+    {
+        if (dynamic_cast<T *>(node) || dynamic_cast<T2 *>(node) || dynamic_cast<T3 *>(node))
+        {
+            return;
+        }
+        throw std::runtime_error(std::format("{}\nExpected type: {} or {} or {}\n{}", message, typeid(T).name(), typeid(T2).name(), typeid(T3).name(), node->to_string()));
+    }
+}

@@ -130,6 +130,9 @@ namespace logia::AST
     {
         switch (this->bits)
         {
+        case 1:
+            this->llvm_type = llvm::Type::getInt1Ty(codegen->context);
+            break;
         case 8:
             this->llvm_type = llvm::Type::getInt8Ty(codegen->context);
             break;
@@ -146,7 +149,7 @@ namespace logia::AST
             this->llvm_type = llvm::Type::getInt128Ty(codegen->context);
             break;
         default:
-            throw std::runtime_error("Not supported number og bits");
+            throw std::runtime_error("Not supported number of bits");
         }
 
         LOGIA_ASSERT(this->llvm_type);
@@ -259,11 +262,10 @@ namespace logia::AST
 
     Identifier *Struct::get_alias_to(Identifier *from)
     {
-        for (auto &prop : this->children)
+        for (const auto &ptr : this->children)
         {
-            if (typeid(prop) == typeid(StructAlias)) // review it works ?
+            if (auto alias = dynamic_cast<StructAlias *>(ptr))
             {
-                auto alias = (StructAlias *)prop;
                 if (strcmp(from->identifier, alias->get_from()->identifier) == 0)
                 {
                     return alias->get_to();
@@ -283,11 +285,10 @@ namespace logia::AST
         }
 
         uint32_t count = 0;
-        for (auto &prop : this->children)
+        for (const auto &ptr : this->children)
         {
-            if (typeid(prop) == typeid(StructField)) // review it works ?
+            if (auto field = dynamic_cast<StructField *>(ptr))
             {
-                auto field = (StructField *)prop;
                 if (strcmp(id->identifier, field->get_name()->identifier) == 0)
                 {
                     return field;
@@ -306,11 +307,11 @@ namespace logia::AST
         }
 
         uint32_t count = 0;
-        for (auto &prop : this->children)
+
+        for (const auto &ptr : this->children)
         {
-            if (typeid(prop) == typeid(StructField)) // review it works ?
+            if (auto field = dynamic_cast<StructField *>(ptr))
             {
-                auto field = (StructField *)prop;
                 if (strcmp(id->identifier, field->get_name()->identifier) == 0)
                 {
                     return count;
@@ -318,6 +319,7 @@ namespace logia::AST
                 ++count;
             }
         }
+
         return -1;
     }
 

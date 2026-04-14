@@ -71,12 +71,12 @@ namespace logia::AST
     }
     Identifier *VarDeclStmt::get_identifier()
     {
-        return (Identifier *)this->children[0];
+        return this->get_child<Identifier>(0);
     }
 
     Expression *VarDeclStmt::get_expr()
     {
-        return (Expression *)this->children[1];
+        return this->get_child<Expression>(2);
     }
 
     std::string VarDeclStmt::to_string()
@@ -187,13 +187,12 @@ namespace logia::AST
     {
         // replace NoOp ?
         // TODO REVIEW this may be too soon...
-        if (((int)children[1]->type & (int)ast_types::TYPE) != 0)
-        {
+        if (this->is_child<NoOp>(1)) {
             // NoOp
             this->children[1] = this->get_expr()->get_type();
         }
 
-        return this->children[1]->get_type();
+        return this->get_child<Type>(1);
     }
 
     bool VarDeclStmt::pre_type_inference()
