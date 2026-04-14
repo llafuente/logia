@@ -14,6 +14,8 @@ namespace logia::AST
 
     enum class Primitives
     {
+        NONE,
+
         VOID_TY,
 
         BOOL_TY,
@@ -98,6 +100,9 @@ namespace logia::AST
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
         Type *get_type() override;
         void on_after_attach() override;
+
+    protected:
+        void __register_type(const char *name);
     };
 
     struct Integer : public Type
@@ -116,26 +121,33 @@ namespace logia::AST
         void on_after_attach() override;
     };
 
-    struct StructAlias
+    struct StructAlias : Type
     {
     public:
-        Identifier *from;
-        Identifier *to;
-        char *docstring;
-        StructAlias(Identifier *_from, Identifier *_to, char *_docstring = nullptr) : from(_from), to(_to), docstring(_docstring) {}
+        const char *docstring;
+        StructAlias(antlr4::ParserRuleContext *rule, Identifier *from, Identifier *to, const char *_docstring = nullptr);
+
+        std::string to_string() override;
+        Type *get_type() override;
+        Identifier *get_from();
+        Identifier *get_to();
     };
 
-    struct StructField
+    struct StructField : Type
     {
-        Identifier *name;
-        Type *type;
-        Expression *default_value;
-        char *docstring;
+        const char *docstring;
 
         StructField(
-            Identifier *_name,
-            Type *_type,
-            Expression *_default_value, char *_docstring = nullptr) : docstring(_docstring), name(_name), type(_type), default_value(_default_value) {}
+            antlr4::ParserRuleContext *rule,
+            Identifier *name,
+            Type *type,
+            Expression *default_value,
+            const char *docstring = nullptr);
+
+        std::string to_string() override;
+        Type *get_type() override;
+        Identifier *get_name();
+        Expression *get_default_value();
     };
 
     /*
@@ -150,22 +162,36 @@ namespace logia::AST
     struct LOGIA_EXPORT Struct : public Type
     {
         char *docstring;
-        std::vector<StructField> fields;
-        std::vector<StructAlias> aliases;
         std::vector<Type *> methods;
+        uint32_t field_count = 0;
+        uint32_t alias_count = 0;
+        uint32_t method_count = 0;
 
         Struct(antlr4::ParserRuleContext *rule, Identifier *id);
 
         const char *get_name();
         Identifier *get_identifier();
 
+        void set_identifier(Identifier *id);
+
         /**
          * Adds a field to struct
          */
-        void add_field(Type *prop_type, Identifier *prop_name, Expression *prop_default_value = nullptr);
-        void add_alias(Identifier *from, Identifier *to);
+        void add_field(
+            antlr4::ParserRuleContext *rule,
+            Identifier *name,
+            Type *type,
+            Expression *default_value,
+            const char *docstring);
+        void add_alias(antlr4::ParserRuleContext *rule, Identifier *from, Identifier *to, const char *docstring);
         Identifier *get_alias_to(Identifier *from);
+        StructField *get_field(Identifier *id);
         uint32_t get_field_index(Identifier *id);
+        Type *get_field_type(Identifier *id);
+
+        // void foreach_field();
+        // void foreach_alias();
+        // void foreach_method();
 
         std::string to_string() override;
         void on_after_attach() override;

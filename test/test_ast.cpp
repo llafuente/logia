@@ -145,17 +145,17 @@ TEST(AST_Type, ast_create_struct_type)
   back->load_intrinsics();
 
   auto string_t = ast_create_struct_type(ast_create_identifier("string"));
-  EXPECT_EQ(string_t->fields.size(), 0);
-  string_t->add_field((logia::AST::Type *)program->lookup(strdup("λi64")), ast_create_identifier("capacity"), nullptr);
-  EXPECT_EQ(string_t->fields.size(), 1);
+  EXPECT_EQ(string_t->field_count, 0);
+  string_t->add_field(nullptr, ast_create_identifier("capacity"), (logia::AST::Type *)program->lookup("λi64"), nullptr, "");
+  EXPECT_EQ(string_t->field_count, 1);
   EXPECT_EQ(string_t->get_field_index(ast_create_identifier("capacity")), 0);
 
-  string_t->add_field((logia::AST::Type *)program->lookup(strdup("λi64")), ast_create_identifier("length"), nullptr);
-  EXPECT_EQ(string_t->fields.size(), 2);
+  string_t->add_field(nullptr, ast_create_identifier("length"), (logia::AST::Type *)program->lookup("λi64"), nullptr, "");
+  EXPECT_EQ(string_t->field_count, 2);
   EXPECT_EQ(string_t->get_field_index(ast_create_identifier("length")), 1);
 
-  string_t->add_field((logia::AST::Type *)program->lookup(strdup("λptr")), ast_create_identifier("value"), nullptr);
-  EXPECT_EQ(string_t->fields.size(), 3);
+  string_t->add_field(nullptr, ast_create_identifier("value"), (logia::AST::Type *)program->lookup("λptr"), nullptr, "");
+  EXPECT_EQ(string_t->field_count, 3);
   EXPECT_EQ(string_t->get_field_index(ast_create_identifier("value")), 2);
 
   EXPECT_EQ(string_t->get_field_index(ast_create_identifier("xxx")), -1);
@@ -228,19 +228,19 @@ TEST(AST_Type, ast_create_var_decl)
   back->load_intrinsics();
 
   auto string_t = ast_create_struct_type(ast_create_identifier("string"));
-  EXPECT_EQ(string_t->fields.size(), 0);
-  string_t->add_field((logia::AST::Type *)program->lookup(strdup("λi64")), ast_create_identifier("capacity"), nullptr);
-  string_t->add_field((logia::AST::Type *)program->lookup(strdup("λi64")), ast_create_identifier("length"), nullptr);
-  string_t->add_field((logia::AST::Type *)program->lookup(strdup("λptr")), ast_create_identifier("value"), nullptr);
-  EXPECT_EQ(string_t->fields.size(), 3);
+  EXPECT_EQ(string_t->field_count, 0);
+  string_t->add_field(nullptr, ast_create_identifier("capacity"), (Type *)program->lookup("λi64"), nullptr, "");
+  string_t->add_field(nullptr, ast_create_identifier("length"), (Type *)program->lookup("λi64"), nullptr, "");
+  string_t->add_field(nullptr, ast_create_identifier("value"), (Type *)program->lookup("λptr"), nullptr, "");
+  EXPECT_EQ(string_t->field_count, 3);
 
-  EXPECT_EQ(string_t->aliases.size(), 0);
-  string_t->add_alias(ast_create_identifier("cap"), ast_create_identifier("capacity"));
-  EXPECT_EQ(string_t->aliases.size(), 1);
-  string_t->add_alias(ast_create_identifier("len"), ast_create_identifier("length"));
-  EXPECT_EQ(string_t->aliases.size(), 2);
+  EXPECT_EQ(string_t->alias_count, 0);
+  string_t->add_alias(nullptr, ast_create_identifier("cap"), ast_create_identifier("capacity"), "");
+  EXPECT_EQ(string_t->alias_count, 1);
+  string_t->add_alias(nullptr, ast_create_identifier("len"), ast_create_identifier("length"), "");
+  EXPECT_EQ(string_t->alias_count, 2);
 
-  EXPECT_EQ(string_t->get_alias_to(ast_create_identifier("cap")), string_t->aliases[0].to);
+  EXPECT_EQ(string_t->get_alias_to(ast_create_identifier("cap")), ((StructAlias *)string_t->children[3])->get_to());
   EXPECT_EQ(string_t->get_alias_to(ast_create_identifier("xxx")), nullptr);
   EXPECT_EQ(string_t->get_field_index(ast_create_identifier("cap")), 0);
   EXPECT_EQ(string_t->get_field_index(ast_create_identifier("len")), 1);
@@ -293,28 +293,6 @@ TEST(AST_Type, ast_create_var_decl)
 
   delete back;
 }
-
-#define LOGIA_BACKEND_START()                                                                                                                                     \
-  logia::Backend *back;                                                                                                                                           \
-  logia::AST::Program *program;                                                                                                                                   \
-  logia::AST::Function *main_fn;                                                                                                                                  \
-  logia::AST::Block *main_body;                                                                                                                                   \
-  do                                                                                                                                                              \
-  {                                                                                                                                                               \
-    back = new logia::Backend();                                                                                                                                  \
-    program = back->program;                                                                                                                                      \
-    back->load_intrinsics();                                                                                                                                      \
-    main_fn = logia::AST::ast_create_function_type(logia::AST::ast_create_identifier(strdup("main")), logia::AST::ast_get_type_by_name(program, strdup("λi64"))); \
-    EXPECT_TRUE(main_fn);                                                                                                                                         \
-    program->push_child(main_fn);                                                                                                                                 \
-    main_body = main_fn->get_body();                                                                                                                              \
-  } while (0)
-
-#define LOGIA_BACKEND_END() \
-  do                        \
-  {                         \
-    delete back;            \
-  } while (false)
 
 // sum 15+20 as variables
 TEST(AST_Type, ast_create_var_decl2)

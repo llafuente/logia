@@ -89,6 +89,14 @@ namespace logia::AST
         }
     }
 
+    void Type::__register_type(const char *name)
+    {
+        auto parentBody = (Block *)ast_find_closest_parent(this, ast_types::BODY);
+        LOGIA_ASSERT(parentBody);
+
+        parentBody->set(name, this);
+    }
+
     llvm::Value *Type::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
     {
         DEBUG() << this->to_string() << std::endl;
@@ -151,29 +159,96 @@ namespace logia::AST
         if (!this->is_attached)
         {
             this->is_attached = true;
-
-            auto parentBody = (Block *)ast_find_closest_parent(this, ast_types::BODY);
-            LOGIA_ASSERT(parentBody);
-
-            auto name = std::format("λ{}", this->get_repr());
-            parentBody->set(name.c_str(), this);
+            this->__register_type(std::format("λ{}", this->get_repr()).c_str());
         }
     }
 
     //
     // Struct
     //
+    StructAlias::StructAlias(antlr4::ParserRuleContext *rule, Identifier *from, Identifier *to, const char *_docstring) : docstring(_docstring), Type(rule, Primitives::NONE)
+    {
+        this->push_child(from);
+        this->push_child(to);
+    }
+
+    Identifier *StructAlias::get_from()
+    {
+        return (Identifier *)this->children[0];
+    }
+    Identifier *StructAlias::get_to()
+    {
+        return (Identifier *)this->children[1];
+    }
+    std::string StructAlias::to_string()
+    {
+        return std::format("StructAlias ({:p})", static_cast<void *>(this->parent_node));
+    }
+    Type *StructAlias::get_type()
+    {
+        auto owner = (Struct *)this->parent_node;
+        // TODO alias of methods ?
+        return owner->get_field_type(this->get_to());
+    }
+
+    StructField::StructField(antlr4::ParserRuleContext *rule,
+                             Identifier *name,
+                             Type *type,
+                             Expression *default_value,
+                             const char *docstring) : docstring(docstring), Type(rule, Primitives::NONE)
+    {
+        this->push_child(name);
+        this->push_child(type);
+        if (default_value == nullptr)
+        {
+            // TODO type->get_default()
+            this->push_child(new NoOp());
+        }
+        else
+        {
+            this->push_child(default_value);
+        }
+    }
+    Identifier *StructField::get_name()
+    {
+        return (Identifier *)this->children[0];
+    }
+    Type *StructField::get_type()
+    {
+        return (Type *)this->children[1];
+    }
+    Expression *StructField::get_default_value()
+    {
+        return (Expression *)this->children[2];
+    }
+    std::string StructField::to_string()
+    {
+        return std::format("StructField ({:p})", static_cast<void *>(this->parent_node));
+    }
 
     Struct::Struct(antlr4::ParserRuleContext *rule, Identifier *id) : Type(rule, Primitives::STRUCT_TY)
+    {
+        if (id != nullptr)
+        {
+            this->set_identifier(id);
+        }
+    }
+
+    void Struct::set_identifier(Identifier *id)
     {
         LOGIA_ASSERT(id && "id parameters is required");
         NODE_TYPE_ASSERT(id, ast_types::IDENTIFIER);
 
-        this->push_child(id); // get_name
+        this->has_name = true;
+        this->unshift_child(id);
     }
 
     const char *Struct::get_name()
     {
+        if (!this->has_name)
+        {
+            return "unkown"; // TODO REVIEW fail ?
+        }
         return get_identifier()->identifier;
     }
 
@@ -184,14 +259,41 @@ namespace logia::AST
 
     Identifier *Struct::get_alias_to(Identifier *from)
     {
-        for (auto &prop : this->aliases)
+        for (auto &prop : this->children)
         {
-            if (strcmp(from->identifier, prop.from->identifier) == 0)
+            if (typeid(prop) == typeid(StructAlias)) // review it works ?
             {
-                return prop.to;
+                auto alias = (StructAlias *)prop;
+                if (strcmp(from->identifier, alias->get_from()->identifier) == 0)
+                {
+                    return alias->get_to();
+                }
             }
         }
 
+        return nullptr;
+    }
+
+    StructField *Struct::get_field(Identifier *id)
+    {
+        auto to = this->get_alias_to(id);
+        if (to != nullptr)
+        {
+            id = to;
+        }
+
+        uint32_t count = 0;
+        for (auto &prop : this->children)
+        {
+            if (typeid(prop) == typeid(StructField)) // review it works ?
+            {
+                auto field = (StructField *)prop;
+                if (strcmp(id->identifier, field->get_name()->identifier) == 0)
+                {
+                    return field;
+                }
+            }
+        }
         return nullptr;
     }
 
@@ -204,31 +306,30 @@ namespace logia::AST
         }
 
         uint32_t count = 0;
-        for (auto &prop : this->fields)
+        for (auto &prop : this->children)
         {
-            if (strcmp(id->identifier, prop.name->identifier) == 0)
+            if (typeid(prop) == typeid(StructField)) // review it works ?
             {
-                return count;
+                auto field = (StructField *)prop;
+                if (strcmp(id->identifier, field->get_name()->identifier) == 0)
+                {
+                    return count;
+                }
+                ++count;
             }
-            ++count;
         }
         return -1;
     }
 
+    Type *Struct::get_field_type(Identifier *id)
+    {
+        // TODO nullptr
+        return this->get_field(id)->get_type();
+    }
+
     std::string Struct::to_string()
     {
-        std::string list;
-        // concat all properties with their type
-        for (auto &prop : this->fields)
-        {
-            if (!list.empty())
-            {
-                list += ", ";
-            }
-            list += prop.type->to_string();
-        }
-
-        return std::format("Type[struct {}] {} ({:p})", this->get_name(), list, static_cast<void *>(this->parent_node));
+        return std::format("Type[struct {}] ({:p})", this->get_name(), static_cast<void *>(this->parent_node));
     }
 
     void Struct::on_after_attach()
@@ -237,11 +338,11 @@ namespace logia::AST
         if (!this->is_attached)
         {
             this->is_attached = true;
-
-            auto parentBody = (Block *)ast_find_closest_parent(this, ast_types::BODY);
-            LOGIA_ASSERT(parentBody);
-
-            parentBody->set(this->get_name(), this);
+            // if the struct has a name -> attach it to body
+            if (this->has_name)
+            {
+                this->__register_type(this->get_name());
+            }
         }
     }
 
@@ -254,14 +355,17 @@ namespace logia::AST
             return (llvm::Value *)this->llvm_type;
         }
 
-        auto max = this->fields.size();
         std::vector<llvm::Type *> elements;
-        elements.reserve(max);
-        for (int i = 0; i < max; ++i)
+        elements.reserve(this->field_count);
+        for (auto &prop : this->children)
         {
-            auto t = this->fields[i].type;
-            elements.push_back((llvm::Type *)t->codegen(codegen, builder));
+            if (typeid(prop) == typeid(StructField)) // review it works ?
+            {
+                auto field = (StructField *)prop;
+                elements.push_back((llvm::Type *)field->get_type()->codegen(codegen, builder));
+            }
         }
+
         auto st = llvm::StructType::create(codegen->context, this->get_name());
         st->setBody(elements);
 
@@ -358,10 +462,9 @@ namespace logia::AST
         {
             this->is_attached = true;
 
-            auto parentBody = (Block *)ast_find_closest_parent(this, ast_types::BODY);
-            parentBody->set(this->get_name(), this);
+            this->__register_type(this->get_name());
 
-            // register params
+            // register parameters
             for (auto param : this->parameters)
             {
                 this->get_body()->set(param.name->identifier, param.type);
@@ -371,7 +474,6 @@ namespace logia::AST
 
     llvm::Value *Function::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
     {
-
         int pcount = this->parameters.size();
         this->parametersIR.reserve(pcount);
         for (int i = 0; i < pcount; ++i)
@@ -441,25 +543,26 @@ namespace logia::AST
         return new Struct(nullptr, id);
     }
 
-    void Struct::add_field(Type *prop_type, Identifier *prop_name, Expression *prop_default_value)
+    void Struct::add_field(
+        antlr4::ParserRuleContext *rule,
+        Identifier *name,
+        Type *type,
+        Expression *default_value,
+        const char *docstring)
     {
         LOGIA_ASSERT(this);
         LOGIA_ASSERT(this->isStruct());
 
-        LOGIA_ASSERT(prop_type && "type is required for fields");
-        NODE_TYPE_ASSERT(prop_type, ast_types::TYPE);
-        LOGIA_ASSERT(prop_name && "name is required for fields");
-        NODE_TYPE_ASSERT(prop_name, ast_types::IDENTIFIER);
+        LOGIA_ASSERT(type && "type is required for fields");
+        NODE_TYPE_ASSERT(type, ast_types::TYPE);
+        LOGIA_ASSERT(name && "name is required for fields");
+        NODE_TYPE_ASSERT(name, ast_types::IDENTIFIER);
 
-        auto prop = this->fields.emplace_back(prop_name, prop_type, prop_default_value, nullptr);
-        // TODO REVIEW default values are not push ?
-        if (prop_default_value)
-        {
-            prop_default_value->parent_node = this;
-        }
+        this->push_child(new StructField(rule, name, type, default_value, docstring));
+        ++this->field_count;
     }
 
-    void Struct::add_alias(Identifier *from, Identifier *to)
+    void Struct::add_alias(antlr4::ParserRuleContext *rule, Identifier *from, Identifier *to, const char *docstring)
     {
         LOGIA_ASSERT(from);
         LOGIA_ASSERT(to);
@@ -467,7 +570,7 @@ namespace logia::AST
         // TODO exists to ?
         // TODO exists from ?
 
-        auto prop = this->aliases.emplace_back(from, to);
+        this->push_child(new StructAlias(rule, from, to, docstring));
+        ++this->alias_count;
     }
-
 }
