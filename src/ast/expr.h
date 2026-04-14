@@ -45,12 +45,14 @@ namespace logia::AST
 
     struct MemberAccessExpression : Expression
     {
-        MemberAccessExpression(antlr4::ParserRuleContext *rule, Node *left, Node *right);
+        MemberAccessExpression(antlr4::ParserRuleContext *rule, Node *left, Identifier *right);
         Expression *get_left();
-        Expression *get_right();
+        Identifier *get_right();
         std::string to_string() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
         Type *get_type() override;
+        Node* resolve() override;
+        
     };
 
     /**
@@ -145,6 +147,7 @@ namespace logia::AST
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
         Type *get_type() override;
         void on_after_attach() override;
+        Node* resolve() override;
     };
 
     /**

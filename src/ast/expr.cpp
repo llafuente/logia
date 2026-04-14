@@ -17,7 +17,7 @@ namespace logia::AST
     //
     // MemberAccessExpression
     //
-    MemberAccessExpression::MemberAccessExpression(antlr4::ParserRuleContext *rule, Node *left, Node *right) : Expression(rule, (ast_types)(ast_types::EXPRESSION | ast_types::MEMBER_ACCESS))
+    MemberAccessExpression::MemberAccessExpression(antlr4::ParserRuleContext *rule, Node *left, Identifier *right) : Expression(rule, (ast_types)(ast_types::EXPRESSION | ast_types::MEMBER_ACCESS))
     {
         this->push_child(left);
         this->push_child(right);
@@ -26,14 +26,21 @@ namespace logia::AST
     {
         return (Expression *)this->children[0];
     }
-    Expression *MemberAccessExpression::get_right()
+    Identifier *MemberAccessExpression::get_right()
     {
-        return (Expression *)this->children[1];
+        return (Identifier *)this->children[1];
     }
     Type *MemberAccessExpression::get_type()
     {
-        // TODO resolve!
-        return nullptr;
+        return this->resolve()->get_type();
+    }
+    Node *MemberAccessExpression::resolve()
+    {
+        auto left = this->get_left()->resolve();
+        auto left_type = left->get_type();
+        LOGIA_ASSERT(left_type->isStruct(), "only structs can be resolved atm.");
+        auto left_as_struct = (Struct *)left_type;
+        return left_as_struct->get_field_type(this->get_right());
     }
 
     //
@@ -77,11 +84,13 @@ namespace logia::AST
     {
         return (Expression *)this->children[0];
     }
-    Expression* CallExpression::get_argument(uint32_t pos) {
-        return (Expression * )this->children[1 + (pos * 2) + 1];
+    Expression *CallExpression::get_argument(uint32_t pos)
+    {
+        return (Expression *)this->children[1 + (pos * 2) + 1];
     }
-    Identifier* CallExpression::get_argument_name(uint32_t pos) {
-        return (Identifier*)this->children[1 + (pos * 2) + 0];
+    Identifier *CallExpression::get_argument_name(uint32_t pos)
+    {
+        return (Identifier *)this->children[1 + (pos * 2) + 0];
     }
     std::vector<Node *> CallExpression::get_arguments()
     {
@@ -207,16 +216,7 @@ namespace logia::AST
         LOGIA_ASSERT(left_type->isStruct() && "left should be a struct");
         auto struct_ty = (Struct *)left_type;
 
-        // find property index
-        int propertyIndex = -1;
-        for (int i = 0; i < struct_ty->fields.size(); ++i)
-        {
-            if (strcmp(struct_ty->fields[i].name->identifier, rightIdent->identifier) == 0)
-            {
-                propertyIndex = i;
-                break;
-            }
-        }
+        int propertyIndex = struct_ty->get_field_index(rightIdent);
         if (propertyIndex == -1)
         {
             throw std::runtime_error(std::string("Unknown struct property: ") + rightIdent->identifier);
@@ -267,11 +267,11 @@ namespace logia::AST
 
     Expression *BinaryExpression::get_left()
     {
-        return (Expression *)this->children[2];
+        return (Expression *)this->get_argument(0);
     }
     Expression *BinaryExpression::get_right()
     {
-        return (Expression *)this->children[4];
+        return (Expression *)this->get_argument(1);
     }
 
     bool BinaryExpression::pre_type_inference()
@@ -422,14 +422,17 @@ namespace logia::AST
 
     Type *Identifier::get_type()
     {
+        return this->resolve()->get_type();
+    }
+
+    Node *Identifier::resolve()
+    {
         if (this->identifier == nullptr || strlen(this->identifier) == 0)
         {
             throw std::runtime_error("Cannot retrieve type. Call type_inference first.");
         }
         auto block = ast_get_block(this);
-        auto node = block->lookup(this->identifier);
-
-        return node->get_type();
+        return block->lookup(this->identifier);
     }
 
     LOGIA_API Identifier *ast_create_identifier(LOGIA_CLONE const char *name)
