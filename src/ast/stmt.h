@@ -29,7 +29,6 @@ namespace logia::AST
 
     struct VarDeclStmt : Stmt
     {
-        Type *type;
         llvm::AllocaInst *ir;
 
         VarDeclStmt(antlr4::ParserRuleContext *rule, Identifier *id, Type *type, Expression *expr);

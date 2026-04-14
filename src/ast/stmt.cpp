@@ -53,8 +53,15 @@ namespace logia::AST
     //
     VarDeclStmt::VarDeclStmt(antlr4::ParserRuleContext *rule, Identifier *id, Type *type, Expression *expr) : Stmt(rule, ast_types::VAR_DECL_STMT), ir(nullptr)
     {
-        this->type = type;
         this->push_child(id);
+        if (type == nullptr)
+        {
+            this->push_child(new NoOp());
+        }
+        else
+        {
+            this->push_child(type);
+        }
         this->push_child(expr);
     }
 
@@ -178,11 +185,15 @@ namespace logia::AST
     }
     Type *VarDeclStmt::get_type()
     {
-        if (this->type == nullptr)
+        // replace NoOp ?
+        // TODO REVIEW this may be too soon...
+        if (((int)children[1]->type & (int)ast_types::TYPE) != 0)
         {
-            this->type = this->get_expr()->get_type();
+            // NoOp
+            this->children[1] = this->get_expr()->get_type();
         }
-        return this->type;
+
+        return this->children[1]->get_type();
     }
 
     bool VarDeclStmt::pre_type_inference()
