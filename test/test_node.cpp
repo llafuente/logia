@@ -51,5 +51,9 @@ TEST(test_node, test_1)
 
     EXPECT_EQ(count, 3);
 
+    EXPECT_EQ(program->get_child<Integer>(0)->first_parent<Program>(), program);
+
+    EXPECT_EQ(program->first_child<Function>()->get_body()->first_parent<Program>(), program);
+
     LOGIA_BACKEND_END();
 }

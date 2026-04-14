@@ -116,6 +116,44 @@ namespace logia::AST
             }
         }
 
+        /// @brief Retrieves the first child that match given type or throws
+        /// @tparam T
+        /// @param cb
+        /// @return
+        template <typename T>
+        T *first_child()
+        {
+            for (const auto &ptr : this->children)
+            {
+                if (auto out = dynamic_cast<T *>(ptr))
+                {
+                    return out;
+                }
+            }
+
+            throw std::runtime_error(std::format("not found {} above {}", typeid(T).name(), this->to_string()));
+        }
+
+        /// @brief reverse the tree and returns the first node that match given type or throws
+        /// @tparam T
+        /// @param cb
+        /// @return
+        template <typename T>
+        T *first_parent()
+        {
+            Node *ptr = this;
+            do
+            {
+                if (auto out = dynamic_cast<T *>(ptr))
+                {
+                    return out;
+                }
+                ptr = ptr->parent_node;
+            } while (ptr != nullptr);
+
+            throw std::runtime_error(std::format("not found {} above {}", typeid(T).name(), this->to_string()));
+        }
+
         /// @brief Retrieve children at given position as given type. If fail throws.
         /// @tparam T
         /// @param index
