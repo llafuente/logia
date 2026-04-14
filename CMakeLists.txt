@@ -73,6 +73,7 @@ include_directories(src)
 add_executable(logia_test_suite
   test/main.cpp
   test/test_utils.cpp
+  test/test_node.cpp
   test/test_ast.cpp
   test/test_logia.cpp
   ${LOGIA_SOURCE_FILES}

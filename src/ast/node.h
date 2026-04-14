@@ -23,8 +23,10 @@ namespace logia::AST
     public:
         unsigned char is_attached : 1 = false;
         unsigned char is_codegen : 1 = false;
+        // used by type inference
         unsigned char is_typed : 1 = false;
-
+        // used by identifier
+        unsigned char has_name : 1 = false;
 
         /**
          * TODO
@@ -81,6 +83,53 @@ namespace logia::AST
         void type_inference();
         virtual bool pre_type_inference();
         virtual void post_type_inference();
+
+        virtual Node *resolve();
+
+        /// @brief loops all children with given type (cdel)
+        /// @tparam T
+        /// @param cb
+        template <typename T>
+        void foreach_child(void (*cb)(const T *))
+        {
+            for (const auto &ptr : this->children)
+            {
+                if (auto out = dynamic_cast<T *>(ptr))
+                {
+                    cb(out);
+                }
+            }
+        }
+
+        /// @brief loops all children with given type (lambda capture)
+        /// @tparam T
+        /// @param cb
+        template <typename T>
+        void foreach_child(std::function<void(const T *)> cb)
+        {
+            for (const auto &ptr : this->children)
+            {
+                if (auto out = dynamic_cast<T *>(ptr))
+                {
+                    cb(out);
+                }
+            }
+        }
+
+        /// @brief Retrieve children at given position as given type. If fail throws.
+        /// @tparam T
+        /// @param index
+        /// @return
+        template <class T>
+        T *get_child(uint32_t index)
+        {
+            auto node = this->children[index];
+            if (auto out = dynamic_cast<T *>(node))
+            {
+                return out;
+            }
+            throw std::runtime_error(std::format("unexpected type {} expected {}", typeid(node).name(), typeid(T).name()));
+        }
     };
 
     struct NoOp : public Node

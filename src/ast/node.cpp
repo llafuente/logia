@@ -93,7 +93,8 @@ namespace logia::AST
         this->is_attached = true;
     }
 
-    void Node::type_inference() {
+    void Node::type_inference()
+    {
         // TODO how to handle inference can't detect the type -> pre_type_inference return false ??
         this->pre_type_inference();
         for (int i = 0; i < this->children.size(); i++)
@@ -103,8 +104,19 @@ namespace logia::AST
         this->post_type_inference();
     }
 
-    bool Node::pre_type_inference() { return true; }
-    void Node::post_type_inference() {}
+    bool Node::pre_type_inference()
+    {
+        DEBUG() << this->to_string() << std::endl;
+        return true;
+    }
+    void Node::post_type_inference()
+    {
+        DEBUG() << this->to_string() << std::endl;
+    }
+    Node *Node::resolve()
+    {
+        return nullptr;
+    }
 
     //
     // NoOp
