@@ -8,6 +8,7 @@ namespace logia::AST
 {
     struct VarDeclStmt;
     struct Identifier;
+    struct TypeDef;
 
     struct Expression : Node
     {
@@ -27,8 +28,8 @@ namespace logia::AST
         Expression *get_locator();
         // TODO this should be std::vector<Expression *>
         // but casting fail
-        Expression* get_argument(uint32_t pos);
-        Identifier* get_argument_name(uint32_t pos);
+        Expression *get_argument(uint32_t pos);
+        Identifier *get_argument_name(uint32_t pos);
         std::vector<Node *> get_arguments();
 
         void add_named_argument(Identifier *id, Expression *expr);
@@ -51,8 +52,7 @@ namespace logia::AST
         std::string to_string() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
         Type *get_type() override;
-        Node* resolve() override;
-        
+        Node *resolve() override;
     };
 
     /**
@@ -117,7 +117,7 @@ namespace logia::AST
         Expression *get_operand();
         std::string to_string() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
-        Type* get_type() override;
+        Type *get_type() override;
     };
 
     LOGIA_API LOGIA_LEND PrefixUnaryExpression *ast_create_ref(Expression *operand);
@@ -148,7 +148,7 @@ namespace logia::AST
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
         Type *get_type() override;
         void on_after_attach() override;
-        Node* resolve() override;
+        Node *resolve() override;
     };
 
     /**
@@ -157,9 +157,27 @@ namespace logia::AST
     LOGIA_API Identifier *ast_create_identifier(LOGIA_CLONE const char *name);
 
     //
+    struct StructInitializer : Expression
+    {
+    public:
+        uint32_t length = 0;
+
+        StructInitializer(antlr4::ParserRuleContext *rule);
+        void set_type(Type* type);
+        void add_named_property(TypeDef *locator, Expression *value);
+        void add_positional_property(Expression *value);
+
+        bool pre_type_inference() override;
+
+        // Inherited via Expression
+        llvm::Value* codegen(logia::Backend* codegen, llvm::IRBuilder<>* builder) override;
+        Type* get_type() override;
+    };
+
     // utils
     //
     LOGIA_API const char *ast_postfix_unary_operator_to_string(PostfixUnaryOperator op);
     LOGIA_API const char *ast_prefix_unary_operator_to_string(PrefixUnaryOperator op);
     LOGIA_API const char *ast_binary_operator_to_string(BinaryOperator op, Type *left, Type *right);
+
 }

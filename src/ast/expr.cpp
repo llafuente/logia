@@ -322,7 +322,8 @@ namespace logia::AST
         return this->get_argument(0);
     }
 
-    Type* PrefixUnaryExpression::get_type() {
+    Type *PrefixUnaryExpression::get_type()
+    {
         // TODO REVIEW impl totally false!
         return this->get_operand()->get_type();
     }
@@ -445,6 +446,54 @@ namespace logia::AST
         LOGIA_ASSERT(name);
 
         return new Identifier(nullptr, strdup(name));
+    }
+
+    //
+    // StructInitializer
+    //
+
+    StructInitializer::StructInitializer(antlr4::ParserRuleContext *rule) : Expression(rule, ast_types::NONE) {}
+    
+    void StructInitializer::set_type(Type* type) {
+        this->is_typed = true;
+        this->unshift_child(type);
+    }
+
+    void StructInitializer::add_named_property(TypeDef *locator, Expression *value)
+    {
+        this->push_child(locator);
+        this->push_child(value);
+
+        ++this->length;
+    }
+    void StructInitializer::add_positional_property(Expression *value)
+    {
+        this->push_child(new NoOp());
+        this->push_child(value);
+
+        ++this->length;
+    }
+    bool StructInitializer::pre_type_inference()
+    {
+        // if every value is constant -> we are constant!
+        int count = 0;
+        this->foreach_child<ConstExpression>([&count](auto x)
+                                             { ++count; });
+        this->is_constant = count == this->length;
+        return true;
+    }
+
+    llvm::Value* StructInitializer::codegen(logia::Backend* codegen, llvm::IRBuilder<>* builder)
+    {
+        return nullptr;
+    }
+
+    Type* StructInitializer::get_type()
+    {
+        if (is_typed) {
+            // too soon ?!
+        }
+        return this->get_child<Type>(0);
     }
 
     //
