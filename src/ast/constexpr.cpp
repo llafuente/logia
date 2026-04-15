@@ -8,7 +8,10 @@ namespace logia::AST
     // ConstExpression
     //
 
-    ConstExpression::ConstExpression(antlr4::ParserRuleContext *rule, ast_types type) : Expression(rule, (ast_types)(type | ast_types::CONST)) {}
+    ConstExpression::ConstExpression(antlr4::ParserRuleContext *rule, ast_types type) : Expression(rule, (ast_types)(type | ast_types::CONST))
+    {
+        this->is_constant = true;
+    }
     std::string ConstExpression::to_string()
     {
         return std::format("ConstExpression ({:p})", static_cast<void *>(this));
