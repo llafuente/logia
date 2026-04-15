@@ -78,7 +78,7 @@ namespace logia::AST
         return this;
     }
 
-    void Type::on_after_attach()
+    void Type::post_attach()
     {
         // only once, when a type is used it will be attached many times as references
         if (!this->is_attached)
@@ -156,7 +156,7 @@ namespace logia::AST
 
         return (llvm::Value *)this->llvm_type;
     }
-    void Integer::on_after_attach()
+    void Integer::post_attach()
     {
         // once guard
         if (!this->is_attached)
@@ -339,7 +339,7 @@ namespace logia::AST
         return std::format("Type[struct {}] ({:p})", this->get_name(), static_cast<void *>(this->parent_node));
     }
 
-    void Struct::on_after_attach()
+    void Struct::post_attach()
     {
         // once guard
         if (!this->is_attached)
@@ -448,7 +448,7 @@ namespace logia::AST
             block->type = (ast_types)(ast_types::FUNCTION | ast_types::BODY);
             this->push_child(block); // get_body
         }
-        this->intrinsic = is_intrinsic;
+        this->is_intrinsic = is_intrinsic;
     }
 
     Function::~Function()
@@ -501,7 +501,7 @@ namespace logia::AST
     }
 
     // register myself into closest block
-    void Function::on_after_attach()
+    void Function::post_attach()
     {
         // only once, when a type is used it will be attached many times as references
         if (!this->is_attached)
@@ -536,7 +536,7 @@ namespace logia::AST
 
         // Create a basic block and insert a return
 
-        if (!this->intrinsic)
+        if (!this->is_intrinsic)
         {
             auto block = this->get_body();
             LOGIA_ASSERT(typeid(*block) == typeid(Block) && "Invalid function body type");
@@ -582,6 +582,11 @@ namespace logia::AST
             param_default_value->parent_node = this;
         }
         auto param = this->parameters.emplace_back(param_name, param_type, param_default_value);
+    }
+
+    void Function::check_call(CallExpression *callee)
+    {
+        // TODO
     }
 
     LOGIA_API LOGIA_LEND Struct *ast_create_struct_type(Identifier *id)

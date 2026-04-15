@@ -172,7 +172,7 @@ namespace logia::AST
         return variable;
     }
 
-    void VarDeclStmt::on_after_attach()
+    void VarDeclStmt::post_attach()
     {
         if (!this->is_attached)
         {

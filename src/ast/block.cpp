@@ -53,7 +53,7 @@ namespace logia::AST
         return std::format("Block[{} statements] scope[{}] ({:p})", this->children.size(), list, static_cast<void *>(this));
     }
 
-    void Block::on_after_attach()
+    void Block::post_attach()
     {
         if (!this->is_attached)
         {

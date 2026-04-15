@@ -43,13 +43,13 @@ namespace logia::AST
         }
         std::string to_string() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
-        void on_after_attach() override
+        void post_attach() override
         {
             if (!this->is_attached)
             {
                 this->is_attached = true;
-                this->get_then()->on_after_attach();
-                this->get_else()->on_after_attach();
+                this->get_then()->post_attach();
+                this->get_else()->post_attach();
             }
         }
     };

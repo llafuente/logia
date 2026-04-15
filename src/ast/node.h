@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <format>
+#include <stdexcept>
 
 #include "ast/types.h"
 #include "utils.h"
@@ -17,74 +18,85 @@ namespace logia::AST
 {
     struct Type;
 
-    // Homogenous AST node type
+    /// @brief Base class for all AST nodes
     struct LOGIA_EXPORT Node
     {
     public:
+        /// @brief is attached to a program
         unsigned char is_attached : 1 = false;
+        /// @brief codegen pass done
         unsigned char is_codegen : 1 = false;
-        // used by type inference
+        /// @brief type inference pass done
         unsigned char is_typed : 1 = false;
-        // used by identifier
+        /// @brief internal, check if name is set, used to throw if double set
         unsigned char has_name : 1 = false;
+        /// @brief marks node as constant so it can be used as constexpr at comptime
         unsigned char is_constant : 1 = false;
 
-        /**
-         * TODO
-         */
+        /// @brief antlr rule, used for error reporting and debugging
         antlr4::ParserRuleContext *rule = nullptr;
         /**
          * Node type to be able to cast from node back to the real type
          */
+        // TODO remove this, not needed as we can dynamic_cast
         ast_types type = (ast_types)0;
-        /**
-         * parent node to traverse to root
-         */
+
+        /// @brief backpointer to parent node to traverse to root(program)
         Node *parent_node = nullptr;
-        /**
-         * Avoid children modification (from API uknow :)
-         */
+
+        /// @brief Avoids children modification (from API / direct access, you know :)
         bool freezed = false;
-        /**
-         * My beatiful children, and some not so beatiful.
-         */
-        std::vector<Node *> children = {}; // normalized list of children
+
+        /// @brief My beautiful children, and some not so beautiful.
+        std::vector<Node *> children = {};
 
         Node(antlr4::ParserRuleContext *rule, ast_types type);
         ~Node();
 
         // TODO
         // std::string getText() { return this->rule->getText(); }
-        /**
-         * Adds child at the end
-         */
+
+        /// @brief Adds child at the end
         void push_child(Node *child);
 
-        /**
-         * Adds a child at start
-         */
+        /// @brief Adds child at the beginning
         void unshift_child(Node *child);
 
         void _has_to_notify_attached(Node *child);
 
         void __notify_attached();
 
+        /// @brief returns a string representation of the tree starting from this node, with padding for each level
+        /// @param padding
+        /// @return
         std::string to_string_tree(std::string padding = "");
-        /**
-         * print essential information nto debug
-         */
+
+        /// @brief returns essential information nto debug
         virtual std::string to_string() = 0;
-        /**
-         * AST -> LLVM
-         */
+
+        /// @brief generates LLVM IR for this node
         virtual llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) = 0;
 
+        /// @brief retrieves/calculate the type of this node
+        /// @remarks this may be available only after type inference pass
+        /// @return
         virtual Type *get_type() = 0;
-        virtual void on_after_attach();
+
+        /// @brief called after the node is attached to a program
+        virtual void post_attach();
+
+        /// @brief start type inference pass
         void type_inference();
+
+        /// @brief notify node type inferece pass start
+        /// @return
         virtual bool pre_type_inference();
+
+        /// @brief notify node type inferece pass end, all children type should be already inferred
         virtual void post_type_inference();
 
+        /// @brief resolve node references
+        /// @return
         virtual Node *resolve();
 
         /// @brief loops all children with given type (cdel)
@@ -184,6 +196,10 @@ namespace logia::AST
             }
             return false;
         }
+        /// @brief Casts the node to the given type or throws if the cast fails
+        /// @tparam T
+        /// @param message
+        /// @return
         template <class T>
         T *as(const char *message = nullptr)
         {
@@ -198,6 +214,9 @@ namespace logia::AST
             throw std::runtime_error(std::format("unexpected type {} expected {}", typeid(this).name(), typeid(T).name()));
         }
 
+        /// @brief Checks if the node is of the given type
+        /// @tparam T
+        /// @return
         template <class T>
         bool is()
         {
@@ -209,6 +228,8 @@ namespace logia::AST
         }
     };
 
+    /// @brief A node that does nothing
+    // used for default values and intrinsics body
     struct NoOp : public Node
     {
         NoOp();
@@ -217,6 +238,7 @@ namespace logia::AST
         Type *get_type() override;
     };
 
+// TODO remove and reimplement with templates
 /// @brief Check node contains at least one bit of ty
 /// @param node
 /// @param ty

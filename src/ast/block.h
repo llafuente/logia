@@ -35,7 +35,7 @@ namespace logia::AST
         llvm::BasicBlock *create_llvm_block(logia::Backend *codegen, char *name);
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
         Type *get_type() override;
-        void on_after_attach() override;
+        void post_attach() override;
     };
 
     /**

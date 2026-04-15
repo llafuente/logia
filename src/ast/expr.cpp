@@ -92,12 +92,10 @@ namespace logia::AST
     {
         return this->get_child<Identifier>(1 + (pos * 2) + 0);
     }
-    std::vector<Node *> CallExpression::get_arguments()
+    std::vector<Expression *> CallExpression::get_arguments()
     {
-        auto v = std::vector<Node *>();
+        auto v = std::vector<Expression *>();
         v.reserve((this->children.size() - 1) / 2);
-        // TODO this will sort and match the callee parameters
-        // return std::vector<Node *>(this->children.begin() + 1, this->children.end());
 
         DEBUG() << v.size() << "/" << v.capacity() << "/" << this->children.size() << std::endl;
 
@@ -108,7 +106,7 @@ namespace logia::AST
             DEBUG() << "name [" << i << "]= " << this->children[i]->to_string() << std::endl;
             ++i;
             DEBUG() << "argument[" << i << "] = " << this->children[i]->to_string() << std::endl;
-            v.push_back(children[i]);
+            v.push_back(children[i]->as<Expression>());
             ++i;
         }
 
@@ -415,14 +413,14 @@ namespace logia::AST
     {
         return ast_get_vardecl_by_name(this, this->identifier);
     }
-    Type *get_function_decl()
+    Function *get_function_decl()
     {
         throw std::runtime_error("not implemented");
     }
 
-    void Identifier::on_after_attach()
+    void Identifier::post_attach()
     {
-        Expression::on_after_attach();
+        Expression::post_attach();
         // TODO
     }
 
@@ -453,8 +451,9 @@ namespace logia::AST
     //
 
     StructInitializer::StructInitializer(antlr4::ParserRuleContext *rule) : Expression(rule, ast_types::NONE) {}
-    
-    void StructInitializer::set_type(Type* type) {
+
+    void StructInitializer::set_type(Type *type)
+    {
         this->is_typed = true;
         this->unshift_child(type);
     }
@@ -483,14 +482,49 @@ namespace logia::AST
         return true;
     }
 
-    llvm::Value* StructInitializer::codegen(logia::Backend* codegen, llvm::IRBuilder<>* builder)
+    llvm::Value *StructInitializer::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
     {
-        return nullptr;
+        auto &ctx = module->getContext();
+        const llvm::DataLayout &dl = module->getDataLayout();
+
+        // 1) Constant initializer (replace with your child constants)
+        llvm::Constant *c0 = llvm::ConstantInt::get(llvm::Type::getInt32Ty(ctx), 42);
+        llvm::Constant *c1 = llvm::ConstantFP::get(llvm::Type::getDoubleTy(ctx), 3.14);
+        llvm::Constant *init = llvm::ConstantStruct::get(structTy, {c0, c1});
+
+        // 2) Materialize constant in read-only global memory (memcpy source must be an address)
+        auto *srcGlobal = new llvm::GlobalVariable(
+            *module,
+            structTy,
+            true, // isConstant
+            llvm::GlobalValue::PrivateLinkage,
+            init,
+            ".struct.init");
+
+        auto abiAlign = llvm::Align(dl.getABITypeAlign(structTy).value());
+        srcGlobal->setAlignment(abiAlign);
+
+        // 3) Destination stack allocation
+        llvm::Value *dstAlloca = builder->CreateAlloca(structTy, nullptr, "myStruct");
+        auto *i8PtrTy = builder->getInt8PtrTy();
+
+        llvm::Value *dstI8 = builder->CreateBitCast(dstAlloca, i8PtrTy);
+        llvm::Value *srcI8 = builder->CreateBitCast(srcGlobal, i8PtrTy);
+
+        // 4) memcpy
+        uint64_t size = dl.getTypeAllocSize(structTy);
+        builder->CreateMemCpy(
+            dstI8, llvm::MaybeAlign(abiAlign),
+            srcI8, llvm::MaybeAlign(abiAlign),
+            size);
+
+        return dstAlloca; // pointer to initialized struct
     }
 
-    Type* StructInitializer::get_type()
+    Type *StructInitializer::get_type()
     {
-        if (is_typed) {
+        if (is_typed)
+        {
             // too soon ?!
         }
         return this->get_child<Type>(0);

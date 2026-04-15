@@ -14,7 +14,7 @@
 
 namespace logia::AST
 {
-
+    /// @brief Root of the AST, contains all the top level declarations and statements
     class Program : public Block
     {
     public:
@@ -24,11 +24,11 @@ namespace logia::AST
 
         Type *get_type() override;
 
-        llvm::Value* codegen(logia::Backend* codegen, llvm::IRBuilder<>* builder) override;
+        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
     };
 
-    /**
-     * Creates a program
-     */
+    /// @brief Creates a minimal logia program
+    /// @details Primitives and intrinsics included
+    /// @remarks Does not include core library
     LOGIA_API LOGIA_LEND Program *ast_create_program(llvm::LLVMContext &C);
 }

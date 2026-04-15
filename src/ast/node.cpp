@@ -5,6 +5,46 @@
 
 namespace logia::AST
 {
+    ParserRuleContextException::ParserRuleContextException(antlr4::ParserRuleContext *rule, const std::string &message)
+        : std::runtime_error(format_message(rule, message))
+    {
+    }
+
+    std::string ParserRuleContextException::format_message(antlr4::ParserRuleContext *rule, const std::string &message)
+    {
+        if (!rule)
+        {
+            return std::format("{} [at <unknown>:0:0]", message);
+        }
+
+        auto start = rule->getStart();
+        if (!start)
+        {
+            return std::format("{} [at <unknown>:0:0]", message);
+        }
+
+        std::string source = "<unknown>";
+        if (auto tokenSource = start->getTokenSource())
+        {
+            if (auto input = tokenSource->getInputStream())
+            {
+                source = input->getSourceName();
+            }
+        }
+
+        return std::format("{} [at {}:{}:{}]", message, source, start->getLine(), start->getCharPositionInLine());
+    }
+
+    [[noreturn]] void throw_parser_context_exception(antlr4::ParserRuleContext *rule, const std::string &message)
+    {
+        throw ParserRuleContextException(rule, message);
+    }
+
+    [[noreturn]] void throw_node_exception(const Node *node, const std::string &message)
+    {
+        throw_parser_context_exception(node ? node->rule : nullptr, message);
+    }
+
     Node::Node(antlr4::ParserRuleContext *rule, ast_types type)
     {
         this->rule = rule;
@@ -71,7 +111,7 @@ namespace logia::AST
         }
         */
 
-        this->on_after_attach();
+        this->post_attach();
     }
 
     std::string Node::to_string_tree(std::string padding)
@@ -88,7 +128,7 @@ namespace logia::AST
         return out;
     }
 
-    void Node::on_after_attach()
+    void Node::post_attach()
     {
         this->is_attached = true;
     }
