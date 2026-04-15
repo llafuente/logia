@@ -214,15 +214,15 @@ namespace logia::AST
     }
     Identifier *StructField::get_name()
     {
-        return (Identifier *)this->children[0];
+        return this->get_child<Identifier>(0);
     }
     Type *StructField::get_type()
     {
-        return (Type *)this->children[1];
+        return ast_resolve_type(this->get_child<Type>(1));
     }
     Expression *StructField::get_default_value()
     {
-        return (Expression *)this->children[2];
+        return this->get_child<Expression>(2);
     }
     std::string StructField::to_string()
     {
@@ -242,6 +242,11 @@ namespace logia::AST
         LOGIA_ASSERT(id && "id parameters is required");
         NODE_TYPE_ASSERT(id, ast_types::IDENTIFIER);
 
+        if (this->has_name)
+        {
+            throw std::runtime_error("Struct already has a name");
+        }
+
         this->has_name = true;
         this->unshift_child(id);
     }
@@ -257,7 +262,7 @@ namespace logia::AST
 
     Identifier *Struct::get_identifier()
     {
-        return (Identifier *)this->children[0];
+        return this->get_child<Identifier>(0);
     }
 
     Identifier *Struct::get_alias_to(Identifier *from)
@@ -379,7 +384,7 @@ namespace logia::AST
     // TypeDef
     //
     // REVIEW, it's a type but it's definition, need to  distinguish both ?
-    TypeDef::TypeDef() : Node(nullptr, ast_types::TYPE) {}
+    TypeDef::TypeDef() : Type(nullptr, Primitives::NONE) {}
     TypeDef::~TypeDef() {}
 
     Type *TypeDef::get_type()
@@ -613,5 +618,16 @@ namespace logia::AST
 
         this->push_child(new StructAlias(rule, from, to, docstring));
         ++this->alias_count;
+    }
+
+    LOGIA_API LOGIA_LEND Type *ast_resolve_type(Node *node)
+    {
+        int max = 100;
+        do
+        {
+            node = node->get_type();
+        } while (!node->is<TypeDef>() && --max);
+
+        return node->as<Type>();
     }
 }

@@ -202,7 +202,7 @@ namespace logia::AST
     // TODO implement static values
     // TODO aggregates ?
     /// @brief Node to resolve a type by name
-    struct LOGIA_EXPORT TypeDef : public Node
+    struct LOGIA_EXPORT TypeDef : public Type
     {
         // typeModifiers
         unsigned char is_readonly : 1 = false;
@@ -268,4 +268,9 @@ namespace logia::AST
      * Creates a struct type
      */
     LOGIA_API LOGIA_LEND Struct *ast_create_struct_type(Identifier *id);
+
+    /// @brief Retrieves node real type
+    /// @param node
+    /// @return
+    LOGIA_API LOGIA_LEND Type *ast_resolve_type(Node *node);
 }

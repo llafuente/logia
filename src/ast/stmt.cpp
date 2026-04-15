@@ -187,12 +187,13 @@ namespace logia::AST
     {
         // replace NoOp ?
         // TODO REVIEW this may be too soon...
-        if (this->is_child<NoOp>(1)) {
+        if (this->is_child<NoOp>(1))
+        {
             // NoOp
             this->children[1] = this->get_expr()->get_type();
         }
 
-        return this->get_child<Type>(1);
+        return ast_resolve_type(this->get_child<Type>(1));
     }
 
     bool VarDeclStmt::pre_type_inference()
