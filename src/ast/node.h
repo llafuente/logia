@@ -27,6 +27,7 @@ namespace logia::AST
         unsigned char is_typed : 1 = false;
         // used by identifier
         unsigned char has_name : 1 = false;
+        unsigned char is_constant : 1 = false;
 
         /**
          * TODO
@@ -195,6 +196,16 @@ namespace logia::AST
                 throw std::runtime_error(message);
             }
             throw std::runtime_error(std::format("unexpected type {} expected {}", typeid(this).name(), typeid(T).name()));
+        }
+
+        template <class T>
+        bool is()
+        {
+            if (auto out = dynamic_cast<T *>(this))
+            {
+                return true;
+            }
+            return false;
         }
     };
 

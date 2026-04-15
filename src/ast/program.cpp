@@ -80,6 +80,9 @@ namespace logia::AST
         body->scope[(char *)"float"] = body->scope[(char *)"λf64"];
         body->scope[(char *)"bool"] = body->scope[(char *)"λi1"];
 
+        // struct of all types
+        body->scope[(char *)"i64"] = body->scope[(char *)"λi64"];
+
         body->scope[(char *)"λvoid"] = lvoid;
 
         // TODO study opaque pointers, while seem what we need

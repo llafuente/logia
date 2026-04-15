@@ -6,6 +6,8 @@ namespace logia::AST
 
     enum ast_types : uint32_t
     {
+        NONE = 0,
+
         // expression flag
         EXPRESSION = (1 << 30),
         // Is a constant
