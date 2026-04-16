@@ -11,6 +11,7 @@ namespace logia::AST
     struct Identifier;
     struct Type;
     struct Expression;
+    struct CallExpression;
 
     enum class Primitives
     {

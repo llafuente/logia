@@ -1,0 +1,16 @@
+type point = struct {
+    i64 x
+    i64 y
+/*
+    function new(i64 x, i64 y) {
+        this.x = x
+        this.y = y
+    }
+*/
+}
+
+function main() i64 {
+    var point p = {10, 11}
+    
+    return p.x + p.y
+}

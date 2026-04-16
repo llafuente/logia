@@ -330,7 +330,6 @@ namespace logia::AST
 
     Type *Struct::get_field_type(Identifier *id)
     {
-        // TODO nullptr
         return this->get_field(id)->get_type();
     }
 
@@ -366,9 +365,8 @@ namespace logia::AST
         elements.reserve(this->field_count);
         for (auto &prop : this->children)
         {
-            if (typeid(prop) == typeid(StructField)) // review it works ?
+            if (auto field = dynamic_cast<StructField*>(prop)) // review it works ?
             {
-                auto field = (StructField *)prop;
                 elements.push_back((llvm::Type *)field->get_type()->codegen(codegen, builder));
             }
         }

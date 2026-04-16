@@ -51,7 +51,7 @@ namespace logia::AST
     //
     //
     //
-    VarDeclStmt::VarDeclStmt(antlr4::ParserRuleContext *rule, Identifier *id, Type *type, Expression *expr) : Stmt(rule, ast_types::VAR_DECL_STMT), ir(nullptr)
+    VarDeclStmt::VarDeclStmt(antlr4::ParserRuleContext *rule, Identifier *id, Type *type, Expression *expr) : Stmt(rule, ast_types::VAR_DECL_STMT), alloca(nullptr)
     {
         this->push_child(id);
         if (type == nullptr)
@@ -60,6 +60,7 @@ namespace logia::AST
         }
         else
         {
+            this->is_typed = true;
             this->push_child(type);
         }
         this->push_child(expr);
@@ -86,21 +87,49 @@ namespace logia::AST
 
     llvm::Value *VarDeclStmt::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
     {
-        if (this->ir != nullptr)
+        if (this->alloca != nullptr)
         {
-            return this->ir;
+            return this->alloca;
         }
 
         DEBUG() << this->to_string() << std::endl;
-        auto value = (llvm::Value *)this->get_expr()->codegen(codegen, builder);
+        auto init_value = (llvm::Value *)this->get_expr()->codegen(codegen, builder);
+        auto type = this->get_type();
+        /*
+        if (type->is<Struct>())
+        {
+            auto structTy = (llvm::StructType *)this->get_type()->codegen(codegen, builder);
+            // struct path
+            // 3) Destination stack allocation
+            llvm::Value *dstAlloca = builder->CreateAlloca(structTy, nullptr, "myStruct");
+
+            const llvm::DataLayout &dl = codegen->module->getDataLayout();
+            auto *i8PtrTy = builder->getIntPtrTy(dl);
+
+            llvm::Value *dstI8 = builder->CreateBitCast(dstAlloca, i8PtrTy);
+            llvm::Value *srcI8 = builder->CreateBitCast(init_value, i8PtrTy);
+
+            // 4) memcpy
+            auto abiAlign = llvm::Align(dl.getABITypeAlign(structTy).value());
+            uint64_t size = dl.getTypeAllocSize(structTy);
+            builder->CreateMemCpy(
+                dstI8, llvm::MaybeAlign(abiAlign),
+                srcI8, llvm::MaybeAlign(abiAlign),
+                size);
+
+            return dstAlloca; // pointer to initialized struct
+        }
+        */
+
+        // other path
 
         // TODO Type should be handled before ?
         // this->ir = builder->CreateAlloca((llvm::Type*) this->type->codegen(codegen, builder), 0, value);
         // this->ir = builder->CreateAlloca(value->getType(), 0, value);
-        this->ir = builder->CreateAlloca(value->getType(), 0, nullptr);
-        builder->CreateStore(value, this->ir);
+        this->alloca = builder->CreateAlloca(init_value->getType(), 0, nullptr);
+        builder->CreateStore(init_value, this->alloca);
 
-        return this->ir;
+        return this->alloca;
     }
 
     //
@@ -190,7 +219,7 @@ namespace logia::AST
         if (this->is_child<NoOp>(1))
         {
             // NoOp
-            this->children[1] = this->get_expr()->get_type();
+            throw std::runtime_error("????");
         }
 
         return ast_resolve_type(this->get_child<Type>(1));
@@ -198,8 +227,30 @@ namespace logia::AST
 
     bool VarDeclStmt::pre_type_inference()
     {
-        // TODO determine type if possible
-        // TODO what we do when we cant ? push somewhere and back later ?
+        if (is_typed) {
+            // TODO determine type if possible
+            // TODO what we do when we cant ? push somewhere and back later ?
+            auto t = this->get_type();
+            if (t->is<Struct>()) {
+                // if rhs is struct initializer -> set_type
+                auto expr = this->get_expr();
+                if (expr != nullptr && expr->is<StructInitializer>()) {
+                    expr->as<StructInitializer>()->set_type(t);
+                }
+            }
+        }
         return true;
+    }
+
+    void VarDeclStmt::post_type_inference() {
+        if (!this->is_typed) {
+            auto expr = this->get_expr();
+            if (expr == nullptr) {
+                throw std::runtime_error("type guessing not implemented yet!");
+            }
+
+            // override type with initializer
+            this->children[1] = this->get_expr()->get_type();
+        }
     }
 }

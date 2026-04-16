@@ -32,7 +32,7 @@ namespace logia::AST
     /// @brief Variable declaration/initialization statement
     struct VarDeclStmt : Stmt
     {
-        llvm::AllocaInst *ir;
+        llvm::AllocaInst *alloca;
 
         VarDeclStmt(antlr4::ParserRuleContext *rule, Identifier *id, Type *type, Expression *expr);
 
@@ -53,6 +53,7 @@ namespace logia::AST
         void post_attach() override;
         Type *get_type() override;
         bool pre_type_inference() override;
+        void post_type_inference() override;
     };
 
     /// @brief Goto statement

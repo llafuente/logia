@@ -2,6 +2,39 @@
 
 #include "ast/constexpr.h"
 
+#define CST_THROW(msg)                                         \
+    do                                                         \
+    {                                                          \
+        std::cerr << __FILE__ << ":" << __LINE__ << std::endl; \
+        throw std::runtime_error(__FUNCTION__ msg);            \
+    } while (false)
+
+#define CST_TODO_BRANCH(retrieve_method, visit_method) \
+    do                                                 \
+    {                                                  \
+        auto x = context->retrieve_method();           \
+        if (x != nullptr)                              \
+        {                                              \
+            CST_THROW("todo");                         \
+        }                                              \
+    } while (false)
+
+#define CST_TODO_BRANCH_LIST(retrieve_method, visit_method) \
+    do                                                      \
+    {                                                       \
+        auto x = context->retrieve_method(0);               \
+        if (x != nullptr)                                   \
+        {                                                   \
+            CST_THROW("todo");                              \
+        }                                                   \
+    } while (false)
+
+#define CST_UNREACHABLE()         \
+    do                            \
+    {                             \
+        CST_THROW("unreachable"); \
+    } while (false)
+
 #define VISIT_FORDWARD(retrieve_method, visit_method) \
     do                                                \
     {                                                 \
@@ -321,18 +354,25 @@ namespace logia
         if (context->expr1 != nullptr)
         {
             // postfixBracesMemberAccessExpr
+            CST_THROW("todo");
         }
         else if (context->expr2 != nullptr)
         {
             // postfixDotMemberAccessExpr
+            auto left = ANY_VOIDP_CAST(AST::Expression *, this->visitPostfixExpr(context->expr2));
+            LOGIA_ASSERT(context->identifierName()->keywords() != nullptr, "TODO");
+            auto right = ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(context->identifierName()->identifier()));
+            return ANY_VOIDP_STORE(new AST::MemberAccessExpression(nullptr, left, right));
         }
         else if (context->expr3 != nullptr)
         {
             // postfixSliceExpr
+            CST_THROW("todo");
         }
         else if (context->expr4 != nullptr)
         {
             // rangeExpr
+            CST_THROW("todo");
         }
         else if (context->expr5 != nullptr)
         {
@@ -342,25 +382,35 @@ namespace logia
         else if (context->expr6 != nullptr)
         {
             // preprocessorMemberMacroCallExpr
+            CST_THROW("todo");
         }
         else if (context->expr7 != nullptr)
         {
             // postfixIndecrementExpr
+            CST_THROW("todo");
         }
         else
         {
             // primaryExpr
             return this->visitPrimaryExpr(context->primaryExpr());
         }
-        throw std::runtime_error(__FUNCTION__ " todo");
+
+        CST_UNREACHABLE();
     }
+
     std::any CST2AST::postfixCallExpr(LogiaParser::PostfixExprContext *locator, LogiaParser::ArgumentExprListContext *arguments)
     {
         auto ast_locator = ANY_VOIDP_CAST(AST::Expression *, this->visitPostfixExpr(locator));
         auto callexpr = AST::ast_create_call_expr(ast_locator, {});
 
         DEBUG() << "locator" << ast_locator->to_string() << std::endl;
+        parseArguments(callexpr, arguments);
 
+        return ANY_VOIDP_STORE(callexpr);
+    }
+
+    void CST2AST::parseArguments(AST::CallExpression *callexpr, LogiaParser::ArgumentExprListContext *arguments)
+    {
         // NAMED
         LogiaParser::NamedArgumentContext *namedArg;
 
@@ -403,8 +453,6 @@ namespace logia
 
             callexpr->add_positional_argument(expr);
         }
-
-        return ANY_VOIDP_STORE(callexpr);
     }
 
     std::any CST2AST::visitPrimaryExpr(LogiaParser::PrimaryExprContext *context)
@@ -428,11 +476,9 @@ namespace logia
         DEBUG() << context->getText() << std::endl;
 
         VISIT_FORDWARD(constant, visitConstant);
+        VISIT_FORDWARD(structConstantInitializer, visitStructConstantInitializer);
 
         if (context->arrayInitializer() != nullptr)
-        {
-        }
-        else if (context->structConstantInitializer() != nullptr)
         {
         }
         else if (context->structInitializer() != nullptr)
@@ -440,6 +486,31 @@ namespace logia
         }
 
         throw std::runtime_error(__FUNCTION__ " todo");
+    }
+    std::any CST2AST::visitStructConstantInitializer(LogiaParser::StructConstantInitializerContext *context)
+    {
+        auto list = context->structProperyInitializerList();
+        auto sinit = new AST::StructInitializer(context);
+        for (int i = 0;; ++i)
+        {
+            auto prop = list->structProperyInitializer(i);
+            if (prop == nullptr)
+            {
+                break;
+            }
+
+            auto value = ANY_VOIDP_CAST(AST::Expression *, this->visitRhsExpr(prop->value));
+            if (prop->locator != nullptr) {
+                auto locator = ANY_VOIDP_CAST(AST::TypeDef*, this->visitTypeLocator(prop->locator));
+
+                sinit->add_named_property(locator, value);
+            }
+            else {
+                sinit->add_positional_property(value);
+            }
+        }
+
+        return ANY_VOIDP_STORE(sinit);
     }
 
     std::any CST2AST::visitConstant(LogiaParser::ConstantContext *context)
@@ -500,13 +571,6 @@ namespace logia
         str->rule = context;
 
         return ANY_VOIDP_STORE(str);
-    }
-    std::any CST2AST::visitType(LogiaParser::TypeContext *context)
-    {
-        DEBUG() << context->getText() << std::endl;
-
-        // TODO
-        return nullptr;
     }
 
     std::any CST2AST::visitFunctionDecl(LogiaParser::FunctionDeclContext *context)
@@ -606,6 +670,7 @@ namespace logia
     //
     std::any CST2AST::visitInferVariableDeclStmt(LogiaParser::InferVariableDeclStmtContext *context)
     {
+        DEBUG() << context->getText() << std::endl;
         auto ident = ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(context->identifier()));
         AST::Expression *expr = nullptr;
 
@@ -622,6 +687,7 @@ namespace logia
     }
     std::any CST2AST::visitTypedVariableDeclStmt(LogiaParser::TypedVariableDeclStmtContext *context)
     {
+        DEBUG() << context->getText() << std::endl;
         auto ident = ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(context->identifier()));
         AST::Expression *expr = nullptr;
 
@@ -631,13 +697,227 @@ namespace logia
             expr = ANY_VOIDP_CAST(AST::Expression *, this->visitRhsExpr(rhs));
         }
 
+        auto constructor_arguments = context->argumentExprList();
+        if (constructor_arguments != nullptr)
+        {
+            auto callexpr = AST::ast_create_call_expr(AST::ast_create_identifier("new"), {});
+            this->parseArguments(callexpr, constructor_arguments);
+            expr = callexpr;
+        }
+
+        auto type_def = ANY_VOIDP_CAST(AST::Type *, this->visitTypeDefinition(context->typeDefinition()));
+
         auto type = (AST::Type *)this->program->lookup((char *)"λi64");
         // TODO!!!
 
-        auto decl = AST::ast_create_var_decl(ident, type, expr);
+        auto decl = AST::ast_create_var_decl(ident, type_def, expr);
         decl->rule = context;
 
         return ANY_VOIDP_STORE(decl);
+    }
+
+    //
+    // types
+    //
+    std::any CST2AST::visitTypeDecl(LogiaParser::TypeDeclContext *context)
+    {
+        DEBUG() << context->getText() << std::endl;
+        auto type_name = ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(context->name));
+        // types that support templates
+        CST_TODO_BRANCH(templateDefinition, visitTemplateDefinition);
+
+        if (context->structTypeDecl())
+        {
+            auto structure = ANY_VOIDP_CAST(AST::Struct *, this->visitStructTypeDecl(context->structTypeDecl()));
+            structure->set_identifier(type_name);
+            structure->rule = context;
+            this->block->push_child(structure); // <-- TODO REVIEW so strange! program should push child stmts!!!
+            return ANY_VOIDP_STORE(structure);
+        }
+
+        CST_TODO_BRANCH(interfaceTypeDecl, visitInterfaceTypeDecl);
+        CST_TODO_BRANCH(anonymousFunctionDef, visitAnonymousFunctionDef);
+        CST_TODO_BRANCH(aggregateTypeDecl, visitAggregateTypeDecl);
+        CST_TODO_BRANCH(aliasTypeDecl, visitAliasTypeDecl);
+
+        // types that DON'T support templates
+
+        CST_UNREACHABLE();
+    }
+    std::any CST2AST::visitStructTypeDecl(LogiaParser::StructTypeDeclContext *context)
+    {
+        DEBUG() << context->getText() << std::endl;
+        CST_TODO_BRANCH_LIST(typeExtendsDecl, visitTypeExtendsDecl);
+        CST_TODO_BRANCH_LIST(typeImplementsDecl, visitTypeImplementsDecl);
+
+        auto structure = AST::ast_create_struct_type(nullptr);
+
+        for (int i = 0;; ++i)
+        {
+            auto property = context->structProperty(i);
+            if (property == nullptr)
+            {
+                break;
+            }
+
+            this->visitStructProperty(property, structure);
+        }
+
+        return ANY_VOIDP_STORE(structure);
+    }
+    std::any CST2AST::visitStructProperty(LogiaParser::StructPropertyContext *context)
+    {
+        CST_UNREACHABLE();
+    }
+
+    void CST2AST::visitStructProperty(LogiaParser::StructPropertyContext *context, AST::Struct *structure)
+    {
+        DEBUG() << context->getText() << std::endl;
+
+        if (context->comments() != nullptr)
+        {
+            // CST_IGNORED();
+            return;
+        }
+        else if (context->structPropertyDecl() != nullptr)
+        {
+            return this->visitStructPropertyDecl(context->structPropertyDecl(), structure);
+        }
+        else if (context->endOfStmt())
+        {
+            // CST_IGNORED();
+            return;
+        }
+        CST_UNREACHABLE();
+    }
+    std::any CST2AST::visitStructPropertyDecl(LogiaParser::StructPropertyDeclContext *context)
+    {
+        CST_UNREACHABLE();
+    }
+    void CST2AST::visitStructPropertyDecl(LogiaParser::StructPropertyDeclContext *context, AST::Struct *structure)
+    {
+        DEBUG() << context->getText() << std::endl;
+
+        if (context->identifierName() != nullptr)
+        {
+            auto type = ANY_VOIDP_CAST(AST::Type *, this->visitTypeDefinition(context->typeDefinition()));
+            LOGIA_ASSERT(context->identifierName()->identifier() != nullptr, "TODO");
+            auto name = ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(context->identifierName()->identifier()));
+
+            auto rhs = context->rhsExpr();
+            AST::Expression *default_value = nullptr;
+            if (rhs != nullptr)
+            {
+                default_value = ANY_VOIDP_CAST(AST::Expression *, this->visitRhsExpr(rhs));
+            }
+            structure->add_field(context, name, type, default_value, "");
+            return;
+        }
+
+        CST_TODO_BRANCH(propertyAlias, PropertyAlias);
+        CST_TODO_BRANCH(functionDef, FunctionDef); // functionBody
+        CST_TODO_BRANCH(memoryFunctionDecl, MemoryFunctionDecl);
+        CST_TODO_BRANCH(operatorFunctionDecl, OperatorFunctionDecl);
+        CST_TODO_BRANCH(structGetterDecl, StructGetterDecl);
+        CST_TODO_BRANCH(structSetterDecl, StructSetterDecl);
+        CST_UNREACHABLE();
+    }
+
+    std::any CST2AST::visitTypeDefinition(LogiaParser::TypeDefinitionContext *context)
+    {
+        DEBUG() << context->getText() << std::endl;
+        auto tdef = new AST::TypeDef();
+
+        for (int i = 0;; ++i)
+        {
+            auto mod = context->typeModifiers(i);
+            if (mod == nullptr)
+            {
+                break;
+            }
+            if (mod->LEND_TK() != nullptr)
+            {
+                tdef->lend_memory = true;
+                continue;
+            }
+            else if (mod->OWN_TK() != nullptr)
+            {
+                tdef->own_memory = true;
+                continue;
+            }
+            else if (mod->READONLY_TK() != nullptr)
+            {
+                tdef->own_memory = true;
+                continue;
+            }
+            else if (mod->UNINITIALIZED_TK() != nullptr)
+            {
+                tdef->own_memory = true;
+                continue;
+            }
+            CST_UNREACHABLE();
+        }
+
+        this->visitTypeLocator(context->typeLocator(), tdef);
+        if (context->optional)
+        {
+            tdef->is_optional = true;
+        }
+
+        // TODO
+        return ANY_VOIDP_STORE(tdef);
+    }
+    std::any CST2AST::visitTypeLocator(LogiaParser::TypeLocatorContext *context)
+    {
+        DEBUG() << context->getText() << std::endl;
+        auto tdef = new AST::TypeDef();
+
+        this->visitTypeLocator(context, tdef);
+
+        return ANY_VOIDP_STORE(tdef);
+    }
+
+    void CST2AST::visitTypeLocator(LogiaParser::TypeLocatorContext *context, AST::TypeDef *tdef)
+    {
+        DEBUG() << context->getText() << std::endl;
+        // TODO
+        if (context->loc1 != nullptr)
+        {
+            CST_THROW("todo");
+        }
+        else if (context->loc2 != nullptr)
+        {
+            CST_THROW("todo");
+        }
+        else if (context->loc3 != nullptr)
+        {
+            CST_THROW("todo");
+        }
+        else if (context->loc4 != nullptr)
+        {
+            CST_THROW("todo");
+        }
+        else if (context->loc5 != nullptr)
+        {
+            CST_THROW("todo");
+        }
+        else if (context->loc6 != nullptr)
+        {
+            CST_THROW("todo");
+        }
+        else if (context->loc7 != nullptr)
+        {
+            tdef->push_child(ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(context->loc7)));
+            return;
+        }
+
+        CST_UNREACHABLE();
+    }
+    std::any CST2AST::visitType(LogiaParser::TypeContext *context)
+    {
+        DEBUG() << context->getText() << std::endl;
+        // TODO
+        return nullptr;
     }
 
     // Fallback: delegate to children

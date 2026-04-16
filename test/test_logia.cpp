@@ -36,4 +36,5 @@ TEST(run_from_file, sum_logia)
 
     EXPECT_EQ(test_single_file(".\\test\\logia\\sum.logia"), 25);
     EXPECT_EQ(test_single_file(".\\test\\logia\\math.logia"), 21);
+    EXPECT_EQ(test_single_file(".\\test\\logia\\struct-initializer.logia"), 21);
 }

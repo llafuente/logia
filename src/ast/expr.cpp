@@ -2,6 +2,8 @@
 #include "ast/constexpr.h"
 #include "ast/traverse.h"
 
+#include "llvm/IR/Constant.h"
+
 namespace logia::AST
 {
     //
@@ -168,7 +170,7 @@ namespace logia::AST
             // check arguments type are compatible one by one
             if (callee_arg->getType() != caller_arg->getType())
             {
-                auto message = std::format("Invalid argument {} of type {} expected type {}", i, llvm_type_to_string(caller_arg->getType()), llvm_type_to_string(callee_arg->getType()));
+                auto message = std::format("Invalid argument {}:{} of type {} expected type {}", i, name->identifier, llvm_type_to_string(caller_arg->getType()), llvm_type_to_string(callee_arg->getType()));
                 DEBUG() << message << std::endl
                         << arguments[i]->to_string_tree();
                 throw std::runtime_error(message);
@@ -215,12 +217,14 @@ namespace logia::AST
         auto struct_ty = left_type->as<Struct>();
 
         int propertyIndex = struct_ty->get_field_index(rightIdent);
+        auto propertyType = (llvm::Type *)struct_ty->get_field_type(rightIdent)->codegen(codegen, builder);
         if (propertyIndex == -1)
         {
             throw std::runtime_error(std::string("Unknown struct property: ") + rightIdent->identifier);
         }
 
-        return builder->CreateStructGEP(struct_ty->llvm_type, leftValue, propertyIndex);
+        auto ptr = builder->CreateStructGEP(struct_ty->llvm_type, leftValue, propertyIndex);
+        return builder->CreateLoad(propertyType, ptr);
     }
 
     // TODO create
@@ -337,7 +341,7 @@ namespace logia::AST
             auto operand = this->get_operand();
 
             // auto operandValue = operand->codegen(codegen, builder);
-            auto operandValue = this->get_operand()->as<Identifier>()->get_var_decl()->ir;
+            auto operandValue = this->get_operand()->as<Identifier>()->get_var_decl()->alloca;
             auto operandType = operandValue->getType();
             // return builder->CreateIntToPtr(operandValue, llvm::PointerType::get(codegen->context, 0));
             // return builder->CreateLoad(llvm::PointerType::get(codegen->context, 0), operandValue);
@@ -406,7 +410,7 @@ namespace logia::AST
 
         auto decl = ast_get_vardecl_by_name(this, this->identifier);
 
-        return builder->CreateLoad(decl->ir->getAllocatedType(), decl->ir, this->identifier);
+        return builder->CreateLoad(decl->alloca->getAllocatedType(), decl->alloca, this->identifier);
     }
 
     VarDeclStmt *Identifier::get_var_decl()
@@ -454,6 +458,11 @@ namespace logia::AST
 
     void StructInitializer::set_type(Type *type)
     {
+        if (this->is_typed)
+        {
+            throw std::runtime_error("type was already set");
+        }
+
         this->is_typed = true;
         this->unshift_child(type);
     }
@@ -472,6 +481,7 @@ namespace logia::AST
 
         ++this->length;
     }
+
     bool StructInitializer::pre_type_inference()
     {
         // if every value is constant -> we are constant!
@@ -484,17 +494,42 @@ namespace logia::AST
 
     llvm::Value *StructInitializer::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
     {
-        auto &ctx = module->getContext();
-        const llvm::DataLayout &dl = module->getDataLayout();
+        if (!this->is_constant)
+        {
+            throw std::runtime_error("non-constant initialization not supported atm.");
+        }
+
+        auto &ctx = codegen->context;
+        const llvm::DataLayout &dl = codegen->module->getDataLayout();
+
+        auto v = std::vector<llvm::Constant *>();
+        v.reserve(this->length);
+
+        // skip first, it's the type
+        for (int i = 1; i < this->children.size(); i += 2)
+        {
+            auto ptr = this->children[i + 1];
+            auto out = dynamic_cast<Expression *>(ptr);
+            auto ir = out->codegen(codegen, builder);
+            // if (auto cir = dynamic_cast<llvm::Constant*>(ir)) {
+            if (auto cir = (llvm::Constant *)(ir))
+            {
+                v.push_back(cir);
+            }
+            else
+            {
+                throw std::runtime_error("??");
+            }
+        }
+
+        auto structTy = (llvm::StructType *)this->get_type()->as<Struct>()->codegen(codegen, builder);
 
         // 1) Constant initializer (replace with your child constants)
-        llvm::Constant *c0 = llvm::ConstantInt::get(llvm::Type::getInt32Ty(ctx), 42);
-        llvm::Constant *c1 = llvm::ConstantFP::get(llvm::Type::getDoubleTy(ctx), 3.14);
-        llvm::Constant *init = llvm::ConstantStruct::get(structTy, {c0, c1});
+        llvm::Constant *init = llvm::ConstantStruct::get(structTy, v);
 
         // 2) Materialize constant in read-only global memory (memcpy source must be an address)
         auto *srcGlobal = new llvm::GlobalVariable(
-            *module,
+            *codegen->module,
             structTy,
             true, // isConstant
             llvm::GlobalValue::PrivateLinkage,
@@ -504,21 +539,7 @@ namespace logia::AST
         auto abiAlign = llvm::Align(dl.getABITypeAlign(structTy).value());
         srcGlobal->setAlignment(abiAlign);
 
-        // 3) Destination stack allocation
-        llvm::Value *dstAlloca = builder->CreateAlloca(structTy, nullptr, "myStruct");
-        auto *i8PtrTy = builder->getInt8PtrTy();
-
-        llvm::Value *dstI8 = builder->CreateBitCast(dstAlloca, i8PtrTy);
-        llvm::Value *srcI8 = builder->CreateBitCast(srcGlobal, i8PtrTy);
-
-        // 4) memcpy
-        uint64_t size = dl.getTypeAllocSize(structTy);
-        builder->CreateMemCpy(
-            dstI8, llvm::MaybeAlign(abiAlign),
-            srcI8, llvm::MaybeAlign(abiAlign),
-            size);
-
-        return dstAlloca; // pointer to initialized struct
+        return srcGlobal;
     }
 
     Type *StructInitializer::get_type()

@@ -9,6 +9,7 @@ namespace logia::AST
     struct VarDeclStmt;
     struct Identifier;
     struct TypeDef;
+    struct Function;
 
     struct Expression : Node
     {
@@ -29,9 +30,8 @@ namespace logia::AST
         /// @return The locator expression
         Expression *get_locator();
 
-        // TODO this should be std::vector<Expression *> but casting fail
         /// @brief Get the arguments expressions of the call
-        std::vector<Node *> get_arguments();
+        std::vector<Expression *> get_arguments();
 
         /// @brief Get the argument at the specified position
         /// @param pos The position of the argument

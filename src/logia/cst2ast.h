@@ -51,16 +51,17 @@ namespace logia
         std::any visitUnaryExpr(LogiaParser::UnaryExprContext *context) override;
         std::any visitPostfixExpr(LogiaParser::PostfixExprContext *context) override;
         std::any postfixCallExpr(LogiaParser::PostfixExprContext *locator, LogiaParser::ArgumentExprListContext *arguments);
+        void parseArguments(AST::CallExpression *callexpr, LogiaParser::ArgumentExprListContext *arguments);
         std::any visitPrimaryExpr(LogiaParser::PrimaryExprContext *context) override;
         std::any visitMayBeConstant(LogiaParser::MayBeConstantContext *context) override;
         std::any visitConstant(LogiaParser::ConstantContext *context) override;
+        std::any visitStructConstantInitializer(LogiaParser::StructConstantInitializerContext *context) override;
 
         std::any visitIdentifier(LogiaParser::IdentifierContext *context) override;
         std::any visitStringLiteral(LogiaParser::StringLiteralContext *context) override;
 
         std::any visitReturnStmt(LogiaParser::ReturnStmtContext *context) override;
 
-        std::any visitType(LogiaParser::TypeContext *context) override;
         //
         // functions
         //
@@ -76,6 +77,20 @@ namespace logia
         // std::any visitFileVariableDeclStmt(LogiaParser::FileVariableDeclStmtContext *context) override;
         std::any visitInferVariableDeclStmt(LogiaParser::InferVariableDeclStmtContext *context) override;
         std::any visitTypedVariableDeclStmt(LogiaParser::TypedVariableDeclStmtContext *context) override;
+
+        //
+        // types
+        //
+        std::any visitTypeDecl(LogiaParser::TypeDeclContext *context) override;
+        std::any visitStructTypeDecl(LogiaParser::StructTypeDeclContext *context) override;
+        std::any visitStructProperty(LogiaParser::StructPropertyContext *context) override;
+        void visitStructProperty(LogiaParser::StructPropertyContext *context, AST::Struct *structure);
+        std::any visitStructPropertyDecl(LogiaParser::StructPropertyDeclContext *context) override;
+        void visitStructPropertyDecl(LogiaParser::StructPropertyDeclContext *context, AST::Struct *structure);
+        std::any visitTypeDefinition(LogiaParser::TypeDefinitionContext *context) override;
+        std::any visitTypeLocator(LogiaParser::TypeLocatorContext *context) override;
+        void visitTypeLocator(LogiaParser::TypeLocatorContext *context, AST::TypeDef *tdef);
+        std::any visitType(LogiaParser::TypeContext *context) override;
 
         // Fallback: delegate to children
         antlrcpp::Any visitChildren(antlr4::tree::ParseTree *node) override;
