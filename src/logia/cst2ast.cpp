@@ -6,7 +6,7 @@
     do                                                         \
     {                                                          \
         std::cerr << __FILE__ << ":" << __LINE__ << std::endl; \
-        throw std::runtime_error(__FUNCTION__ msg);            \
+        throw std::runtime_error(__FUNCTION__ " " msg);        \
     } while (false)
 
 #define CST_TODO_BRANCH(retrieve_method, visit_method) \
@@ -35,15 +35,18 @@
         CST_THROW("unreachable"); \
     } while (false)
 
-#define VISIT_FORDWARD(retrieve_method, visit_method) \
-    do                                                \
-    {                                                 \
-        auto stmt = context->retrieve_method();       \
-        if (stmt != nullptr)                          \
-        {                                             \
-            return this->visit_method(stmt);          \
-        }                                             \
+#define CST_VISIT_BRANCH(retrieve_method, visit_method) \
+    do                                                  \
+    {                                                   \
+        auto stmt = context->retrieve_method();         \
+        if (stmt != nullptr)                            \
+        {                                               \
+            return this->visit_method(stmt);            \
+        }                                               \
     } while (false)
+
+#define CST_DEBUG_FUNCTION() \
+    DEBUG() << context->getText() << std::endl;
 
 #define ANY_VOIDP_STORE(expr) (void *)(expr)
 #define ANY_VOIDP_CAST(type, expr) (type)(std::any_cast<void *>(expr))
@@ -79,12 +82,55 @@ namespace logia
     {
         DEBUG() << context->getText() << std::endl;
 
-        VISIT_FORDWARD(errorHandlingExprs, visitErrorHandlingExprs);
-        VISIT_FORDWARD(conditionalExpr, visitConditionalExpr);
-        VISIT_FORDWARD(tokenizeExpr, visitTokenizeExpr);
-        VISIT_FORDWARD(anonymousfunctionDecl, visitAnonymousfunctionDecl);
+        CST_VISIT_BRANCH(errorHandlingExprs, visitErrorHandlingExprs);
+        CST_VISIT_BRANCH(conditionalExpr, visitConditionalExpr);
+        CST_VISIT_BRANCH(tokenizeExpr, visitTokenizeExpr);
+        CST_VISIT_BRANCH(anonymousfunctionDecl, visitAnonymousfunctionDecl);
 
         throw std::runtime_error(__FUNCTION__ "unreachable");
+    }
+    std::any CST2AST::visitAssignmentExpr(LogiaParser::AssignmentExprContext *context)
+    {
+        CST_DEBUG_FUNCTION();
+
+        CST_TODO_BRANCH(errorHandlingExprs, ErrorHandlingExprs);
+        CST_VISIT_BRANCH(conditionalExpr, visitConditionalExpr);
+
+        // right associative
+        auto left = ANY_VOIDP_CAST(AST::Expression *, this->visitUnaryExpr(context->left));
+        auto right = ANY_VOIDP_CAST(AST::Expression *, this->visitAssignmentExpr(context->right));
+
+        //'%=' |  '<<=' | '>>=' | '&=' | '^=' | '|='
+        switch (context->op->start->getType())
+        {
+        case LogiaParser::EQUAL_TK:
+            return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::ASSIGN, right));
+        case LogiaParser::STAR_ASSIGN_TK:
+            return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::MUL_ASSIGN, right));
+        case LogiaParser::DIV_ASSIGN_TK:
+            return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::DIV_ASSIGN, right));
+        case LogiaParser::ADD_ASSIGN_TK:
+            return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::ADD_ASSIGN, right));
+        case LogiaParser::SUB_ASSIGN_TK:
+            return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::SUB_ASSIGN, right));
+
+        // case RIGHT_SHIFT_ASSIGN_TK:
+        // return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::BITWISE_LEFT_SHIFT_ASSIGN, right));
+        // case LEFT_SHIFT_ASSIGN_TK:
+        // return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::BITWISE_RIGHT_SHIFT_ASSIGN, right));
+        // case AND_ASSIGN_TK:
+        // return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::BITWISE_AND_ASSIGN, right));
+        // case XOR_ASSIGN_TK:
+        // return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::BITWISE_XOR_ASSIGN, right));
+        // case OR_ASSIGN_TK:
+        // return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::BITWISE_OR_ASSIGN, right));
+        // case LogiaParser::MOD_ADDIGN_TK:
+        // return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::MOD_ASSIGN, right));
+        // case LogiaParser::OR_ASSIGN_TK:
+        // return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::OR, right));
+        default:
+            CST_UNREACHABLE();
+        }
     }
 
     std::any CST2AST::visitConditionalExpr(LogiaParser::ConditionalExprContext *context)
@@ -309,10 +355,10 @@ namespace logia
     std::any CST2AST::visitUnaryExpr(LogiaParser::UnaryExprContext *context)
     {
         DEBUG() << context->getText() << std::endl;
-        VISIT_FORDWARD(unaryNewExpression, visitUnaryNewExpression);
-        VISIT_FORDWARD(unaryDeleteExpression, visitUnaryDeleteExpression);
-        VISIT_FORDWARD(unaryCloneExpression, visitUnaryCloneExpression);
-        VISIT_FORDWARD(unaryMockExpr, visitUnaryMockExpr);
+        CST_VISIT_BRANCH(unaryNewExpression, visitUnaryNewExpression);
+        CST_VISIT_BRANCH(unaryDeleteExpression, visitUnaryDeleteExpression);
+        CST_VISIT_BRANCH(unaryCloneExpression, visitUnaryCloneExpression);
+        CST_VISIT_BRANCH(unaryMockExpr, visitUnaryMockExpr);
 
         // auto operand = ANY_VOIDP_CAST(AST::Expression *, this->visitPostfixExpr(context->operand)));
         auto operand = ANY_VOIDP_CAST(AST::Expression *, this->visitPostfixExpr(context->operand));
@@ -404,7 +450,10 @@ namespace logia
         auto callexpr = AST::ast_create_call_expr(ast_locator, {});
 
         DEBUG() << "locator" << ast_locator->to_string() << std::endl;
-        parseArguments(callexpr, arguments);
+        if (arguments != nullptr)
+        {
+            parseArguments(callexpr, arguments);
+        }
 
         return ANY_VOIDP_STORE(callexpr);
     }
@@ -448,7 +497,7 @@ namespace logia
             }
             else
             {
-                throw std::runtime_error(__FUNCTION__ " unreachable");
+                CST_UNREACHABLE();
             }
 
             callexpr->add_positional_argument(expr);
@@ -459,24 +508,29 @@ namespace logia
     {
         DEBUG() << context->getText() << std::endl;
 
-        VISIT_FORDWARD(mayBeConstant, visitMayBeConstant);
+        CST_VISIT_BRANCH(mayBeConstant, visitMayBeConstant);
+        CST_VISIT_BRANCH(groupExpr, visitGroupExpr);
 
-        if (context->groupExpr() != nullptr)
+        if (context->typeDefinition() != nullptr)
         {
-        }
-        else if (context->typeDefinition() != nullptr)
-        {
+            CST_THROW("typeDefinition - todo");
         }
 
-        throw std::runtime_error(__FUNCTION__ " todo");
+        CST_UNREACHABLE();
+    }
+
+    std::any CST2AST::visitGroupExpr(LogiaParser::GroupExprContext *context)
+    {
+        CST_VISIT_BRANCH(expression, visitExpression);
+        CST_UNREACHABLE();
     }
 
     std::any CST2AST::visitMayBeConstant(LogiaParser::MayBeConstantContext *context)
     {
         DEBUG() << context->getText() << std::endl;
 
-        VISIT_FORDWARD(constant, visitConstant);
-        VISIT_FORDWARD(structConstantInitializer, visitStructConstantInitializer);
+        CST_VISIT_BRANCH(constant, visitConstant);
+        CST_VISIT_BRANCH(structConstantInitializer, visitStructConstantInitializer);
 
         if (context->arrayInitializer() != nullptr)
         {
@@ -500,12 +554,14 @@ namespace logia
             }
 
             auto value = ANY_VOIDP_CAST(AST::Expression *, this->visitRhsExpr(prop->value));
-            if (prop->locator != nullptr) {
-                auto locator = ANY_VOIDP_CAST(AST::TypeDef*, this->visitTypeLocator(prop->locator));
+            if (prop->locator != nullptr)
+            {
+                auto locator = ANY_VOIDP_CAST(AST::TypeDef *, this->visitTypeLocator(prop->locator));
 
                 sinit->add_named_property(locator, value);
             }
-            else {
+            else
+            {
                 sinit->add_positional_property(value);
             }
         }
@@ -529,9 +585,9 @@ namespace logia
             throw std::runtime_error(__FUNCTION__ " todo");
         }
 
-        VISIT_FORDWARD(numberLiteral, visitNumberLiteral);
-        VISIT_FORDWARD(identifier, visitIdentifier);
-        VISIT_FORDWARD(stringLiteral, visitStringLiteral);
+        CST_VISIT_BRANCH(numberLiteral, visitNumberLiteral);
+        CST_VISIT_BRANCH(identifier, visitIdentifier);
+        CST_VISIT_BRANCH(stringLiteral, visitStringLiteral);
 
         if (context->preprocessorExpr() != nullptr)
         {
@@ -590,19 +646,37 @@ namespace logia
         auto old = this->block;
         this->block = fn->get_body();
         // this->block->push_child(ret_expr);
-        this->visitFunctionBody(context->functionBody());
+        this->parseBlock(context->blockStmt(), this->block);
         this->block = old;
 
         return ANY_VOIDP_STORE(fn);
     }
 
-    std::any CST2AST::visitFunctionBody(LogiaParser::FunctionBodyContext *context)
+    std::any CST2AST::visitBlockStmt(LogiaParser::BlockStmtContext *context)
     {
-        DEBUG() << context->getText() << std::endl;
-        DEBUG() << context->globalImportVarList() << std::endl;
-        DEBUG() << context->functionBodyStmtList() << std::endl;
+        auto old = this->block;
 
-        LOGIA_ASSERT(context->globalImportVarList() != nullptr, "not supportted");
+        auto block = AST::ast_create_block();
+        old->push_child(block);
+
+        this->block = block;
+        auto stmts = context->functionBodyStmtList();
+        this->parseBlock(context, block);
+        this->block = old;
+
+        return ANY_VOIDP_STORE(nullptr);
+    }
+
+    void CST2AST::parseBlock(LogiaParser::BlockStmtContext *context, AST::Block *block)
+    {
+        if (context == nullptr)
+        {
+            DEBUG() << "empty block" << std::endl;
+            return;
+        }
+
+        DEBUG() << context->getText() << std::endl;
+        DEBUG() << context->functionBodyStmtList() << std::endl;
 
         auto stmt_list = context->functionBodyStmtList();
 
@@ -619,8 +693,11 @@ namespace logia
             try
             {
                 auto node = ANY_VOIDP_CAST(AST::Node *, any_node);
-                DEBUG() << i << node->to_string() << std::endl;
-                this->block->push_child(node);
+                DEBUG() << i << node << (node != nullptr ? node->to_string() : "") << std::endl;
+                if (node != nullptr)
+                {
+                    this->block->push_child(node);
+                }
             }
             catch (std::exception e)
             {
@@ -629,32 +706,32 @@ namespace logia
                 throw e;
             }
         }
-
-        return nullptr;
     }
 
     std::any CST2AST::visitFunctionBodyStmt(LogiaParser::FunctionBodyStmtContext *context)
     {
+        CST_DEBUG_FUNCTION();
 
-        VISIT_FORDWARD(labeledStatement, visitLabeledStatement);
-        VISIT_FORDWARD(blockStatement, visitBlockStatement);
-        VISIT_FORDWARD(aliasDeclStmt, visitAliasDeclStmt);
-        VISIT_FORDWARD(typeDecl, visitTypeDecl);
-        VISIT_FORDWARD(functionDecl, visitFunctionDecl);
-        VISIT_FORDWARD(selectionStmts, visitSelectionStmts);
+        CST_TODO_BRANCH(globalImportVar, visitGlobalImportVar);
+        CST_VISIT_BRANCH(labeledStatement, visitLabeledStatement);
+        CST_VISIT_BRANCH(blockStmt, visitBlockStmt);
+        CST_VISIT_BRANCH(aliasDeclStmt, visitAliasDeclStmt);
+        CST_VISIT_BRANCH(typeDecl, visitTypeDecl);
+        CST_VISIT_BRANCH(functionDecl, visitFunctionDecl);
+        CST_VISIT_BRANCH(selectionStmts, visitSelectionStmts);
         // function exclusive
-        VISIT_FORDWARD(returnStmt, visitReturnStmt);
-        VISIT_FORDWARD(deferStmt, visitDeferStmt);
-        VISIT_FORDWARD(blockVariableDeclStmt, visitBlockVariableDeclStmt);
-        VISIT_FORDWARD(errorHandlingStmts, visitErrorHandlingStmts);
-        VISIT_FORDWARD(retryUntilWhileStmt, visitRetryUntilWhileStmt);
+        CST_VISIT_BRANCH(returnStmt, visitReturnStmt);
+        CST_VISIT_BRANCH(deferStmt, visitDeferStmt);
+        CST_VISIT_BRANCH(blockVariableDeclStmt, visitBlockVariableDeclStmt);
+        CST_VISIT_BRANCH(errorHandlingStmts, visitErrorHandlingStmts);
+        CST_VISIT_BRANCH(retryUntilWhileStmt, visitRetryUntilWhileStmt);
         // preprocessor
-        VISIT_FORDWARD(preprocessorStmts, visitPreprocessorStmts);
+        CST_VISIT_BRANCH(preprocessorStmts, visitPreprocessorStmts);
         // expression at the bottom to fix some preprocessor issues
-        VISIT_FORDWARD(expression, visitExpression);
+        CST_VISIT_BRANCH(expression, visitExpression);
 
         // empty stmt
-        VISIT_FORDWARD(endOfStmt, visitEndOfStmt);
+        CST_VISIT_BRANCH(endOfStmt, visitEndOfStmt);
 
         throw std::runtime_error(__FUNCTION__ "unreachable");
     }
@@ -760,7 +837,7 @@ namespace logia
                 break;
             }
 
-            this->visitStructProperty(property, structure);
+            this->parseStructProperty(property, structure);
         }
 
         return ANY_VOIDP_STORE(structure);
@@ -770,7 +847,7 @@ namespace logia
         CST_UNREACHABLE();
     }
 
-    void CST2AST::visitStructProperty(LogiaParser::StructPropertyContext *context, AST::Struct *structure)
+    void CST2AST::parseStructProperty(LogiaParser::StructPropertyContext *context, AST::Struct *structure)
     {
         DEBUG() << context->getText() << std::endl;
 
@@ -781,7 +858,7 @@ namespace logia
         }
         else if (context->structPropertyDecl() != nullptr)
         {
-            return this->visitStructPropertyDecl(context->structPropertyDecl(), structure);
+            return this->parseStructPropertyDecl(context->structPropertyDecl(), structure);
         }
         else if (context->endOfStmt())
         {
@@ -794,7 +871,7 @@ namespace logia
     {
         CST_UNREACHABLE();
     }
-    void CST2AST::visitStructPropertyDecl(LogiaParser::StructPropertyDeclContext *context, AST::Struct *structure)
+    void CST2AST::parseStructPropertyDecl(LogiaParser::StructPropertyDeclContext *context, AST::Struct *structure)
     {
         DEBUG() << context->getText() << std::endl;
 
@@ -815,7 +892,7 @@ namespace logia
         }
 
         CST_TODO_BRANCH(propertyAlias, PropertyAlias);
-        CST_TODO_BRANCH(functionDef, FunctionDef); // functionBody
+        CST_TODO_BRANCH(functionDecl, FunctionDecl); // functionBody
         CST_TODO_BRANCH(memoryFunctionDecl, MemoryFunctionDecl);
         CST_TODO_BRANCH(operatorFunctionDecl, OperatorFunctionDecl);
         CST_TODO_BRANCH(structGetterDecl, StructGetterDecl);
@@ -858,7 +935,7 @@ namespace logia
             CST_UNREACHABLE();
         }
 
-        this->visitTypeLocator(context->typeLocator(), tdef);
+        this->parseTypeLocator(context->typeLocator(), tdef);
         if (context->optional)
         {
             tdef->is_optional = true;
@@ -872,12 +949,12 @@ namespace logia
         DEBUG() << context->getText() << std::endl;
         auto tdef = new AST::TypeDef();
 
-        this->visitTypeLocator(context, tdef);
+        this->parseTypeLocator(context, tdef);
 
         return ANY_VOIDP_STORE(tdef);
     }
 
-    void CST2AST::visitTypeLocator(LogiaParser::TypeLocatorContext *context, AST::TypeDef *tdef)
+    void CST2AST::parseTypeLocator(LogiaParser::TypeLocatorContext *context, AST::TypeDef *tdef)
     {
         DEBUG() << context->getText() << std::endl;
         // TODO
@@ -916,8 +993,8 @@ namespace logia
     std::any CST2AST::visitType(LogiaParser::TypeContext *context)
     {
         DEBUG() << context->getText() << std::endl;
-        // TODO
-        return nullptr;
+
+        CST_THROW("todo");
     }
 
     // Fallback: delegate to children

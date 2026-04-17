@@ -5,6 +5,7 @@
 #include <csignal>
 #include <fstream>
 #include <string>
+#include <iomanip> // setw
 
 // Step 1: Helper macro to convert a value to a string
 #define STRINGIFY(x) #x

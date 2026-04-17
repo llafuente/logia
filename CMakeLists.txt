@@ -54,6 +54,8 @@ set(LOGIA_SOURCE_FILES
   src/ast/expr.cpp
   src/ast/constexpr.cpp
 
+  src/ast/llvm.cpp
+
   src/utils.cpp
 )
 

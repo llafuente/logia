@@ -1,5 +1,6 @@
 #include "ast/block.h"
 #include "ast/traverse.h"
+#include "ast/llvm.h"
 
 namespace logia::AST
 {
@@ -64,16 +65,17 @@ namespace logia::AST
         }
     }
 
-    llvm::BasicBlock *Block::create_llvm_block(logia::Backend *codegen, char *name)
+    llvm::BasicBlock *Block::create_llvm_block(logia::Backend *codegen, const char *name)
     {
         if (this->llvm_basicblock)
         {
             return this->llvm_basicblock;
         }
 
-        DEBUG() << this->to_string() << std::endl;
-
         this->llvm_basicblock = llvm::BasicBlock::Create(codegen->context, name, nullptr);
+
+        DEBUG() << this->to_string() << " name=" << name << " llvm_basicblock = " << this->llvm_basicblock << std::endl;
+
         return this->llvm_basicblock;
     }
 
@@ -83,11 +85,26 @@ namespace logia::AST
         this->is_codegen = true;
 
         // not the main program -> override block!
-        if ((type & ast_types::PROGRAM) == 0)
+        if (!this->is<Program>())
         {
-            DEBUG() << "override SetInsertPoint" << std::endl;
-            // builder = new llvm::IRBuilder<>(codegen->context);
-            builder->SetInsertPoint(this->create_llvm_block(codegen, nullptr));
+            DEBUG() << "override SetInsertPoint llvm_basicblock = " << this->llvm_basicblock << std::endl;
+            if (this->llvm_basicblock == nullptr)
+            {
+                // unhandled block inside a function block
+
+                auto previous_block = builder->GetInsertBlock();
+                DEBUG() << "previous_block = " << previous_block << std::endl;
+                auto block = this->create_llvm_block(codegen, "");
+
+                if (!ast_llvm_block_has_terminator(previous_block))
+                {
+                    builder->CreateBr(block); // goto
+                }
+
+                auto func = builder->GetInsertBlock()->getParent();
+                func->insert(func->end(), block);
+            }
+            builder->SetInsertPoint(this->llvm_basicblock);
         }
 
         for (int i = 0; i < this->children.size(); i++)

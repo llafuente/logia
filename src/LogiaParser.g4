@@ -129,11 +129,11 @@ selectionStmts
 
 ifSelectionStmt
   // REVIEW syntax require block here ?
-  : 'if' expression functionBody
+  : 'if' expression blockStmt
   ;
 
 elseSelectionStmt
-  : 'else' functionBody
+  : 'else' blockStmt
   ;
 
 ifStmt
@@ -162,7 +162,7 @@ loopStmt
     loop_limit_expr=expression
     ('where' where_expr=expression)?
     (('until' until_expr=expression) | ('while' while_expr=expression))?
-    loop_body=functionBody
+    loop_body=blockStmt
   ;
 
 forCondition
@@ -174,22 +174,22 @@ forExpression
   ;
 
 forStmt
-  : 'for' '(' forCondition ')' functionBody
+  : 'for' '(' forCondition ')' blockStmt
   ;
 
 foreachStmt
   : 'foreach'
     ((value=identifier 'in') | (key=identifier ',' value=identifier 'in'))?
     foreach_expr=expression
-    foreach_body=functionBody
+    foreach_body=blockStmt
   ;
 
 whileStmt
-  : 'while' expression functionBody
+  : 'while' expression blockStmt
   ;
 
 doWhileStmt
-  : 'do' functionBody ('while' | 'until') expression
+  : 'do' blockStmt ('while' | 'until') expression
   ;
 
 continueStmt
@@ -221,11 +221,11 @@ errorHandlingExprs
   // catch x: expr
   // catch expr as x
   // try name {} catch name is x {}
-  | 'catch' conditionalExpr ('as' name=identifier)? functionBody
+  | 'catch' conditionalExpr ('as' name=identifier)? blockStmt
   ;
 
 tryBlock
-	: 'try' functionBody
+	: 'try' blockStmt
 	;
 
 catchBlock
@@ -233,16 +233,16 @@ catchBlock
       typeDefinition identifier
       | '(' typeDefinition identifier ')'
       | postfixExpr
-    )? functionBody
+    )? blockStmt
 	;
 
 finallyBlock
-	: 'finally' functionBody
+	: 'finally' blockStmt
 	;
 
 
 retryUntilWhileStmt
-  : 'retry' keyName=identifier? (',' expectionName=identifier)? ('while' expression | 'until' expression) functionBody
+  : 'retry' keyName=identifier? (',' expectionName=identifier)? ('while' expression | 'until' expression) blockStmt
   ;
 
 //file: spec\language\expressions.md
@@ -283,7 +283,7 @@ mayBeConstant
     ;
 
 groupExpr
-  : '(' expression ')'
+  : '(' expr=expression ')'
   ;
 
 primaryExpr
@@ -454,7 +454,7 @@ assignmentExpr
     //:   conditionalExpr
     : errorHandlingExprs
     | conditionalExpr
-    | left=unaryExpr operator=assignment_operator right=assignmentExpr
+    | left=unaryExpr op=assignment_operator right=assignmentExpr
     ;
 
 assignment_operator
@@ -506,11 +506,11 @@ deferStmt
   ;
 
 functionDecl
-  : (functionDef | anonymousFunctionDef) functionBody
+  : (functionDef | anonymousFunctionDef) blockStmt
   ;
 
 anonymousfunctionDecl
-  : anonymousFunctionDef functionBody
+  : anonymousFunctionDef blockStmt
   ;
 
 functionModifiers
@@ -542,7 +542,7 @@ functionDef
   ;
 
 memoryFunctionDecl
-  : memoryFunctionDef functionBody
+  : memoryFunctionDef blockStmt
   ;
 
 memoryFunctionDef
@@ -550,7 +550,7 @@ memoryFunctionDef
   ;
 
 operatorFunctionDecl
-  : functionModifiers* operatorFunctionDef functionBody
+  : functionModifiers* operatorFunctionDef blockStmt
   ;
 
 operatorFunctionDef
@@ -604,33 +604,29 @@ overloadableOperators
   | '!'
   ;
 
-functionBody
-  : endOfStmt? '{' globalImportVarList? functionBodyStmtList? '}'
-  ;
 
 functionBodyStmtList
   : functionBodyStmt+
   ;
 
+// label + single stmt
+// label + block
 labeledStatement
-  : identifier ':' endOfStmt* (functionBodyStmt | blockStatement)
-  ;
-
-globalImportVarList
-  : globalImportVar+
+  : identifier ':' (functionBodyStmt | endOfStmt* blockStmt)
   ;
 
 globalImportVar
   : 'global' identifier (',' identifier)* endOfStmt
   ;
 
-blockStatement
+blockStmt
   : '{' functionBodyStmtList? '}'
   ;
 
 functionBodyStmt
   : (labeledStatement
-  | blockStatement
+  | globalImportVar
+  | blockStmt
   | comments
   | aliasDeclStmt
   | typeDecl
@@ -783,21 +779,17 @@ typeDefinitionList
   ;
 
 typeDefinition
-  : typeModifiers* typeLocator ('?')?
+  : typeModifiers* typeLocator (optional='?')?
   ;
 
 typeLocator
-  // | type ('.' (identifier | 'type'))* templateId? ('[' argumentExprList? ']')? '?'?
-  : typeLocator (
-    '.' (typeLocator | 'type')
-    | templateId
-    | '[' argumentExprList? ']'
-  )
-  | primitive
-  | stringLiteral
-  | type
-  | identifier
-  | dollarIdentifier
+  : loc1=typeLocator '.' (typeLocator | 'type')
+  | loc2=typeLocator templateId
+  | loc3=typeLocator '[' argumentExprList? ']'
+  | loc4=stringLiteral
+  | loc5=primitive
+  | loc6=dollarIdentifier
+  | loc7=identifier
   ;
 
 
@@ -821,19 +813,11 @@ aliasTypeDecl
   : typeDefinition
   ;
 
-// types that support templates
-templateTypeDecl
-  : 'type' identifier templateDefinition? '=' (structTypeDecl | interfaceTypeDecl | anonymousFunctionDef | aggregateTypeDecl | aliasTypeDecl)
-  ;
-
-// types that DON'T support templates
-primitiveTypeDecl
-  : 'type' identifier '=' (enumTypeDecl | maskTypeDecl)
-  ;
-
 typeDecl
-  : templateTypeDecl
-  | primitiveTypeDecl
+  // types that support templates
+  : 'type' name=identifier templateDefinition? '=' (structTypeDecl | interfaceTypeDecl | anonymousFunctionDef | aggregateTypeDecl | aliasTypeDecl)
+  // types that DON'T support templates
+  | 'type' name=identifier '=' (enumTypeDecl | maskTypeDecl)
   ;
 
 //file: spec\language\types\array.md
@@ -929,9 +913,7 @@ typeImplementsDecl
   ;
 
 structProperty
-  : structPropertyDecl endOfStmt
-  | comments endOfStmt
-  | endOfStmt
+  : (comments | structPropertyDecl)? endOfStmt
   ;
 
 structPropertyDecl
@@ -939,7 +921,7 @@ structPropertyDecl
   : (structPropertyModifiers)* typeDefinition identifierName ('=' rhsExpr)?
   // TODO REVIEW aliasing operator?
   | propertyAlias
-  | functionDef functionBody
+  | functionDecl
   | memoryFunctionDecl
   | operatorFunctionDecl
   | structGetterDecl
@@ -959,7 +941,7 @@ propertyAlias
   ;
 
 structGetterDecl
-  : structGetterDef functionBody
+  : structGetterDef blockStmt
   ;
 
 structGetterDef
@@ -967,7 +949,7 @@ structGetterDef
   ;
 
 structSetterDecl
-  : structSetterDef functionBody
+  : structSetterDef blockStmt
   ;
 
 structSetterDef
@@ -985,8 +967,7 @@ structProperyInitializerList
   ;
 
 structProperyInitializer
-  : identifier ('.' identifier)* ('='|':') rhsExpr       #   namedStructProperyInitializer
-  | rhsExpr                                        # orderedStructProperyInitializer
+  : (locator=typeLocator ('='|':'))? value=rhsExpr
   ;
 
 jsonInitializerList
@@ -997,7 +978,6 @@ jsonInitializerPair
   : stringLiteral ':' constant
   ;
 
-// TODO
 structConstantInitializer
   : '{' structProperyInitializerList? '}'
   ;
@@ -1049,9 +1029,8 @@ fileVariableDeclStmt
   ;
 
 blockVariableDeclStmt
-  : fileVariableDeclStmt
-  // infer variable with first initialization
-  | 'var' identifier ('=' rhsExpr)?
+  : inferVariableDeclStmt
+  | typedVariableDeclStmt
   ;
 
 aliasDeclStmt
@@ -1216,17 +1195,17 @@ preprocessorMacroArgumentList
   ;
 
 preprocessorBody
-  : endOfStmt? '{' globalImportVarList? functionBodyStmtList? '}'
+  : endOfStmt? blockStmt
   ;
 
 
 forargsStmt
-  : '#forargs' identifier ',' identifier functionBody
+  : '#forargs' identifier ',' identifier blockStmt
   ;
 
 
 preprocessorLoopStmt
-  : '#' 'loop' identifier ',' identifier 'in' expression functionBody
+  : '#' 'loop' identifier ',' identifier 'in' expression blockStmt
   ;
 
 

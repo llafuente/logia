@@ -32,7 +32,7 @@ namespace logia::AST
          *
          * NOTE: BasicBlocks needs to be created and attached before codegen inside them or raise SEH / parenting issues
          */
-        llvm::BasicBlock *create_llvm_block(logia::Backend *codegen, char *name);
+        llvm::BasicBlock *create_llvm_block(logia::Backend *codegen, const char *name);
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
         Type *get_type() override;
         void post_attach() override;
