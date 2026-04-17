@@ -53,7 +53,6 @@
 
 namespace logia
 {
-
     CST2AST::CST2AST(logia::AST::Program *_program) : program(_program)
     {
         this->block = this->program;
@@ -656,7 +655,7 @@ namespace logia
     {
         auto old = this->block;
 
-        auto block = AST::ast_create_block();
+        auto block = AST::ast_create_block("");
         old->push_child(block);
 
         this->block = block;

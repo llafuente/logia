@@ -365,7 +365,7 @@ namespace logia::AST
         elements.reserve(this->field_count);
         for (auto &prop : this->children)
         {
-            if (auto field = dynamic_cast<StructField*>(prop)) // review it works ?
+            if (auto field = dynamic_cast<StructField *>(prop)) // review it works ?
             {
                 elements.push_back((llvm::Type *)field->get_type()->codegen(codegen, builder));
             }
@@ -442,7 +442,7 @@ namespace logia::AST
         }
         else
         {
-            auto block = ast_create_block();
+            auto block = ast_create_block("function_entry");
             block->type = (ast_types)(ast_types::FUNCTION | ast_types::BODY);
             this->push_child(block); // get_body
         }
@@ -539,7 +539,7 @@ namespace logia::AST
             auto block = this->get_body();
             LOGIA_ASSERT(typeid(*block) == typeid(Block) && "Invalid function body type");
 
-            auto BB = (llvm::BasicBlock *)block->create_llvm_block(codegen, (char *)"entry");
+            auto BB = (llvm::BasicBlock *)block->create_llvm_block(codegen);
             BB->insertInto(this->functionIR);
             block->codegen(codegen, builder);
         }

@@ -12,46 +12,21 @@
 
 namespace logia::AST
 {
+    extern uint64_t if_stmt_count;
+
     struct IfStmt : Stmt
     {
         char *name;
         llvm::AllocaInst *ir;
 
-        IfStmt(antlr4::ParserRuleContext *rule, Expression *condition) : Stmt(rule, ast_types::IF_STMT), ir(nullptr)
-        {
-            this->push_child(condition);
-            this->push_child(new Block(nullptr)); // then_block
-            this->push_child(new Block(nullptr)); // else_block
-            this->push_child(new Block(nullptr)); // continue_block
-            this->freezed = true;
-        }
-        Expression *get_condition()
-        {
-            return (Expression *)this->children[0];
-        }
-        Block *get_then()
-        {
-            return (Block *)this->children[1];
-        }
-        Block *get_else()
-        {
-            return (Block *)this->children[2];
-        }
-        Block *get_continue_block()
-        {
-            return (Block *)this->children[3];
-        }
+        IfStmt(antlr4::ParserRuleContext *rule, Expression *condition);
+        Expression *get_condition();
+        Block *get_then();
+        Block *get_else();
+        Block *get_continue_block();
         std::string to_string() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
-        void post_attach() override
-        {
-            if (!this->is_attached)
-            {
-                this->is_attached = true;
-                this->get_then()->post_attach();
-                this->get_else()->post_attach();
-            }
-        }
+        void post_attach() override;
     };
 
     /**

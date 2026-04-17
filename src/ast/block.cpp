@@ -5,8 +5,9 @@
 namespace logia::AST
 {
 
-    Block::Block(antlr4::ParserRuleContext *rule) : Node(rule, ast_types::BODY)
+    Block::Block(antlr4::ParserRuleContext *rule, const char *name) : Node(rule, ast_types::BODY)
     {
+        this->name = strdup(name);
     }
 
     void Block::set(const char *name, Node *node)
@@ -65,14 +66,14 @@ namespace logia::AST
         }
     }
 
-    llvm::BasicBlock *Block::create_llvm_block(logia::Backend *codegen, const char *name)
+    llvm::BasicBlock *Block::create_llvm_block(logia::Backend *codegen)
     {
         if (this->llvm_basicblock)
         {
             return this->llvm_basicblock;
         }
 
-        this->llvm_basicblock = llvm::BasicBlock::Create(codegen->context, name, nullptr);
+        this->llvm_basicblock = llvm::BasicBlock::Create(codegen->context, this->name, nullptr);
 
         DEBUG() << this->to_string() << " name=" << name << " llvm_basicblock = " << this->llvm_basicblock << std::endl;
 
@@ -94,7 +95,7 @@ namespace logia::AST
 
                 auto previous_block = builder->GetInsertBlock();
                 DEBUG() << "previous_block = " << previous_block << std::endl;
-                auto block = this->create_llvm_block(codegen, "");
+                auto block = this->create_llvm_block(codegen);
 
                 if (!ast_llvm_block_has_terminator(previous_block))
                 {
@@ -117,9 +118,9 @@ namespace logia::AST
         return this->llvm_basicblock;
     }
 
-    LOGIA_API Block *ast_create_block()
+    LOGIA_API Block *ast_create_block(const char *name)
     {
-        return new Block(nullptr);
+        return new Block(nullptr, name);
     }
 
 }

@@ -6,7 +6,7 @@
 
 namespace logia::AST
 {
-    Program::Program(antlr4::ParserRuleContext *rule) : Block(rule)
+    Program::Program(antlr4::ParserRuleContext *rule) : Block(rule, "program")
     {
         this->type = (ast_types)(ast_types::PROGRAM | ast_types::BODY);
     }
@@ -34,6 +34,7 @@ namespace logia::AST
         body->push_child(new Integer(true, 16));
         body->push_child(new Integer(true, 32));
         body->push_child(new Integer(true, 64));
+        auto i64 = body->children[body->children.size() - 1]->as<Type>();
         body->push_child(new Integer(true, 128));
 
         body->push_child(new Integer(false, 8));
@@ -91,6 +92,9 @@ namespace logia::AST
         ptr->llvm_type = llvm::PointerType::get(C, 0);
         body->scope[(char *)"λptr"] = ptr;
         ptr->parent_node = body;
+
+        ast_create_instrinsic(body, ast_create_identifier("logia_intrinsics_bin_add_i64_i64"), i64);
+        ast_create_instrinsic(body, ast_create_identifier("logia_intrinsics_bin_mul_i64_i64"), i64);
 
         return body;
     }
