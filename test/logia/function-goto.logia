@@ -1,0 +1,16 @@
+// NOTE this porgram should be ill-formed, as we should not generate "dead code"
+
+function test_1() i64 {
+    goto exit
+
+    return 1
+
+
+exit: {
+    return 0
+}
+}
+
+function main() i64 {
+    return test_1()
+}

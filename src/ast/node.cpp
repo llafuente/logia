@@ -81,7 +81,7 @@ namespace logia::AST
 
         padding += "  ";
 
-        for (int i = 0; i < this->children.size(); i++)
+        for (size_t i = 0; i < this->children.size(); i++)
         {
             out += this->children[i]->to_string_tree(padding);
         }
@@ -98,7 +98,7 @@ namespace logia::AST
     {
         // TODO how to handle inference can't detect the type -> pre_type_inference return false ??
         this->pre_type_inference();
-        for (int i = 0; i < this->children.size(); i++)
+        for (size_t i = 0; i < this->children.size(); i++)
         {
             this->children[i]->type_inference();
         }

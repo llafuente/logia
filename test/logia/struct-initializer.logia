@@ -1,12 +1,6 @@
 type point = struct {
     i64 x
     i64 y
-/*
-    function new(i64 x, i64 y) {
-        this.x = x
-        this.y = y
-    }
-*/
 }
 
 function main() i64 {

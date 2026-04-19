@@ -1,0 +1,28 @@
+// test goto only allowed inside function!
+// can repeat the labelled statements identifiers
+
+function test_1() i64 {
+    var i64 counter = 0
+add_more: {
+    counter = counter + 1
+    if counter < 10 {
+        goto add_more
+    }
+    return counter
+}
+}
+
+function test_2() i64 {
+    var i64 counter = 0
+add_more: {
+    counter = counter + 1
+    if counter < 10 {
+        goto add_more
+    }
+    return counter
+}
+}
+
+function main() i64 {
+    return test_1() == test_2()
+}

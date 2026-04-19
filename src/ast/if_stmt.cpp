@@ -9,13 +9,13 @@ namespace logia::AST
     {
         this->push_child(condition);
         auto then_name = std::format("{}_{}", "then_block", if_stmt_count);
-        this->push_child(new Block(nullptr, then_name.c_str()));
+        this->push_child(new Block(nullptr, ast_create_identifier(then_name.c_str())));
 
         auto else_name = std::format("{}_{}", "else_block", if_stmt_count);
-        this->push_child(new Block(nullptr, else_name.c_str()));
+        this->push_child(new Block(nullptr, ast_create_identifier(else_name.c_str())));
 
         auto continue_name = std::format("{}_{}", "continue_block", if_stmt_count);
-        this->push_child(new Block(nullptr, continue_name.c_str()));
+        this->push_child(new Block(nullptr, ast_create_identifier(continue_name.c_str())));
 
         ++if_stmt_count;
 
@@ -51,9 +51,12 @@ namespace logia::AST
         auto then_body = this->get_then();
         auto else_body = this->get_else();
         auto continue_body = this->get_continue_block();
-        auto then_block = then_body->create_llvm_block(codegen);
-        auto else_block = else_body->create_llvm_block(codegen);
-        auto continue_block = continue_body->create_llvm_block(codegen);
+        then_body->pre_codegen(codegen);
+        auto then_block = then_body->llvm_basicblock;
+        else_body->pre_codegen(codegen);
+        auto else_block = else_body->llvm_basicblock;
+        continue_body->pre_codegen(codegen);
+        auto continue_block = continue_body->llvm_basicblock;
 
         // NOTE create before codegen each block so the blocks are attached to function before codegen
         auto v = builder->CreateCondBr(condition, then_block, else_block);

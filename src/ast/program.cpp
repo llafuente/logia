@@ -6,7 +6,7 @@
 
 namespace logia::AST
 {
-    Program::Program(antlr4::ParserRuleContext *rule) : Block(rule, "program")
+    Program::Program(antlr4::ParserRuleContext *rule) : Block(rule, ast_create_identifier("program"))
     {
         this->type = (ast_types)(ast_types::PROGRAM | ast_types::BODY);
     }
@@ -98,6 +98,10 @@ namespace logia::AST
 
         return body;
     }
+    void Program::post_attach() {
+        // do nothing, parentBody should be empty
+    }
+
     llvm::Value *Program::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
     {
         if (!is_typed)
@@ -105,6 +109,8 @@ namespace logia::AST
             is_typed = true;
             this->type_inference();
         }
-        return Block::codegen(codegen, builder);
+        this->is_codegen = true;
+        this->codegen_children(codegen, builder);
+        return nullptr;
     }
 }

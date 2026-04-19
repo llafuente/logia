@@ -136,33 +136,33 @@ namespace logia::AST
     // GotoStmt
     //
 
-    GotoStmt::GotoStmt(antlr4::ParserRuleContext *rule, char *name) : Stmt(rule, ast_types::GOTO_STMT)
+    GotoStmt::GotoStmt(antlr4::ParserRuleContext *rule, Identifier *id) : Stmt(rule, ast_types::GOTO_STMT)
     {
-        this->name = name;
+        this->push_child(id);
     }
 
     //
     //
     //
-    LOGIA_API LOGIA_LEND GotoStmt *ast_create_goto_stmt(Block *body, char *name)
+    LOGIA_API LOGIA_LEND GotoStmt *ast_create_goto_stmt(Identifier *id)
     {
-        return new GotoStmt(nullptr, name);
+        return new GotoStmt(nullptr, id);
     }
 
     ///
     /// toString
     ///
-
-    // utils
-    std::string __itoa(int i)
+    Identifier *GotoStmt::get_identifier()
     {
-        char buffer[36];
-        return std::string(itoa(i, buffer, 10));
+        return this->get_child<Identifier>(0);
     }
-
+    const char *GotoStmt::get_name()
+    {
+        return this->get_identifier()->identifier;
+    }
     std::string GotoStmt::to_string()
     {
-        return std::format("GotoStmt[{}] ({:p})", this->name, static_cast<void *>(this));
+        return std::format("GotoStmt[{}] ({:p})", this->get_name(), static_cast<void *>(this));
     }
 
     ///
@@ -174,13 +174,16 @@ namespace logia::AST
         DEBUG() << this->to_string() << std::endl;
         // find label and jump to it
         // function shall be inside the closest function
-        auto label = (Block *)ast_find_closest_parent(this, (ast_types)(ast_types::FUNCTION | ast_types::BODY));
-        if (!label)
+        auto func = this->first_parent<Function>();
+        auto node = func->get_body()->look(this->get_name());
+        if (node->is<Block>())
         {
-            throw std::runtime_error(std::string("goto statement has no parent function or body: ") + this->to_string());
+            auto block = node->as<Block>();
+            block->pre_codegen(codegen);
+            return builder->CreateBr(block->llvm_basicblock);
         }
-        // TODO generate before or wait until generated to continue ?
-        return builder->CreateBr(label->llvm_basicblock);
+
+        throw std::runtime_error(std::string("Expected a block: ") + this->to_string());
     }
 
     //
@@ -227,14 +230,17 @@ namespace logia::AST
 
     bool VarDeclStmt::pre_type_inference()
     {
-        if (is_typed) {
+        if (is_typed)
+        {
             // TODO determine type if possible
             // TODO what we do when we cant ? push somewhere and back later ?
             auto t = this->get_type();
-            if (t->is<Struct>()) {
+            if (t->is<Struct>())
+            {
                 // if rhs is struct initializer -> set_type
                 auto expr = this->get_expr();
-                if (expr != nullptr && expr->is<StructInitializer>()) {
+                if (expr != nullptr && expr->is<StructInitializer>())
+                {
                     expr->as<StructInitializer>()->set_type(t);
                 }
             }
@@ -242,10 +248,13 @@ namespace logia::AST
         return true;
     }
 
-    void VarDeclStmt::post_type_inference() {
-        if (!this->is_typed) {
+    void VarDeclStmt::post_type_inference()
+    {
+        if (!this->is_typed)
+        {
             auto expr = this->get_expr();
-            if (expr == nullptr) {
+            if (expr == nullptr)
+            {
                 throw std::runtime_error("type guessing not implemented yet!");
             }
 

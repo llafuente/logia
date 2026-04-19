@@ -611,7 +611,7 @@ functionBodyStmtList
 
 // label + single stmt
 // label + block
-labeledStatement
+labeledStmt
   : identifier ':' (functionBodyStmt | endOfStmt* blockStmt)
   ;
 
@@ -624,7 +624,7 @@ blockStmt
   ;
 
 functionBodyStmt
-  : (labeledStatement
+  : (labeledStmt
   | globalImportVar
   | blockStmt
   | comments

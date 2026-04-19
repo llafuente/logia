@@ -607,6 +607,32 @@ namespace logia
         auto ret_expr = ANY_VOIDP_CAST(AST::Expression *, this->visitRhsExpr(rhs));
         return ANY_VOIDP_STORE(AST::ast_create_return(ret_expr));
     }
+    std::any CST2AST::visitLabeledStmt(LogiaParser::LabeledStmtContext *context)
+    {
+        // identifier ':' (functionBodyStmt | endOfStmt* blockStmt)
+        DEBUG() << context->getText() << std::endl;
+
+        CST_TODO_BRANCH(functionBodyStmt, visitFunctionBodyStmt);
+        auto id = ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(context->identifier()));
+
+        auto old = this->block;
+        auto block = AST::ast_create_block(id);
+        old->push_child(block);
+
+        this->block = block;
+        this->parseBlock(context->blockStmt(), block);
+        this->block = old;
+
+        return ANY_VOIDP_STORE(nullptr);
+    }
+    std::any CST2AST::visitGotoStmt(LogiaParser::GotoStmtContext *context)
+    {
+        CST_DEBUG_FUNCTION();
+
+        auto id = ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(context->identifier()));
+
+        return ANY_VOIDP_STORE(new AST::GotoStmt(context, id));
+    }
 
     std::any CST2AST::visitIdentifier(LogiaParser::IdentifierContext *context)
     {
@@ -655,7 +681,7 @@ namespace logia
     {
         auto old = this->block;
 
-        auto block = AST::ast_create_block("");
+        auto block = AST::ast_create_block(AST::ast_create_identifier(""));
         old->push_child(block);
 
         this->block = block;
@@ -712,7 +738,7 @@ namespace logia
         CST_DEBUG_FUNCTION();
 
         CST_TODO_BRANCH(globalImportVar, visitGlobalImportVar);
-        CST_VISIT_BRANCH(labeledStatement, visitLabeledStatement);
+        CST_VISIT_BRANCH(labeledStmt, visitLabeledStmt);
         CST_VISIT_BRANCH(blockStmt, visitBlockStmt);
         CST_VISIT_BRANCH(aliasDeclStmt, visitAliasDeclStmt);
         CST_VISIT_BRANCH(typeDecl, visitTypeDecl);

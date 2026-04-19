@@ -25,6 +25,7 @@ namespace logia::AST
         Type *get_type() override;
 
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        void post_attach() override;
     };
 
     /// @brief Creates a minimal logia program

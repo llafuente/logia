@@ -57,7 +57,7 @@ namespace logia::AST
         node_assert<Identifier, MemberAccessExpression>(locator, __FUNCTION__ ":" TOSTRING(__LINE__));
 
         this->push_child(locator);
-        for (int i = 0; i < positional_arguments.size(); ++i)
+        for (size_t i = 0; i < positional_arguments.size(); ++i)
         {
             this->add_positional_argument(positional_arguments[i]);
         }
@@ -101,7 +101,7 @@ namespace logia::AST
 
         DEBUG() << v.size() << "/" << v.capacity() << "/" << this->children.size() << std::endl;
 
-        for (int i = 1; i < this->children.size();)
+        for (size_t i = 1; i < this->children.size();)
         {
             // TODO handle position and named
             // solve locator because we will need it to check
@@ -161,7 +161,7 @@ namespace logia::AST
         auto arg_itr = CalleeF->arg_begin();
 
         std::vector<llvm::Value *> ArgsV;
-        for (unsigned i = 0, e = arguments.size(); i != e; ++i)
+        for (size_t i = 0, e = arguments.size(); i != e; ++i)
         {
             auto callee_arg = CalleeF->getArg(i);
             DEBUG() << "argument[" << i << "]" << std::endl;
@@ -506,7 +506,7 @@ namespace logia::AST
         v.reserve(this->length);
 
         // skip first, it's the type
-        for (int i = 1; i < this->children.size(); i += 2)
+        for (size_t i = 1; i < this->children.size(); i += 2)
         {
             auto ptr = this->children[i + 1];
             auto out = dynamic_cast<Expression *>(ptr);

@@ -6,16 +6,27 @@
 
 bool ast_llvm_block_has_terminator(llvm::BasicBlock *block)
 {
-    auto terminator = block->getTerminator();
-    if (terminator && llvm::isa<llvm::ReturnInst>(terminator))
+    if (block->size() == 0)
     {
-        DEBUG() << "then_block has terminator return" << std::endl;
-        return true;
+        return false;
     }
-    else if (terminator && llvm::isa<llvm::UnreachableInst>(terminator))
-    {
-        DEBUG() << "then_block has terminator unreachable" << std::endl;
-        return true;
+
+    auto terminator = block->getTerminator();
+    if (terminator) {
+        if (llvm::isa<llvm::ReturnInst>(terminator))
+        {
+            DEBUG() << "then_block has terminator return" << std::endl;
+            return true;
+        }
+        else if (llvm::isa<llvm::BranchInst>(terminator)) {
+            DEBUG() << "then_block has inconditional branch" << std::endl;
+            return true;
+        }
+        else if (llvm::isa<llvm::UnreachableInst>(terminator))
+        {
+            DEBUG() << "then_block has terminator unreachable" << std::endl;
+            return true;
+        }
     }
 
     return false;

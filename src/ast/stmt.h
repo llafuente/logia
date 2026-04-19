@@ -59,11 +59,9 @@ namespace logia::AST
     /// @brief Goto statement
     struct GotoStmt : Stmt
     {
-        // TODO change it to Identifier* and use children!
-        // REVIEW, should this be at function scope, could be interesting to resolve right ?
-        char *name;
-
-        GotoStmt(antlr4::ParserRuleContext *rule, char *name);
+        GotoStmt(antlr4::ParserRuleContext *rule, Identifier *id);
+        Identifier *get_identifier();
+        const char *get_name();
         std::string to_string() override;
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
     };
@@ -74,5 +72,7 @@ namespace logia::AST
     /// @brief Creates a variable declaration
     /// Note, to create a constant Type should be readonly.
     LOGIA_API LOGIA_LEND VarDeclStmt *ast_create_var_decl(Identifier *id, Type *type, Expression *expr);
+
+    LOGIA_API LOGIA_LEND GotoStmt *ast_create_goto_stmt(Identifier *id);
 
 }

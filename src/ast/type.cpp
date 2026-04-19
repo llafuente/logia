@@ -442,7 +442,8 @@ namespace logia::AST
         }
         else
         {
-            auto block = ast_create_block("function_entry");
+            auto block = new FunctionBlock(nullptr, ast_create_identifier("function_entry"));
+            //auto block = ast_create_block();
             block->type = (ast_types)(ast_types::FUNCTION | ast_types::BODY);
             this->push_child(block); // get_body
         }
@@ -476,17 +477,17 @@ namespace logia::AST
 
     Identifier *Function::get_identifier()
     {
-        return (Identifier *)this->children[0];
+        return this->get_child<Identifier>(0);
     }
 
     Type *Function::get_return_type()
     {
-        return (Type *)this->children[1];
+        return this->get_child<Type>(1);
     }
 
     Block *Function::get_body()
     {
-        return (Block *)this->children[2];
+        return this->get_child<Block>(2);
     }
 
     uint32_t get_mandatory_parameters_size()
@@ -520,7 +521,7 @@ namespace logia::AST
     {
         int pcount = this->parameters.size();
         this->parametersIR.reserve(pcount);
-        for (int i = 0; i < pcount; ++i)
+        for (size_t i = 0; i < pcount; ++i)
         {
             this->parametersIR.push_back((llvm::Type *)this->parameters[i].type->codegen(codegen, builder));
         }
@@ -530,18 +531,13 @@ namespace logia::AST
                                                                 this->parametersIR, // parameter list
                                                                 false);             // not variadic
 
-        this->functionIR = llvm::Function::Create((llvm::FunctionType *)this->llvm_type, llvm::Function::ExternalLinkage, 0, this->get_name(), codegen->module.get());
+        this->cg_value = llvm::Function::Create((llvm::FunctionType *)this->llvm_type, llvm::Function::ExternalLinkage, 0, this->get_name(), codegen->module.get());
 
         // Create a basic block and insert a return
 
         if (!this->is_intrinsic)
         {
-            auto block = this->get_body();
-            LOGIA_ASSERT(typeid(*block) == typeid(Block) && "Invalid function body type");
-
-            auto BB = (llvm::BasicBlock *)block->create_llvm_block(codegen);
-            BB->insertInto(this->functionIR);
-            block->codegen(codegen, builder);
+            this->get_body()->codegen(codegen, builder);
         }
 
         return (llvm::Value *)this->llvm_type;

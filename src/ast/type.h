@@ -280,7 +280,7 @@ namespace logia::AST
 
         /// @brief is an intrinsic function, intrinsics don't have body and are defined outside user program.
         bool is_intrinsic;
-        llvm::Function *functionIR;
+        llvm::Function *cg_value;
 
         Function(antlr4::ParserRuleContext *rule, Identifier *id, Type *return_type = nullptr, bool is_intrinsic = false);
         ~Function();

@@ -12,7 +12,7 @@ namespace logia::AST
             return;
         }
 
-        for (int i = 0; i < current->children.size(); ++i)
+        for (size_t i = 0; i < current->children.size(); ++i)
         {
             ast_traverse(current->children[i], cb);
         }

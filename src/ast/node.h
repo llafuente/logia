@@ -154,7 +154,8 @@ namespace logia::AST
         template <typename T>
         T *first_parent()
         {
-            Node *ptr = this;
+            Node *ptr = this->parent_node;
+            DEBUG() << ptr->to_string() << std::endl;
             do
             {
                 if (auto out = dynamic_cast<T *>(ptr))
@@ -162,6 +163,7 @@ namespace logia::AST
                     return out;
                 }
                 ptr = ptr->parent_node;
+                DEBUG() << (ptr != nullptr ? ptr->to_string() : "nullptr") << std::endl;
             } while (ptr != nullptr);
 
             throw std::runtime_error(std::format("not found {} above {}", typeid(T).name(), this->to_string()));
