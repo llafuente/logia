@@ -1,4 +1,5 @@
 #include "ast/if_stmt.h"
+#include "ast/llvm.h"
 
 namespace logia::AST
 {
@@ -40,7 +41,7 @@ namespace logia::AST
 
     std::string IfStmt::to_string()
     {
-        return std::string("IfStmt: ");
+        return std::string(std::format("IfStmt {} ", static_cast<void *>(this)));
     }
 
     llvm::Value *IfStmt::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
@@ -61,58 +62,28 @@ namespace logia::AST
         // NOTE create before codegen each block so the blocks are attached to function before codegen
         auto v = builder->CreateCondBr(condition, then_block, else_block);
         auto func = builder->GetInsertBlock()->getParent();
-        func->insert(func->end(), then_block);
-        func->insert(func->end(), else_block);
 
-        bool continue_block_inserted = false;
-        auto _require_continue_block = [func, continue_block, &continue_block_inserted]() -> void
-        {
-            if (!continue_block_inserted)
-            {
-                continue_block_inserted = true;
-                func->insert(func->end(), continue_block);
-            }
-        };
+        bool continue_block_required = false;
 
         then_body->codegen(codegen, builder);
 
-        auto terminator = builder->GetInsertBlock()->getTerminator();
-        if (terminator && llvm::isa<llvm::ReturnInst>(terminator))
-        {
-            DEBUG() << "then_block has terminator return" << std::endl;
-        }
-        else if (terminator && llvm::isa<llvm::UnreachableInst>(terminator))
-        {
-            DEBUG() << "then_block has terminator unreachable" << std::endl;
-        }
-        else
+        if (!ast_llvm_block_has_terminator(then_body->llvm_basicblock))
         {
             DEBUG() << "then_block has no terminator -> br";
-            _require_continue_block();
+            continue_block_required = true;
             builder->CreateBr(continue_block);
         }
 
         else_body->codegen(codegen, builder);
-
-        terminator = builder->GetInsertBlock()->getTerminator();
-        if (terminator && llvm::isa<llvm::ReturnInst>(terminator))
-        {
-            DEBUG() << "else_block has terminator return";
-        }
-        else if (terminator && llvm::isa<llvm::UnreachableInst>(terminator))
-        {
-            DEBUG() << "else_block has terminator unreachable";
-        }
-        else
+        if (!ast_llvm_block_has_terminator(then_body->llvm_basicblock))
         {
             DEBUG() << "else_block has no terminator -> br";
-            _require_continue_block();
+            continue_block_required = true;
             builder->CreateBr(continue_block);
         }
 
-        if (continue_block_inserted)
+        if (continue_block_required)
         {
-            builder->SetInsertPoint(continue_block);
             continue_body->codegen(codegen, builder);
             return continue_block;
         }

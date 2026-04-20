@@ -1,0 +1,35 @@
+// if
+function test_1() i64 {
+    var i = 0
+    if true {
+        i = 1
+    }
+    return i
+}
+// else if
+function test_2() i64 {
+    var i = 0
+    if false {
+        i = 0
+    } else if true {
+        i = 1
+    }
+    return i
+}
+
+// else
+function test_3() i64 {
+    var i = 0
+    if false {
+        i = 0
+    } else if false {
+        i = 0
+    } else {
+        i = 1
+    }
+    return i
+}
+
+function main() i64 {
+    return test_1() + test_2() + test_3()
+}

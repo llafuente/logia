@@ -30,6 +30,7 @@ namespace logia::AST
         // it's prohibited to create type using llvm
         // everything shall be supported directly
         body->push_child(new Integer(true, 1));
+        auto i1 = body->children[body->children.size() - 1]->as<Type>();
         body->push_child(new Integer(true, 8));
         body->push_child(new Integer(true, 16));
         body->push_child(new Integer(true, 32));
@@ -95,10 +96,12 @@ namespace logia::AST
 
         ast_create_instrinsic(body, ast_create_identifier("logia_intrinsics_bin_add_i64_i64"), i64);
         ast_create_instrinsic(body, ast_create_identifier("logia_intrinsics_bin_mul_i64_i64"), i64);
+        ast_create_instrinsic(body, ast_create_identifier("logia_intrinsics_bin_lt_i64_i64"), i1);
 
         return body;
     }
-    void Program::post_attach() {
+    void Program::post_attach()
+    {
         // do nothing, parentBody should be empty
     }
 

@@ -14,6 +14,8 @@ namespace logia::AST
 {
     extern uint64_t if_stmt_count;
 
+    // references: https://clang.llvm.org/doxygen/classclang_1_1IfStmt.html
+
     struct IfStmt : Stmt
     {
         char *name;

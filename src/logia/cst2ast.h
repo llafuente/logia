@@ -23,7 +23,6 @@ namespace logia
     {
     public:
         logia::AST::Program *program;
-        logia::AST::Block *block;
 
         CST2AST(logia::AST::Program *_program);
 
@@ -66,14 +65,15 @@ namespace logia
         std::any visitReturnStmt(LogiaParser::ReturnStmtContext *context) override;
         std::any visitLabeledStmt(LogiaParser::LabeledStmtContext *context) override;
         std::any visitGotoStmt(LogiaParser::GotoStmtContext *context) override;
+        std::any visitIfStmt(LogiaParser::IfStmtContext *context) override;
 
         //
         // functions
         //
         std::any visitFunctionDecl(LogiaParser::FunctionDeclContext *context) override;
         std::any visitBlockStmt(LogiaParser::BlockStmtContext *context) override;
+        std::any visitStmt(LogiaParser::StmtContext *context) override;
         void parseBlock(LogiaParser::BlockStmtContext *context, AST::Block *block);
-        std::any visitFunctionBodyStmt(LogiaParser::FunctionBodyStmtContext *context) override;
         std::any visitEndOfStmt(LogiaParser::EndOfStmtContext *context) override;
 
         //

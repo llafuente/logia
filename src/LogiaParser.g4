@@ -129,7 +129,8 @@ selectionStmts
 
 ifSelectionStmt
   // REVIEW syntax require block here ?
-  : 'if' expression blockStmt
+  // REVIEW allow full expression ? assignament is a common error... -> if (var x = ??)
+  : 'if' expr=rhsExpr blockStmt
   ;
 
 elseSelectionStmt
@@ -142,10 +143,10 @@ ifStmt
 
 switchCaseStmt
   // REVIEW syntax require block here ? also required colon ?
-  : 'case' expressionList ':' functionBodyStmtList
+  : 'case' expressionList ':' blockStmt
   ;
 switchDefaultStmt
-  : 'default' ':' functionBodyStmtList
+  : 'default' ':' blockStmt
   ;
 
 switchStmt
@@ -604,15 +605,10 @@ overloadableOperators
   | '!'
   ;
 
-
-functionBodyStmtList
-  : functionBodyStmt+
-  ;
-
 // label + single stmt
 // label + block
 labeledStmt
-  : identifier ':' (functionBodyStmt | endOfStmt* blockStmt)
+  : identifier ':' (stmt | endOfStmt* blockStmt)
   ;
 
 globalImportVar
@@ -620,10 +616,10 @@ globalImportVar
   ;
 
 blockStmt
-  : '{' functionBodyStmtList? '}'
+  : '{' stmt* '}'
   ;
 
-functionBodyStmt
+stmt
   : (labeledStmt
   | globalImportVar
   | blockStmt
@@ -993,7 +989,7 @@ testBlockStatement
   ;
 
 testBodyStmtList
-  : (testStmt | functionBodyStmt)+
+  : (testStmt | blockStmt)+
   ;
 
 

@@ -1,6 +1,7 @@
 #include "logia/cst2ast.h"
 
 #include "ast/constexpr.h"
+#include "ast/if_stmt.h"
 
 #define CST_THROW(msg)                                         \
     do                                                         \
@@ -55,7 +56,6 @@ namespace logia
 {
     CST2AST::CST2AST(logia::AST::Program *_program) : program(_program)
     {
-        this->block = this->program;
     }
 
     std::any CST2AST::visitProgram(LogiaParser::ProgramContext *context)
@@ -575,9 +575,9 @@ namespace logia
         switch (context->start->getType())
         {
         case LogiaParser::TRUE_TK:
-            return ANY_VOIDP_STORE(new AST::IntegerLiteral(context, "1", (AST::Type*)this->program->look("bool")));
+            return ANY_VOIDP_STORE(new AST::IntegerLiteral(context, "1", (AST::Type *)this->program->look("bool")));
         case LogiaParser::FALSE_TK:
-            return ANY_VOIDP_STORE(new AST::IntegerLiteral(context, "0", (AST::Type*)this->program->look("bool")));
+            return ANY_VOIDP_STORE(new AST::IntegerLiteral(context, "0", (AST::Type *)this->program->look("bool")));
         case LogiaParser::NULL_TK:
             throw std::runtime_error(__FUNCTION__ " todo");
         case LogiaParser::DEFAULT_TK:
@@ -609,21 +609,17 @@ namespace logia
     }
     std::any CST2AST::visitLabeledStmt(LogiaParser::LabeledStmtContext *context)
     {
-        // identifier ':' (functionBodyStmt | endOfStmt* blockStmt)
+        // identifier ':' (BlockStmt | endOfStmt* blockStmt)
         DEBUG() << context->getText() << std::endl;
 
-        CST_TODO_BRANCH(functionBodyStmt, visitFunctionBodyStmt);
+        CST_TODO_BRANCH(stmt, visitStmt);
         auto id = ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(context->identifier()));
 
-        auto old = this->block;
         auto block = AST::ast_create_block(id);
-        old->push_child(block);
 
-        this->block = block;
         this->parseBlock(context->blockStmt(), block);
-        this->block = old;
 
-        return ANY_VOIDP_STORE(nullptr);
+        return ANY_VOIDP_STORE(block);
     }
     std::any CST2AST::visitGotoStmt(LogiaParser::GotoStmtContext *context)
     {
@@ -632,6 +628,41 @@ namespace logia
         auto id = ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(context->identifier()));
 
         return ANY_VOIDP_STORE(new AST::GotoStmt(context, id));
+    }
+    std::any CST2AST::visitIfStmt(LogiaParser::IfStmtContext *context)
+    {
+        CST_DEBUG_FUNCTION();
+
+        auto first_if_stmt = context->ifSelectionStmt(0);
+
+        AST::IfStmt *ifstmt;
+        auto expr = ANY_VOIDP_CAST(AST::Expression *, this->visitRhsExpr(first_if_stmt->expr));
+        ifstmt = AST::ast_create_if(expr);
+        this->parseBlock(first_if_stmt->blockStmt(), ifstmt->get_then());
+
+        // (else if)*
+        for (int i = 1;; ++i)
+        {
+            DEBUG() << i << std::endl;
+            auto stmt = context->ifSelectionStmt(i);
+            if (stmt == nullptr)
+            {
+                break;
+            }
+
+            auto expr = ANY_VOIDP_CAST(AST::Expression *, this->visitRhsExpr(stmt->expr));
+            auto deep_ifstmt = AST::ast_create_if(expr);
+            this->parseBlock(stmt->blockStmt(), deep_ifstmt->get_then());
+            ifstmt->get_else()->push_child(deep_ifstmt);
+        }
+        // else
+        auto else_stmt = context->elseSelectionStmt();
+        if (else_stmt != nullptr)
+        {
+            this->parseBlock(else_stmt->blockStmt(), ifstmt->get_else());
+        }
+
+        return ANY_VOIDP_STORE(ifstmt);
     }
 
     std::any CST2AST::visitIdentifier(LogiaParser::IdentifierContext *context)
@@ -668,28 +699,18 @@ namespace logia
         auto fn = AST::ast_create_function_type(name, ret_type);
         this->program->push_child(fn);
 
-        auto old = this->block;
-        this->block = fn->get_body();
-        // this->block->push_child(ret_expr);
-        this->parseBlock(context->blockStmt(), this->block);
-        this->block = old;
+        this->parseBlock(context->blockStmt(), fn->get_body());
 
         return ANY_VOIDP_STORE(fn);
     }
 
     std::any CST2AST::visitBlockStmt(LogiaParser::BlockStmtContext *context)
     {
-        auto old = this->block;
-
         auto block = AST::ast_create_block(AST::ast_create_identifier(""));
-        old->push_child(block);
 
-        this->block = block;
-        auto stmts = context->functionBodyStmtList();
         this->parseBlock(context, block);
-        this->block = old;
 
-        return ANY_VOIDP_STORE(nullptr);
+        return ANY_VOIDP_STORE(block);
     }
 
     void CST2AST::parseBlock(LogiaParser::BlockStmtContext *context, AST::Block *block)
@@ -700,28 +721,25 @@ namespace logia
             return;
         }
 
-        DEBUG() << context->getText() << std::endl;
-        DEBUG() << context->functionBodyStmtList() << std::endl;
-
-        auto stmt_list = context->functionBodyStmtList();
+        DEBUG() << context->getText() << block << std::endl;
 
         for (int i = 0;; ++i)
         {
             DEBUG() << i << std::endl;
-            auto stmt = stmt_list->functionBodyStmt(i);
+            auto stmt = context->stmt(i);
             if (stmt == nullptr)
             {
                 break;
             }
             DEBUG() << stmt->getText() << std::endl;
-            auto any_node = visitFunctionBodyStmt(stmt);
+            auto any_node = visitStmt(stmt);
             try
             {
                 auto node = ANY_VOIDP_CAST(AST::Node *, any_node);
                 DEBUG() << i << node << (node != nullptr ? node->to_string() : "") << std::endl;
                 if (node != nullptr)
                 {
-                    this->block->push_child(node);
+                    block->push_child(node);
                 }
             }
             catch (std::exception e)
@@ -733,7 +751,7 @@ namespace logia
         }
     }
 
-    std::any CST2AST::visitFunctionBodyStmt(LogiaParser::FunctionBodyStmtContext *context)
+    std::any CST2AST::visitStmt(LogiaParser::StmtContext *context)
     {
         CST_DEBUG_FUNCTION();
 
@@ -833,7 +851,7 @@ namespace logia
             auto structure = ANY_VOIDP_CAST(AST::Struct *, this->visitStructTypeDecl(context->structTypeDecl()));
             structure->set_identifier(type_name);
             structure->rule = context;
-            this->block->push_child(structure); // <-- TODO REVIEW so strange! program should push child stmts!!!
+            this->program->push_child(structure); // <-- TODO push to program atm :)
             return ANY_VOIDP_STORE(structure);
         }
 

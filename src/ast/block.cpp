@@ -127,7 +127,7 @@ namespace logia::AST
         {
             builder->CreateBr(this->llvm_basicblock); // goto
         }
-
+        // insert block into current function
         auto func = builder->GetInsertBlock()->getParent();
         func->insert(func->end(), this->llvm_basicblock);
         builder->SetInsertPoint(this->llvm_basicblock);
@@ -198,5 +198,4 @@ namespace logia::AST
 
         return new Block(nullptr, name);
     }
-
 }

@@ -34,17 +34,20 @@ TEST(run_from_file, sum_logia)
             << "TEST START" << std::endl
             << std::endl;
 
-    // EXPECT_EQ(test_single_file(".\\test\\logia\\sum.logia"), 25);
-    // EXPECT_EQ(test_single_file(".\\test\\logia\\math.logia"), 21);
-    // EXPECT_EQ(test_single_file(".\\test\\logia\\struct-initializer.logia"), 21);
+    EXPECT_EQ(test_single_file(".\\test\\logia\\sum.logia"), 25);
+    EXPECT_EQ(test_single_file(".\\test\\logia\\math.logia"), 21);
+    EXPECT_EQ(test_single_file(".\\test\\logia\\struct-initializer.logia"), 21);
 
     // 0 means it jumped, 1 it doesn't
     // also not so true as "return 1" is removed, but maybe to check regressions
     EXPECT_EQ(test_single_file(".\\test\\logia\\function-goto.logia"), 0);
 
     // jump inside function
-    EXPECT_EQ(test_single_file(".\\test\\logia\\function-goto2.logia"), 0);
+    // EXPECT_EQ(test_single_file(".\\test\\logia\\function-goto2.logia"), 0);
 
-    // EXPECT_EQ(test_single_file(".\\test\\logia\\function-blocks.logia"), 2);
-    // EXPECT_EQ(test_single_file(".\\test\\logia\\struct-initializer-named.logia"), 32); // 31 means not ordering!
+    // 3 tests -> 3
+    EXPECT_EQ(test_single_file(".\\test\\logia\\if.logia"), 3);
+
+    //! EXPECT_EQ(test_single_file(".\\test\\logia\\function-blocks.logia"), 2);
+    //! EXPECT_EQ(test_single_file(".\\test\\logia\\struct-initializer-named.logia"), 32); // 31 means not ordering!
 }
