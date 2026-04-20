@@ -4,7 +4,6 @@
 #include <format>
 #include <stdexcept>
 
-#include "ast/types.h"
 #include "utils.h"
 #include "logia/backend.h"
 
@@ -17,6 +16,7 @@ struct ::logia::Backend;
 namespace logia::AST
 {
     struct Type;
+    struct Block;
 
     /// @brief Base class for all AST nodes
     struct LOGIA_EXPORT Node
@@ -35,11 +35,6 @@ namespace logia::AST
 
         /// @brief antlr rule, used for error reporting and debugging
         antlr4::ParserRuleContext *rule = nullptr;
-        /**
-         * Node type to be able to cast from node back to the real type
-         */
-        // TODO remove this, not needed as we can dynamic_cast
-        ast_types type = (ast_types)0;
 
         /// @brief backpointer to parent node to traverse to root(program)
         Node *parent_node = nullptr;
@@ -50,7 +45,7 @@ namespace logia::AST
         /// @brief My beautiful children, and some not so beautiful.
         std::vector<Node *> children = {};
 
-        Node(antlr4::ParserRuleContext *rule, ast_types type);
+        Node(antlr4::ParserRuleContext *rule);
         ~Node();
 
         // TODO
@@ -169,6 +164,30 @@ namespace logia::AST
             throw std::runtime_error(std::format("not found {} above {}", typeid(T).name(), this->to_string()));
         }
 
+        /// @brief reverse the tree and returns true if found a match, false otherwise
+        /// @tparam T
+        /// @param cb
+        /// @return
+        template <typename T>
+        bool try_first_parent(T **out)
+        {
+            Node *ptr = this->parent_node;
+            while (ptr != nullptr)
+            {
+                DEBUG() << ptr->to_string() << std::endl;
+
+                if (auto maybe = dynamic_cast<T *>(ptr))
+                {
+                    out = *maybe;
+                    return true;
+                }
+                ptr = ptr->parent_node;
+                DEBUG() << (ptr != nullptr ? ptr->to_string() : "nullptr") << std::endl;
+            }
+
+            return false;
+        }
+
         /// @brief Retrieve children at given position as given type. If fail throws.
         /// @tparam T
         /// @param index
@@ -239,16 +258,6 @@ namespace logia::AST
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
         Type *get_type() override;
     };
-
-// TODO remove and reimplement with templates
-/// @brief Check node contains at least one bit of ty
-/// @param node
-/// @param ty
-#define NODE_TYPE_ASSERT(node, ty)                                                                         \
-    do                                                                                                     \
-    {                                                                                                      \
-        LOGIA_ASSERT(((node->type & ((ast_types)(ty))) != 0) && __FUNCTION__ && "Invalid node type sent"); \
-    } while (false)
 
     /// @brief Throws if node is not of given type
     /// @tparam T

@@ -12,6 +12,7 @@ namespace logia::AST
     struct Type;
     struct Expression;
     struct CallExpression;
+    struct ConstExpression;
 
     enum class Primitives
     {
@@ -312,7 +313,7 @@ namespace logia::AST
         /// @param param_type The type of the parameter
         /// @param param_name
         /// @param param_default_value
-        void add_param(Type *param_type, Identifier *param_name, Expression *param_default_value);
+        void add_param(Type *param_type, Identifier *param_name, ConstExpression *param_default_value);
 
         /// @brief Checks if given call is valid
         /// @details Checks if the number of arguments and their types are compatible with the function parameters

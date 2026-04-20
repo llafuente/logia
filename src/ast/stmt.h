@@ -15,7 +15,7 @@ namespace logia::AST
     /// @brief Base class for all statements
     struct Stmt : Node
     {
-        Stmt(antlr4::ParserRuleContext *rule, ast_types type);
+        Stmt(antlr4::ParserRuleContext *rule);
         std::string to_string() override;
         Type *get_type() override;
     };

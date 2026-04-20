@@ -1,8 +1,8 @@
 #pragma once
 
 #include "ast/node.h"
-#include "ast/expr.h"
 #include "ast/block.h"
+#include "ast/expr.h"
 #include "utils.h"
 
 namespace logia::AST
@@ -10,7 +10,7 @@ namespace logia::AST
     struct ConstExpression : Expression
     {
         // REVIEW strange  why do i need to declare this ?
-        ConstExpression(antlr4::ParserRuleContext *rule, ast_types type);
+        ConstExpression(antlr4::ParserRuleContext *rule);
         std::string to_string() override;
     };
 

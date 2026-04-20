@@ -38,8 +38,77 @@ namespace logia::AST
          */
         void set(const char *name, Node *node);
 
-        Node *look(const char *name);
-        Node *lookup(const char *name);
+        template <class T>
+        bool try_look(const char *name, T **out)
+        {
+            DEBUG() << name << std::endl;
+
+            std::string_view name_view(name);
+            auto it = this->scope.find(name_view);
+            if (it != this->scope.end())
+            {
+                *out = it->second->as<T>();
+                return true;
+            }
+
+            return false;
+        }
+
+        template <class T>
+        T *look(const char *name)
+        {
+            DEBUG() << name << std::endl;
+
+            std::string_view name_view(name);
+            auto it = this->scope.find(name_view);
+            if (it != this->scope.end())
+            {
+                return it->second->as<T>();
+            }
+
+            throw std::runtime_error(std::format("not found in scope: {}", name));
+        }
+
+        template <class T>
+        bool try_lookup2(const char *name, T **out)
+        {
+            DEBUG() << name << std::endl;
+
+            std::string_view name_view(name);
+            Block *p = this;
+            do
+            {
+                auto it = p->scope.find(name_view);
+                if (it != p->scope.end())
+                {
+                    *out = it->second->as<T>();
+                    return true;
+                }
+                p = p->parent;
+            } while (p != nullptr);
+
+            return false;
+        }
+
+        template <class T>
+        T *lookup2(const char *name)
+        {
+            DEBUG() << name << std::endl;
+
+            std::string_view name_view(name);
+            Block *p = this;
+            do
+            {
+                auto it = p->scope.find(name_view);
+                if (it != p->scope.end())
+                {
+                    return it->second->as<T>();
+                }
+                p = p->parent;
+            } while (p != nullptr);
+
+            throw std::runtime_error(std::format("not found in scope: {} of type {}", name, typeid(T).name()));
+        }
 
         std::string to_string() override;
 

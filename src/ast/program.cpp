@@ -8,7 +8,6 @@ namespace logia::AST
 {
     Program::Program(antlr4::ParserRuleContext *rule) : Block(rule, ast_create_identifier("program"))
     {
-        this->type = (ast_types)(ast_types::PROGRAM | ast_types::BODY);
     }
 
     Type *Program::get_type()

@@ -14,7 +14,7 @@ namespace logia::AST
     struct Expression : Node
     {
         // REVIEW strange  why do i need to declare this ?
-        Expression(antlr4::ParserRuleContext *rule, ast_types type);
+        Expression(antlr4::ParserRuleContext *rule);
         std::string to_string() override;
     };
 

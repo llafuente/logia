@@ -6,7 +6,7 @@ namespace logia::AST
 
     uint64_t if_stmt_count = 0;
 
-    IfStmt::IfStmt(antlr4::ParserRuleContext *rule, Expression *condition) : Stmt(rule, ast_types::IF_STMT), ir(nullptr)
+    IfStmt::IfStmt(antlr4::ParserRuleContext *rule, Expression *condition) : Stmt(rule), ir(nullptr)
     {
         this->push_child(condition);
         auto then_name = std::format("{}_{}", "then_block", if_stmt_count);

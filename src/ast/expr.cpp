@@ -10,7 +10,7 @@ namespace logia::AST
     // Expression
     //
 
-    Expression::Expression(antlr4::ParserRuleContext *rule, ast_types type) : Node(rule, (ast_types)(type | ast_types::EXPRESSION)) {}
+    Expression::Expression(antlr4::ParserRuleContext *rule) : Node(rule) {}
     std::string Expression::to_string()
     {
         return std::format("Expression ({:p})", static_cast<void *>(this));
@@ -19,7 +19,7 @@ namespace logia::AST
     //
     // MemberAccessExpression
     //
-    MemberAccessExpression::MemberAccessExpression(antlr4::ParserRuleContext *rule, Node *left, Identifier *right) : Expression(rule, (ast_types)(ast_types::EXPRESSION | ast_types::MEMBER_ACCESS))
+    MemberAccessExpression::MemberAccessExpression(antlr4::ParserRuleContext *rule, Node *left, Identifier *right) : Expression(rule)
     {
         this->push_child(left);
         this->push_child(right);
@@ -48,10 +48,10 @@ namespace logia::AST
     //
     // CallExpression
     //
-    CallExpression::CallExpression() : Expression(nullptr, ast_types::CALL_EXPRESSION)
+    CallExpression::CallExpression() : Expression(nullptr)
     {
     }
-    CallExpression::CallExpression(antlr4::ParserRuleContext *rule, Expression *locator, std::vector<Expression *> positional_arguments) : Expression(rule, ast_types::CALL_EXPRESSION)
+    CallExpression::CallExpression(antlr4::ParserRuleContext *rule, Expression *locator, std::vector<Expression *> positional_arguments) : Expression(rule)
     {
         LOGIA_ASSERT(locator && "locator is mantadory");
         node_assert<Identifier, MemberAccessExpression>(locator, __FUNCTION__ ":" TOSTRING(__LINE__));
@@ -394,9 +394,8 @@ namespace logia::AST
     //
     // Identifier
     //
-    Identifier::Identifier(antlr4::ParserRuleContext *rule, const char *identifier) : Expression(rule, ast_types::IDENTIFIER)
+    Identifier::Identifier(antlr4::ParserRuleContext *rule, const char *identifier) : Expression(rule)
     {
-        LOGIA_ASSERT(type);
         this->identifier = identifier;
     }
     std::string Identifier::to_string()
@@ -408,14 +407,14 @@ namespace logia::AST
     {
         DEBUG() << this->to_string() << std::endl;
 
-        auto decl = ast_get_vardecl_by_name(this, this->identifier);
+        auto decl = this->get_var_decl();
 
         return builder->CreateLoad(decl->alloca->getAllocatedType(), decl->alloca, this->identifier);
     }
 
     VarDeclStmt *Identifier::get_var_decl()
     {
-        return ast_get_vardecl_by_name(this, this->identifier);
+        return this->first_parent<Block>()->lookup2<VarDeclStmt>(this->identifier);
     }
     Function *get_function_decl()
     {
@@ -439,8 +438,8 @@ namespace logia::AST
         {
             throw std::runtime_error("Cannot retrieve type. Call type_inference first.");
         }
-        auto block = ast_get_block(this);
-        return block->lookup(this->identifier);
+        auto block = this->first_parent<Block>();
+        return block->lookup2<Node>(this->identifier);
     }
 
     LOGIA_API Identifier *ast_create_identifier(LOGIA_CLONE const char *name)
@@ -454,7 +453,7 @@ namespace logia::AST
     // StructInitializer
     //
 
-    StructInitializer::StructInitializer(antlr4::ParserRuleContext *rule) : Expression(rule, ast_types::NONE) {}
+    StructInitializer::StructInitializer(antlr4::ParserRuleContext *rule) : Expression(rule) {}
 
     void StructInitializer::set_type(Type *type)
     {

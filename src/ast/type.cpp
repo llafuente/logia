@@ -1,3 +1,4 @@
+#include "ast/constexpr.h"
 #include "ast/type.h"
 #include "ast/traverse.h"
 #include "utils.h"
@@ -51,7 +52,7 @@ namespace logia::AST
     // Type
     //
 
-    Type::Type(antlr4::ParserRuleContext *rule, Primitives prim) : Node(rule, ast_types::TYPE)
+    Type::Type(antlr4::ParserRuleContext *rule, Primitives prim) : Node(rule)
     {
         this->primitive = prim;
     }
@@ -91,10 +92,9 @@ namespace logia::AST
 
     void Type::__register_type(const char *name)
     {
-        auto parentBody = (Block *)ast_find_closest_parent(this, ast_types::BODY);
-        LOGIA_ASSERT(parentBody);
-
-        parentBody->set(name, this);
+        // TODO REVIEW function block scope ? -> or closest block scope!?
+        auto block = this->first_parent<Block>();
+        block->set(name, this);
     }
 
     llvm::Value *Type::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
@@ -240,7 +240,6 @@ namespace logia::AST
     void Struct::set_identifier(Identifier *id)
     {
         LOGIA_ASSERT(id && "id parameters is required");
-        NODE_TYPE_ASSERT(id, ast_types::IDENTIFIER);
 
         if (this->has_name)
         {
@@ -391,8 +390,8 @@ namespace logia::AST
         LOGIA_ASSERT(this->children.size() != 1, "TODO: single resolve atm");
         // search children!
         auto id = (Identifier *)this->children[0];
-        auto block = ast_get_block(this);
-        auto node = block->lookup(id->identifier);
+        auto block = this->first_parent<Block>();
+        auto node = block->lookup2<Node>(id->identifier);
 
         return node->get_type();
     }
@@ -424,13 +423,11 @@ namespace logia::AST
     Function::Function(antlr4::ParserRuleContext *rule, Identifier *id, Type *return_type, bool is_intrinsic) : Type(rule, Primitives::FUNCTION_TY)
     {
         LOGIA_ASSERT(id && "id parameters is required");
-        NODE_TYPE_ASSERT(id, ast_types::IDENTIFIER);
 
         if (return_type == nullptr)
         {
             return_type = new Type(nullptr, Primitives::VOID_TY);
         }
-        NODE_TYPE_ASSERT(return_type, ast_types::TYPE);
 
         this->push_child(id);          // get_name
         this->push_child(return_type); // get_return_type
@@ -443,8 +440,6 @@ namespace logia::AST
         else
         {
             auto block = new FunctionBlock(nullptr, ast_create_identifier("function_entry"));
-            //auto block = ast_create_block();
-            block->type = (ast_types)(ast_types::FUNCTION | ast_types::BODY);
             this->push_child(block); // get_body
         }
         this->is_intrinsic = is_intrinsic;
@@ -551,7 +546,6 @@ namespace logia::AST
     LOGIA_API LOGIA_LEND Type *ast_create_instrinsic(Program *program, Identifier *id, Type *return_type)
     {
         LOGIA_ASSERT(program);
-        NODE_TYPE_ASSERT(program, ast_types::PROGRAM);
 
         auto f = new Function(nullptr, id, return_type, true);
 
@@ -561,18 +555,14 @@ namespace logia::AST
         return f;
     }
 
-    void Function::add_param(Type *param_type, Identifier *param_name, Expression *param_default_value)
+    void Function::add_param(Type *param_type, Identifier *param_name, ConstExpression *param_default_value)
     {
         LOGIA_ASSERT(this->isFunction());
         LOGIA_ASSERT(!this->is_attached && "Function type should be created before attached");
 
-        NODE_TYPE_ASSERT(param_type, ast_types::TYPE);
-        NODE_TYPE_ASSERT(param_name, ast_types::IDENTIFIER);
-
         // TODO REVIEW default values are not push ?
         if (param_default_value)
         {
-            NODE_TYPE_ASSERT(param_default_value, ast_types::EXPRESSION | ast_types::CONST);
             param_default_value->parent_node = this;
         }
         auto param = this->parameters.emplace_back(param_name, param_type, param_default_value);
@@ -599,9 +589,7 @@ namespace logia::AST
         LOGIA_ASSERT(this->isStruct());
 
         LOGIA_ASSERT(type && "type is required for fields");
-        NODE_TYPE_ASSERT(type, ast_types::TYPE);
         LOGIA_ASSERT(name && "name is required for fields");
-        NODE_TYPE_ASSERT(name, ast_types::IDENTIFIER);
 
         this->push_child(new StructField(rule, name, type, default_value, docstring));
         ++this->field_count;

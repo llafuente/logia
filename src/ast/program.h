@@ -2,7 +2,6 @@
 
 #include <vector>
 
-#include "ast/types.h"
 #include "ast/node.h"
 #include "ast/block.h"
 

@@ -575,9 +575,9 @@ namespace logia
         switch (context->start->getType())
         {
         case LogiaParser::TRUE_TK:
-            return ANY_VOIDP_STORE(new AST::IntegerLiteral(context, "1", (AST::Type *)this->program->look("bool")));
+            return ANY_VOIDP_STORE(new AST::IntegerLiteral(context, "1", this->program->look<AST::Type>("bool")));
         case LogiaParser::FALSE_TK:
-            return ANY_VOIDP_STORE(new AST::IntegerLiteral(context, "0", (AST::Type *)this->program->look("bool")));
+            return ANY_VOIDP_STORE(new AST::IntegerLiteral(context, "0", this->program->look<AST::Type>("bool")));
         case LogiaParser::NULL_TK:
             throw std::runtime_error(__FUNCTION__ " todo");
         case LogiaParser::DEFAULT_TK:
@@ -694,7 +694,7 @@ namespace logia
 
         // auto name = (AST::Identifier *)(this->visitIdentifier(def->functionName()->identifier()));
         auto name = ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(def->functionName()->identifier()));
-        auto ret_type = (AST::Type *)this->program->lookup((char *)"λi64");
+        auto ret_type = this->program->lookup2<AST::Type>("λi64");
 
         auto fn = AST::ast_create_function_type(name, ret_type);
         this->program->push_child(fn);
@@ -827,7 +827,7 @@ namespace logia
 
         auto type_def = ANY_VOIDP_CAST(AST::Type *, this->visitTypeDefinition(context->typeDefinition()));
 
-        auto type = (AST::Type *)this->program->lookup((char *)"λi64");
+        auto type = this->program->lookup2<AST::Type>("λi64");
         // TODO!!!
 
         auto decl = AST::ast_create_var_decl(ident, type_def, expr);

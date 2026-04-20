@@ -5,7 +5,7 @@
 namespace logia::AST
 {
 
-    Block::Block(antlr4::ParserRuleContext *rule, Identifier *name) : Node(rule, ast_types::BODY), name(name)
+    Block::Block(antlr4::ParserRuleContext *rule, Identifier *name) : Node(rule), name(name)
     {
     }
 
@@ -21,43 +21,11 @@ namespace logia::AST
 
     void Block::set(const char *name, Node *node)
     {
-        // TODO check for valid ast_types
-        this->scope[strdup(name)] = node;
-    }
-
-    Node *Block::look(const char *name)
-    {
-        DEBUG() << name << std::endl;
-
-        std::string_view name_view(name);
-        auto it = this->scope.find(name_view);
-        if (it != this->scope.end())
+        if (!node->is<Type>() && !node->is<Block>() && !node->is<VarDeclStmt>())
         {
-            return it->second;
+            throw std::runtime_error(std::format("invalid node type: {} - {}", typeid(node).name(), node->to_string()));
         }
-
-        throw std::runtime_error(std::format("not found in scope: {}", name));
-    }
-
-    Node *Block::lookup(const char *name)
-    {
-        DEBUG() << name << std::endl;
-
-        std::string_view name_view(name);
-        Block *p = this;
-        Node *f;
-        do
-        {
-            // f = p->scope[name_view];
-            auto it = p->scope.find(name_view);
-            if (it != p->scope.end())
-            {
-                return it->second;
-            }
-            p = p->parent;
-        } while (p != nullptr);
-
-        throw std::runtime_error(std::format("not found in scope: {}", name));
+        this->scope[strdup(name)] = node;
     }
 
     Type *Block::get_type()
@@ -79,7 +47,6 @@ namespace logia::AST
 
     void Block::post_attach()
     {
-        // auto parentBody = (Block *)ast_find_closest_parent(this->parent_node, ast_types::BODY);
         auto parentBody = this->first_parent<Block>();
         LOGIA_ASSERT(parentBody);
         this->parent = parentBody;
@@ -91,7 +58,6 @@ namespace logia::AST
             if (!is<FunctionBlock>())
             {
 
-                // auto functionBody = (Block *)ast_find_closest_parent(this->parent_node, (ast_types)(ast_types::BODY | ast_types::FUNCTION));
                 auto fblock = this->first_parent<FunctionBlock>();
                 LOGIA_ASSERT(fblock);
 

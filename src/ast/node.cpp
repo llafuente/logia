@@ -6,10 +6,9 @@
 namespace logia::AST
 {
 
-    Node::Node(antlr4::ParserRuleContext *rule, ast_types type)
+    Node::Node(antlr4::ParserRuleContext *rule)
     {
         this->rule = rule;
-        this->type = type;
     }
     Node::~Node()
     {
@@ -43,13 +42,11 @@ namespace logia::AST
     void Node::_has_to_notify_attached(Node *child)
     {
         // an attached node is the one that can reach program
-        auto program = ast_find_closest_parent(this, ast_types::PROGRAM);
-        if (!program)
+        Program *program = nullptr;
+        if (this->is<Program>() || this->try_first_parent<Program>(&program))
         {
-            return;
+            child->__notify_attached();
         }
-
-        child->__notify_attached();
     }
 
     void Node::__notify_attached()
@@ -58,19 +55,6 @@ namespace logia::AST
         {
             this->children[i]->__notify_attached();
         }
-        /*
-        // types are allowed to have parent for the rest -> NO!
-        if (this->parent_node != nullptr)
-        {
-            if ((this->type & ast_types::TYPE)
-                != 0)
-            {
-                return;
-            }
-                std::cout << "empty parent node not allowed! " << this->to_string() << std::endl;
-                LOGIA_ASSERT(false);
-        }
-        */
 
         this->post_attach();
     }
@@ -122,7 +106,7 @@ namespace logia::AST
     //
     // NoOp
     //
-    NoOp::NoOp() : Node(nullptr, ast_types::EXPRESSION) {}
+    NoOp::NoOp() : Node(nullptr) {}
     std::string NoOp::to_string() { return "NoOp"; };
     llvm::Value *NoOp::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) { return nullptr; }
     Type *NoOp::get_type() { return nullptr; };

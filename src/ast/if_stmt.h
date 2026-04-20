@@ -1,7 +1,5 @@
 #pragma once
 
-#include "ast/types.h"
-#include "ast/expr.h"
 #include "ast/stmt.h"
 #include "utils.h"
 #include "logia/backend.h"
@@ -12,6 +10,7 @@
 
 namespace logia::AST
 {
+    struct Expression;
     extern uint64_t if_stmt_count;
 
     // references: https://clang.llvm.org/doxygen/classclang_1_1IfStmt.html

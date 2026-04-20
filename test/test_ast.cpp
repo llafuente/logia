@@ -4,10 +4,10 @@
 #include "ast/traverse.h"
 #include "ast/if_stmt.h"
 #include "ast/type.h"
-#include "ast/types.h"
 #include "ast/expr.h"
 #include "ast/constexpr.h"
 #include "ast/stmt.h"
+#include "ast/program.h"
 
 #include "gtest/gtest.h"
 #include <Windows.h>
@@ -19,7 +19,7 @@ void check_all_attached(logia::AST::Program *prg)
   logia::AST::ast_traverse(prg, [](logia::AST::Node *n) -> bool
                            {
                             DEBUG() << n->to_string() << std::endl;
-      if ((n->type & logia::AST::ast_types::PROGRAM) == 0) {
+      if (!n->is<logia::AST::Program>()) {
         EXPECT_TRUE(n->is_attached) << std::format(" not attached {}", n->to_string());
     }
       return true; });
@@ -147,15 +147,15 @@ TEST(AST_Type, ast_create_struct_type)
 
   auto string_t = ast_create_struct_type(ast_create_identifier("string"));
   EXPECT_EQ(string_t->field_count, 0);
-  string_t->add_field(nullptr, ast_create_identifier("capacity"), (logia::AST::Type *)program->lookup("λi64"), nullptr, "");
+  string_t->add_field(nullptr, ast_create_identifier("capacity"), program->lookup2<Type>("λi64"), nullptr, "");
   EXPECT_EQ(string_t->field_count, 1);
   EXPECT_EQ(string_t->get_field_index(ast_create_identifier("capacity")), 0);
 
-  string_t->add_field(nullptr, ast_create_identifier("length"), (logia::AST::Type *)program->lookup("λi64"), nullptr, "");
+  string_t->add_field(nullptr, ast_create_identifier("length"), program->lookup2<Type>("λi64"), nullptr, "");
   EXPECT_EQ(string_t->field_count, 2);
   EXPECT_EQ(string_t->get_field_index(ast_create_identifier("length")), 1);
 
-  string_t->add_field(nullptr, ast_create_identifier("value"), (logia::AST::Type *)program->lookup("λptr"), nullptr, "");
+  string_t->add_field(nullptr, ast_create_identifier("value"), program->lookup2<Type>("λptr"), nullptr, "");
   EXPECT_EQ(string_t->field_count, 3);
   EXPECT_EQ(string_t->get_field_index(ast_create_identifier("value")), 2);
 
@@ -230,9 +230,9 @@ TEST(AST_Type, ast_create_var_decl)
 
   auto string_t = ast_create_struct_type(ast_create_identifier("string"));
   EXPECT_EQ(string_t->field_count, 0);
-  string_t->add_field(nullptr, ast_create_identifier("capacity"), (Type *)program->lookup("λi64"), nullptr, "");
-  string_t->add_field(nullptr, ast_create_identifier("length"), (Type *)program->lookup("λi64"), nullptr, "");
-  string_t->add_field(nullptr, ast_create_identifier("value"), (Type *)program->lookup("λptr"), nullptr, "");
+  string_t->add_field(nullptr, ast_create_identifier("capacity"), program->lookup2<Type>("λi64"), nullptr, "");
+  string_t->add_field(nullptr, ast_create_identifier("length"), program->lookup2<Type>("λi64"), nullptr, "");
+  string_t->add_field(nullptr, ast_create_identifier("value"), program->lookup2<Type>("λptr"), nullptr, "");
   EXPECT_EQ(string_t->field_count, 3);
 
   EXPECT_EQ(string_t->alias_count, 0);
@@ -434,12 +434,12 @@ TEST(ast_create_if3, t1)
   LOGIA_BACKEND_START();
   using namespace logia::AST;
 
-  ast_create_instrinsic(program, ast_create_identifier("logia_intrinsics_bin_add_i64_i64"), program->lookup("λi64")->as<Type>());
-  ast_create_instrinsic(program, ast_create_identifier("logia_intrinsics_bin_eq_i64_i64"), program->lookup("λi1")->as<Type>());
+  ast_create_instrinsic(program, ast_create_identifier("logia_intrinsics_bin_add_i64_i64"), program->lookup2<Type>("λi64"));
+  ast_create_instrinsic(program, ast_create_identifier("logia_intrinsics_bin_eq_i64_i64"), program->lookup2<Type>("λi1"));
 
   auto eqeq = ast_create_identifier("logia_intrinsics_bin_eq_i64_i64");
 
-  auto vdecl = ast_create_var_decl(ast_create_identifier("tmp"), (logia::AST::Type *)program->lookup(strdup("λi64")), ast_create_int_lit(program, "0"));
+  auto vdecl = ast_create_var_decl(ast_create_identifier("tmp"), program->lookup2<Type>("λi64"), ast_create_int_lit(program, "0"));
   main_body->push_child(vdecl);
 
   auto condition = ast_create_call_expr(eqeq, {ast_create_int_lit(program, "11"), ast_create_int_lit(program, "11")});

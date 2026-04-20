@@ -6,7 +6,7 @@ namespace logia::AST
     //
     // Stmt
     //
-    Stmt::Stmt(antlr4::ParserRuleContext *rule, ast_types type) : Node(rule, (ast_types)(type | ast_types::STMT)) {}
+    Stmt::Stmt(antlr4::ParserRuleContext *rule) : Node(rule) {}
     std::string Stmt::to_string()
     {
         return "Statement";
@@ -20,7 +20,7 @@ namespace logia::AST
     // ReturnStmt
     //
 
-    ReturnStmt::ReturnStmt(antlr4::ParserRuleContext *rule, Expression *expr) : Stmt(rule, ast_types::RETURN_STMT)
+    ReturnStmt::ReturnStmt(antlr4::ParserRuleContext *rule, Expression *expr) : Stmt(rule)
     {
         this->push_child(expr);
     }
@@ -51,7 +51,7 @@ namespace logia::AST
     //
     //
     //
-    VarDeclStmt::VarDeclStmt(antlr4::ParserRuleContext *rule, Identifier *id, Type *type, Expression *expr) : Stmt(rule, ast_types::VAR_DECL_STMT), alloca(nullptr)
+    VarDeclStmt::VarDeclStmt(antlr4::ParserRuleContext *rule, Identifier *id, Type *type, Expression *expr) : Stmt(rule), alloca(nullptr)
     {
         this->push_child(id);
         if (type == nullptr)
@@ -136,7 +136,7 @@ namespace logia::AST
     // GotoStmt
     //
 
-    GotoStmt::GotoStmt(antlr4::ParserRuleContext *rule, Identifier *id) : Stmt(rule, ast_types::GOTO_STMT)
+    GotoStmt::GotoStmt(antlr4::ParserRuleContext *rule, Identifier *id) : Stmt(rule)
     {
         this->push_child(id);
     }
@@ -173,12 +173,11 @@ namespace logia::AST
     {
         DEBUG() << this->to_string() << std::endl;
         // find label and jump to it
-        // function shall be inside the closest function
+        // label shall be inside the current function
         auto func = this->first_parent<Function>();
-        auto node = func->get_body()->look(this->get_name());
-        if (node->is<Block>())
+        Block *block = nullptr;
+        if (func->get_body()->try_look<Block>(this->get_name(), &block))
         {
-            auto block = node->as<Block>();
             block->pre_codegen(codegen);
             return builder->CreateBr(block->llvm_basicblock);
         }
@@ -209,10 +208,8 @@ namespace logia::AST
         if (!this->is_attached)
         {
             this->is_attached = true;
-            auto parentBody = (Block *)ast_find_closest_parent(this, ast_types::BODY);
-            LOGIA_ASSERT(parentBody);
-
-            parentBody->set(this->get_name(), this);
+            auto block = this->first_parent<Block>();
+            block->set(this->get_name(), this);
         }
     }
     Type *VarDeclStmt::get_type()
