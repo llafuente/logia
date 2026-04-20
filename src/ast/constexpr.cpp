@@ -34,7 +34,7 @@ namespace logia::AST
 
     Type *IntegerLiteral::get_type()
     {
-        return (Type *)this->children[0];
+        return this->get_child<Type>(0);
     }
 
     // ?? https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/atoi64-atoi64-l-wtoi64-wtoi64-l?view=msvc-170
@@ -77,14 +77,17 @@ namespace logia::AST
 
     std::string IntegerLiteral::to_string()
     {
-        return std::format("IntegerLiteral[{}] {} ({:p})", this->get_type()->to_string(), this->number_str, static_cast<void *>(this));
+        return std::format("IntegerLiteral[{}] {}/{} ({:p})", this->get_type()->to_string(), this->number_str, this->as_signed(), static_cast<void *>(this));
     }
 
     llvm::Value *IntegerLiteral::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
     {
         DEBUG() << this->to_string() << std::endl;
-        auto type = (Integer *)this->children[0];
-        return llvm::ConstantInt::get((llvm::Type *)this->get_type()->codegen(codegen, builder), llvm::APInt(type->bits, this->as_signed(), type->is_signed));
+        auto type = this->get_type()->as<Integer>();
+
+        // TODO add support for octal
+        // TODO add support for hexadecimal
+        return llvm::ConstantInt::get((llvm::Type *)this->get_type()->codegen(codegen, builder), llvm::APInt(type->bits, this->number_str, 10));
     }
 
     //

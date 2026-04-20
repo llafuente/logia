@@ -575,9 +575,9 @@ namespace logia
         switch (context->start->getType())
         {
         case LogiaParser::TRUE_TK:
-            return ANY_VOIDP_STORE(AST::ast_create_int_lit(this->program, "1"));
+            return ANY_VOIDP_STORE(new AST::IntegerLiteral(context, "1", (AST::Type*)this->program->look("bool")));
         case LogiaParser::FALSE_TK:
-            return ANY_VOIDP_STORE(AST::ast_create_int_lit(this->program, "0"));
+            return ANY_VOIDP_STORE(new AST::IntegerLiteral(context, "0", (AST::Type*)this->program->look("bool")));
         case LogiaParser::NULL_TK:
             throw std::runtime_error(__FUNCTION__ " todo");
         case LogiaParser::DEFAULT_TK:
