@@ -13,7 +13,6 @@
 
 namespace logia
 {
-
     ErrorListener::ErrorListener(std::string inputFile, std::string input)
     {
         this->input = input;
@@ -123,37 +122,27 @@ namespace logia
         fclose(file);
         return buffer;
     }
+    void Frontend::set_file(const char *file_path)
+    {
+        this->entry_point_path = file_path;
+    }
 
-    void Frontend::read(const char *file_path)
+    void Frontend::parse()
     {
         if (this->verbose)
         {
-            std::cout << "parse(" << file_path << ")" << std::endl;
+            std::cout << "parse(" << this->entry_point_path << ")" << std::endl;
         }
-        this->text = this->file_read(file_path);
+        this->text = this->file_read(this->entry_point_path);
 
         this->input = new antlr4::ANTLRInputStream(text);
 
         this->lexer = new LogiaLexer(input);
         this->tokens = new antlr4::CommonTokenStream(this->lexer);
         this->parser = new LogiaParser(this->tokens);
-        this->errorListener = (antlr4::ANTLRErrorListener *)new ErrorListener(file_path, text);
+        this->errorListener = (antlr4::ANTLRErrorListener *)new ErrorListener(this->entry_point_path, text);
         this->parser->addErrorListener(this->errorListener);
-    }
 
-    void Frontend::compile()
-    {
-        /*
-            llvm::InitializeAllTargetInfos();
-            llvm::InitializeAllTargets();
-            llvm::InitializeAllTargetMCs();
-            llvm::InitializeAllAsmParsers();
-            llvm::InitializeAllAsmPrinters();
-        */
-    }
-
-    antlr4::ParserRuleContext *Frontend::parse()
-    {
         if (this->is_program)
         {
             this->cst_tree = this->parser->program();
@@ -162,8 +151,6 @@ namespace logia
         {
             this->cst_tree = this->parser->packageProgram();
         }
-
-        return this->cst_tree;
     }
 
     void Frontend::print_cst(std::ostream &out)
@@ -174,7 +161,7 @@ namespace logia
 
     void Frontend::build_ast()
     {
-        this->backend = new Backend();
+        this->backend = new Backend(this->debug, this->coverage);
         this->backend->load_intrinsics();
 
         CST2AST *llvmVisitor = new CST2AST(this->backend->program);

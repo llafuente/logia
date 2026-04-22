@@ -3,6 +3,8 @@
 #include "ast/traverse.h"
 #include "utils.h"
 
+#include "llvm/IR/DIBuilder.h"
+
 namespace logia::AST
 {
     LOGIA_API LOGIA_LEND char *ast_primitives_to_string(Primitives prim)
@@ -432,6 +434,9 @@ namespace logia::AST
         this->push_child(id);          // get_name
         this->push_child(return_type); // get_return_type
 
+        // auto block = new Block(nullptr, ast_create_identifier("function_param_alloca"));
+        // this->push_child(block);
+
         // NOTE need to push something as arguments will be +3
         if (is_intrinsic)
         {
@@ -439,7 +444,7 @@ namespace logia::AST
         }
         else
         {
-            auto block = new FunctionBlock(nullptr, ast_create_identifier("function_entry"));
+            auto block = new FunctionBlock(nullptr, ast_create_identifier("function_body"));
             this->push_child(block); // get_body
         }
         this->is_intrinsic = is_intrinsic;
@@ -511,28 +516,70 @@ namespace logia::AST
             }
         }
     }
+    Identifier *Function::get_parameter_name(uint32_t i)
+    {
+        return this->parameters[i].name;
+    }
 
-    llvm::Value *Function::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    llvm::Value *Function::codegen(logia::Backend *backend, llvm::IRBuilder<> *builder)
     {
         int pcount = this->parameters.size();
         this->parametersIR.reserve(pcount);
+        llvm::SmallVector<llvm::Metadata *, 12> md_types;
+
         for (size_t i = 0; i < pcount; ++i)
         {
-            this->parametersIR.push_back((llvm::Type *)this->parameters[i].type->codegen(codegen, builder));
+            // IR Type
+            auto llvm_type = (llvm::Type *)this->parameters[i].type->codegen(backend, builder);
+            this->parametersIR.push_back(llvm_type);
+
+            // Metadata type
+            auto RSO = llvm_type_to_string(llvm_type);
+            llvm::MDString *TypeNameMD = llvm::MDString::get(backend->context, RSO.c_str());
+            // Wrap it in an MDNode (could also include more info)
+            llvm::MDNode *TypeNode = llvm::MDNode::get(backend->context, {TypeNameMD});
+            md_types.push_back(TypeNode);
         }
         auto rtype = this->get_return_type();
-        rtype->codegen(codegen, builder);
-        this->llvm_type = (llvm::Type *)llvm::FunctionType::get(rtype->llvm_type,
-                                                                this->parametersIR, // parameter list
-                                                                false);             // not variadic
+        rtype->codegen(backend, builder);
+        auto func = llvm::FunctionType::get(rtype->llvm_type,
+                                            this->parametersIR, // parameter list
+                                            false);             // not variadic
+        this->llvm_type = (llvm::Type *)func;
 
-        this->cg_value = llvm::Function::Create((llvm::FunctionType *)this->llvm_type, llvm::Function::ExternalLinkage, 0, this->get_name(), codegen->module.get());
+        this->cg_value = llvm::Function::Create((llvm::FunctionType *)this->llvm_type, llvm::Function::ExternalLinkage, 0, this->get_name(), backend->module.get());
 
         // Create a basic block and insert a return
 
         if (!this->is_intrinsic)
         {
-            this->get_body()->codegen(codegen, builder);
+            if (backend->debug)
+            {
+                // TODO STUDY only defined function can be coverage
+                // intrinsics are defined elsewhere, we may required something to be able to notice call count...
+                llvm::DISubroutineType *DISig = backend->dbuilder->createSubroutineType(backend->dbuilder->getOrCreateTypeArray(md_types));
+
+                llvm::DISubprogram *SP = backend->dbuilder->createFunction(
+                    backend->dcompilation_unit->getFile(),
+                    this->get_name(),
+                    llvm::StringRef(),
+                    backend->dfile,
+                    this->rule->start->getLine(), // Line number
+                    DISig,
+                    0,                      // STUDY first line in the scope is "0" ?
+                    llvm::DINode::FlagZero, // STUDY FlagPrototyped ??
+                    llvm::DISubprogram::SPFlagDefinition);
+                this->cg_value->setSubprogram(SP);
+
+                backend->dscopes.push_back(SP);
+            }
+            backend->set_debug_information(this->rule);
+            this->get_body()->codegen(backend, builder);
+
+            if (backend->debug)
+            {
+                backend->dscopes.pop_back();
+            }
         }
 
         return (llvm::Value *)this->llvm_type;

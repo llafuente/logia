@@ -22,6 +22,10 @@
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/Support/Error.h"
 
+// debug
+#include "llvm/IR/DIBuilder.h"
+#include "llvm/IR/DebugInfoMetadata.h"
+
 #include "llvm/Support/Compiler.h"
 #include "llvm/ExecutionEngine/Orc/MaterializationUnit.h"
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
@@ -36,7 +40,7 @@
 
 namespace logia
 {
-    Backend::Backend()
+    Backend::Backend(bool debug, bool coverage) : debug(debug), coverage(coverage)
     {
 #ifdef CODEGEN_NATIVE
         llvm::InitializeNativeTarget();
@@ -63,6 +67,32 @@ namespace logia
         // linkInModule https://www.youtube.com/watch?v=h6HkwpE7UqM
 
         builder = new llvm::IRBuilder<>(context);
+
+        if (debug)
+        {
+            // Create a DIBuilder for debug info
+            dbuilder = new llvm::DIBuilder(*this->module);
+
+            // Create a file descriptor for the source file
+            // TODO pass this variable, but it's not that easy atp, because could be an import, think about it!
+            this->dfile = this->dbuilder->createFile("xxx.logia", ".");
+
+            // Create the compile unit
+            this->dcompilation_unit = this->dbuilder->createCompileUnit(
+                llvm::dwarf::DW_LANG_C, // Language
+                this->dfile,          // Source file
+                "logia",                // Producer
+                false,                  // Optimized?
+                "",                     // Flags
+                0                       // Runtime version
+            );
+
+            // Enable debug info
+            this->module->addModuleFlag(llvm::Module::Warning, "Debug Info Version", llvm::DEBUG_METADATA_VERSION);
+            this->module->addModuleFlag(llvm::Module::Warning, "Dwarf Version", llvm::dwarf::DWARF_VERSION);
+
+            di_double_ty = this->dbuilder->createBasicType("double", 64, llvm::dwarf::DW_ATE_float);
+        }
 
         auto EPC = llvm::orc::SelfExecutorProcessControl::Create();
         if (!EPC)
@@ -235,13 +265,24 @@ namespace logia
         return true;
     }
 
-    bool Backend::emitTargetLLVMIR(std::string fileName = "main.ll")
+    void Backend::__finalize_module()
     {
-        DEBUG() << "(" << fileName << ")" << std::endl;
         if (!program->is_codegen)
         {
             this->program->codegen(this, this->builder);
         }
+        if (debug)
+        {
+            // Finalize the debug info
+            this->dbuilder->finalize();
+        }
+    }
+
+    bool Backend::emitTargetLLVMIR(std::string fileName = "main.ll")
+    {
+        DEBUG() << "(" << fileName << ")" << std::endl;
+
+        this->__finalize_module();
 
         std::error_code EC;
         llvm::raw_fd_ostream dest(fileName, EC, llvm::sys::fs::FileAccess::FA_Write);
@@ -261,10 +302,8 @@ namespace logia
     bool Backend::emitTargetObjectFile(std::string fileName = "main.o")
     {
         DEBUG() << "(" << fileName << ")" << std::endl;
-        if (!program->is_codegen)
-        {
-            this->program->codegen(this, this->builder);
-        }
+
+        this->__finalize_module();
 
         // Initialize the target registry etc.
         auto triple = llvm::Triple(llvm::sys::getDefaultTargetTriple());
@@ -286,10 +325,8 @@ namespace logia
     bool Backend::emitTargetAssemblyFile(std::string fileName = "main.asm")
     {
         DEBUG() << "(" << fileName << ")" << std::endl;
-        if (!program->is_codegen)
-        {
-            this->program->codegen(this, this->builder);
-        }
+
+        this->__finalize_module();
 
         // Initialize the target registry etc.
         auto triple = llvm::Triple(llvm::sys::getDefaultTargetTriple());
@@ -310,10 +347,7 @@ namespace logia
 
     bool Backend::emitTargetExecutable(std::string fileName)
     {
-        if (!program->is_codegen)
-        {
-            this->program->codegen(this, this->builder);
-        }
+        this->__finalize_module();
 
         throw std::runtime_error(__FUNCTION__ "todo");
 
@@ -327,10 +361,7 @@ namespace logia
         DEBUG() << std::endl
                 << this->program->to_string_tree() << std::endl;
 
-        if (!program->is_codegen)
-        {
-            this->program->codegen(this, this->builder);
-        }
+        this->__finalize_module();
 
         // create orc-jit
         // * execute in the current process -> session
@@ -454,5 +485,30 @@ namespace logia
         }
 
         return result;
+    }
+
+    void Backend::set_debug_information(antlr4::ParserRuleContext *context)
+    {
+        if (!this->debug)
+        {
+            return;
+        }
+        LOGIA_ASSERT(context);
+        LOGIA_ASSERT(this->dscopes.size());
+
+        auto start_tk = context->getStart();
+        auto end_tk = context->getStop();
+        auto start_line = start_tk->getLine();
+        auto end_line = start_tk->getLine();
+        auto start_column = start_tk->getStartIndex();
+        auto end_column = end_tk->getStopIndex();
+
+        // Set the current debug location
+        builder->SetCurrentDebugLocation(
+            llvm::DILocation::get(this->context,
+                                  start_line,                             // line number
+                                  start_column,                           // column number
+                                  this->dscopes[this->dscopes.size() - 1] // llvm::DIScope* (e.g., from a subprogram)
+                                  ));
     }
 }

@@ -15,15 +15,23 @@
 
 int test_single_file(const char *file)
 {
-    const char *argv[3];
+    bool debug = true;
+
+    int argc = debug ? 5 : 3;
+    const char **argv = (const char **)malloc(sizeof(char *) * argc);
     argv[0] = file;
     argv[1] = "--emit-llvm";
     auto len = strlen(file);
     auto llfile = std::format("{}{}", file, ".ll");
     argv[2] = llfile.c_str();
+    if (debug)
+    {
+        argv[3] = "--debug";
+        argv[4] = "--coverage";
+    }
 
-    auto ret = logia::logia_run(3, argv);
-
+    auto ret = logia::logia_run(argc, argv);
+    free(argv);
     return ret;
 }
 

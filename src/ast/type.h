@@ -301,6 +301,8 @@ namespace logia::AST
         /// @return
         Block *get_body();
 
+        Identifier *get_parameter_name(uint32_t i);
+
         /// @brief Retrives the number of mandatory parameters
         /// @return
         uint32_t get_mandatory_parameters_size();

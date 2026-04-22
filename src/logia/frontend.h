@@ -29,6 +29,7 @@ namespace logia
 
     struct Frontend
     {
+        const char *entry_point_path;
         // CST - antlr
         LogiaParser *parser;
         antlr4::ANTLRErrorListener *errorListener;
@@ -50,13 +51,15 @@ namespace logia
         // options
         bool is_program = true;
         bool verbose = false;
+        bool debug = false;
+        bool coverage = false;
 
         ~Frontend();
 
         char *file_read(const char *file_path);
-        void read(const char *file_path);
-        antlr4::ParserRuleContext *parse();
-        void compile();
+
+        void set_file(const char *file_path);
+        void parse();
         void print_cst(std::ostream &out);
 
         void build_ast();

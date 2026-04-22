@@ -19,6 +19,8 @@ namespace logia
             std::cout << std::left << std::setw(LEFT_COLUMN) << "    --print-cst" << "Prints CST at stderr" << std::endl;
             std::cout << std::left << std::setw(LEFT_COLUMN) << "    --print-ast" << "Prints AST at stderr" << std::endl;
             std::cout << std::left << std::setw(LEFT_COLUMN) << "    --emit-llvm" << "Prints LLVM IR at stderr" << std::endl;
+            std::cout << std::left << std::setw(LEFT_COLUMN) << "    --debug" << "Include debug information" << std::endl;
+            std::cout << std::left << std::setw(LEFT_COLUMN) << "    --coverage" << "Include code coverage information" << std::endl;
             std::cout << std::left << std::setw(LEFT_COLUMN) << "    --verbose" << "Prints debug information at stderr" << std::endl;
         }
 

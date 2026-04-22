@@ -13,7 +13,7 @@ char *end_stdout_capture();
     logia::AST::Block *main_body;                                                                                                                                     \
     do                                                                                                                                                                \
     {                                                                                                                                                                 \
-        back = new logia::Backend();                                                                                                                                  \
+        back = new logia::Backend(false, false);                                                                                                                      \
         program = back->program;                                                                                                                                      \
         back->load_intrinsics();                                                                                                                                      \
         main_fn = logia::AST::ast_create_function_type(logia::AST::ast_create_identifier(strdup("main")), logia::AST::ast_get_type_by_name(program, strdup("λi64"))); \

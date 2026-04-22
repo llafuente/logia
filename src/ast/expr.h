@@ -23,7 +23,7 @@ namespace logia::AST
     {
         /// @brief Empty constructor for internal usage of CallExpression
         /// @remarks Do not use the constructor to build ASTs
-        CallExpression();
+        CallExpression(antlr4::ParserRuleContext *rule);
         CallExpression(antlr4::ParserRuleContext *rule, Expression *locator, std::vector<Expression *> positional_arguments);
 
         /// @brief Get the locator expression of the call

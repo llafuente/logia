@@ -17,9 +17,6 @@ namespace logia::AST
 
     struct IfStmt : Stmt
     {
-        char *name;
-        llvm::AllocaInst *ir;
-
         IfStmt(antlr4::ParserRuleContext *rule, Expression *condition);
         Expression *get_condition();
         Block *get_then();

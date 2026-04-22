@@ -22,6 +22,8 @@
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/ExecutionEngine/Orc/Core.h"
 
+#include "antlr4-runtime.h"
+
 namespace logia
 {
     namespace AST
@@ -38,6 +40,8 @@ namespace logia
     struct Backend
     {
     public:
+        bool debug;
+        bool coverage;
         /**
          * llvm context
          */
@@ -53,6 +57,13 @@ namespace logia
          * Overriden in each function/block scope
          */
         llvm::IRBuilder<> *builder = nullptr;
+
+        std::vector<llvm::DIScope *> dscopes = {};
+        llvm::DIBuilder *dbuilder = nullptr;
+        llvm::DIFile *dfile = nullptr;
+        llvm::DICompileUnit *dcompilation_unit = nullptr;
+        llvm::DIType *di_double_ty = nullptr;
+
         /**
          * Current LLVM JIT session
          */
@@ -62,7 +73,7 @@ namespace logia
         /**
          * Initialize LLVM
          */
-        Backend();
+        Backend(bool debug, bool coverage);
         /**
          *
          */
@@ -108,5 +119,10 @@ namespace logia
          * Runs module main function into current process
          */
         int run_jit(const char *fn_name);
+
+        void set_debug_information(antlr4::ParserRuleContext *context);
+
+    private:
+        void __finalize_module();
     };
 }

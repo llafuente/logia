@@ -33,7 +33,7 @@ TEST(AST_Type, ast_create_program)
           << std::endl;
 
   using namespace logia::AST;
-  auto back = new logia::Backend();
+  auto back = new logia::Backend(false, false);
   auto program = back->program;
 
   EXPECT_EQ(program->parent_node, nullptr);
@@ -64,7 +64,7 @@ TEST(AST_Type, ast_create_function_type)
 
   using namespace logia::AST;
 
-  auto back = new logia::Backend();
+  auto back = new logia::Backend(false, false);
   auto program = back->program;
   auto start_program_children = program->children.size();
   back->load_intrinsics();
@@ -140,7 +140,7 @@ TEST(AST_Type, ast_create_struct_type)
 
   using namespace logia::AST;
 
-  auto back = new logia::Backend();
+  auto back = new logia::Backend(false, false);
   auto program = back->program;
   auto start_program_children = program->children.size();
   back->load_intrinsics();
@@ -223,7 +223,7 @@ TEST(AST_Type, ast_create_var_decl)
 
   using namespace logia::AST;
 
-  auto back = new logia::Backend();
+  auto back = new logia::Backend(false, false);
   auto program = back->program;
   auto start_program_children = program->children.size();
   back->load_intrinsics();

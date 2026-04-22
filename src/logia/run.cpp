@@ -17,6 +17,8 @@ namespace logia
         logia::Frontend *frontend = new logia::Frontend();
         const char *file_path = argv[0];
 
+        DEBUG() << file_path << std::endl;
+
         // parse common options
         bool print = false;
         bool print_cst = false;
@@ -70,6 +72,16 @@ namespace logia
                 frontend->verbose = true;
                 continue;
             }
+            else if (strcmp("--debug", argv[i]) == 0)
+            {
+                frontend->debug = true;
+                continue;
+            }
+            else if (strcmp("--coverage", argv[i]) == 0)
+            {
+                frontend->debug = true;
+                continue;
+            }
             std::cerr << "ignore unkown option: " << argv[i] << std::endl;
         }
 
@@ -89,19 +101,24 @@ namespace logia
                 << "* program: " << (frontend->is_program ? "yes" : "no") << std::endl;
         }
 
-        frontend->read(file_path);
+        // frontend starts
+
+        frontend->set_file(file_path);
         if (print)
         {
             std::cerr << "File Contents:" << std::endl
                       << frontend->text << std::endl;
         }
-        antlr4::ParserRuleContext *tree = frontend->parse();
+        frontend->parse();
 
         frontend->print_cst(print_cst ? std::cerr : logia_log_file);
 
         frontend->build_ast();
 
         frontend->print_ast(print_ast ? std::cerr : logia_log_file);
+
+        // TODO maybe we should fordward to backend in a far future when api stable
+        // backend starts
 
         if (emit_llvm)
         {

@@ -73,7 +73,7 @@ namespace logia
         DEBUG() << context->getText() << std::endl;
 
         auto text = context->getText();
-        return ANY_VOIDP_STORE(AST::ast_create_int_lit(this->program, text.c_str()));
+        return ANY_VOIDP_STORE(new AST::IntegerLiteral(context, text.c_str(), this->program->lookup2<AST::Type>("λi64")));
     }
 
     // rhsExpr it's just a container not needed
@@ -103,30 +103,30 @@ namespace logia
         switch (context->op->start->getType())
         {
         case LogiaParser::EQUAL_TK:
-            return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::ASSIGN, right));
+            return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::ASSIGN, right));
         case LogiaParser::STAR_ASSIGN_TK:
-            return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::MUL_ASSIGN, right));
+            return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::MUL_ASSIGN, right));
         case LogiaParser::DIV_ASSIGN_TK:
-            return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::DIV_ASSIGN, right));
+            return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::DIV_ASSIGN, right));
         case LogiaParser::ADD_ASSIGN_TK:
-            return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::ADD_ASSIGN, right));
+            return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::ADD_ASSIGN, right));
         case LogiaParser::SUB_ASSIGN_TK:
-            return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::SUB_ASSIGN, right));
+            return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::SUB_ASSIGN, right));
 
         // case RIGHT_SHIFT_ASSIGN_TK:
-        // return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::BITWISE_LEFT_SHIFT_ASSIGN, right));
+        // return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::BITWISE_LEFT_SHIFT_ASSIGN, right));
         // case LEFT_SHIFT_ASSIGN_TK:
-        // return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::BITWISE_RIGHT_SHIFT_ASSIGN, right));
+        // return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::BITWISE_RIGHT_SHIFT_ASSIGN, right));
         // case AND_ASSIGN_TK:
-        // return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::BITWISE_AND_ASSIGN, right));
+        // return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::BITWISE_AND_ASSIGN, right));
         // case XOR_ASSIGN_TK:
-        // return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::BITWISE_XOR_ASSIGN, right));
+        // return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::BITWISE_XOR_ASSIGN, right));
         // case OR_ASSIGN_TK:
-        // return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::BITWISE_OR_ASSIGN, right));
+        // return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::BITWISE_OR_ASSIGN, right));
         // case LogiaParser::MOD_ADDIGN_TK:
-        // return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::MOD_ASSIGN, right));
+        // return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::MOD_ASSIGN, right));
         // case LogiaParser::OR_ASSIGN_TK:
-        // return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::OR, right));
+        // return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::OR, right));
         default:
             CST_UNREACHABLE();
         }
@@ -150,7 +150,7 @@ namespace logia
         if (context->right != nullptr)
         {
             auto right = ANY_VOIDP_CAST(AST::Expression *, this->visitLogicalOrExpr(context->right));
-            return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::LOGICAL_OR, right));
+            return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::LOGICAL_OR, right));
         }
         return ANY_VOIDP_STORE(left);
     }
@@ -163,7 +163,7 @@ namespace logia
         if (context->right != nullptr)
         {
             auto right = ANY_VOIDP_CAST(AST::Expression *, this->visitLogicalAndExpr(context->right));
-            return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::LOGICAL_OR, right));
+            return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::LOGICAL_OR, right));
         }
         return ANY_VOIDP_STORE(left);
     }
@@ -177,7 +177,7 @@ namespace logia
         if (context->right != nullptr)
         {
             auto right = ANY_VOIDP_CAST(AST::Expression *, this->visitInclusiveOrExpr(context->right));
-            return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::BITWISE_OR, right));
+            return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::BITWISE_OR, right));
         }
         return ANY_VOIDP_STORE(left);
     }
@@ -191,7 +191,7 @@ namespace logia
         if (context->right != nullptr)
         {
             auto right = ANY_VOIDP_CAST(AST::Expression *, this->visitExclusiveOrExpr(context->right));
-            return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::BITWISE_XOR, right));
+            return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::BITWISE_XOR, right));
         }
         return ANY_VOIDP_STORE(left);
     }
@@ -205,7 +205,7 @@ namespace logia
         if (context->right != nullptr)
         {
             auto right = ANY_VOIDP_CAST(AST::Expression *, this->visitAndExpr(context->right));
-            return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::BITWISE_AND, right));
+            return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::BITWISE_AND, right));
         }
         return ANY_VOIDP_STORE(left);
     }
@@ -235,10 +235,10 @@ namespace logia
             case LogiaParser::ALMOSTEQUAL_TK:
             // value equality
             case LogiaParser::EQUALEQUAL_TK:
-                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::LOGIAL_EQ, right));
+                return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::LOGIAL_EQ, right));
             // value inequality
             case LogiaParser::NOT_EQUAL_TK:
-                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::LOGIAL_NEQ, right));
+                return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::LOGIAL_NEQ, right));
             }
             // TODO:  '<' '>'
             throw std::runtime_error(__FUNCTION__ "unreachable");
@@ -260,13 +260,13 @@ namespace logia
             switch (context->op->start->getType())
             {
             case LogiaParser::LT_TK:
-                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::LOGIAL_LT, right));
+                return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::LOGIAL_LT, right));
             case LogiaParser::LESS_EQUAL_TK:
-                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::LOGIAL_LTE, right));
+                return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::LOGIAL_LTE, right));
             case LogiaParser::GT_TK:
-                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::LOGIAL_GT, right));
+                return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::LOGIAL_GT, right));
             case LogiaParser::GREATER_EQUAL_TK:
-                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::LOGIAL_GTE, right));
+                return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::LOGIAL_GTE, right));
             }
             throw std::runtime_error(__FUNCTION__ "unreachable");
         }
@@ -287,9 +287,9 @@ namespace logia
             switch (context->op->start->getType())
             {
             case LogiaParser::LT_TK:
-                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::BITWISE_LEFT_SHIFT, right));
+                return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::BITWISE_LEFT_SHIFT, right));
             case LogiaParser::GT_TK:
-                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::BITWISE_RIGHT_SHIFT, right));
+                return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::BITWISE_RIGHT_SHIFT, right));
             }
             throw std::runtime_error(__FUNCTION__ "unreachable");
         }
@@ -310,9 +310,9 @@ namespace logia
             switch (context->op->start->getType())
             {
             case LogiaParser::PLUS_TK:
-                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::ADD, right));
+                return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::ADD, right));
             case LogiaParser::MINUS_TK:
-                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::SUB, right));
+                return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::SUB, right));
             }
             throw std::runtime_error(__FUNCTION__ "unreachable");
         }
@@ -333,11 +333,11 @@ namespace logia
             switch (context->op->start->getType())
             {
             case LogiaParser::STAR_TK:
-                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::MUL, right));
+                return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::MUL, right));
             case LogiaParser::SLASH_TK:
-                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::DIV, right));
+                return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::DIV, right));
             case LogiaParser::MOD_TK:
-                return ANY_VOIDP_STORE(AST::ast_create_binary_expr(left, AST::BinaryOperator::MOD, right));
+                return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::BinaryOperator::MOD, right));
             }
             throw std::runtime_error(__FUNCTION__ "unreachable");
         }
@@ -369,22 +369,22 @@ namespace logia
             // UNDER REVIEW
             case LogiaParser::AT_TK:
             case LogiaParser::AND_TK:
-                return ANY_VOIDP_STORE(AST::ast_create_preunary_expr(AST::PrefixUnaryOperator::DEREFERENCE, operand));
+                return ANY_VOIDP_STORE(new AST::PrefixUnaryExpression(context, AST::PrefixUnaryOperator::DEREFERENCE, operand));
 
             case LogiaParser::PLUS_TK:
                 // for syntactic completeness, do nothing
                 return operand;
             case LogiaParser::MINUS_TK:
-                return ANY_VOIDP_STORE(AST::ast_create_preunary_expr(AST::PrefixUnaryOperator::NEGATION, operand));
+                return ANY_VOIDP_STORE(new AST::PrefixUnaryExpression(context, AST::PrefixUnaryOperator::NEGATION, operand));
             case LogiaParser::TILDE_TK:
-                return ANY_VOIDP_STORE(AST::ast_create_preunary_expr(AST::PrefixUnaryOperator::BITWISE_NOT, operand));
+                return ANY_VOIDP_STORE(new AST::PrefixUnaryExpression(context, AST::PrefixUnaryOperator::BITWISE_NOT, operand));
             case LogiaParser::NOT_TK:
             case LogiaParser::NOT2_TK:
-                return ANY_VOIDP_STORE(AST::ast_create_preunary_expr(AST::PrefixUnaryOperator::LOGICAL_NOT, operand));
+                return ANY_VOIDP_STORE(new AST::PrefixUnaryExpression(context, AST::PrefixUnaryOperator::LOGICAL_NOT, operand));
             case LogiaParser::PLUSPLUS_TK:
-                return ANY_VOIDP_STORE(AST::ast_create_preunary_expr(AST::PrefixUnaryOperator::INCREMENT, operand));
+                return ANY_VOIDP_STORE(new AST::PrefixUnaryExpression(context, AST::PrefixUnaryOperator::INCREMENT, operand));
             case LogiaParser::MINUSMINUS_TK:
-                return ANY_VOIDP_STORE(AST::ast_create_preunary_expr(AST::PrefixUnaryOperator::DECREMENT, operand));
+                return ANY_VOIDP_STORE(new AST::PrefixUnaryExpression(context, AST::PrefixUnaryOperator::DECREMENT, operand));
             }
             throw std::runtime_error(__FUNCTION__ "unreachable");
         }
@@ -445,10 +445,10 @@ namespace logia
 
     std::any CST2AST::postfixCallExpr(LogiaParser::PostfixExprContext *locator, LogiaParser::ArgumentExprListContext *arguments)
     {
-        auto ast_locator = ANY_VOIDP_CAST(AST::Expression *, this->visitPostfixExpr(locator));
-        auto callexpr = AST::ast_create_call_expr(ast_locator, {});
+        auto locator_expr = ANY_VOIDP_CAST(AST::Expression *, this->visitPostfixExpr(locator));
+        auto callexpr = new AST::CallExpression(locator, locator_expr, {});
 
-        DEBUG() << "locator" << ast_locator->to_string() << std::endl;
+        DEBUG() << "locator" << locator_expr->to_string() << std::endl;
         if (arguments != nullptr)
         {
             parseArguments(callexpr, arguments);
@@ -605,7 +605,7 @@ namespace logia
         auto rhs = context->rhsExpr();
         LOGIA_ASSERT(rhs && "not supportted yet: empty return");
         auto ret_expr = ANY_VOIDP_CAST(AST::Expression *, this->visitRhsExpr(rhs));
-        return ANY_VOIDP_STORE(AST::ast_create_return(ret_expr));
+        return ANY_VOIDP_STORE(new AST::ReturnStmt(context, ret_expr));
     }
     std::any CST2AST::visitLabeledStmt(LogiaParser::LabeledStmtContext *context)
     {
@@ -615,7 +615,7 @@ namespace logia
         CST_TODO_BRANCH(stmt, visitStmt);
         auto id = ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(context->identifier()));
 
-        auto block = AST::ast_create_block(id);
+        auto block = new AST::Block(context, id);
 
         this->parseBlock(context->blockStmt(), block);
 
@@ -636,8 +636,8 @@ namespace logia
         auto first_if_stmt = context->ifSelectionStmt(0);
 
         AST::IfStmt *ifstmt;
-        auto expr = ANY_VOIDP_CAST(AST::Expression *, this->visitRhsExpr(first_if_stmt->expr));
-        ifstmt = AST::ast_create_if(expr);
+        auto condition = ANY_VOIDP_CAST(AST::Expression *, this->visitRhsExpr(first_if_stmt->expr));
+        ifstmt = new AST::IfStmt(nullptr, condition);
         this->parseBlock(first_if_stmt->blockStmt(), ifstmt->get_then());
 
         // (else if)*
@@ -650,8 +650,8 @@ namespace logia
                 break;
             }
 
-            auto expr = ANY_VOIDP_CAST(AST::Expression *, this->visitRhsExpr(stmt->expr));
-            auto deep_ifstmt = AST::ast_create_if(expr);
+            auto condition2 = ANY_VOIDP_CAST(AST::Expression *, this->visitRhsExpr(stmt->expr));
+            auto deep_ifstmt = new AST::IfStmt(nullptr, condition2);
             this->parseBlock(stmt->blockStmt(), deep_ifstmt->get_then());
             ifstmt->get_else()->push_child(deep_ifstmt);
         }
@@ -669,20 +669,16 @@ namespace logia
     {
         DEBUG() << context->getText() << std::endl;
 
-        auto ident = AST::ast_create_identifier((char *)context->getText().c_str());
-        ident->rule = context;
-
-        return ANY_VOIDP_STORE(ident);
+        // TODO REVIEW strdup necessary ? that memory should have similar life
+        return ANY_VOIDP_STORE(new AST::Identifier(nullptr, strdup(context->getText().c_str())));
     }
 
     std::any CST2AST::visitStringLiteral(LogiaParser::StringLiteralContext *context)
     {
         DEBUG() << context->getText() << std::endl;
 
-        auto str = AST::ast_create_string_lit(context->STRING_LITERAL()->getText().c_str());
-        str->rule = context;
-
-        return ANY_VOIDP_STORE(str);
+        // TODO REVIEW strdup necessary ? that memory should have similar life
+        return ANY_VOIDP_STORE(new AST::StringLiteral(nullptr, strdup(context->STRING_LITERAL()->getText().c_str())));
     }
 
     std::any CST2AST::visitFunctionDecl(LogiaParser::FunctionDeclContext *context)
@@ -696,7 +692,7 @@ namespace logia
         auto name = ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(def->functionName()->identifier()));
         auto ret_type = this->program->lookup2<AST::Type>("λi64");
 
-        auto fn = AST::ast_create_function_type(name, ret_type);
+        auto fn = new AST::Function(context, name, ret_type);
         this->program->push_child(fn);
 
         this->parseBlock(context->blockStmt(), fn->get_body());
@@ -706,7 +702,7 @@ namespace logia
 
     std::any CST2AST::visitBlockStmt(LogiaParser::BlockStmtContext *context)
     {
-        auto block = AST::ast_create_block(AST::ast_create_identifier(""));
+        auto block = new AST::Block(context, new AST::Identifier(context, ""));
 
         this->parseBlock(context, block);
 
@@ -800,10 +796,7 @@ namespace logia
             expr = ANY_VOIDP_CAST(AST::Expression *, this->visitRhsExpr(rhs));
         }
 
-        auto decl = AST::ast_create_var_decl(ident, nullptr, expr);
-        decl->rule = context;
-
-        return ANY_VOIDP_STORE(decl);
+        return ANY_VOIDP_STORE(new AST::VarDeclStmt(context, ident, nullptr, expr));
     }
     std::any CST2AST::visitTypedVariableDeclStmt(LogiaParser::TypedVariableDeclStmtContext *context)
     {
@@ -820,20 +813,15 @@ namespace logia
         auto constructor_arguments = context->argumentExprList();
         if (constructor_arguments != nullptr)
         {
-            auto callexpr = AST::ast_create_call_expr(AST::ast_create_identifier("new"), {});
+            auto locator = new AST::Identifier(nullptr, strdup("new"));
+            auto callexpr = new AST::CallExpression(nullptr, locator, {});
             this->parseArguments(callexpr, constructor_arguments);
             expr = callexpr;
         }
 
         auto type_def = ANY_VOIDP_CAST(AST::Type *, this->visitTypeDefinition(context->typeDefinition()));
 
-        auto type = this->program->lookup2<AST::Type>("λi64");
-        // TODO!!!
-
-        auto decl = AST::ast_create_var_decl(ident, type_def, expr);
-        decl->rule = context;
-
-        return ANY_VOIDP_STORE(decl);
+        return ANY_VOIDP_STORE(new AST::VarDeclStmt(context, ident, type_def, expr));
     }
 
     //
@@ -850,7 +838,7 @@ namespace logia
         {
             auto structure = ANY_VOIDP_CAST(AST::Struct *, this->visitStructTypeDecl(context->structTypeDecl()));
             structure->set_identifier(type_name);
-            structure->rule = context;
+
             this->program->push_child(structure); // <-- TODO push to program atm :)
             return ANY_VOIDP_STORE(structure);
         }
@@ -870,7 +858,7 @@ namespace logia
         CST_TODO_BRANCH_LIST(typeExtendsDecl, visitTypeExtendsDecl);
         CST_TODO_BRANCH_LIST(typeImplementsDecl, visitTypeImplementsDecl);
 
-        auto structure = AST::ast_create_struct_type(nullptr);
+        auto structure = new AST::Struct(context, nullptr);
 
         for (int i = 0;; ++i)
         {

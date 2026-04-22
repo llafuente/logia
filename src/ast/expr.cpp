@@ -48,7 +48,7 @@ namespace logia::AST
     //
     // CallExpression
     //
-    CallExpression::CallExpression() : Expression(nullptr)
+    CallExpression::CallExpression(antlr4::ParserRuleContext *rule) : Expression(rule)
     {
     }
     CallExpression::CallExpression(antlr4::ParserRuleContext *rule, Expression *locator, std::vector<Expression *> positional_arguments) : Expression(rule)
@@ -182,6 +182,7 @@ namespace logia::AST
                 return nullptr;
             }
         }
+
         // NOTE name is not what i expect -> blank!
         return builder->CreateCall(CalleeF, ArgsV);
         // return builder->CreateCall(CalleeF, ArgsV, "call");
@@ -239,7 +240,7 @@ namespace logia::AST
         return std::format("BinaryExpression[{}({}, {}) ({:p})", id->identifier, this->get_left()->to_string(), this->get_right()->to_string(), static_cast<void *>(this));
     }
 
-    BinaryExpression::BinaryExpression(antlr4::ParserRuleContext *rule, Expression *left, BinaryOperator op, Expression *right) : CallExpression()
+    BinaryExpression::BinaryExpression(antlr4::ParserRuleContext *rule, Expression *left, BinaryOperator op, Expression *right) : CallExpression(rule)
     {
         this->op = op;
         // NOTE start as null, because we may don't know the types yet
@@ -304,7 +305,7 @@ namespace logia::AST
         return std::format("PrefixUnaryExpression[{}({}) ({:p})", ast_prefix_unary_operator_to_string(this->op), this->get_operand()->to_string(), static_cast<void *>(this));
     }
 
-    PrefixUnaryExpression::PrefixUnaryExpression(antlr4::ParserRuleContext *rule, PrefixUnaryOperator op, Expression *operand) : CallExpression()
+    PrefixUnaryExpression::PrefixUnaryExpression(antlr4::ParserRuleContext *rule, PrefixUnaryOperator op, Expression *operand) : CallExpression(rule)
     {
         this->op = op;
         switch (this->op)
@@ -377,7 +378,7 @@ namespace logia::AST
         return std::format("PostfixUnaryExpression[{}({})] ({:p})", ast_postfix_unary_operator_to_string(this->op), this->get_operand()->to_string(), static_cast<void *>(this));
     }
 
-    PostfixUnaryExpression::PostfixUnaryExpression(antlr4::ParserRuleContext *rule, PostfixUnaryOperator op, Expression *operand) : CallExpression()
+    PostfixUnaryExpression::PostfixUnaryExpression(antlr4::ParserRuleContext *rule, PostfixUnaryOperator op, Expression *operand) : CallExpression(rule)
     {
         this->op = op;
         this->push_child(ast_create_identifier(strdup(ast_postfix_unary_operator_to_string(op))));

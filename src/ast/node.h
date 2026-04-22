@@ -178,7 +178,7 @@ namespace logia::AST
 
                 if (auto maybe = dynamic_cast<T *>(ptr))
                 {
-                    out = *maybe;
+                    *out = maybe;
                     return true;
                 }
                 ptr = ptr->parent_node;
