@@ -224,7 +224,7 @@ namespace logia::AST
             throw std::runtime_error(std::string("Unknown struct property: ") + rightIdent->identifier);
         }
 
-        auto ptr = builder->CreateStructGEP(struct_ty->llvm_type, leftValue, propertyIndex);
+        auto ptr = builder->CreateStructGEP(struct_ty->ir_type, leftValue, propertyIndex);
         return builder->CreateLoad(propertyType, ptr);
     }
 
@@ -283,8 +283,8 @@ namespace logia::AST
     }
     void BinaryExpression::post_type_inference()
     {
-        auto left = this->get_left()->get_type();
-        auto right = this->get_right()->get_type();
+        auto left = this->get_left()->get_final_type();
+        auto right = this->get_right()->get_final_type();
         auto ident = this->get_locator()->as<Identifier>();
         ident->identifier = strdup(ast_binary_operator_to_string(op, left, right));
     }
@@ -342,7 +342,7 @@ namespace logia::AST
             auto operand = this->get_operand();
 
             // auto operandValue = operand->codegen(codegen, builder);
-            auto operandValue = this->get_operand()->as<Identifier>()->get_var_decl()->alloca;
+            auto operandValue = this->get_operand()->as<Identifier>()->get_var_decl()->alloca_inst;
             auto operandType = operandValue->getType();
             // return builder->CreateIntToPtr(operandValue, llvm::PointerType::get(codegen->context, 0));
             // return builder->CreateLoad(llvm::PointerType::get(codegen->context, 0), operandValue);
@@ -408,15 +408,25 @@ namespace logia::AST
     {
         DEBUG() << this->to_string() << std::endl;
 
-        auto decl = this->get_var_decl();
-
-        return builder->CreateLoad(decl->alloca->getAllocatedType(), decl->alloca, this->identifier);
+        auto decl = this->first_parent<Block>()->lookup2<Node>(this->identifier);
+        if (decl->is<VarDeclStmt>())
+        {
+            auto vdecl = decl->as<VarDeclStmt>();
+            return builder->CreateLoad(vdecl->alloca_inst->getAllocatedType(), vdecl->alloca_inst, this->identifier);
+        }
+        if (decl->is<FunctionParameter>())
+        {
+            auto fpdecl = decl->as<FunctionParameter>();
+            return builder->CreateLoad(fpdecl->alloca_inst->getAllocatedType(), fpdecl->alloca_inst, this->identifier);
+        }
+        throw std::runtime_error(std::format("{}{}", "Identifier found but type not handled!", decl->to_string()));
     }
 
     VarDeclStmt *Identifier::get_var_decl()
     {
         return this->first_parent<Block>()->lookup2<VarDeclStmt>(this->identifier);
     }
+
     Function *get_function_decl()
     {
         throw std::runtime_error("not implemented");

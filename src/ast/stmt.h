@@ -32,7 +32,7 @@ namespace logia::AST
     /// @brief Variable declaration/initialization statement
     struct VarDeclStmt : Stmt
     {
-        llvm::AllocaInst *alloca;
+        llvm::AllocaInst *alloca_inst;
 
         VarDeclStmt(antlr4::ParserRuleContext *rule, Identifier *id, Type *type, Expression *expr);
 

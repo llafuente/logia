@@ -90,6 +90,8 @@ namespace logia::AST
         /// @brief notify node type inferece pass end, all children type should be already inferred
         virtual void post_type_inference();
 
+        virtual Type *get_final_type();
+
         /// @brief resolve node references
         /// @return
         virtual Node *resolve();

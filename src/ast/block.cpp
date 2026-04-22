@@ -21,7 +21,7 @@ namespace logia::AST
 
     void Block::set(const char *name, Node *node)
     {
-        if (!node->is<Type>() && !node->is<Block>() && !node->is<VarDeclStmt>())
+        if (!node->is<Type>() && !node->is<Block>() && !node->is<VarDeclStmt>() && !node->is<FunctionParameter>())
         {
             throw std::runtime_error(std::format("invalid node type: {} - {}", typeid(node).name(), node->to_string()));
         }
@@ -154,6 +154,8 @@ namespace logia::AST
         auto function = this->first_parent<Function>();
         function->cg_value->insert(function->cg_value->end(), this->llvm_basicblock);
         builder->SetInsertPoint(this->llvm_basicblock);
+
+        this->parent_node->as<Function>()->codegen_parameters(codegen, builder);
 
         Block::codegen_children(codegen, builder);
         return this->llvm_basicblock;

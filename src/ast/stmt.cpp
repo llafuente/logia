@@ -51,7 +51,7 @@ namespace logia::AST
     //
     //
     //
-    VarDeclStmt::VarDeclStmt(antlr4::ParserRuleContext *rule, Identifier *id, Type *type, Expression *expr) : Stmt(rule), alloca(nullptr)
+    VarDeclStmt::VarDeclStmt(antlr4::ParserRuleContext *rule, Identifier *id, Type *type, Expression *expr) : Stmt(rule), alloca_inst(nullptr)
     {
         this->push_child(id);
         if (type == nullptr)
@@ -87,9 +87,9 @@ namespace logia::AST
 
     llvm::Value *VarDeclStmt::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
     {
-        if (this->alloca != nullptr)
+        if (this->alloca_inst != nullptr)
         {
-            return this->alloca;
+            return this->alloca_inst;
         }
 
         DEBUG() << this->to_string() << std::endl;
@@ -126,10 +126,10 @@ namespace logia::AST
         // TODO Type should be handled before ?
         // this->ir = builder->CreateAlloca((llvm::Type*) this->type->codegen(codegen, builder), 0, value);
         // this->ir = builder->CreateAlloca(value->getType(), 0, value);
-        this->alloca = builder->CreateAlloca(init_value->getType(), 0, nullptr);
-        builder->CreateStore(init_value, this->alloca);
+        this->alloca_inst = builder->CreateAlloca(init_value->getType(), 0, nullptr);
+        builder->CreateStore(init_value, this->alloca_inst);
 
-        return this->alloca;
+        return this->alloca_inst;
     }
 
     //

@@ -57,17 +57,20 @@ namespace logia::AST
     LOGIA_API LOGIA_LEND char *ast_primitives_to_string(Primitives prim);
 
     /// @brief Defines a function parameter
-    struct FunctionParameters
+    struct FunctionParameter : Node
     {
-        Identifier *name;
-        Type *type;
-        Node *defaultValue;
-        FunctionParameters(
-            Identifier *_name,
-            Type *_type,
-            Node *_defaultValue) : name(_name), type(_type), defaultValue(_defaultValue)
-        {
-        }
+        llvm::AllocaInst *alloca_inst;
+        FunctionParameter(
+            Identifier *name,
+            Type *type,
+            Node *defaultValue);
+
+        Identifier *get_name();
+        Expression *get_default_value();
+
+        std::string to_string() override;
+        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        Type *get_type() override;
     };
 
     struct FloatProperties
@@ -83,7 +86,8 @@ namespace logia::AST
         // modifiers
         bool readonly = false;
 
-        llvm::Type *llvm_type = nullptr;
+        llvm::Type *ir_type = nullptr;
+        llvm::DIBasicType *di_type = nullptr;
 
         // type properties
         union
@@ -276,15 +280,17 @@ namespace logia::AST
     {
     public:
         char *docstring;
-        std::vector<FunctionParameters> parameters;
-        std::vector<llvm::Type *> parametersIR;
+        std::vector<llvm::Type *> ir_parameters;
 
         /// @brief is an intrinsic function, intrinsics don't have body and are defined outside user program.
         bool is_intrinsic;
+        llvm::FunctionType *ir_func;
         llvm::Function *cg_value;
 
         Function(antlr4::ParserRuleContext *rule, Identifier *id, Type *return_type = nullptr, bool is_intrinsic = false);
         ~Function();
+
+        std::vector<FunctionParameter *> get_parameters();
 
         /// @brief Retrives function identifier name as C string
         /// @return
@@ -301,6 +307,9 @@ namespace logia::AST
         /// @return
         Block *get_body();
 
+        FunctionParameter *get_parameter(uint32_t i);
+
+        int64_t get_parameter_count();
         Identifier *get_parameter_name(uint32_t i);
 
         /// @brief Retrives the number of mandatory parameters
@@ -312,10 +321,7 @@ namespace logia::AST
         uint32_t get_optional_parameters_size();
 
         /// @brief Adds a parameter to a function
-        /// @param param_type The type of the parameter
-        /// @param param_name
-        /// @param param_default_value
-        void add_param(Type *param_type, Identifier *param_name, ConstExpression *param_default_value);
+        void add_param(FunctionParameter *param);
 
         /// @brief Checks if given call is valid
         /// @details Checks if the number of arguments and their types are compatible with the function parameters
@@ -325,6 +331,8 @@ namespace logia::AST
 
         std::string to_string() override;
         void post_attach() override;
+        /// @brief generate parameters alloca. Used at FunctionBlock
+        void codegen_parameters(logia::Backend *backend, llvm::IRBuilder<> *builder);
         llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
     };
 

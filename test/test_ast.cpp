@@ -167,7 +167,7 @@ TEST(AST_Type, ast_create_struct_type)
   auto func = logia::AST::ast_create_function_type(ast_create_identifier("main"), logia::AST::ast_get_type_by_name(program, strdup("λi32")));
   EXPECT_TRUE(func);
 
-  func->add_param(string_t, ast_create_identifier("first"), nullptr);
+  func->add_param(new FunctionParameter(ast_create_identifier("first"), string_t, nullptr));
 
   program->push_child(func);
 

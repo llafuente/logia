@@ -94,10 +94,27 @@ namespace logia::AST
         DEBUG() << this->to_string() << std::endl;
         return true;
     }
+
     void Node::post_type_inference()
     {
         DEBUG() << this->to_string() << std::endl;
     }
+
+    Type *Node::get_final_type()
+    {
+        auto type = this->get_type();
+        int MAX = 10;
+        while (type->is<TypeDef>() && --MAX)
+        {
+            type = type->get_type();
+        }
+        if (MAX == 0)
+        {
+            throw std::runtime_error(std::format("exceeded MAX iteration"));
+        }
+        return type;
+    }
+
     Node *Node::resolve()
     {
         return nullptr;

@@ -670,7 +670,7 @@ namespace logia
         DEBUG() << context->getText() << std::endl;
 
         // TODO REVIEW strdup necessary ? that memory should have similar life
-        return ANY_VOIDP_STORE(new AST::Identifier(nullptr, strdup(context->getText().c_str())));
+        return ANY_VOIDP_STORE(new AST::Identifier(context, strdup(context->getText().c_str())));
     }
 
     std::any CST2AST::visitStringLiteral(LogiaParser::StringLiteralContext *context)
@@ -678,21 +678,47 @@ namespace logia
         DEBUG() << context->getText() << std::endl;
 
         // TODO REVIEW strdup necessary ? that memory should have similar life
-        return ANY_VOIDP_STORE(new AST::StringLiteral(nullptr, strdup(context->STRING_LITERAL()->getText().c_str())));
+        return ANY_VOIDP_STORE(new AST::StringLiteral(context, strdup(context->STRING_LITERAL()->getText().c_str())));
     }
 
     std::any CST2AST::visitFunctionDecl(LogiaParser::FunctionDeclContext *context)
     {
         DEBUG() << context->getText() << std::endl;
 
-        LOGIA_ASSERT(!context->anonymousFunctionDef() && "not implemented");
+        CST_TODO_BRANCH(anonymousFunctionDef, visitAnonymousFunctionDef);
         auto def = context->functionDef();
 
         // auto name = (AST::Identifier *)(this->visitIdentifier(def->functionName()->identifier()));
         auto name = ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(def->functionName()->identifier()));
         auto ret_type = this->program->lookup2<AST::Type>("λi64");
-
         auto fn = new AST::Function(context, name, ret_type);
+
+        auto plist = def->functionParameterList();
+        if (plist != nullptr)
+        {
+            for (int i = 0;; ++i)
+            {
+                auto param = plist->functionParameter(i);
+
+                if (param == nullptr)
+                {
+                    break;
+                }
+                auto type_def = ANY_VOIDP_CAST(AST::Type *, this->visitTypeDefinition(param->typeDefinition()));
+                auto name = ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(param->identifier()));
+                auto rhs = param->rhsExpr();
+                AST::Expression *param_default = nullptr;
+                if (rhs != nullptr)
+                {
+                    param_default = ANY_VOIDP_CAST(AST::Expression *, this->visitRhsExpr(rhs));
+                }
+
+                // TODO LOGIA_ASSERT(param->functionParametersTypeModifiers().size() > 0);
+                // TODO REWIEW accept rhsExpr vs constExpr ???
+                fn->add_param(new AST::FunctionParameter(name, type_def, (AST::ConstExpression *)param_default));
+            }
+        }
+
         this->program->push_child(fn);
 
         this->parseBlock(context->blockStmt(), fn->get_body());
@@ -813,8 +839,8 @@ namespace logia
         auto constructor_arguments = context->argumentExprList();
         if (constructor_arguments != nullptr)
         {
-            auto locator = new AST::Identifier(nullptr, strdup("new"));
-            auto callexpr = new AST::CallExpression(nullptr, locator, {});
+            auto locator = new AST::Identifier(context, strdup("new"));
+            auto callexpr = new AST::CallExpression(context, locator, {});
             this->parseArguments(callexpr, constructor_arguments);
             expr = callexpr;
         }
