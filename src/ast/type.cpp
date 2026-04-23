@@ -616,7 +616,7 @@ namespace logia::AST
                     this->di_subprogram, name->identifier, i + 1, backend->dfile, 1, ty->di_type,
                     true);
                 auto line = name->rule->start->getLine();
-                auto column = name->rule->start->getStartIndex();
+                auto column = name->rule->start->getCharPositionInLine();
                 backend->dbuilder->insertDeclare(param->alloca_inst, D, backend->dbuilder->createExpression(),
                                                  llvm::DILocation::get(this->di_subprogram->getContext(), line, column, this->di_subprogram),
                                                  this->get_body()->llvm_basicblock);
