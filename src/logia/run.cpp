@@ -15,21 +15,23 @@ namespace logia
             return 0;
         }
         logia::Frontend *frontend = new logia::Frontend();
-        const char *file_path = argv[0];
-
-        DEBUG() << file_path << std::endl;
+        frontend->set_file(argv[0]);
 
         // parse common options
         bool print = false;
         bool print_cst = false;
         bool print_ast = false;
+
         bool emit_llvm = false;
         const char *llfile = nullptr;
-        bool verbose = false;
+
+        bool emit_obj = false;
+        const char *objfile = nullptr;
 
         // skip first, it's entry point file
         for (int i = 1; i < argc; ++i)
         {
+            // std::cout << argv[i] << std::endl;
             if (strcmp("--help", argv[i]) == 0)
             {
                 print_usage("run");
@@ -66,9 +68,19 @@ namespace logia
                 llfile = argv[++i];
                 continue;
             }
+            else if (strcmp("--emit-obj", argv[i]) == 0)
+            {
+                if (i + 1 == argc)
+                {
+                    std::cerr << "expected a file after --emit-obj, ignored" << std::endl;
+                    continue;
+                }
+                emit_obj = true;
+                objfile = argv[++i];
+                continue;
+            }
             else if (strcmp("--verbose", argv[i]) == 0)
             {
-                verbose = true;
                 frontend->verbose = true;
                 continue;
             }
@@ -85,7 +97,7 @@ namespace logia
             std::cerr << "ignore unkown option: " << argv[i] << std::endl;
         }
 
-        if (verbose)
+        if (frontend->verbose)
         {
             TCHAR cwd[MAX_PATH];
             GetCurrentDirectory(MAX_PATH, cwd);
@@ -96,14 +108,22 @@ namespace logia
             std::wcout
                 << "* cwd: " << cwd << std::endl;
             std::cout
-                << "* file: " << file_path << std::endl
+                << "* input file: " << frontend->entry_point_path << std::endl
                 << "* print: " << (print ? "yes" : "no") << std::endl
                 << "* program: " << (frontend->is_program ? "yes" : "no") << std::endl;
+
+            if (emit_llvm)
+            {
+                std::cout << "* llvm ir file:" << llfile << std::endl;
+            }
+            if (emit_obj)
+            {
+                std::cout << "* obj file: " << objfile << std::endl;
+            }
         }
 
         // frontend starts
 
-        frontend->set_file(file_path);
         if (print)
         {
             std::cerr << "File Contents:" << std::endl
@@ -123,8 +143,11 @@ namespace logia
         if (emit_llvm)
         {
             frontend->backend->emitTargetLLVMIR(llfile);
-            // logia_compiler->backend->module->print(llvm::outs(), nullptr);
-            // frontend->backend->module->print(llvm::errs(), nullptr);
+        }
+
+        if (emit_obj)
+        {
+            frontend->backend->emitTargetObjectFile(objfile);
         }
 
         auto ret = frontend->backend->run_jit("main");

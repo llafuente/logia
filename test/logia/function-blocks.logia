@@ -1,0 +1,43 @@
+function block_count() i64 {
+    var i64 i = 0;
+
+    {
+        i = i + 1
+    }
+
+    {
+        if true {
+            i = i + 1;
+        }
+    }
+
+    {
+        if false {
+            i = i + 999;
+        } else {
+          i = i + 1;
+        }
+    }
+
+    if false {
+        i = i + 999;
+    } else {
+        i = i + 1;
+    }
+
+
+    if false {
+        i = i + 999;
+    } else if false {
+        i = i + 999;
+    } else {
+        i = i + 1;
+    }
+
+    return i
+}
+
+function main() i64 {
+    var count = block_count()
+    return count
+}

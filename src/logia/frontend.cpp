@@ -125,6 +125,7 @@ namespace logia
     void Frontend::set_file(const char *file_path)
     {
         this->entry_point_path = file_path;
+        DEBUG() << this->entry_point_path << std::endl;
     }
 
     void Frontend::parse()

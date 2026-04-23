@@ -17,18 +17,26 @@ int test_single_file(const char *file)
 {
     bool debug = true;
 
-    int argc = debug ? 5 : 3;
+    int argc = debug ? 7 : 5;
+    //++argc;
     const char **argv = (const char **)malloc(sizeof(char *) * argc);
-    argv[0] = file;
-    argv[1] = "--emit-llvm";
-    auto len = strlen(file);
+    int arg = 0;
+    argv[arg++] = file;
+
+    argv[arg++] = "--emit-llvm";
     auto llfile = std::format("{}{}", file, ".ll");
-    argv[2] = llfile.c_str();
+    argv[arg++] = llfile.c_str();
+
+    argv[arg++] = "--emit-obj";
+    auto objfile = std::format("{}{}", file, ".o");
+    argv[arg++] = objfile.c_str();
+
     if (debug)
     {
-        argv[3] = "--debug";
-        argv[4] = "--coverage";
+        argv[arg++] = "--debug";
+        argv[arg++] = "--coverage";
     }
+    // argv[arg++] = "--verbose";
 
     auto ret = logia::logia_run(argc, argv);
     free(argv);
@@ -58,6 +66,5 @@ TEST(run_from_file, sum_logia)
     // 3 tests -> 3
     EXPECT_EQ(test_single_file(".\\test\\logia\\if.logia"), 3);
 
-    //! EXPECT_EQ(test_single_file(".\\test\\logia\\function-blocks.logia"), 2);
     //! EXPECT_EQ(test_single_file(".\\test\\logia\\struct-initializer-named.logia"), 32); // 31 means not ordering!
 }
