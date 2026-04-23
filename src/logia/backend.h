@@ -50,9 +50,11 @@ namespace logia
          */
         llvm::LLVMContext context;
 
-        // NOTE module is unique_ptr because parseIRFile return it
         /// @brief The main LLVM module
         std::unique_ptr<llvm::Module> module = nullptr;
+
+        /// @brief The logia intrinsics LLVM module
+        std::unique_ptr<llvm::Module> intrinsics_module = nullptr;
 
         /// @brief Used for generating LLVM instructions (globally)
         llvm::IRBuilder<> *builder = nullptr;
@@ -113,6 +115,9 @@ namespace logia
         /// @param context The parser rule context
         /// @param scope The debug scope, if nullptr is provided, the current scope will be used
         void set_debug_information(antlr4::ParserRuleContext *context, llvm::DIScope *scope = nullptr);
+
+        /// @brief searches a function inside intrinsics or current module
+        llvm::Function *getFunction(llvm::StringRef Name) const;
 
     private:
         void __finalize_module();

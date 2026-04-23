@@ -154,7 +154,7 @@ namespace logia::AST
         // Look up the name in the global module table.
         auto name = this->get_locator()->as<Identifier>();
 
-        llvm::Function *CalleeF = backend->module->getFunction(name->identifier);
+        llvm::Function *CalleeF = backend->getFunction(name->identifier);
         if (!CalleeF)
         {
             throw std::runtime_error(std::string("Unknown function referenced: ") + name->identifier);

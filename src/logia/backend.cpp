@@ -113,8 +113,8 @@ namespace logia
     void Backend::load_intrinsics(char *filepath)
     {
         llvm::SMDiagnostic diag;
-        module = llvm::parseIRFile(filepath, diag, context);
-        if (!module)
+        this->intrinsics_module = llvm::parseIRFile(filepath, diag, context);
+        if (!this->intrinsics_module)
         {
             diag.print("intrinsics.ll", llvm::errs());
             throw std::exception("could not parse or read intrinsics.ll");
@@ -438,14 +438,27 @@ namespace logia
 
         auto RT = dylib->getDefaultResourceTracker();
         llvm::orc::ThreadSafeContext context(std::make_unique<llvm::LLVMContext>());
-        llvm::orc::ThreadSafeModule TSM(std::move(this->module), context);
-
-        auto err = compileLayer.add(RT, std::move(TSM));
-        if (err)
         {
-            llvm::errs() << err;
-            throw std::exception("Error add module");
+            llvm::orc::ThreadSafeModule TSM(std::move(this->module), context);
+            auto err = compileLayer.add(RT, std::move(TSM));
+            if (err)
+            {
+                llvm::errs() << err;
+                throw std::exception("Error add module");
+            }
         }
+
+        if (this->intrinsics_module != nullptr)
+        {
+            llvm::orc::ThreadSafeModule TSM(std::move(this->intrinsics_module), context);
+            auto err = compileLayer.add(RT, std::move(TSM));
+            if (err)
+            {
+                llvm::errs() << err;
+                throw std::exception("Error add module");
+            }
+        }
+
         // it's not needed to execute but this fails with ExceptionHandling missmatch between ASMInfo and triple
         /*
                 auto machine = JIT_builder.createTargetMachine();
@@ -503,8 +516,8 @@ namespace logia
         auto end_tk = context->getStop();
         auto start_line = start_tk->getLine();
         auto end_line = start_tk->getLine();
-        auto start_column = start_tk->getStartIndex();
-        auto end_column = end_tk->getStopIndex();
+        auto start_column = start_tk->getCharPositionInLine();
+        auto end_column = end_tk->getCharPositionInLine();
 
         // Set the current debug location
         builder->SetCurrentDebugLocation(
@@ -513,5 +526,21 @@ namespace logia
                                   start_column, // column number
                                   scope         // llvm::DIScope* (e.g., from a subprogram)
                                   ));
+    }
+
+    llvm::Function *Backend::getFunction(llvm::StringRef name) const
+    {
+        auto func = this->intrinsics_module->getFunction(name);
+        if (func)
+        {
+            return func;
+        }
+        func = this->module->getFunction(name);
+        if (func)
+        {
+            return func;
+        }
+
+        throw std::runtime_error(std::format("{}{}", "function not found in current module or intrinsics", name));
     }
 }
