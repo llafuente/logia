@@ -22,6 +22,9 @@
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/ExecutionEngine/Orc/Core.h"
 
+// debug
+#include "llvm/IR/DIBuilder.h"
+
 #include "antlr4-runtime.h"
 
 namespace logia

@@ -7,6 +7,7 @@ namespace logia::AST
 
     Block::Block(antlr4::ParserRuleContext *rule, Identifier *name) : Node(rule), name(name)
     {
+        name->skip_codegen = true; // even if it's not reachable we should be careful
     }
 
     Identifier *Block::get_identifier()
@@ -42,7 +43,7 @@ namespace logia::AST
             list += pair.first;
         }
 
-        return std::format("Block[{} statements] scope[{}]{}", this->children.size(), list, Node::to_string());
+        return std::format("Block[{} {} statements] scope[{}]{}", this->name->identifier, this->children.size(), list, Node::to_string());
     }
 
     void Block::post_attach()
@@ -66,14 +67,14 @@ namespace logia::AST
         }
     }
 
-    void Block::pre_codegen(logia::Backend *codegen)
+    void Block::pre_codegen(logia::Backend *backend)
     {
         if (this->llvm_basicblock != nullptr)
         {
             return;
         }
 
-        this->llvm_basicblock = llvm::BasicBlock::Create(codegen->context, this->get_name(), nullptr);
+        this->llvm_basicblock = llvm::BasicBlock::Create(backend->context, this->get_name(), nullptr);
 
         DEBUG() << this->to_string() << " name=" << this->get_name() << " llvm_basicblock = " << this->llvm_basicblock << std::endl;
     }
@@ -108,6 +109,17 @@ namespace logia::AST
     }
     void Block::codegen_children(logia::Backend *backend)
     {
+        if (backend->debug && backend->dscopes.size())
+        {
+            auto scope = backend->dbuilder->createLexicalBlock(
+                backend->dscopes[backend->dscopes.size() - 1],
+                backend->dfile,
+                this->rule->start->getLine(),
+                this->rule->start->getCharPositionInLine());
+
+            backend->dscopes.push_back(scope);
+        }
+
         int max = this->children.size();
         int last = max - 1;
         for (size_t i = 0; i < max; ++i)
@@ -140,6 +152,10 @@ namespace logia::AST
                 } while (i < max);
                 --i;
             }
+        }
+        if (backend->debug && backend->dscopes.size())
+        {
+            backend->dscopes.pop_back();
         }
     }
 

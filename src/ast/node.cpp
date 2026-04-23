@@ -6,9 +6,8 @@
 namespace logia::AST
 {
 
-    Node::Node(antlr4::ParserRuleContext *rule)
+    Node::Node(antlr4::ParserRuleContext *rule) : rule(rule)
     {
-        this->rule = rule;
     }
     Node::~Node()
     {

@@ -3,8 +3,6 @@
 #include "ast/traverse.h"
 #include "utils.h"
 
-#include "llvm/IR/DIBuilder.h"
-
 namespace logia::AST
 {
     LOGIA_API LOGIA_LEND char *ast_primitives_to_string(Primitives prim)
@@ -700,7 +698,10 @@ namespace logia::AST
                 this->ir_func->setSubprogram(this->di_subprogram);
             }
             backend->set_debug_information(this->rule, this->di_subprogram);
+
+            backend->dscopes.push_back(this->di_subprogram);
             this->get_body()->pre_codegen(backend);
+            backend->dscopes.pop_back();
         }
         DEBUG() << "exit!" << std::endl;
     }

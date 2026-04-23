@@ -61,7 +61,7 @@ namespace logia
     std::any CST2AST::visitProgram(LogiaParser::ProgramContext *context)
     {
         DEBUG() << context->getText() << std::endl;
-
+        this->program->rule = context;
         return this->visitChildren(context);
     }
 
@@ -407,7 +407,7 @@ namespace logia
             auto left = ANY_VOIDP_CAST(AST::Expression *, this->visitPostfixExpr(context->expr2));
             LOGIA_ASSERT(context->identifierName()->keywords() != nullptr, "TODO");
             auto right = ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(context->identifierName()->identifier()));
-            return ANY_VOIDP_STORE(new AST::MemberAccessExpression(nullptr, left, right));
+            return ANY_VOIDP_STORE(new AST::MemberAccessExpression(context, left, right));
         }
         else if (context->expr3 != nullptr)
         {
@@ -637,7 +637,7 @@ namespace logia
 
         AST::IfStmt *ifstmt;
         auto condition = ANY_VOIDP_CAST(AST::Expression *, this->visitRhsExpr(first_if_stmt->expr));
-        ifstmt = new AST::IfStmt(nullptr, condition);
+        ifstmt = new AST::IfStmt(context, condition);
         this->parseBlock(first_if_stmt->blockStmt(), ifstmt->get_then());
 
         // (else if)*
@@ -651,16 +651,30 @@ namespace logia
             }
 
             auto condition2 = ANY_VOIDP_CAST(AST::Expression *, this->visitRhsExpr(stmt->expr));
-            auto deep_ifstmt = new AST::IfStmt(nullptr, condition2);
+            auto deep_ifstmt = new AST::IfStmt(context, condition2);
             this->parseBlock(stmt->blockStmt(), deep_ifstmt->get_then());
             ifstmt->get_else()->push_child(deep_ifstmt);
+
+            auto last = context->children[context->children.size() - 1]; // TODO deep
+            deep_ifstmt->get_continue_block()->rule = deep_ifstmt->get_else()->rule = dynamic_cast<antlr4::ParserRuleContext *>(last);
         }
         // else
         auto else_stmt = context->elseSelectionStmt();
+        auto last = context->children[context->children.size() - 1]; // TODO deep
         if (else_stmt != nullptr)
         {
             this->parseBlock(else_stmt->blockStmt(), ifstmt->get_else());
         }
+        else
+        {
+            // else is optional but the basicblock not, set location
+            ifstmt->get_else()->rule = dynamic_cast<antlr4::ParserRuleContext *>(last);
+        }
+        LOGIA_ASSERT(ifstmt->get_then()->rule);
+        LOGIA_ASSERT(ifstmt->get_else()->rule);
+        // REVIEW token ?
+        // continue block should be at last "context"
+        ifstmt->get_continue_block()->rule = dynamic_cast<antlr4::ParserRuleContext *>(last);
 
         return ANY_VOIDP_STORE(ifstmt);
     }
@@ -737,6 +751,9 @@ namespace logia
 
     void CST2AST::parseBlock(LogiaParser::BlockStmtContext *context, AST::Block *block)
     {
+        // some blocks are created inside decl or stmt, we override rule here so they have proper location!
+        block->rule = context;
+
         if (context == nullptr)
         {
             DEBUG() << "empty block" << std::endl;
