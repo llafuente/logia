@@ -9,7 +9,7 @@ namespace logia::AST
     Stmt::Stmt(antlr4::ParserRuleContext *rule) : Node(rule) {}
     std::string Stmt::to_string()
     {
-        return "Statement";
+        return std::format("Statement{}", Node::to_string());
     }
     Type *Stmt::get_type()
     {
@@ -27,7 +27,7 @@ namespace logia::AST
 
     std::string ReturnStmt::to_string()
     {
-        return "ReturnStmt";
+        return std::format("ReturnStmt{}", Node::to_string());
     }
 
     Expression *ReturnStmt::get_expr()
@@ -35,17 +35,19 @@ namespace logia::AST
         return (Expression *)this->children[0];
     }
 
-    llvm::Value *ReturnStmt::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    llvm::Value *ReturnStmt::post_codegen(logia::Backend *backend)
     {
         DEBUG() << this->to_string() << std::endl;
         auto expr = this->get_expr();
         if (!expr)
         {
-            return builder->CreateRetVoid();
-            // return llvm::ReturnInst::Create(codegen->context);
+            this->cg_value = backend->builder->CreateRetVoid();
         }
-        // return llvm::ReturnInst::Create(codegen->context, this->expr->codegen(codegen, builder));
-        return builder->CreateRet(expr->codegen(codegen, builder));
+        else
+        {
+            this->cg_value = backend->builder->CreateRet(expr->codegen(backend));
+        }
+        return Node::post_codegen(backend);
     }
 
     //
@@ -82,10 +84,10 @@ namespace logia::AST
 
     std::string VarDeclStmt::to_string()
     {
-        return std::format("VarDeclStmt[{}] ({:p})", this->get_name(), static_cast<void *>(this));
+        return std::format("VarDeclStmt[{}]{}", this->get_name(), Node::to_string());
     }
 
-    llvm::Value *VarDeclStmt::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    llvm::Value *VarDeclStmt::post_codegen(logia::Backend *backend)
     {
         if (this->alloca_inst != nullptr)
         {
@@ -93,7 +95,7 @@ namespace logia::AST
         }
 
         DEBUG() << this->to_string() << std::endl;
-        auto init_value = (llvm::Value *)this->get_expr()->codegen(codegen, builder);
+        auto init_value = (llvm::Value *)this->get_expr()->codegen(backend);
         auto type = this->get_type();
         /*
         if (type->is<Struct>())
@@ -126,10 +128,11 @@ namespace logia::AST
         // TODO Type should be handled before ?
         // this->ir = builder->CreateAlloca((llvm::Type*) this->type->codegen(codegen, builder), 0, value);
         // this->ir = builder->CreateAlloca(value->getType(), 0, value);
-        this->alloca_inst = builder->CreateAlloca(init_value->getType(), 0, nullptr);
-        builder->CreateStore(init_value, this->alloca_inst);
+        this->alloca_inst = backend->builder->CreateAlloca(init_value->getType(), 0, nullptr);
+        backend->builder->CreateStore(init_value, this->alloca_inst);
 
-        return this->alloca_inst;
+        this->cg_value = this->alloca_inst;
+        return Node::post_codegen(backend);
     }
 
     //
@@ -162,14 +165,14 @@ namespace logia::AST
     }
     std::string GotoStmt::to_string()
     {
-        return std::format("GotoStmt[{}] ({:p})", this->get_name(), static_cast<void *>(this));
+        return std::format("GotoStmt[{}]{}", this->get_name(), Node::to_string());
     }
 
     ///
     /// codegen
     ///
 
-    llvm::Value *GotoStmt::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    llvm::Value *GotoStmt::post_codegen(logia::Backend *backend)
     {
         DEBUG() << this->to_string() << std::endl;
         // find label and jump to it
@@ -178,8 +181,9 @@ namespace logia::AST
         Block *block = nullptr;
         if (func->get_body()->try_look<Block>(this->get_name(), &block))
         {
-            block->pre_codegen(codegen);
-            return builder->CreateBr(block->llvm_basicblock);
+            block->codegen(backend);
+            this->cg_value = backend->builder->CreateBr(block->llvm_basicblock);
+            return Node::post_codegen(backend);
         }
 
         throw std::runtime_error(std::string("Expected a block: ") + this->to_string());

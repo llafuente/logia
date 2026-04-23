@@ -40,14 +40,13 @@ TEST(run_from_file, sum_logia)
     DEBUG() << std::endl
             << "TEST START" << std::endl
             << std::endl;
-    EXPECT_EQ(test_single_file(".\\test\\logia\\function-parameters.logia"), 25);
-    return;
 
     EXPECT_EQ(test_single_file(".\\test\\logia\\sum.logia"), 25);
     EXPECT_EQ(test_single_file(".\\test\\logia\\math.logia"), 21);
     EXPECT_EQ(test_single_file(".\\test\\logia\\struct-initializer.logia"), 21);
 
     EXPECT_EQ(test_single_file(".\\test\\logia\\function-blocks.logia"), 5);
+    EXPECT_EQ(test_single_file(".\\test\\logia\\function-parameters.logia"), 25);
 
     // 0 means it jumped, 1 it doesn't
     // also not so true as "return 1" is removed, but maybe to check regressions

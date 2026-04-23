@@ -26,13 +26,16 @@ namespace logia::AST
         unsigned char is_attached : 1 = false;
         /// @brief codegen pass done
         unsigned char is_codegen : 1 = false;
+        /// @brief codegen pass done
+        unsigned char skip_codegen : 1 = false;
         /// @brief type inference pass done
         unsigned char is_typed : 1 = false;
         /// @brief internal, check if name is set, used to throw if double set
         unsigned char has_name : 1 = false;
         /// @brief marks node as constant so it can be used as constexpr at comptime
         unsigned char is_constant : 1 = false;
-
+        unsigned char is_pre_codegen : 1 = false;
+        unsigned char is_post_codegen : 1 = false;
         /// @brief antlr rule, used for error reporting and debugging
         antlr4::ParserRuleContext *rule = nullptr;
 
@@ -44,6 +47,9 @@ namespace logia::AST
 
         /// @brief My beautiful children, and some not so beautiful.
         std::vector<Node *> children = {};
+
+        /// @brief codegen result
+        llvm::Value *cg_value = nullptr;
 
         Node(antlr4::ParserRuleContext *rule);
         ~Node();
@@ -67,10 +73,16 @@ namespace logia::AST
         std::string to_string_tree(std::string padding = "");
 
         /// @brief returns essential information nto debug
-        virtual std::string to_string() = 0;
+        virtual std::string to_string();
+
+        /// @brief traverse the tree and if is_codegen is false, pre_codegen and post_codegen!
+        llvm::Value *codegen(logia::Backend *backend);
+
+        /// @brief prepare node/children to generate LLVM IR
+        virtual void pre_codegen(logia::Backend *backend);
 
         /// @brief generates LLVM IR for this node
-        virtual llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) = 0;
+        virtual llvm::Value *post_codegen(logia::Backend *backend);
 
         /// @brief retrieves/calculate the type of this node
         /// @remarks this may be available only after type inference pass
@@ -126,6 +138,20 @@ namespace logia::AST
             }
         }
 
+        /// @brief traverse tree while lambda returns true
+        /// @tparam T
+        /// @param cb
+        void foreach_descendant(std::function<bool(Node *node, int deep)> cb, int deep = 0)
+        {
+            for (const auto &ptr : this->children)
+            {
+                if (cb(ptr, deep))
+                {
+                    ptr->foreach_descendant(cb, deep + 1);
+                }
+            }
+        }
+
         /// @brief Retrieves the first child that match given type or throws
         /// @tparam T
         /// @param cb
@@ -152,7 +178,7 @@ namespace logia::AST
         T *first_parent()
         {
             Node *ptr = this->parent_node;
-            DEBUG() << ptr->to_string() << std::endl;
+            // DEBUG() << ptr->to_string() << std::endl;
             do
             {
                 if (auto out = dynamic_cast<T *>(ptr))
@@ -160,7 +186,7 @@ namespace logia::AST
                     return out;
                 }
                 ptr = ptr->parent_node;
-                DEBUG() << (ptr != nullptr ? ptr->to_string() : "nullptr") << std::endl;
+                // DEBUG() << (ptr != nullptr ? ptr->to_string() : "nullptr") << std::endl;
             } while (ptr != nullptr);
 
             throw std::runtime_error(std::format("not found {} above {}", typeid(T).name(), this->to_string()));
@@ -176,7 +202,7 @@ namespace logia::AST
             Node *ptr = this->parent_node;
             while (ptr != nullptr)
             {
-                DEBUG() << ptr->to_string() << std::endl;
+                // DEBUG() << ptr->to_string() << std::endl;
 
                 if (auto maybe = dynamic_cast<T *>(ptr))
                 {
@@ -184,7 +210,7 @@ namespace logia::AST
                     return true;
                 }
                 ptr = ptr->parent_node;
-                DEBUG() << (ptr != nullptr ? ptr->to_string() : "nullptr") << std::endl;
+                // DEBUG() << (ptr != nullptr ? ptr->to_string() : "nullptr") << std::endl;
             }
 
             return false;
@@ -257,7 +283,7 @@ namespace logia::AST
     {
         NoOp();
         std::string to_string() override;
-        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        llvm::Value *post_codegen(logia::Backend *backend) override;
         Type *get_type() override;
     };
 

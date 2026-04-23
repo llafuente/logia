@@ -13,7 +13,7 @@ namespace logia::AST
     Expression::Expression(antlr4::ParserRuleContext *rule) : Node(rule) {}
     std::string Expression::to_string()
     {
-        return std::format("Expression ({:p})", static_cast<void *>(this));
+        return std::format("Expression{}", Node::to_string());
     }
 
     //
@@ -54,7 +54,10 @@ namespace logia::AST
     CallExpression::CallExpression(antlr4::ParserRuleContext *rule, Expression *locator, std::vector<Expression *> positional_arguments) : Expression(rule)
     {
         LOGIA_ASSERT(locator && "locator is mantadory");
+
+        // these two rules are couple atm, but we should handle identifiers in other ways in the future...
         node_assert<Identifier, MemberAccessExpression>(locator, __FUNCTION__ ":" TOSTRING(__LINE__));
+        locator->skip_codegen = true;
 
         this->push_child(locator);
         for (size_t i = 0; i < positional_arguments.size(); ++i)
@@ -63,14 +66,16 @@ namespace logia::AST
         }
     }
 
-    void CallExpression::add_named_argument(Identifier *id, Expression *expr)
+    void CallExpression::add_named_argument(Identifier *name, Expression *expr)
     {
-        LOGIA_ASSERT(id && "id is mantadory");
+        LOGIA_ASSERT(name && "name is mantadory");
         LOGIA_ASSERT(expr && "expr is mantadory");
-        node_assert<Identifier>(id, __FUNCTION__ ":" TOSTRING(__LINE__));
+        node_assert<Identifier>(name, __FUNCTION__ ":" TOSTRING(__LINE__));
         node_assert<Expression>(expr, __FUNCTION__ ":" TOSTRING(__LINE__));
 
-        this->push_child(id);
+        name->skip_codegen = true;
+
+        this->push_child(name);
         this->push_child(expr);
     }
     void CallExpression::add_positional_argument(Expression *expr)
@@ -78,7 +83,10 @@ namespace logia::AST
         LOGIA_ASSERT(expr && "expr is mantadory");
         node_assert<Expression>(expr, __FUNCTION__ ":" TOSTRING(__LINE__));
 
-        this->push_child(ast_create_identifier((char *)"")); // TODO maybe empty identifier ?!
+        auto name = ast_create_identifier((char *)"");
+        name->skip_codegen = true;
+
+        this->push_child(name); // TODO maybe empty identifier ?!
         this->push_child(expr);
     }
 
@@ -131,10 +139,10 @@ namespace logia::AST
         }
 
         auto arguments = this->get_arguments();
-        return std::format("CallExpression[{} arguments] ({:p})", arguments.size(), static_cast<void *>(this));
+        return std::format("CallExpression[{} arguments]{}", arguments.size(), Node::to_string());
     }
 
-    llvm::Value *CallExpression::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    llvm::Value *CallExpression::post_codegen(logia::Backend *backend)
     {
         DEBUG() << this->to_string() << std::endl;
 
@@ -146,7 +154,7 @@ namespace logia::AST
         // Look up the name in the global module table.
         auto name = this->get_locator()->as<Identifier>();
 
-        llvm::Function *CalleeF = codegen->module->getFunction(name->identifier);
+        llvm::Function *CalleeF = backend->module->getFunction(name->identifier);
         if (!CalleeF)
         {
             throw std::runtime_error(std::string("Unknown function referenced: ") + name->identifier);
@@ -165,7 +173,7 @@ namespace logia::AST
         {
             auto callee_arg = CalleeF->getArg(i);
             DEBUG() << "argument[" << i << "]" << std::endl;
-            auto caller_arg = arguments[i]->codegen(codegen, builder);
+            auto caller_arg = arguments[i]->codegen(backend);
 
             // check arguments type are compatible one by one
             if (callee_arg->getType() != caller_arg->getType())
@@ -184,9 +192,8 @@ namespace logia::AST
         }
 
         // NOTE name is not what i expect -> blank!
-        return builder->CreateCall(CalleeF, ArgsV);
-        // return builder->CreateCall(CalleeF, ArgsV, "call");
-        //  return (llvm::Value*) llvm::CallInst::Create(CalleeF, ArgsV, "call");
+        this->cg_value = backend->builder->CreateCall(CalleeF, ArgsV);
+        return Node::post_codegen(backend);
     }
 
     LOGIA_API CallExpression *ast_create_call_expr(Expression *locator, std::vector<Expression *> arguments)
@@ -201,31 +208,33 @@ namespace logia::AST
     //
     std::string MemberAccessExpression::to_string()
     {
-        return std::format("MemberAccessExpression[left {} / right {}] ({:p})", this->get_left()->to_string(), this->get_right()->to_string(), static_cast<void *>(this));
+        return std::format("MemberAccessExpression[left {} / right {}]{}", this->get_left()->to_string(), this->get_right()->to_string(), Node::to_string());
     }
 
-    llvm::Value *MemberAccessExpression::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    llvm::Value *MemberAccessExpression::post_codegen(logia::Backend *backend)
     {
         DEBUG() << this->to_string() << std::endl;
         // TODO handle left side to be a pointer to struct or struct itself, for now we assume it's always a pointer
         auto left = this->get_left();
         auto right = this->get_right();
 
-        auto leftValue = left->codegen(codegen, builder);
+        auto leftValue = left->codegen(backend);
         auto rightIdent = right->as<Identifier>();
         auto left_type = left->get_type();
         LOGIA_ASSERT(left_type->isStruct() && "left should be a struct");
         auto struct_ty = left_type->as<Struct>();
 
         int propertyIndex = struct_ty->get_field_index(rightIdent);
-        auto propertyType = (llvm::Type *)struct_ty->get_field_type(rightIdent)->codegen(codegen, builder);
+        auto propertyType = (llvm::Type *)struct_ty->get_field_type(rightIdent)->codegen(backend);
         if (propertyIndex == -1)
         {
             throw std::runtime_error(std::string("Unknown struct property: ") + rightIdent->identifier);
         }
 
-        auto ptr = builder->CreateStructGEP(struct_ty->ir_type, leftValue, propertyIndex);
-        return builder->CreateLoad(propertyType, ptr);
+        auto ptr = backend->builder->CreateStructGEP(struct_ty->ir_type, leftValue, propertyIndex);
+
+        this->cg_value = backend->builder->CreateLoad(propertyType, ptr);
+        return Node::post_codegen(backend);
     }
 
     // TODO create
@@ -237,7 +246,7 @@ namespace logia::AST
     std::string BinaryExpression::to_string()
     {
         auto id = this->get_locator()->as<Identifier>();
-        return std::format("BinaryExpression[{}({}, {}) ({:p})", id->identifier, this->get_left()->to_string(), this->get_right()->to_string(), static_cast<void *>(this));
+        return std::format("BinaryExpression[{}({}, {}){}", id->identifier, this->get_left()->to_string(), this->get_right()->to_string(), Node::to_string());
     }
 
     BinaryExpression::BinaryExpression(antlr4::ParserRuleContext *rule, Expression *left, BinaryOperator op, Expression *right) : CallExpression(rule)
@@ -245,7 +254,9 @@ namespace logia::AST
         this->op = op;
         // NOTE start as null, because we may don't know the types yet
         // this->push_child(ast_create_identifier(strdup(ast_binary_operator_to_string(op, left->get_type(), right->get_type()))));
-        this->push_child(ast_create_identifier(""));
+        auto name = ast_create_identifier("");
+        name->skip_codegen = true;
+        this->push_child(name);
         switch (op)
         {
         case BinaryOperator::ASSIGN:
@@ -302,7 +313,7 @@ namespace logia::AST
     //
     std::string PrefixUnaryExpression::to_string()
     {
-        return std::format("PrefixUnaryExpression[{}({}) ({:p})", ast_prefix_unary_operator_to_string(this->op), this->get_operand()->to_string(), static_cast<void *>(this));
+        return std::format("PrefixUnaryExpression[{}({}){}", ast_prefix_unary_operator_to_string(this->op), this->get_operand()->to_string(), Node::to_string());
     }
 
     PrefixUnaryExpression::PrefixUnaryExpression(antlr4::ParserRuleContext *rule, PrefixUnaryOperator op, Expression *operand) : CallExpression(rule)
@@ -331,7 +342,7 @@ namespace logia::AST
         return this->get_operand()->get_type();
     }
 
-    llvm::Value *PrefixUnaryExpression::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    llvm::Value *PrefixUnaryExpression::post_codegen(logia::Backend *backend)
     {
         DEBUG() << this->to_string() << std::endl;
 
@@ -347,12 +358,13 @@ namespace logia::AST
             // return builder->CreateIntToPtr(operandValue, llvm::PointerType::get(codegen->context, 0));
             // return builder->CreateLoad(llvm::PointerType::get(codegen->context, 0), operandValue);
             // return builder->CreateLoad(operandType->getPointerTo(), operandValue, false);
-            auto ptr = builder->CreateAlloca(operandType->getPointerTo(), nullptr, "deref");
-            builder->CreateStore(operandValue, ptr);
-            return builder->CreateLoad(operandType->getPointerTo(), ptr);
+            auto ptr = backend->builder->CreateAlloca(operandType->getPointerTo(), nullptr, "deref");
+            backend->builder->CreateStore(operandValue, ptr);
+            this->cg_value = backend->builder->CreateLoad(operandType->getPointerTo(), ptr);
+            return Node::post_codegen(backend);
         }
         default:
-            return CallExpression::codegen(codegen, builder);
+            return CallExpression::post_codegen(backend);
         }
     }
 
@@ -375,7 +387,7 @@ namespace logia::AST
 
     std::string PostfixUnaryExpression::to_string()
     {
-        return std::format("PostfixUnaryExpression[{}({})] ({:p})", ast_postfix_unary_operator_to_string(this->op), this->get_operand()->to_string(), static_cast<void *>(this));
+        return std::format("PostfixUnaryExpression[{}({})]{}", ast_postfix_unary_operator_to_string(this->op), this->get_operand()->to_string(), Node::to_string());
     }
 
     PostfixUnaryExpression::PostfixUnaryExpression(antlr4::ParserRuleContext *rule, PostfixUnaryOperator op, Expression *operand) : CallExpression(rule)
@@ -401,10 +413,10 @@ namespace logia::AST
     }
     std::string Identifier::to_string()
     {
-        return std::format("Identifier[{}] ({:p})", this->identifier, static_cast<void *>(this));
+        return std::format("Identifier[{}]{}", this->identifier, Node::to_string());
     }
 
-    llvm::Value *Identifier::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    llvm::Value *Identifier::post_codegen(logia::Backend *backend)
     {
         DEBUG() << this->to_string() << std::endl;
 
@@ -412,13 +424,16 @@ namespace logia::AST
         if (decl->is<VarDeclStmt>())
         {
             auto vdecl = decl->as<VarDeclStmt>();
-            return builder->CreateLoad(vdecl->alloca_inst->getAllocatedType(), vdecl->alloca_inst, this->identifier);
+            this->cg_value = backend->builder->CreateLoad(vdecl->alloca_inst->getAllocatedType(), vdecl->alloca_inst, this->identifier);
+            return Node::post_codegen(backend);
         }
         if (decl->is<FunctionParameter>())
         {
             auto fpdecl = decl->as<FunctionParameter>();
-            return builder->CreateLoad(fpdecl->alloca_inst->getAllocatedType(), fpdecl->alloca_inst, this->identifier);
+            this->cg_value = backend->builder->CreateLoad(fpdecl->alloca_inst->getAllocatedType(), fpdecl->alloca_inst, this->identifier);
+            return Node::post_codegen(backend);
         }
+        // TODO function? -> function pointer
         throw std::runtime_error(std::format("{}{}", "Identifier found but type not handled!", decl->to_string()));
     }
 
@@ -502,15 +517,15 @@ namespace logia::AST
         return true;
     }
 
-    llvm::Value *StructInitializer::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    llvm::Value *StructInitializer::post_codegen(logia::Backend *backend)
     {
         if (!this->is_constant)
         {
             throw std::runtime_error("non-constant initialization not supported atm.");
         }
 
-        auto &ctx = codegen->context;
-        const llvm::DataLayout &dl = codegen->module->getDataLayout();
+        auto &ctx = backend->context;
+        const llvm::DataLayout &dl = backend->module->getDataLayout();
 
         auto v = std::vector<llvm::Constant *>();
         v.reserve(this->length);
@@ -520,7 +535,7 @@ namespace logia::AST
         {
             auto ptr = this->children[i + 1];
             auto out = dynamic_cast<Expression *>(ptr);
-            auto ir = out->codegen(codegen, builder);
+            auto ir = out->codegen(backend);
             // if (auto cir = dynamic_cast<llvm::Constant*>(ir)) {
             if (auto cir = (llvm::Constant *)(ir))
             {
@@ -532,14 +547,14 @@ namespace logia::AST
             }
         }
 
-        auto structTy = (llvm::StructType *)this->get_type()->as<Struct>()->codegen(codegen, builder);
+        auto structTy = (llvm::StructType *)this->get_type()->as<Struct>()->codegen(backend);
 
         // 1) Constant initializer (replace with your child constants)
         llvm::Constant *init = llvm::ConstantStruct::get(structTy, v);
 
         // 2) Materialize constant in read-only global memory (memcpy source must be an address)
         auto *srcGlobal = new llvm::GlobalVariable(
-            *codegen->module,
+            *backend->module,
             structTy,
             true, // isConstant
             llvm::GlobalValue::PrivateLinkage,
@@ -549,7 +564,8 @@ namespace logia::AST
         auto abiAlign = llvm::Align(dl.getABITypeAlign(structTy).value());
         srcGlobal->setAlignment(abiAlign);
 
-        return srcGlobal;
+        this->cg_value = srcGlobal;
+        return Node::post_codegen(backend);
     }
 
     Type *StructInitializer::get_type()

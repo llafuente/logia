@@ -41,7 +41,6 @@ set(LOGIA_SOURCE_FILES
   src/logia/backend.cpp
 
   src/ast/node.cpp
-  src/ast/types.cpp
   src/ast/type.cpp
   src/ast/traverse.cpp
 

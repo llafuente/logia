@@ -22,8 +22,8 @@ namespace logia::AST
         std::string to_string() override;
 
         Type *get_type() override;
-
-        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        void pre_codegen(logia::Backend *backend) override;
+        llvm::Value *post_codegen(logia::Backend *backend) override;
         void post_attach() override;
     };
 

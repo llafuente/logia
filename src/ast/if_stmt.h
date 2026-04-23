@@ -23,7 +23,7 @@ namespace logia::AST
         Block *get_else();
         Block *get_continue_block();
         std::string to_string() override;
-        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        llvm::Value *post_codegen(logia::Backend *backend) override;
         void post_attach() override;
     };
 

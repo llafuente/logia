@@ -112,20 +112,25 @@ namespace logia::AST
 
         std::string to_string() override;
 
+        void pre_codegen(logia::Backend *codegen) override;
         /// @brief Inserts block into parent Function, add a jump if needed and codegen children
-        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
-        void codegen_children(logia::Backend *codegen, llvm::IRBuilder<> *builder);
+        llvm::Value *post_codegen(logia::Backend *backend) override;
+
+        void codegen_children(logia::Backend *backend);
         Type *get_type() override;
         void post_attach() override;
-        void pre_codegen(logia::Backend *codegen);
     };
 
     struct FunctionBlock : public Block
     {
+        unsigned char is_inserted : 1 = false;
+        
         FunctionBlock(antlr4::ParserRuleContext *rule, Identifier *name);
         std::string to_string() override;
-        /// @brief Inserts block into parent Function and codegen children
-        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        /// @brief Inserts block into parent Function
+        void pre_codegen(logia::Backend *backend) override;
+        /// @brief Sets current block and codegen children
+        llvm::Value *post_codegen(logia::Backend *backend) override;
     };
 
     /**

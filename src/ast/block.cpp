@@ -42,7 +42,7 @@ namespace logia::AST
             list += pair.first;
         }
 
-        return std::format("Block[{} statements] scope[{}] ({:p})", this->children.size(), list, static_cast<void *>(this));
+        return std::format("Block[{} statements] scope[{}]{}", this->children.size(), list, Node::to_string());
     }
 
     void Block::post_attach()
@@ -78,33 +78,36 @@ namespace logia::AST
         DEBUG() << this->to_string() << " name=" << this->get_name() << " llvm_basicblock = " << this->llvm_basicblock << std::endl;
     }
 
-    llvm::Value *Block::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    llvm::Value *Block::post_codegen(logia::Backend *backend)
     {
-        this->pre_codegen(codegen);
+        if (this->cg_value)
+        {
+            WARNING() << "why ??" << std::endl;
+            return this->cg_value;
+        }
 
         DEBUG() << this->to_string() << std::endl;
-        this->is_codegen = true;
 
         // unhandled block inside a function block
-        auto previous_block = builder->GetInsertBlock();
+        auto previous_block = backend->builder->GetInsertBlock();
         DEBUG() << "previous_block = " << previous_block << std::endl;
 
         if (!ast_llvm_block_has_terminator(previous_block))
         {
-            builder->CreateBr(this->llvm_basicblock); // goto
+            backend->builder->CreateBr(this->llvm_basicblock); // goto
         }
         // insert block into current function
-        auto func = builder->GetInsertBlock()->getParent();
+        auto func = backend->builder->GetInsertBlock()->getParent();
         func->insert(func->end(), this->llvm_basicblock);
-        builder->SetInsertPoint(this->llvm_basicblock);
+        backend->builder->SetInsertPoint(this->llvm_basicblock);
 
-        this->codegen_children(codegen, builder);
+        this->codegen_children(backend);
 
-        return this->llvm_basicblock;
+        this->cg_value = this->llvm_basicblock;
+        return Node::post_codegen(backend);
     }
-    void Block::codegen_children(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    void Block::codegen_children(logia::Backend *backend)
     {
-        DEBUG() << this->to_string() << std::endl;
         int max = this->children.size();
         int last = max - 1;
         for (size_t i = 0; i < max; ++i)
@@ -112,7 +115,7 @@ namespace logia::AST
         process_child:
             Node *n = this->children[i];
             DEBUG() << "codegen.statement[" << i << "] " << n->to_string() << std::endl;
-            auto inst = n->codegen(codegen, builder);
+            auto inst = n->codegen(backend);
 
             // if the current block has a terminator and we continue we run into multiple problems like:
             // fix: All predecessors must be dead!
@@ -120,7 +123,7 @@ namespace logia::AST
             // we should skip until next block
             // This is an ill formated program and could lead to problems/cashes later
             // we need a way to detect this "dead code" and raise a semantic_errror -> the coder to remove it!
-            if (this->llvm_basicblock && i != last && ast_llvm_block_has_terminator(builder->GetInsertBlock()))
+            if (this->llvm_basicblock && i != last && ast_llvm_block_has_terminator(backend->builder->GetInsertBlock()))
             {
                 WARNING() << "skip until next block, current block has terminator" << std::endl;
                 ++i;
@@ -146,24 +149,34 @@ namespace logia::AST
         return std::format("{}{}", "Function", Block::to_string());
     }
 
-    llvm::Value *FunctionBlock::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    void FunctionBlock::pre_codegen(logia::Backend *backend)
     {
-        this->pre_codegen(codegen);
-        this->is_codegen = true;
+        if (is_inserted)
+        {
+            return;
+        }
+        is_inserted = true;
 
+        Block::pre_codegen(backend);
         auto function = this->first_parent<Function>();
-        function->cg_value->insert(function->cg_value->end(), this->llvm_basicblock);
-        builder->SetInsertPoint(this->llvm_basicblock);
+        function->ir_func->insert(function->ir_func->end(), this->llvm_basicblock);
+        backend->builder->SetInsertPoint(this->llvm_basicblock);
 
-        this->parent_node->as<Function>()->codegen_parameters(codegen, builder);
+        this->parent_node->as<Function>()->codegen_parameters(backend);
+    }
 
-        Block::codegen_children(codegen, builder);
-        return this->llvm_basicblock;
+    llvm::Value *FunctionBlock::post_codegen(logia::Backend *backend)
+    {
+        backend->builder->SetInsertPoint(this->llvm_basicblock);
+
+        Block::codegen_children(backend);
+
+        this->cg_value = this->llvm_basicblock;
+        return Node::post_codegen(backend);
     }
 
     LOGIA_API Block *ast_create_block(Identifier *name)
     {
-
         return new Block(nullptr, name);
     }
 }

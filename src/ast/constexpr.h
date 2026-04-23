@@ -19,7 +19,7 @@ namespace logia::AST
         char *text;
         StringLiteral(antlr4::ParserRuleContext *rule, char *text);
         std::string to_string() override;
-        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        llvm::Value *post_codegen(logia::Backend *backend) override;
         Type *get_type() override;
     };
 
@@ -30,7 +30,7 @@ namespace logia::AST
 
         FloatLiteral(antlr4::ParserRuleContext *rule, Type *type, double value);
         std::string to_string() override;
-        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        llvm::Value *post_codegen(logia::Backend *backend) override;
         Type *get_type() override;
     };
 
@@ -44,7 +44,7 @@ namespace logia::AST
         int64_t as_signed();
 
         std::string to_string() override;
-        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        llvm::Value *post_codegen(logia::Backend *backend) override;
         Type *get_type() override;
     };
 

@@ -182,7 +182,7 @@ TEST(AST_Type, ast_create_struct_type)
 
   check_all_attached(program);
 
-  program->codegen(back, back->builder);
+  program->codegen(back);
 
   back->emitTargetLLVMIR("./tmp/struct.ll");
 
@@ -284,9 +284,9 @@ TEST(AST_Type, ast_create_var_decl)
 
   check_all_attached(program);
 
-  program->codegen(back, back->builder);
+  program->codegen(back);
 
-  string_t->codegen(back, back->builder);
+  string_t->codegen(back);
 
   back->emitTargetLLVMIR("./tmp/hellow-world-alloca.ll");
 
@@ -333,7 +333,7 @@ TEST(AST_Type, ast_create_var_decl2)
 
   check_all_attached(program);
 
-  program->codegen(back, back->builder);
+  program->codegen(back);
 
   back->emitTargetLLVMIR("./tmp/alloca-integer-sum.ll");
 
@@ -371,7 +371,7 @@ TEST(AST_Type, logia_compiler_to_jit_test)
 
   check_all_attached(program);
 
-  program->codegen(back, back->builder);
+  program->codegen(back);
 
   back->emitTargetLLVMIR("./tmp/logia_compiler_to_jit_test.ll");
 
@@ -402,7 +402,7 @@ TEST(ast_create_if2, t1)
 
   check_all_attached(program);
 
-  program->codegen(back, back->builder);
+  program->codegen(back);
   back->emitTargetLLVMIR("./tmp/logia_compiler_if2.ll");
 
   int exit_code = back->run_jit("main");
@@ -470,7 +470,7 @@ TEST(ast_create_if3, t1)
 
   check_all_attached(program);
 
-  program->codegen(back, back->builder);
+  program->codegen(back);
   back->emitTargetLLVMIR("./tmp/logia_compiler_if3.ll");
 
   int exit_code = back->run_jit("main");

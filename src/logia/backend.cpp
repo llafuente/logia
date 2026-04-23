@@ -80,7 +80,7 @@ namespace logia
             // Create the compile unit
             this->dcompilation_unit = this->dbuilder->createCompileUnit(
                 llvm::dwarf::DW_LANG_C, // Language
-                this->dfile,          // Source file
+                this->dfile,            // Source file
                 "logia",                // Producer
                 false,                  // Optimized?
                 "",                     // Flags
@@ -269,7 +269,7 @@ namespace logia
     {
         if (!program->is_codegen)
         {
-            this->program->codegen(this, this->builder);
+            this->program->codegen(this);
         }
         if (debug)
         {
@@ -487,14 +487,19 @@ namespace logia
         return result;
     }
 
-    void Backend::set_debug_information(antlr4::ParserRuleContext *context)
+    void Backend::set_debug_information(antlr4::ParserRuleContext *context, llvm::DIScope *scope)
     {
         if (!this->debug)
         {
             return;
         }
         LOGIA_ASSERT(context);
-        LOGIA_ASSERT(this->dscopes.size());
+
+        if (scope == nullptr)
+        {
+            LOGIA_ASSERT(this->dscopes.size());
+            scope = this->dscopes[this->dscopes.size() - 1];
+        }
 
         auto start_tk = context->getStart();
         auto end_tk = context->getStop();
@@ -506,9 +511,9 @@ namespace logia
         // Set the current debug location
         builder->SetCurrentDebugLocation(
             llvm::DILocation::get(this->context,
-                                  start_line,                             // line number
-                                  start_column,                           // column number
-                                  this->dscopes[this->dscopes.size() - 1] // llvm::DIScope* (e.g., from a subprogram)
+                                  start_line,   // line number
+                                  start_column, // column number
+                                  scope         // llvm::DIScope* (e.g., from a subprogram)
                                   ));
     }
 }

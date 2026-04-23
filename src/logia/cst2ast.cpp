@@ -1041,7 +1041,7 @@ namespace logia
         }
         else if (context->loc7 != nullptr)
         {
-            tdef->push_child(ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(context->loc7)));
+            tdef->add_locator(ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(context->loc7)));
             return;
         }
 

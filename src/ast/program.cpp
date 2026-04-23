@@ -104,15 +104,25 @@ namespace logia::AST
         // do nothing, parentBody should be empty
     }
 
-    llvm::Value *Program::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    void Program::pre_codegen(logia::Backend *backend)
     {
         if (!is_typed)
         {
             is_typed = true;
             this->type_inference();
         }
-        this->is_codegen = true;
-        this->codegen_children(codegen, builder);
-        return nullptr;
+    }
+
+    llvm::Value *Program::post_codegen(logia::Backend *backend)
+    {
+        DEBUG() << this->to_string() << std::endl;
+
+        // NOTE: overwrite - no override!
+        // Block::post_codegen(backend);
+
+        this->codegen_children(backend);
+
+        this->cg_value = nullptr; // nobody need program return type!
+        return Node::post_codegen(backend);
     }
 }

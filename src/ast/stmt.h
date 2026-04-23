@@ -25,7 +25,7 @@ namespace logia::AST
     {
         ReturnStmt(antlr4::ParserRuleContext *rule, Expression *expr);
         std::string to_string() override;
-        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        llvm::Value *post_codegen(logia::Backend *backend) override;
         Expression *get_expr();
     };
 
@@ -49,7 +49,7 @@ namespace logia::AST
         Identifier *get_identifier();
 
         std::string to_string() override;
-        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        llvm::Value *post_codegen(logia::Backend *backend) override;
         void post_attach() override;
         Type *get_type() override;
         bool pre_type_inference() override;
@@ -63,7 +63,7 @@ namespace logia::AST
         Identifier *get_identifier();
         const char *get_name();
         std::string to_string() override;
-        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        llvm::Value *post_codegen(logia::Backend *backend) override;
     };
 
     /// @brief Creates a return statement

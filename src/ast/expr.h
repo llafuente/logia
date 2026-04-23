@@ -53,7 +53,7 @@ namespace logia::AST
         void add_positional_argument(Expression *expr);
 
         std::string to_string() override;
-        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        llvm::Value *post_codegen(logia::Backend *backend) override;
         Type *get_type() override;
     };
     /**
@@ -74,7 +74,7 @@ namespace logia::AST
 
         std::string to_string() override;
 
-        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        llvm::Value *post_codegen(logia::Backend *backend) override;
 
         Type *get_type() override;
 
@@ -147,7 +147,7 @@ namespace logia::AST
         PrefixUnaryExpression(antlr4::ParserRuleContext *rule, PrefixUnaryOperator op, Expression *operand);
         Expression *get_operand();
         std::string to_string() override;
-        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        llvm::Value *post_codegen(logia::Backend *backend) override;
         Type *get_type() override;
     };
     /// @brief Creates a reference to an expression
@@ -194,7 +194,7 @@ namespace logia::AST
 
         std::string to_string() override;
 
-        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        llvm::Value *post_codegen(logia::Backend *backend) override;
 
         Type *get_type() override;
 
@@ -222,7 +222,7 @@ namespace logia::AST
         bool pre_type_inference() override;
 
         // Inherited via Expression
-        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        llvm::Value *post_codegen(logia::Backend *backend) override;
         Type *get_type() override;
     };
 

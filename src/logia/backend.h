@@ -120,7 +120,7 @@ namespace logia
          */
         int run_jit(const char *fn_name);
 
-        void set_debug_information(antlr4::ParserRuleContext *context);
+        void set_debug_information(antlr4::ParserRuleContext *context, llvm::DIScope *scope = nullptr);
 
     private:
         void __finalize_module();

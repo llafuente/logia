@@ -14,7 +14,7 @@ namespace logia::AST
     }
     std::string ConstExpression::to_string()
     {
-        return std::format("ConstExpression ({:p})", static_cast<void *>(this));
+        return std::format("ConstExpression{}", Node::to_string());
     }
 
     //
@@ -77,17 +77,19 @@ namespace logia::AST
 
     std::string IntegerLiteral::to_string()
     {
-        return std::format("IntegerLiteral[{}] {}/{} ({:p})", this->get_type()->to_string(), this->number_str, this->as_signed(), static_cast<void *>(this));
+        // TODO review format
+        return std::format("IntegerLiteral[{}] {}/{}{}", this->get_type()->to_string(), this->number_str, this->as_signed(), Node::to_string());
     }
 
-    llvm::Value *IntegerLiteral::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    llvm::Value *IntegerLiteral::post_codegen(logia::Backend *backend)
     {
         DEBUG() << this->to_string() << std::endl;
         auto type = this->get_type()->as<Integer>();
 
         // TODO add support for octal
         // TODO add support for hexadecimal
-        return llvm::ConstantInt::get((llvm::Type *)this->get_type()->codegen(codegen, builder), llvm::APInt(type->bits, this->number_str, 10));
+        this->cg_value = llvm::ConstantInt::get((llvm::Type *)this->get_type()->codegen(backend), llvm::APInt(type->bits, this->number_str, 10));
+        return Node::post_codegen(backend);
     }
 
     //
@@ -107,10 +109,10 @@ namespace logia::AST
 
     std::string FloatLiteral::to_string()
     {
-        return std::format("FloatLiteral[{}] {} ({:p})", this->get_type()->to_string(), this->value, static_cast<void *>(this));
+        return std::format("FloatLiteral[{}] {}{}", this->get_type()->to_string(), this->value, Node::to_string());
     }
 
-    llvm::Value *FloatLiteral::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    llvm::Value *FloatLiteral::post_codegen(logia::Backend *backend)
     {
         DEBUG() << this->to_string() << std::endl;
         throw std::runtime_error(__FUNCTION__ "todo");
@@ -133,15 +135,17 @@ namespace logia::AST
 
     std::string StringLiteral::to_string()
     {
-        return std::format("StringLiteral[{}] ({:p})", this->text, static_cast<void *>(this));
+        return std::format("StringLiteral[{}]{}", this->text, Node::to_string());
     }
 
-    llvm::Value *StringLiteral::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    llvm::Value *StringLiteral::post_codegen(logia::Backend *backend)
     {
         DEBUG() << this->to_string() << std::endl;
         // NOTE module is required or 0xc0000005
         // !getType()->isVoidTy() && "Cannot assign a name to void values!"??
-        return builder->CreateGlobalString(this->text, ".str", 0, codegen->module.get(), true);
+        this->cg_value = backend->builder->CreateGlobalString(this->text, ".str", 0, backend->module.get(), true);
+        return Node::post_codegen(backend);
+
         /*
                 llvm::Constant *strConst = llvm::ConstantDataArray::getString(codegen->context, this->text, true);
 

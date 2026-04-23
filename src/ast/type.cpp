@@ -65,7 +65,7 @@ namespace logia::AST
 
     std::string Type::to_string()
     {
-        return std::format("Type[{}] ({:p})", ast_primitives_to_string(this->primitive), static_cast<void *>(this->parent_node));
+        return std::format("Type[{}]{}", ast_primitives_to_string(this->primitive), Node::to_string());
     }
 
     std::string Type::get_repr()
@@ -99,13 +99,14 @@ namespace logia::AST
         block->set(name, this);
     }
 
-    llvm::Value *Type::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    llvm::Value *Type::post_codegen(logia::Backend *backend)
     {
         DEBUG() << this->to_string() << std::endl;
         // cache, because type are unique and we will be visiting this a lot
         if (this->ir_type)
         {
-            return (llvm::Value *)this->ir_type;
+            this->cg_value = (llvm::Value *)this->ir_type;
+            return Node::post_codegen(backend);
         }
 
         // TODO
@@ -121,49 +122,51 @@ namespace logia::AST
 
     std::string Integer::to_string()
     {
-        return std::format("Type[{}]", this->get_repr());
+        return std::format("Type[{}]{}", this->get_repr(), Node::to_string());
     }
     std::string Integer::get_repr()
     {
         return std::format("{}{}", (this->is_signed ? "i" : "u"), this->bits);
     }
 
-    llvm::Value *Integer::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    void Integer::pre_codegen(logia::Backend *backend)
     {
         switch (this->bits)
         {
         case 1:
-            this->ir_type = llvm::Type::getInt1Ty(codegen->context);
-            this->di_type = codegen->dbuilder->createBasicType("i1", 1, llvm::dwarf::DW_ATE_boolean);
+            this->ir_type = llvm::Type::getInt1Ty(backend->context);
+            this->di_type = backend->dbuilder->createBasicType("i1", 1, llvm::dwarf::DW_ATE_boolean);
             break;
         case 8:
-            this->ir_type = llvm::Type::getInt8Ty(codegen->context);
-            this->di_type = codegen->dbuilder->createBasicType("i8", 1, this->is_signed ? llvm::dwarf::DW_ATE_signed : llvm::dwarf::DW_ATE_unsigned);
+            this->ir_type = llvm::Type::getInt8Ty(backend->context);
+            this->di_type = backend->dbuilder->createBasicType("i8", 1, this->is_signed ? llvm::dwarf::DW_ATE_signed : llvm::dwarf::DW_ATE_unsigned);
             break;
         case 16:
-            this->ir_type = llvm::Type::getInt16Ty(codegen->context);
-            this->di_type = codegen->dbuilder->createBasicType("i16", 1, this->is_signed ? llvm::dwarf::DW_ATE_signed : llvm::dwarf::DW_ATE_unsigned);
+            this->ir_type = llvm::Type::getInt16Ty(backend->context);
+            this->di_type = backend->dbuilder->createBasicType("i16", 1, this->is_signed ? llvm::dwarf::DW_ATE_signed : llvm::dwarf::DW_ATE_unsigned);
             break;
         case 32:
-            this->ir_type = llvm::Type::getInt32Ty(codegen->context);
-            this->di_type = codegen->dbuilder->createBasicType("i32", 1, this->is_signed ? llvm::dwarf::DW_ATE_signed : llvm::dwarf::DW_ATE_unsigned);
+            this->ir_type = llvm::Type::getInt32Ty(backend->context);
+            this->di_type = backend->dbuilder->createBasicType("i32", 1, this->is_signed ? llvm::dwarf::DW_ATE_signed : llvm::dwarf::DW_ATE_unsigned);
             break;
         case 64:
-            this->ir_type = llvm::Type::getInt64Ty(codegen->context);
-            this->di_type = codegen->dbuilder->createBasicType("i64", 1, this->is_signed ? llvm::dwarf::DW_ATE_signed : llvm::dwarf::DW_ATE_unsigned);
+            this->ir_type = llvm::Type::getInt64Ty(backend->context);
+            this->di_type = backend->dbuilder->createBasicType("i64", 1, this->is_signed ? llvm::dwarf::DW_ATE_signed : llvm::dwarf::DW_ATE_unsigned);
             break;
         case 128:
-            this->ir_type = llvm::Type::getInt128Ty(codegen->context);
-            this->di_type = codegen->dbuilder->createBasicType("i128", 1, this->is_signed ? llvm::dwarf::DW_ATE_signed : llvm::dwarf::DW_ATE_unsigned);
+            this->ir_type = llvm::Type::getInt128Ty(backend->context);
+            this->di_type = backend->dbuilder->createBasicType("i128", 1, this->is_signed ? llvm::dwarf::DW_ATE_signed : llvm::dwarf::DW_ATE_unsigned);
             break;
         default:
             throw std::runtime_error("Not supported number of bits");
         }
 
         LOGIA_ASSERT(this->ir_type);
+        LOGIA_ASSERT(this->di_type);
 
-        return (llvm::Value *)this->ir_type;
+        this->cg_value = (llvm::Value *)this->ir_type;
     }
+
     void Integer::post_attach()
     {
         // once guard
@@ -193,7 +196,7 @@ namespace logia::AST
     }
     std::string StructAlias::to_string()
     {
-        return std::format("StructAlias ({:p})", static_cast<void *>(this->parent_node));
+        return std::format("StructAlias{}", Node::to_string());
     }
     Type *StructAlias::get_type()
     {
@@ -234,7 +237,7 @@ namespace logia::AST
     }
     std::string StructField::to_string()
     {
-        return std::format("StructField ({:p})", static_cast<void *>(this->parent_node));
+        return std::format("StructField{}", Node::to_string());
     }
 
     Struct::Struct(antlr4::ParserRuleContext *rule, Identifier *id) : Type(rule, Primitives::STRUCT_TY)
@@ -255,6 +258,7 @@ namespace logia::AST
         }
 
         this->has_name = true;
+        id->skip_codegen = true;
         this->unshift_child(id);
     }
 
@@ -342,7 +346,7 @@ namespace logia::AST
 
     std::string Struct::to_string()
     {
-        return std::format("Type[struct {}] ({:p})", this->get_name(), static_cast<void *>(this->parent_node));
+        return std::format("Type[struct {}]{}", this->get_name(), Node::to_string());
     }
 
     void Struct::post_attach()
@@ -359,7 +363,7 @@ namespace logia::AST
         }
     }
 
-    llvm::Value *Struct::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    llvm::Value *Struct::post_codegen(logia::Backend *backend)
     {
         DEBUG() << this->to_string() << std::endl;
         // cache, because type are unique and we will be visiting this a lot
@@ -374,15 +378,15 @@ namespace logia::AST
         {
             if (auto field = dynamic_cast<StructField *>(prop)) // review it works ?
             {
-                elements.push_back((llvm::Type *)field->get_type()->codegen(codegen, builder));
+                elements.push_back((llvm::Type *)field->get_type()->codegen(backend));
             }
         }
 
-        auto st = llvm::StructType::create(codegen->context, this->get_name());
+        auto st = llvm::StructType::create(backend->context, this->get_name());
         st->setBody(elements);
 
         this->ir_type = st;
-        return (llvm::Value *)this->ir_type;
+        return Type::post_codegen(backend);
     }
 
     //
@@ -391,6 +395,12 @@ namespace logia::AST
     // REVIEW, it's a type but it's definition, need to  distinguish both ?
     TypeDef::TypeDef() : Type(nullptr, Primitives::NONE) {}
     TypeDef::~TypeDef() {}
+
+    void TypeDef::add_locator(Identifier *name)
+    {
+        name->skip_codegen = true;
+        this->push_child(name);
+    }
 
     Type *TypeDef::get_type()
     {
@@ -408,14 +418,15 @@ namespace logia::AST
         if (this->children.size())
         {
             auto id = (Identifier *)this->children[0];
-            return std::format("TypeDef[{}]", id->identifier);
+            return std::format("TypeDef[{}]{}", id->identifier, Node::to_string());
         }
-        return std::format("TypeDef[?]");
+        return std::format("TypeDef[?]{}", Node::to_string());
     }
 
-    llvm::Value *TypeDef::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    llvm::Value *TypeDef::post_codegen(logia::Backend *backend)
     {
-        return this->get_type()->codegen(codegen, builder);
+        this->cg_value = this->get_type()->codegen(backend);
+        return Node::post_codegen(backend);
     }
 
     Node *TypeDef::resolve()
@@ -435,6 +446,7 @@ namespace logia::AST
     {
         LOGIA_ASSERT(name);
         LOGIA_ASSERT(type);
+        name->skip_codegen = true;
 
         this->push_child(name);
         this->push_child(type);
@@ -461,26 +473,27 @@ namespace logia::AST
     }
     std::string FunctionParameter::to_string()
     {
-        return std::format("Parameter[{}][{}]", this->get_name()->identifier, this->get_type()->to_string());
+        return std::format("Parameter[{}][{}]{}", this->get_name()->identifier, this->get_type()->to_string(), Node::to_string());
     }
-    llvm::Value *FunctionParameter::codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder)
+    llvm::Value *FunctionParameter::post_codegen(logia::Backend *backend)
     {
-        return this->alloca_inst = builder->CreateAlloca((llvm::Type *)this->get_type()->codegen(codegen, builder), nullptr, this->get_name()->identifier);
+        this->cg_value = this->alloca_inst = backend->builder->CreateAlloca((llvm::Type *)this->get_type()->codegen(backend), nullptr, this->get_name()->identifier);
+        return Node::post_codegen(backend);
     }
     //
     // Function
     //
 
-    Function::Function(antlr4::ParserRuleContext *rule, Identifier *id, Type *return_type, bool is_intrinsic) : Type(rule, Primitives::FUNCTION_TY)
+    Function::Function(antlr4::ParserRuleContext *rule, Identifier *name, Type *return_type, bool is_intrinsic) : Type(rule, Primitives::FUNCTION_TY)
     {
-        LOGIA_ASSERT(id && "id parameters is required");
-
+        LOGIA_ASSERT(name && "name parameter is required");
+        name->skip_codegen = true;
         if (return_type == nullptr)
         {
             return_type = new Type(nullptr, Primitives::VOID_TY);
         }
 
-        this->push_child(id);          // get_name
+        this->push_child(name);        // get_name
         this->push_child(return_type); // get_return_type
 
         // auto block = new Block(nullptr, ast_create_identifier("function_param_alloca"));
@@ -517,7 +530,7 @@ namespace logia::AST
             }
             list += param->get_type()->to_string();
         }
-        return std::format("Type[{} function {} ({})] ({:p})", this->get_return_type()->to_string(), this->get_name(), list, static_cast<void *>(this->parent_node));
+        return std::format("Type[{} function {} ({})] {}", this->get_return_type()->to_string(), this->get_name(), list, Node::to_string());
     }
     std::vector<FunctionParameter *> Function::get_parameters()
     {
@@ -586,36 +599,49 @@ namespace logia::AST
         return this->get_parameter(i)->get_name();
     }
 
-    void Function::codegen_parameters(logia::Backend *backend, llvm::IRBuilder<> *builder)
+    void Function::codegen_parameters(logia::Backend *backend)
     {
         auto pcount = this->get_parameter_count();
         size_t i = 0;
-        for (auto &Arg : this->cg_value->args())
+        for (auto &Arg : this->ir_func->args())
         {
             auto param = this->get_parameter(i);
-            param->codegen(backend, builder);
-            builder->CreateStore(&Arg, param->alloca_inst);
+            param->codegen(backend);
+            backend->builder->CreateStore(&Arg, param->alloca_inst);
+
+            if (backend->debug)
+            {
+                // Create a debug descriptor for the variable.
+                llvm::DILocalVariable *D = backend->dbuilder->createParameterVariable(
+                    this->di_subprogram, this->get_parameter_name(i)->identifier, i + 1, backend->dfile, 1, param->get_type()->di_type,
+                    true);
+                auto line = param->get_name()->rule->start->getLine();
+                auto column = param->get_name()->rule->start->getStartIndex();
+                backend->dbuilder->insertDeclare(param->alloca_inst, D, backend->dbuilder->createExpression(),
+                                                 llvm::DILocation::get(this->di_subprogram->getContext(), line, column, this->di_subprogram),
+                                                 this->get_body()->llvm_basicblock);
+            }
             ++i;
         }
     }
 
-    llvm::Value *Function::codegen(logia::Backend *backend, llvm::IRBuilder<> *builder)
-    {
-        // TODO FIXME this is the perfect generation order!
-        // pre_codegen
-        // generate return type
-        // generate each parameter type
-        // create the function type
-        // create the function
-        // attach the function entry block (pre_codegen)
-        // alloca/store/meta of each parameter
-        // post_codegen
-        // generate body
+    // codegen order!
+    // pre_codegen
+    // generate return type
+    // generate each parameter type
+    // create the function type
+    // create the function
+    // * attach the function entry block (pre_codegen)
+    // * alloca/store/meta of each parameter
+    // post_codegen
+    // generate body
 
+    void Function::pre_codegen(logia::Backend *backend)
+    {
         DEBUG() << this->to_string() << std::endl;
         // generate return type, as it's the first in metada
         auto rtype = this->get_return_type();
-        rtype->codegen(backend, builder);
+        rtype->codegen(backend);
 
         // generate all parameters
         auto pcount = this->get_parameter_count();
@@ -627,7 +653,7 @@ namespace logia::AST
         {
             // IR Type
             auto param_type = this->get_parameter(i)->get_final_type();
-            param_type->codegen(backend, builder);
+            param_type->codegen(backend);
             this->ir_parameters.push_back(param_type->ir_type);
 
             // Metadata type
@@ -647,20 +673,17 @@ namespace logia::AST
                                             false);              // not variadic
         this->ir_type = (llvm::Type *)func;
 
-        this->cg_value = llvm::Function::Create((llvm::FunctionType *)this->ir_type, llvm::Function::ExternalLinkage, 0, this->get_name(), backend->module.get());
-
-        // Create a basic block and insert a return
+        this->ir_func = llvm::Function::Create((llvm::FunctionType *)this->ir_type, llvm::Function::ExternalLinkage, 0, this->get_name(), backend->module.get());
 
         if (!this->is_intrinsic)
         {
-            llvm::DISubprogram *SP = nullptr;
             if (backend->debug)
             {
                 // TODO STUDY only defined function can be coverage
                 // intrinsics are defined elsewhere, we may required something to be able to notice call count...
                 llvm::DISubroutineType *DISig = backend->dbuilder->createSubroutineType(backend->dbuilder->getOrCreateTypeArray(md_types));
 
-                SP = backend->dbuilder->createFunction(
+                this->di_subprogram = backend->dbuilder->createFunction(
                     backend->dcompilation_unit->getFile(),
                     this->get_name(),
                     llvm::StringRef(),
@@ -672,38 +695,27 @@ namespace logia::AST
                     llvm::DISubprogram::SPFlagDefinition);
 
                 // assign after initialize parameters!
-                this->cg_value->setSubprogram(SP);
-
-                backend->dscopes.push_back(SP);
+                this->ir_func->setSubprogram(this->di_subprogram);
             }
-            backend->set_debug_information(this->rule);
-            this->get_body()->codegen(backend, builder);
+            backend->set_debug_information(this->rule, this->di_subprogram);
+            this->get_body()->pre_codegen(backend);
+        }
+        DEBUG() << "exit!" << std::endl;
+    }
 
-            if (backend->debug)
-            {
-                // TODO FIXME this is out of order, we will fix it in the future!!!
-                // strange behaviour but llvm_basicblock should be inserted into ir before calling this
-                // so it should happens after codegen
-                for (size_t i = 0; i < pcount; ++i)
-                {
-                    auto fparam = this->get_parameter(i);
+    llvm::Value *Function::post_codegen(logia::Backend *backend)
+    {
+        // Create a basic block and insert a return
 
-                    // Create a debug descriptor for the variable.
-                    llvm::DILocalVariable *D = backend->dbuilder->createParameterVariable(
-                        SP, this->get_parameter_name(i)->identifier, i + 1, backend->dfile, 1, backend->di_double_ty,
-                        true);
-                    auto line = fparam->get_name()->rule->start->getLine();
-                    auto column = fparam->get_name()->rule->start->getStartIndex();
-                    backend->dbuilder->insertDeclare(fparam->alloca_inst, D, backend->dbuilder->createExpression(),
-                                                     llvm::DILocation::get(SP->getContext(), line, column, SP),
-                                                     this->get_body()->llvm_basicblock);
-                }
+        if (!this->is_intrinsic)
+        {
 
-                backend->dscopes.pop_back();
-            }
+            backend->dscopes.push_back(this->di_subprogram);
+            this->get_body()->codegen(backend);
+            backend->dscopes.pop_back();
         }
 
-        return (llvm::Value *)this->ir_type;
+        return Type::post_codegen(backend);
     }
 
     LOGIA_API LOGIA_LEND Function *ast_create_function_type(Identifier *id, Type *return_type)

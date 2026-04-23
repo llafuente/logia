@@ -69,7 +69,7 @@ namespace logia::AST
         Expression *get_default_value();
 
         std::string to_string() override;
-        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        llvm::Value *post_codegen(logia::Backend *backend) override;
         Type *get_type() override;
     };
 
@@ -111,7 +111,7 @@ namespace logia::AST
         /// @brief Checks if this type is type equivalent to another type
         bool is_type_equivalent(Type *other);
 
-        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        llvm::Value *post_codegen(logia::Backend *backend) override;
         Type *get_type() override;
         void post_attach() override;
 
@@ -120,7 +120,8 @@ namespace logia::AST
         /// @param name
         void __register_type(const char *name);
     };
-
+    /// @brief Represents an integer
+    /// @remarks llvm is created at pre_codegen, so it will be available anytime!
     struct Integer : public Type
     {
     public:
@@ -134,7 +135,7 @@ namespace logia::AST
 
         std::string get_repr() override;
 
-        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        void pre_codegen(logia::Backend *backend) override;
 
         void post_attach() override;
     };
@@ -245,7 +246,7 @@ namespace logia::AST
 
         void post_attach() override;
 
-        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        llvm::Value *post_codegen(logia::Backend *backend) override;
     };
 
     // TODO implement templates
@@ -268,10 +269,11 @@ namespace logia::AST
 
         TypeDef();
         ~TypeDef();
+        void add_locator(Identifier *name);
 
         Type *get_type() override;
         std::string to_string() override;
-        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        llvm::Value *post_codegen(logia::Backend *backend) override;
         Node *resolve() override;
     };
 
@@ -280,14 +282,15 @@ namespace logia::AST
     {
     public:
         char *docstring;
-        std::vector<llvm::Type *> ir_parameters;
-
         /// @brief is an intrinsic function, intrinsics don't have body and are defined outside user program.
         bool is_intrinsic;
-        llvm::FunctionType *ir_func;
-        llvm::Function *cg_value;
 
-        Function(antlr4::ParserRuleContext *rule, Identifier *id, Type *return_type = nullptr, bool is_intrinsic = false);
+        std::vector<llvm::Type *> ir_parameters;
+        llvm::FunctionType *ir_functy;
+        llvm::Function *ir_func;
+        llvm::DISubprogram *di_subprogram;
+
+        Function(antlr4::ParserRuleContext *rule, Identifier *name, Type *return_type = nullptr, bool is_intrinsic = false);
         ~Function();
 
         std::vector<FunctionParameter *> get_parameters();
@@ -332,8 +335,9 @@ namespace logia::AST
         std::string to_string() override;
         void post_attach() override;
         /// @brief generate parameters alloca. Used at FunctionBlock
-        void codegen_parameters(logia::Backend *backend, llvm::IRBuilder<> *builder);
-        llvm::Value *codegen(logia::Backend *codegen, llvm::IRBuilder<> *builder) override;
+        void codegen_parameters(logia::Backend *backend);
+        void pre_codegen(logia::Backend *backend);
+        llvm::Value *post_codegen(logia::Backend *backend) override;
     };
 
     /**
