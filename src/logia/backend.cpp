@@ -528,6 +528,12 @@ namespace logia
                                   ));
     }
 
+    void Backend::set_debug_loc(llvm::Instruction *value, antlr4::ParserRuleContext *context)
+    {
+        // value->setDebugLoc(llvm::DebugLoc::get(1, 0, this->dfile));
+        value->setDebugLoc(llvm::DILocation::get(this->context, context->start->getLine(), context->start->getCharPositionInLine(), this->dscopes[this->dscopes.size() - 1]));
+    }
+
     llvm::Function *Backend::getFunction(llvm::StringRef name) const
     {
         auto func = this->intrinsics_module->getFunction(name);

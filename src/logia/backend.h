@@ -116,6 +116,8 @@ namespace logia
         /// @param scope The debug scope, if nullptr is provided, the current scope will be used
         void set_debug_information(antlr4::ParserRuleContext *context, llvm::DIScope *scope = nullptr);
 
+        void set_debug_loc(llvm::Instruction *value, antlr4::ParserRuleContext *context);
+
         /// @brief searches a function inside intrinsics or current module
         llvm::Function *getFunction(llvm::StringRef Name) const;
 

@@ -164,7 +164,7 @@ namespace logia::AST
         // If argument mismatch error.
         if (CalleeF->arg_size() != arguments.size())
         {
-            throw std::runtime_error(std::format("Expected arguments {} arguments passed {}", CalleeF->arg_size(), arguments.size()));
+            throw std::runtime_error(std::format("Expected arguments {} arguments passed {} calling {}", CalleeF->arg_size(), arguments.size(), name->identifier));
         }
         auto arg_itr = CalleeF->arg_begin();
 
@@ -191,13 +191,14 @@ namespace logia::AST
             }
         }
 
-        // NOTE name is not what i expect -> blank!
+        // @llafuente remove name or we got duplications (same if strategy ?)
         auto call = backend->builder->CreateCall(CalleeF, ArgsV);
+        this->cg_value = (llvm::Value *)call;
         if (backend->debug)
         {
-            builder->dbuilder->createCallSiteInfo(call, backend->get_debug_information(this->rule));
+            backend->set_debug_loc((llvm::Instruction *)this->cg_value, this->rule);
         }
-        this->cg_value = (llvm::Value *)call;
+
         return Node::post_codegen(backend);
     }
 
