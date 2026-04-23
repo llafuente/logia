@@ -11,7 +11,8 @@ int main(int argc, char **argv)
   testing::InitGoogleTest(&argc, argv);
 
   // filter test in code, usefull to debug only one test
-  // testing::GTEST_FLAG(filter) = "*ast_create_function_type*";
+  testing::GTEST_FLAG(filter) = "*sum_logia*";
+  // testing::GTEST_FLAG(filter) = "*test_node*";
 
   return RUN_ALL_TESTS();
 }

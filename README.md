@@ -1,8 +1,10 @@
 # logia
 
-Compiler for logia language (logia language spec)[https://github.com/llafuente/language-spec]
+Compiler for logia language (logia language
+spec)[https://github.com/llafuente/language-spec]
 
-Due to the nature of the language, most of the compiler is in fact inside the languae so the compiler sould be used to develop other languages.
+Due to the nature of the language, most of the compiler is in fact inside the
+languae so the compiler sould be used to develop other languages.
 
 ## install/build/develop
 
@@ -42,9 +44,8 @@ Download and install LLVM
 
 [prebuilt LLVM](https://github.com/vovkos/llvm-package-windows/releases)
 
-* `llvm-**-windows-amd64-msvc17-libcmt-dbg.7z`
-* `llvm-**-windows-amd64-msvc17-libcmt.7z`
-
+- `llvm-**-windows-amd64-msvc17-libcmt-dbg.7z`
+- `llvm-**-windows-amd64-msvc17-libcmt.7z`
 
 Or you can build LLVM from source
 
@@ -60,15 +61,13 @@ cmake ..\src\llvm -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_ASSERTIONS=ON -DLLVM_
 cmake --build . --target install -j8
 ```
 
-
-
 #### build
 
 Open folder on Visual Studio Code
 
 Configure cmake
 
-* select amdx64
+- select amdx64
 
 Then `cmake` should be able to build the project.
 
@@ -81,7 +80,6 @@ set(Python3_ROOT_DIR "xxx/")
 
 ### linux (TODO)
 
-
 #### build
 
 You can build on console with the following commands
@@ -89,4 +87,21 @@ You can build on console with the following commands
 ```ps1
 cd build
 cmake ..
+```
+
+### test
+
+Tests checks cst/ast and codegen of unoptimized code. We asume LLVM
+optimizations are good.
+
+- build logia_test_suite in debug mode
+
+```ps1
+# run test suite
+./build-debug/bin/Debug/logia_test_suite.exe
+# now check that not only the test is OK, the IR is valid
+$diffTool = where diff.exe
+
+# $diffTool = "C:\Program Files\Git\usr\bin\diff.exe"
+& .\check-expected-ir.ps1 -testFolder ".\tests\tmp\" -referenceFolder ".\tests\expected-ir\" -diffTool $diffTool
 ```

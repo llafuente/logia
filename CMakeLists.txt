@@ -72,11 +72,11 @@ add_executable(logia
 include_directories(src)
 
 add_executable(logia_test_suite
-  test/main.cpp
-  test/test_utils.cpp
-  test/test_node.cpp
-  test/test_ast.cpp
-  test/test_logia.cpp
+  tests/main.cpp
+  tests/test_utils.cpp
+  tests/test_node.cpp
+  tests/test_ast.cpp
+  tests/test_logia.cpp
   ${LOGIA_SOURCE_FILES}
   ${ANTLR_LogiaGrammarLexer_CXX_OUTPUTS}
   ${ANTLR_LogiaGrammarParser_CXX_OUTPUTS}

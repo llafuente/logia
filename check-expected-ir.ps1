@@ -1,4 +1,4 @@
-# check-expected-ir -testFolder .\test\output-ir\ -referenceFolder .\test\expected-ir\ -diffTool "C:\Users\luis\Desktop\git-for-windows\usr\bin\diff.exe"
+# check-expected-ir -testFolder .\tests\tmp\ -referenceFolder .\tests\expected-ir\ -diffTool "C:\Users\luis\Desktop\git-for-windows\usr\bin\diff.exe"
 param(
     [string]$testFolder = (Join-Path -Path $PSScriptRoot -ChildPath 'test'),
     [string]$referenceFolder = (Join-Path -Path $PSScriptRoot -ChildPath 'dst'),
