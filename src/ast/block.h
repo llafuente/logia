@@ -6,11 +6,7 @@ namespace logia::AST
 {
     struct Identifier;
 
-    // TODO
-    // BaseBlock(scope)
-    // BaseBlock(scope) -> Block(stmt) -> FunctionBlock
-    // BaseBlock -> Program(stmt)
-
+    /// @brief A block of code aka scope
     struct Block : public Node
     {
     public:
@@ -21,23 +17,31 @@ namespace logia::AST
         // NOTE: about cpp
         // std::unordered_map<char*, Node*> scope; --> wrong char* is not the expected type, no "=="
         // std::unordered_map<string, Node*> scope; --> misc errors
+        /// @brief Defines the block scope, used for name resolution
         std::unordered_map<std::string_view, Node *> scope;
-        // back pointer to fast access
+        /// @brief Back pointer to fast access
         Block *parent = nullptr;
-        // BasicBlock will be populated at create_llvm_block and cached
-        // NOTE BasicBlock needs to be attached before codegen into them
+        /// @brief BasicBlock will be populated at pre_codegen and cached
+        /// @remarks BasicBlock needs to be attached before codegen into them
         llvm::BasicBlock *llvm_basicblock = nullptr;
-        // TODO remove body as we can reverse the tree and search it!
+
         Block(antlr4::ParserRuleContext *rule, Identifier *name);
 
+        /// @brief Retrieves the block name, used for goto and debugging
         Identifier *get_identifier();
+
+        /// @brief Shortcut to name as cstring
         const char *get_name();
 
-        /**
-         * Register a name in the scope
-         */
+        /// @brief Register a name in the scope
         void set(const char *name, Node *node);
 
+        /// @brief lookup a name into the current scope gracefully
+        /// @example
+        /// VarDeclStmt* var_decl = nullptr;
+        /// if (block->try_look<VarDeclStmt>("x", &var_decl)) {
+        ///     // var_decl is now set
+        /// }
         template <class T>
         bool try_look(const char *name, T **out)
         {
@@ -54,6 +58,7 @@ namespace logia::AST
             return false;
         }
 
+        /// @brief lookup a name in the current scope throws if not found
         template <class T>
         T *look(const char *name)
         {
@@ -69,8 +74,14 @@ namespace logia::AST
             throw std::runtime_error(std::format("not found in scope: {}", name));
         }
 
+        /// @brief lookup a name into the scope chain gracefully
+        /// @example
+        /// VarDeclStmt* var_decl = nullptr;
+        /// if (block->try_lookup<VarDeclStmt>("x", &var_decl)) {
+        ///     // var_decl is now set
+        /// }
         template <class T>
-        bool try_lookup2(const char *name, T **out)
+        bool try_lookup(const char *name, T **out)
         {
             DEBUG() << name << std::endl;
 
@@ -89,9 +100,11 @@ namespace logia::AST
 
             return false;
         }
-
+        /// @brief lookup a name into the scope chain throws if not found
+        /// @example
+        /// VarDeclStmt* var_decl = block->lookup<VarDeclStmt>("x");
         template <class T>
-        T *lookup2(const char *name)
+        T *lookup(const char *name)
         {
             DEBUG() << name << std::endl;
 
@@ -116,26 +129,37 @@ namespace logia::AST
         /// @brief Inserts block into parent Function, add a jump if needed and codegen children
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
+        /// @brief Codegen all children into current block
+        /// @param backend
         void codegen_children(logia::Backend *backend);
+
+        /// @brief Notice that block do not have type, nullptr is returned
         Type *get_type() override;
+
+        /// @brief Register block name at function scope
         void post_attach() override;
     };
 
     struct FunctionBlock : public Block
     {
+        /// @brief Marks if the block is already inserted into the function
         unsigned char is_inserted : 1 = false;
-        
+
         FunctionBlock(antlr4::ParserRuleContext *rule, Identifier *name);
+
         std::string to_string() override;
+
         /// @brief Inserts block into parent Function
         void pre_codegen(logia::Backend *backend) override;
+
         /// @brief Sets current block and codegen children
         llvm::Value *post_codegen(logia::Backend *backend) override;
     };
 
-    /**
-     * Creates a body (function body/block scope)
-     */
+    // Program is in fact a Block should be here, but it's important as it's the root, give him his own file :D
+
+    /// @brief Creates a block scope
+    /// @deprecated
     LOGIA_API LOGIA_LEND Block *ast_create_block(Identifier *name);
 
 }

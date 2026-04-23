@@ -170,15 +170,15 @@ namespace logia::AST
     }
     LOGIA_API LOGIA_LEND FloatLiteral *ast_create_float_lit(Block *body, double value)
     {
-        return new FloatLiteral(nullptr, body->lookup2<Type>("λf64"), value);
+        return new FloatLiteral(nullptr, body->lookup<Type>("λf64"), value);
     }
     LOGIA_API LOGIA_LEND IntegerLiteral *ast_create_int_lit(Block *body, const char *numberstr)
     {
-        return new IntegerLiteral(nullptr, numberstr, body->lookup2<Type>("λi64"));
+        return new IntegerLiteral(nullptr, numberstr, body->lookup<Type>("λi64"));
     }
     LOGIA_API LOGIA_LEND IntegerLiteral *ast_create_uint_lit(Block *body, const char *numberstr)
     {
-        return new IntegerLiteral(nullptr, numberstr, body->lookup2<Type>("λu64"));
+        return new IntegerLiteral(nullptr, numberstr, body->lookup<Type>("λu64"));
     }
 
 }

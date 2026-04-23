@@ -26,9 +26,10 @@ namespace logia
         void reportAttemptingFullContext(antlr4::Parser *recognizer, const antlr4::dfa::DFA &dfa, size_t startIndex, size_t stopIndex, const antlrcpp::BitSet &conflictingAlts, antlr4::atn::ATNConfigSet *configs) override;
         void reportContextSensitivity(antlr4::Parser *recognizer, const antlr4::dfa::DFA &dfa, size_t startIndex, size_t stopIndex, size_t prediction, antlr4::atn::ATNConfigSet *configs) override;
     };
-
+    /// @brief Compiler frontend, parsing and AST construction
     struct Frontend
     {
+        /// @brief Main entry point file
         const char *entry_point_path;
         // CST - antlr
         LogiaParser *parser;
@@ -39,7 +40,6 @@ namespace logia
         antlr4::ParserRuleContext *cst_tree;
 
         // AST
-
         AST::Program *ast_tree;
 
         // CODEGEN
@@ -57,12 +57,20 @@ namespace logia
         ~Frontend();
 
         char *file_read(const char *file_path);
-
+        /// @brief Sets the main entry point
+        /// @param file_path
         void set_file(const char *file_path);
+        /// @brief Parses the input file and builds the CST tree
         void parse();
+
+        /// @brief Prints CST tree
+        /// @param out The output stream to print the CST tree
         void print_cst(std::ostream &out);
 
+        /// @brief Builds the AST from the CST tree
         void build_ast();
+        /// @brief Prints AST tree
+        /// @param out The output stream to print the AST tree
         void print_ast(std::ostream &out);
     };
 

@@ -21,9 +21,14 @@ namespace logia::AST
 
         std::string to_string() override;
 
+        /// @brief Program do not have a type, nullptr is returned
+        /// @return
         Type *get_type() override;
+
         void pre_codegen(logia::Backend *backend) override;
+
         llvm::Value *post_codegen(logia::Backend *backend) override;
+
         void post_attach() override;
     };
 

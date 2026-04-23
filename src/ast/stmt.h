@@ -16,7 +16,9 @@ namespace logia::AST
     struct Stmt : Node
     {
         Stmt(antlr4::ParserRuleContext *rule);
+
         std::string to_string() override;
+
         Type *get_type() override;
     };
 
@@ -24,8 +26,11 @@ namespace logia::AST
     struct ReturnStmt : Stmt
     {
         ReturnStmt(antlr4::ParserRuleContext *rule, Expression *expr);
+
         std::string to_string() override;
+
         llvm::Value *post_codegen(logia::Backend *backend) override;
+
         Expression *get_expr();
     };
 
@@ -49,10 +54,15 @@ namespace logia::AST
         Identifier *get_identifier();
 
         std::string to_string() override;
+
         llvm::Value *post_codegen(logia::Backend *backend) override;
+
         void post_attach() override;
+
         Type *get_type() override;
+
         bool pre_type_inference() override;
+
         void post_type_inference() override;
     };
 
@@ -60,9 +70,13 @@ namespace logia::AST
     struct GotoStmt : Stmt
     {
         GotoStmt(antlr4::ParserRuleContext *rule, Identifier *id);
+
         Identifier *get_identifier();
+
         const char *get_name();
+
         std::string to_string() override;
+
         llvm::Value *post_codegen(logia::Backend *backend) override;
     };
 

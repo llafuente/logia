@@ -34,39 +34,39 @@ namespace logia
 
 namespace logia
 {
-    /**
-     * Data necesary to move from AST to IR/ASM/Binary/JIT
-     */
+    /// @brief Backend is the main entry point for code generation, it holds the LLVM context, module, builder and other data necesary for code generation
     struct Backend
     {
     public:
+        /// @brief Enable debug mode -> output DWARF
         bool debug;
+        /// @brief Enable code coverage -> output llvm-cov profdata
         bool coverage;
         /**
          * llvm context
          */
         llvm::LLVMContext context;
+
         // NOTE module is unique_ptr because parseIRFile return it
-        /**
-         * llvm module (global variables, functions, libraries)
-         */
+        /// @brief The main LLVM module
         std::unique_ptr<llvm::Module> module = nullptr;
-        /**
-         * Used for generating LLVM instructions (globally)
-         *
-         * Overriden in each function/block scope
-         */
+
+        /// @brief Used for generating LLVM instructions (globally)
         llvm::IRBuilder<> *builder = nullptr;
 
+        /// @brief Debug scope stack
         std::vector<llvm::DIScope *> dscopes = {};
-        llvm::DIBuilder *dbuilder = nullptr;
-        llvm::DIFile *dfile = nullptr;
-        llvm::DICompileUnit *dcompilation_unit = nullptr;
-        llvm::DIType *di_double_ty = nullptr;
 
-        /**
-         * Current LLVM JIT session
-         */
+        /// @brief Debug information builder
+        llvm::DIBuilder *dbuilder = nullptr;
+
+        /// @brief Debug information file
+        llvm::DIFile *dfile = nullptr;
+
+        /// @brief Debug information compilation unit
+        llvm::DICompileUnit *dcompilation_unit = nullptr;
+
+        /// @brief Current LLVM JIT session
         std::unique_ptr<llvm::orc::ExecutionSession> session;
 
         ::logia::AST::Program *program = nullptr;
@@ -78,48 +78,37 @@ namespace logia
          *
          */
         ~Backend();
-        /**
-         * Load intrinsics from file
-         */
+
+        /// @brief Loads intrinsics from file, and store them into their own module
         void load_intrinsics(char *filepath = (char *)"intrinsics/intrinsics.ll");
-        /**
-         * Add intrinsics to current module
-         */
+
+        /// @brief Adds an intrinsic to the current module, this is used to expose intrinsics to comptime/jit
         void add_intrinsic(void *fn_ref, char *fn_name);
-        /**
-         * Creates a TargetMachine with current host configuration
-         */
+
+        /// @brief Creates a TargetMachine with current host configuration
         llvm::Expected<llvm::TargetMachine *> createHostTargetMachine(llvm::Triple triple);
-        /**
-         * Applys LLVM optimizers to current module using  API PassBuilder
-         */
+
+        /// @brief Applys LLVM optimizers to current module using  API PassBuilder
         void applyLLVMOptimizers();
-        /**
-         * Generates object file
-         */
+
+        /// @brief Generates LLVM IR file
         bool emitTargetLLVMIR(std::string fileName);
-        /**
-         * Generates object file
-         */
+
+        /// @brief Generates object file
         bool emitTargetObjectFile(std::string fileName);
-        /**
-         * Generates assembly file
-         */
+
+        /// @brief Generates assembly file
         bool emitTargetAssemblyFile(std::string fileName);
-        /**
-         * Generates module binary
-         */
+
+        /// @brief Generates module binary and save it to file, this is the final step for a standalone executable
         bool emitTargetExecutable(std::string fileName);
-        /**
-         * Prepare LLVM to JIT
-         * This is necesary to expose intrinsics to comptime
-         */
-        void prepare_jit();
-        /**
-         * Runs module main function into current process
-         */
+
+        /// @brief Runs module main function into current process
         int run_jit(const char *fn_name);
 
+        /// @brief Sets debug information for the current context and scope
+        /// @param context The parser rule context
+        /// @param scope The debug scope, if nullptr is provided, the current scope will be used
         void set_debug_information(antlr4::ParserRuleContext *context, llvm::DIScope *scope = nullptr);
 
     private:

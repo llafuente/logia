@@ -11,10 +11,12 @@ namespace logia::AST
     struct TypeDef;
     struct Function;
 
+    /// @brief Base expression
     struct Expression : Node
     {
         // REVIEW strange  why do i need to declare this ?
         Expression(antlr4::ParserRuleContext *rule);
+
         std::string to_string() override;
     };
 

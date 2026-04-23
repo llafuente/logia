@@ -24,18 +24,28 @@ namespace logia::AST
     public:
         /// @brief is attached to a program
         unsigned char is_attached : 1 = false;
+
         /// @brief codegen pass done
         unsigned char is_codegen : 1 = false;
+
         /// @brief codegen pass done
         unsigned char skip_codegen : 1 = false;
+
         /// @brief type inference pass done
         unsigned char is_typed : 1 = false;
+
         /// @brief internal, check if name is set, used to throw if double set
         unsigned char has_name : 1 = false;
+
         /// @brief marks node as constant so it can be used as constexpr at comptime
         unsigned char is_constant : 1 = false;
+
+        /// @brief marks node as pre_codegen done, used to avoid multiple calls
         unsigned char is_pre_codegen : 1 = false;
+
+        /// @brief marks node as post_codegen done, used to avoid multiple calls
         unsigned char is_post_codegen : 1 = false;
+
         /// @brief antlr rule, used for error reporting and debugging
         antlr4::ParserRuleContext *rule = nullptr;
 

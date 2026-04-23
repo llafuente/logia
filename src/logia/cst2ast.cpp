@@ -73,7 +73,7 @@ namespace logia
         DEBUG() << context->getText() << std::endl;
 
         auto text = context->getText();
-        return ANY_VOIDP_STORE(new AST::IntegerLiteral(context, text.c_str(), this->program->lookup2<AST::Type>("λi64")));
+        return ANY_VOIDP_STORE(new AST::IntegerLiteral(context, text.c_str(), this->program->lookup<AST::Type>("λi64")));
     }
 
     // rhsExpr it's just a container not needed
@@ -690,7 +690,7 @@ namespace logia
 
         // auto name = (AST::Identifier *)(this->visitIdentifier(def->functionName()->identifier()));
         auto name = ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(def->functionName()->identifier()));
-        auto ret_type = this->program->lookup2<AST::Type>("λi64");
+        auto ret_type = this->program->lookup<AST::Type>("λi64");
         auto fn = new AST::Function(context, name, ret_type);
 
         auto plist = def->functionParameterList();

@@ -90,8 +90,6 @@ namespace logia
             // Enable debug info
             this->module->addModuleFlag(llvm::Module::Warning, "Debug Info Version", llvm::DEBUG_METADATA_VERSION);
             this->module->addModuleFlag(llvm::Module::Warning, "Dwarf Version", llvm::dwarf::DWARF_VERSION);
-
-            di_double_ty = this->dbuilder->createBasicType("double", 64, llvm::dwarf::DW_ATE_float);
         }
 
         auto EPC = llvm::orc::SelfExecutorProcessControl::Create();

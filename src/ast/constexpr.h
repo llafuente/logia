@@ -7,22 +7,35 @@
 
 namespace logia::AST
 {
+    /// @brief A constant expression that can be evaluated at compile time
     struct ConstExpression : Expression
     {
         // REVIEW strange  why do i need to declare this ?
         ConstExpression(antlr4::ParserRuleContext *rule);
+
         std::string to_string() override;
     };
 
+    /// @brief A string literal constant expression
     struct StringLiteral : ConstExpression
     {
+        /// @brief The string value (utf-8)
         char *text;
+
         StringLiteral(antlr4::ParserRuleContext *rule, char *text);
+
         std::string to_string() override;
+
+        // TODO generate our string data not cstring
         llvm::Value *post_codegen(logia::Backend *backend) override;
+
+        // TODO return out type!!
+        /// @brief Retrieves the type of the string literal
+        /// @return
         Type *get_type() override;
     };
 
+    /// @brief A floating point literal constant expression
     struct FloatLiteral : ConstExpression
     {
     public:
@@ -34,17 +47,24 @@ namespace logia::AST
         Type *get_type() override;
     };
 
+    /// @brief An integer literal constant expression
     struct IntegerLiteral : ConstExpression
     {
+        /// @brief The integer value as text, we will parse it at codegen to support different bases and sizes
         char *number_str;
 
         IntegerLiteral(antlr4::ParserRuleContext *rule, const char *number_as_text, Type *type);
-
+        /// @brief Retrieves the integer value as the biggest unsigned value
+        /// @return
         uint64_t as_unsigned();
+        /// @brief Retrieves the integer value as the biggest signed value
+        /// @return
         int64_t as_signed();
 
         std::string to_string() override;
+
         llvm::Value *post_codegen(logia::Backend *backend) override;
+
         Type *get_type() override;
     };
 

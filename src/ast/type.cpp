@@ -409,7 +409,7 @@ namespace logia::AST
         // search children!
         auto id = this->get_child<Identifier>(0);
         auto block = this->first_parent<Block>();
-        auto node = block->lookup2<Node>(id->identifier);
+        auto node = block->lookup<Node>(id->identifier);
 
         return node->get_type();
     }

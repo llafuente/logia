@@ -420,7 +420,7 @@ namespace logia::AST
     {
         DEBUG() << this->to_string() << std::endl;
 
-        auto decl = this->first_parent<Block>()->lookup2<Node>(this->identifier);
+        auto decl = this->first_parent<Block>()->lookup<Node>(this->identifier);
         if (decl->is<VarDeclStmt>())
         {
             auto vdecl = decl->as<VarDeclStmt>();
@@ -439,7 +439,7 @@ namespace logia::AST
 
     VarDeclStmt *Identifier::get_var_decl()
     {
-        return this->first_parent<Block>()->lookup2<VarDeclStmt>(this->identifier);
+        return this->first_parent<Block>()->lookup<VarDeclStmt>(this->identifier);
     }
 
     Function *get_function_decl()
@@ -465,7 +465,7 @@ namespace logia::AST
             throw std::runtime_error("Cannot retrieve type. Call type_inference first.");
         }
         auto block = this->first_parent<Block>();
-        return block->lookup2<Node>(this->identifier);
+        return block->lookup<Node>(this->identifier);
     }
 
     LOGIA_API Identifier *ast_create_identifier(LOGIA_CLONE const char *name)
