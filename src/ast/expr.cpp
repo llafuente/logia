@@ -192,7 +192,12 @@ namespace logia::AST
         }
 
         // NOTE name is not what i expect -> blank!
-        this->cg_value = backend->builder->CreateCall(CalleeF, ArgsV);
+        auto call = backend->builder->CreateCall(CalleeF, ArgsV);
+        if (backend->debug)
+        {
+            builder->dbuilder->createCallSiteInfo(call, backend->get_debug_information(this->rule));
+        }
+        this->cg_value = (llvm::Value *)call;
         return Node::post_codegen(backend);
     }
 
