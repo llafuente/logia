@@ -611,12 +611,14 @@ namespace logia::AST
 
             if (backend->debug)
             {
+                auto ty = param->get_final_type();
+                auto name = param->get_name();
                 // Create a debug descriptor for the variable.
                 llvm::DILocalVariable *D = backend->dbuilder->createParameterVariable(
-                    this->di_subprogram, this->get_parameter_name(i)->identifier, i + 1, backend->dfile, 1, param->get_type()->di_type,
+                    this->di_subprogram, name->identifier, i + 1, backend->dfile, 1, ty->di_type,
                     true);
-                auto line = param->get_name()->rule->start->getLine();
-                auto column = param->get_name()->rule->start->getStartIndex();
+                auto line = name->rule->start->getLine();
+                auto column = name->rule->start->getStartIndex();
                 backend->dbuilder->insertDeclare(param->alloca_inst, D, backend->dbuilder->createExpression(),
                                                  llvm::DILocation::get(this->di_subprogram->getContext(), line, column, this->di_subprogram),
                                                  this->get_body()->llvm_basicblock);
