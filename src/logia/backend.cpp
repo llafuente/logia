@@ -103,7 +103,7 @@ namespace logia
         session = std::make_unique<llvm::orc::ExecutionSession>(std::move(*EPC));
         session->createBareJITDylib("<main>");
 
-        this->program = AST::ast_create_program(this->context, frontend->entry_point_fullpath);
+        this->program = AST::ast_create_program(this, frontend->entry_point_fullpath);
     }
 
     Backend::~Backend()
@@ -119,6 +119,25 @@ namespace logia
         {
             diag.print("intrinsics.ll", llvm::errs());
             throw std::exception("could not parse or read intrinsics.ll");
+        }
+
+        // Iterate over all functions in the module
+        for (const llvm::Function &F : *this->intrinsics_module)
+        {
+            // REVIEW Skip functions without a body ? that imply libc or compiler libs ?
+            if (!F.isDeclaration())
+            {
+                auto f_args = std::vector<AST::Type *>();
+                f_args.reserve(F.arg_size());
+
+                for (const llvm::Argument &argument : F.args())
+                {
+                    f_args.push_back(this->program->get_ast_type(argument.getType()));
+                }
+
+                auto f_ret_type = this->program->get_ast_type(F.getReturnType());
+                this->program->add_intrinsic(F.getName().str().c_str(), f_ret_type, f_args);
+            }
         }
     }
 

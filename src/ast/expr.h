@@ -153,6 +153,7 @@ namespace logia::AST
         std::string to_string() override;
         llvm::Value *post_codegen(logia::Backend *backend) override;
         Type *get_type() override;
+        virtual void post_type_inference() override;
     };
     /// @brief Creates a reference to an expression
     /// @param operand
@@ -179,6 +180,7 @@ namespace logia::AST
         PostfixUnaryExpression(antlr4::ParserRuleContext *rule, PostfixUnaryOperator op, Expression *operand);
         Expression *get_operand();
         std::string to_string() override;
+        virtual void post_type_inference() override;
     };
 
     /// @brief Defines an identifier, used for variable names, function names, struct field names, etc.
@@ -235,10 +237,10 @@ namespace logia::AST
     //
 
     /// @brief Converts a binary operator to its string representation
-    LOGIA_API const char *ast_postfix_unary_operator_to_string(PostfixUnaryOperator op);
+    LOGIA_API const char *ast_postfix_unary_operator_to_string(PostfixUnaryOperator op, Type *operand);
 
     /// @brief Converts a binary operator to its string representation
-    LOGIA_API const char *ast_prefix_unary_operator_to_string(PrefixUnaryOperator op);
+    LOGIA_API const char *ast_prefix_unary_operator_to_string(PrefixUnaryOperator op, Type *operand);
 
     /// @brief Converts a binary operator to its string representation
     /// @param op The binary operator

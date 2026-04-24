@@ -634,16 +634,11 @@ namespace logia::AST
         // auto block = new Block(nullptr, ast_create_identifier("function_param_alloca"));
         // this->push_child(block);
 
-        // NOTE need to push something as arguments will be +3
-        if (is_intrinsic)
-        {
-            this->push_child(new NoOp()); // get_body
-        }
-        else
-        {
-            auto block = new FunctionBlock(nullptr, ast_create_identifier("function_body"));
-            this->push_child(block); // get_body
-        }
+        auto block = new FunctionBlock(nullptr, ast_create_identifier("function_body"));
+        this->push_child(block); // get_body
+
+        // children+3 are the arguments!
+
         this->is_intrinsic = is_intrinsic;
     }
 

@@ -1,0 +1,36 @@
+function main() i64 {
+    var i64 a = 100
+    var i64 b = 10
+    var i64 c = 0
+
+    c = a + b
+    c = a - b
+    c = a * b
+    c = a / b
+    c = a % b
+
+    a == b
+    a != b
+    a < b
+    a > b
+    a <= b
+    a >= b
+
+    c += a;
+    c -= a;
+    c *= a;
+    c /= a;
+    // bitwise
+    c = a & b;
+    c = a | b;
+    c = a ^ b;
+    c = ~a;
+    c = a << 1;
+    c = a >> 2;
+    
+    c = -a;
+    //!a;
+
+    return 0
+
+}

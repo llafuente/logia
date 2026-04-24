@@ -48,7 +48,7 @@ logia-tests.log
 tests/tmp
 
 # intrintics generated code
-intrinsics/generated-pre-unary-operator.cpp
-intrinsics/generated-post-unary-operator.cpp
+intrinsics/generated-prefix-operator.cpp
+intrinsics/generated-postfix-operator.cpp
 intrinsics/generated-binary-integer-operator.cpp
 intrinsics/generated-binary-floating-operator.cpp

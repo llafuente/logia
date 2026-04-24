@@ -3,6 +3,9 @@
 #include "ast/node.h"
 #include "ast/type.h"
 #include "ast/traverse.h"
+#include "ast/expr.h"
+
+#include "logia/backend.h"
 
 namespace logia::AST
 {
@@ -20,7 +23,7 @@ namespace logia::AST
         return std::format("Program.{}", Block::to_string());
     }
 
-    LOGIA_API Program *ast_create_program(llvm::LLVMContext &C, const char *entry_point_file)
+    LOGIA_API Program *ast_create_program(Backend *backend, const char *entry_point_file)
     {
         auto body = new Program(nullptr, entry_point_file);
 
@@ -72,12 +75,42 @@ namespace logia::AST
             node->codegen(backend);
         }
 
-        ast_create_instrinsic(body, ast_create_identifier("logia_intrinsics_bin_add_i64_i64"), i64);
-        ast_create_instrinsic(body, ast_create_identifier("logia_intrinsics_bin_mul_i64_i64"), i64);
-        ast_create_instrinsic(body, ast_create_identifier("logia_intrinsics_bin_lt_i64_i64"), i1);
+        // ast_create_instrinsic(body, ast_create_identifier("logia_intrinsics_bin_add_i64_i64"), i64);
+        // ast_create_instrinsic(body, ast_create_identifier("logia_intrinsics_bin_mul_i64_i64"), i64);
+        // ast_create_instrinsic(body, ast_create_identifier("logia_intrinsics_bin_lt_i64_i64"), i1);
 
         return body;
     }
+
+    void Program::add_intrinsic(const char *name, Type *return_type, std::vector<Type *> arguments)
+    {
+        auto f = new Function(nullptr, new Identifier(nullptr, name), return_type, true);
+        for (auto t : arguments)
+        {
+            f->add_param(new FunctionParameter(new Identifier(nullptr, ""), t, nullptr));
+        }
+        this->push_child(f);
+        DEBUG() << f->to_string() << std::endl;
+    }
+
+    Type *Program::get_ast_type(llvm::Type *type)
+    {
+        for (Node *node : this->children)
+        {
+            if (node->is<Type>())
+            {
+                auto ltype = node->as<Type>();
+                //DEBUG() << ltype->to_string() << std::endl;
+                if (ltype->ir_type == type)
+                {
+                    return ltype;
+                }
+            }
+        }
+
+        throw std::runtime_error(std::format("llvm type not found: {}", llvm_type_to_string(type)));
+    }
+
     void Program::post_attach()
     {
         // do nothing, parentBody should be empty

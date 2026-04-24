@@ -264,11 +264,12 @@ namespace logia::AST
     BinaryExpression::BinaryExpression(antlr4::ParserRuleContext *rule, Expression *left, BinaryOperator op, Expression *right) : CallExpression(rule)
     {
         this->op = op;
+
         // NOTE start as null, because we may don't know the types yet
-        // this->push_child(ast_create_identifier(strdup(ast_binary_operator_to_string(op, left->get_type(), right->get_type()))));
-        auto name = ast_create_identifier("");
-        name->skip_codegen = true;
-        this->push_child(name);
+        auto ident = ast_create_identifier("");
+        ident->skip_codegen = true;
+        this->push_child(ident);
+
         switch (op)
         {
         case BinaryOperator::ASSIGN:
@@ -325,21 +326,29 @@ namespace logia::AST
     //
     std::string PrefixUnaryExpression::to_string()
     {
-        return std::format("PrefixUnaryExpression[{}({}){}", ast_prefix_unary_operator_to_string(this->op), this->get_operand()->to_string(), Node::to_string());
+        auto id = this->get_locator()->as<Identifier>();
+        return std::format("PrefixUnaryExpression [{}]", id->identifier, Node::to_string());
     }
 
     PrefixUnaryExpression::PrefixUnaryExpression(antlr4::ParserRuleContext *rule, PrefixUnaryOperator op, Expression *operand) : CallExpression(rule)
     {
         this->op = op;
+
+        // NOTE start as null, because we may don't know the types yet
+        auto ident = ast_create_identifier("");
+        ident->skip_codegen = true;
+        this->push_child(ident);
+
         switch (this->op)
         {
         case PrefixUnaryOperator::DEREFERENCE:
-            this->push_child(new NoOp());
             node_assert<Identifier>(operand, __FUNCTION__ ":" TOSTRING(__LINE__));
             break;
         default:
-            this->push_child(ast_create_identifier(strdup(ast_prefix_unary_operator_to_string(op))));
+        {
         }
+        }
+
         this->add_positional_argument(operand);
     }
 
@@ -352,6 +361,13 @@ namespace logia::AST
     {
         // TODO REVIEW impl totally false!
         return this->get_operand()->get_type();
+    }
+
+    void PrefixUnaryExpression::post_type_inference()
+    {
+        auto operand = this->get_operand()->get_final_type();
+        auto ident = this->get_locator()->as<Identifier>();
+        ident->identifier = strdup(ast_prefix_unary_operator_to_string(op, operand));
     }
 
     llvm::Value *PrefixUnaryExpression::post_codegen(logia::Backend *backend)
@@ -403,19 +419,32 @@ namespace logia::AST
 
     std::string PostfixUnaryExpression::to_string()
     {
-        return std::format("PostfixUnaryExpression[{}({})]{}", ast_postfix_unary_operator_to_string(this->op), this->get_operand()->to_string(), Node::to_string());
+        auto id = this->get_locator()->as<Identifier>();
+        return std::format("PostfixUnaryExpression [{}]", id->identifier, Node::to_string());
     }
 
     PostfixUnaryExpression::PostfixUnaryExpression(antlr4::ParserRuleContext *rule, PostfixUnaryOperator op, Expression *operand) : CallExpression(rule)
     {
         this->op = op;
-        this->push_child(ast_create_identifier(strdup(ast_postfix_unary_operator_to_string(op))));
+
+        // NOTE start as null, because we may don't know the types yet
+        auto ident = ast_create_identifier("");
+        ident->skip_codegen = true;
+        this->push_child(ident);
+
         this->add_positional_argument(operand);
     }
 
     Expression *PostfixUnaryExpression::get_operand()
     {
-        return this->get_child<Expression>(1);
+        return this->get_argument(0);
+    }
+
+    void PostfixUnaryExpression::post_type_inference()
+    {
+        auto operand = this->get_operand()->get_final_type();
+        auto ident = this->get_locator()->as<Identifier>();
+        ident->identifier = strdup(ast_postfix_unary_operator_to_string(this->op, operand));
     }
 
     // TODO create
@@ -423,9 +452,9 @@ namespace logia::AST
     //
     // Identifier
     //
-    Identifier::Identifier(antlr4::ParserRuleContext *rule, const char *identifier) : Expression(rule)
+    Identifier::Identifier(antlr4::ParserRuleContext *rule, LOGIA_CLONE const char *identifier) : Expression(rule)
     {
-        this->identifier = identifier;
+        this->identifier = strdup(identifier);
     }
     std::string Identifier::to_string()
     {
@@ -599,40 +628,48 @@ namespace logia::AST
     //
     // utils
     //
-    const char *ast_postfix_unary_operator_to_string(PostfixUnaryOperator op)
+    char ast_binary_operator_to_string_buffer[256];
+    const char *ast_postfix_unary_operator_to_string(PostfixUnaryOperator op, Type *operand)
     {
         switch (op)
         {
         case PostfixUnaryOperator::INCREMENT:
-            return "logia_intrinsics_postfix_inc";
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_postfix_inc_%s", operand->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
         case PostfixUnaryOperator::DECREMENT:
-            return "logia_intrinsics_postfix_dec";
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_postfix_dec_%s", operand->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
         default:
             throw std::runtime_error("Unknown postfix unary operator");
         }
     }
-    const char *ast_prefix_unary_operator_to_string(PrefixUnaryOperator op)
+    const char *ast_prefix_unary_operator_to_string(PrefixUnaryOperator op, Type *operand)
     {
         switch (op)
         {
         case PrefixUnaryOperator::DEREFERENCE:
-            return "logia_intrinsics_deref";
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_deref_%s", operand->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
         case PrefixUnaryOperator::INCREMENT:
-            return "logia_intrinsics_prefix_inc";
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_prefix_inc_%s", operand->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
         case PrefixUnaryOperator::DECREMENT:
-            return "logia_intrinsics_prefix_dec";
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_prefix_dec_%s", operand->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
         case PrefixUnaryOperator::NEGATION:
-            return "logia_intrinsics_prefix_neg";
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_prefix_neg_%s", operand->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
         case PrefixUnaryOperator::BITWISE_NOT:
-            return "logia_intrinsics_prefix_bitwise_not";
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_prefix_bitwise_not_%s", operand->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
         case PrefixUnaryOperator::LOGICAL_NOT:
-            return "logia_intrinsics_prefix_logical_not";
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_prefix_logical_not_%s", operand->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
         default:
             throw std::runtime_error("Unknown prefix unary operator");
         }
     }
 
-    char ast_binary_operator_to_string_buffer[256];
     const char *ast_binary_operator_to_string(BinaryOperator op, Type *left, Type *right)
     {
         switch (op)
@@ -667,6 +704,7 @@ namespace logia::AST
         case BinaryOperator::MOD:
             sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_mod_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
             return ast_binary_operator_to_string_buffer;
+
         case BinaryOperator::LOGIAL_EQ:
             sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_eq_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
             return ast_binary_operator_to_string_buffer;
@@ -686,19 +724,26 @@ namespace logia::AST
             sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_gte_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
             return ast_binary_operator_to_string_buffer;
         case BinaryOperator::LOGICAL_AND:
-            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_and_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_logical_and_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
             return ast_binary_operator_to_string_buffer;
         case BinaryOperator::LOGICAL_OR:
-            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_or_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_logical_or_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
+
+        case BinaryOperator::BITWISE_OR:
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_bitwise_or_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
+            return ast_binary_operator_to_string_buffer;
+        case BinaryOperator::BITWISE_AND:
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_bitwise_and_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
             return ast_binary_operator_to_string_buffer;
         case BinaryOperator::BITWISE_XOR:
-            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_xor_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_bitwise_xor_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
             return ast_binary_operator_to_string_buffer;
         case BinaryOperator::BITWISE_LEFT_SHIFT:
-            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_shl_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_bitwise_shl_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
             return ast_binary_operator_to_string_buffer;
         case BinaryOperator::BITWISE_RIGHT_SHIFT:
-            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_shr_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
+            sprintf(ast_binary_operator_to_string_buffer, "logia_intrinsics_bin_bitwise_shr_%s_%s", left->get_repr().c_str(), right->get_repr().c_str());
             return ast_binary_operator_to_string_buffer;
         default:
             throw std::runtime_error("Unknown binary operator");
