@@ -14,6 +14,8 @@ namespace logia::AST
         ConstExpression(antlr4::ParserRuleContext *rule);
 
         std::string to_string() override;
+
+        llvm::Value *post_codegen(logia::Backend *backend) override;
     };
 
     /// @brief A string literal constant expression

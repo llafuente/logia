@@ -108,7 +108,7 @@ namespace logia
         /// @brief Generates module binary and save it to file, this is the final step for a standalone executable
         bool emitTargetExecutable(std::string fileName);
 
-        /// @brief Runs module main function into current process
+        /// @brief Runs module given function into current process
         int run_jit(const char *fn_name);
 
         /// @brief Sets debug information for the current context and scope

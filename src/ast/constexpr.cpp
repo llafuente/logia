@@ -17,6 +17,12 @@ namespace logia::AST
         return std::format("ConstExpression{}", Node::to_string());
     }
 
+    llvm::Value *ConstExpression::post_codegen(logia::Backend *backend)
+    {
+        // skip expression, as we couldn't generate debug information, it crash!
+        return Node::post_codegen(backend);
+    }
+
     //
     // IntegerLiteral
     //
@@ -89,7 +95,7 @@ namespace logia::AST
         // TODO add support for octal
         // TODO add support for hexadecimal
         this->cg_value = llvm::ConstantInt::get((llvm::Type *)this->get_type()->codegen(backend), llvm::APInt(type->bits, this->number_str, 10));
-        return Node::post_codegen(backend);
+        return ConstExpression::post_codegen(backend);
     }
 
     //
@@ -115,7 +121,9 @@ namespace logia::AST
     llvm::Value *FloatLiteral::post_codegen(logia::Backend *backend)
     {
         DEBUG() << this->to_string() << std::endl;
+        this->cg_value = nullptr;
         throw std::runtime_error(__FUNCTION__ "todo");
+        return ConstExpression::post_codegen(backend);
     }
 
     //
@@ -144,7 +152,7 @@ namespace logia::AST
         // NOTE module is required or 0xc0000005
         // !getType()->isVoidTy() && "Cannot assign a name to void values!"??
         this->cg_value = backend->builder->CreateGlobalString(this->text, ".str", 0, backend->module.get(), true);
-        return Node::post_codegen(backend);
+        return ConstExpression::post_codegen(backend);
 
         /*
                 llvm::Constant *strConst = llvm::ConstantDataArray::getString(codegen->context, this->text, true);

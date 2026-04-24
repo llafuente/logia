@@ -7,13 +7,25 @@ namespace logia::AST
     // Stmt
     //
     Stmt::Stmt(antlr4::ParserRuleContext *rule) : Node(rule) {}
+
     std::string Stmt::to_string()
     {
         return std::format("Statement{}", Node::to_string());
     }
+
     Type *Stmt::get_type()
     {
         return nullptr;
+    }
+
+    llvm::Value *Stmt::post_codegen(logia::Backend *backend)
+    {
+        if (this->cg_value != nullptr)
+        {
+            DEBUG() << this->to_string() << std::endl;
+            backend->set_debug_loc((llvm::Instruction *)this->cg_value, this->rule);
+        }
+        return Node::post_codegen(backend);
     }
 
     //
@@ -47,7 +59,8 @@ namespace logia::AST
         {
             this->cg_value = backend->builder->CreateRet(expr->codegen(backend));
         }
-        return Node::post_codegen(backend);
+
+        return Stmt::post_codegen(backend);
     }
 
     //
@@ -132,7 +145,7 @@ namespace logia::AST
         backend->builder->CreateStore(init_value, this->alloca_inst);
 
         this->cg_value = this->alloca_inst;
-        return Node::post_codegen(backend);
+        return Stmt::post_codegen(backend);
     }
 
     //
@@ -183,7 +196,7 @@ namespace logia::AST
         {
             block->codegen(backend);
             this->cg_value = backend->builder->CreateBr(block->llvm_basicblock);
-            return Node::post_codegen(backend);
+            return Stmt::post_codegen(backend);
         }
 
         throw std::runtime_error(std::string("Expected a block: ") + this->to_string());

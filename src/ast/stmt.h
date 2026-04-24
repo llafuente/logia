@@ -20,6 +20,8 @@ namespace logia::AST
         std::string to_string() override;
 
         Type *get_type() override;
+
+        llvm::Value *post_codegen(logia::Backend *backend) override;
     };
 
     /// @brief Return statement

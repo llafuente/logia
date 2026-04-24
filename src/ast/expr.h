@@ -18,6 +18,8 @@ namespace logia::AST
         Expression(antlr4::ParserRuleContext *rule);
 
         std::string to_string() override;
+
+        llvm::Value *post_codegen(logia::Backend *backend) override;
     };
 
     /// @brief Call expression, can be a function call, method call, operator call, etc.

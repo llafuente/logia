@@ -16,6 +16,16 @@ namespace logia::AST
         return std::format("Expression{}", Node::to_string());
     }
 
+    llvm::Value *Expression::post_codegen(logia::Backend *backend)
+    {
+        if (this->cg_value != nullptr)
+        {
+            DEBUG() << this->to_string() << std::endl;
+            backend->set_debug_loc((llvm::Instruction *)this->cg_value, this->rule);
+        }
+        return Node::post_codegen(backend);
+    }
+
     //
     // MemberAccessExpression
     //
@@ -193,13 +203,9 @@ namespace logia::AST
 
         // @llafuente remove name or we got duplications (same if strategy ?)
         auto call = backend->builder->CreateCall(CalleeF, ArgsV);
-        this->cg_value = (llvm::Value *)call;
-        if (backend->debug)
-        {
-            backend->set_debug_loc((llvm::Instruction *)this->cg_value, this->rule);
-        }
 
-        return Node::post_codegen(backend);
+        this->cg_value = (llvm::Value *)call;
+        return Expression::post_codegen(backend);
     }
 
     LOGIA_API CallExpression *ast_create_call_expr(Expression *locator, std::vector<Expression *> arguments)
@@ -240,7 +246,7 @@ namespace logia::AST
         auto ptr = backend->builder->CreateStructGEP(struct_ty->ir_type, leftValue, propertyIndex);
 
         this->cg_value = backend->builder->CreateLoad(propertyType, ptr);
-        return Node::post_codegen(backend);
+        return Expression::post_codegen(backend);
     }
 
     // TODO create
@@ -272,7 +278,7 @@ namespace logia::AST
         case BinaryOperator::DIV_ASSIGN:
             // 1 NoOp
             // 2 ref
-            this->add_positional_argument(ast_create_ref(left));
+            this->add_positional_argument(new PrefixUnaryExpression(this->rule, PrefixUnaryOperator::DEREFERENCE, left));
             break;
         default:
             // 1 NoOp
@@ -365,9 +371,13 @@ namespace logia::AST
             // return builder->CreateLoad(llvm::PointerType::get(codegen->context, 0), operandValue);
             // return builder->CreateLoad(operandType->getPointerTo(), operandValue, false);
             auto ptr = backend->builder->CreateAlloca(operandType->getPointerTo(), nullptr, "deref");
-            backend->builder->CreateStore(operandValue, ptr);
+            backend->set_debug_loc((llvm::Instruction *)ptr, this->rule);
+
+            auto store = backend->builder->CreateStore(operandValue, ptr);
+            backend->set_debug_loc((llvm::Instruction *)store, this->rule);
+
             this->cg_value = backend->builder->CreateLoad(operandType->getPointerTo(), ptr);
-            return Node::post_codegen(backend);
+            return Expression::post_codegen(backend);
         }
         default:
             return CallExpression::post_codegen(backend);
@@ -430,14 +440,16 @@ namespace logia::AST
         if (decl->is<VarDeclStmt>())
         {
             auto vdecl = decl->as<VarDeclStmt>();
+
             this->cg_value = backend->builder->CreateLoad(vdecl->alloca_inst->getAllocatedType(), vdecl->alloca_inst, this->identifier);
-            return Node::post_codegen(backend);
+            return Expression::post_codegen(backend);
         }
         if (decl->is<FunctionParameter>())
         {
             auto fpdecl = decl->as<FunctionParameter>();
+
             this->cg_value = backend->builder->CreateLoad(fpdecl->alloca_inst->getAllocatedType(), fpdecl->alloca_inst, this->identifier);
-            return Node::post_codegen(backend);
+            return Expression::post_codegen(backend);
         }
         // TODO function? -> function pointer
         throw std::runtime_error(std::format("{}{}", "Identifier found but type not handled!", decl->to_string()));
@@ -571,6 +583,7 @@ namespace logia::AST
         srcGlobal->setAlignment(abiAlign);
 
         this->cg_value = srcGlobal;
+        // skip to Node -> LLVM crashes
         return Node::post_codegen(backend);
     }
 
