@@ -6,7 +6,7 @@
 
 namespace logia::AST
 {
-    Program::Program(antlr4::ParserRuleContext *rule) : Block(rule, ast_create_identifier("program"))
+    Program::Program(antlr4::ParserRuleContext *rule, const char *entry_point_file) : Block(rule, ast_create_identifier("program")), entry_point_file(entry_point_file)
     {
     }
 
@@ -20,9 +20,9 @@ namespace logia::AST
         return std::format("Program.{}", Block::to_string());
     }
 
-    LOGIA_API Program *ast_create_program(llvm::LLVMContext &C)
+    LOGIA_API Program *ast_create_program(llvm::LLVMContext &C, const char *entry_point_file)
     {
-        auto body = new Program(nullptr);
+        auto body = new Program(nullptr, entry_point_file);
 
         // we know declare all primitives
         // any type in the language should use those

@@ -1,5 +1,7 @@
 // ./build-debug/bin/Debug/logia_test_suite.exe --gtest_break_on_failure
 
+#include "logia/frontend.h"
+#include "logia/backend.h"
 #include "ast/node.h"
 #include "ast/traverse.h"
 #include "ast/if_stmt.h"
@@ -17,6 +19,7 @@ TEST(test_node, test_1)
 {
     LOGIA_BACKEND_START();
     using namespace logia::AST;
+
     int size = program->children.size();
     program->push_child(ast_create_identifier("a"));
     program->push_child(ast_create_binary_expr(ast_create_identifier("a"), BinaryOperator::ADD, ast_create_identifier("b")));

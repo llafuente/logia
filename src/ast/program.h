@@ -17,7 +17,9 @@ namespace logia::AST
     class Program : public Block
     {
     public:
-        Program(antlr4::ParserRuleContext *rule);
+        const char *entry_point_file;
+
+        Program(antlr4::ParserRuleContext *rule, const char *entry_point_file);
 
         std::string to_string() override;
 
@@ -35,5 +37,5 @@ namespace logia::AST
     /// @brief Creates a minimal logia program
     /// @details Primitives and intrinsics included
     /// @remarks Does not include core library
-    LOGIA_API LOGIA_LEND Program *ast_create_program(llvm::LLVMContext &C);
+    LOGIA_API LOGIA_LEND Program *ast_create_program(llvm::LLVMContext &C, const char *entry_point_file);
 }

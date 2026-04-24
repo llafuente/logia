@@ -33,6 +33,7 @@
 #include <memory>
 
 #include "utils.h"
+#include "logia/frontend.h"
 #include "ast/program.h"
 
 // cross compile support ?
@@ -40,7 +41,7 @@
 
 namespace logia
 {
-    Backend::Backend(bool debug, bool coverage) : debug(debug), coverage(coverage)
+    Backend::Backend(Frontend *frontend, bool debug, bool coverage) : debug(debug), coverage(coverage), frontend(frontend)
     {
 #ifdef CODEGEN_NATIVE
         llvm::InitializeNativeTarget();
@@ -75,7 +76,7 @@ namespace logia
 
             // Create a file descriptor for the source file
             // TODO pass this variable, but it's not that easy atp, because could be an import, think about it!
-            this->dfile = this->dbuilder->createFile("xxx.logia", ".");
+            this->dfile = this->dbuilder->createFile(frontend->entry_point_filename, frontend->entry_point_reldir);
 
             // Create the compile unit
             this->dcompilation_unit = this->dbuilder->createCompileUnit(
@@ -102,7 +103,7 @@ namespace logia
         session = std::make_unique<llvm::orc::ExecutionSession>(std::move(*EPC));
         session->createBareJITDylib("<main>");
 
-        this->program = AST::ast_create_program(this->context);
+        this->program = AST::ast_create_program(this->context, frontend->entry_point_fullpath);
     }
 
     Backend::~Backend()
@@ -487,7 +488,7 @@ namespace logia
         int result = main_fn();
         if (result != 0)
         {
-            ERROR() << "Main function run error:" << result << std::endl;
+            LERROR() << "Main function run error:" << result << std::endl;
         }
 
         if (auto Err = session->endSession())

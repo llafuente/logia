@@ -1,7 +1,6 @@
 #include <iostream>
 #include "logia/help.h"
 #include "logia/frontend.h"
-#include <Windows.h>
 
 #include "utils.h"
 
@@ -99,16 +98,12 @@ namespace logia
 
         if (frontend->verbose)
         {
-            TCHAR cwd[MAX_PATH];
-            GetCurrentDirectory(MAX_PATH, cwd);
 
             std::cout
                 << "Configuration:" << std::endl;
             // << "* cwd: " << std::filesystem::current_path() << std::endl
-            std::wcout
-                << "* cwd: " << cwd << std::endl;
             std::cout
-                << "* input file: " << frontend->entry_point_path << std::endl
+                << "* input file: " << frontend->entry_point_fullpath << std::endl
                 << "* print: " << (print ? "yes" : "no") << std::endl
                 << "* program: " << (frontend->is_program ? "yes" : "no") << std::endl;
 

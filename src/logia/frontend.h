@@ -7,6 +7,8 @@
 
 #include "ast/program.h"
 
+#include <Windows.h>
+
 namespace logia
 {
     using namespace std;
@@ -29,8 +31,17 @@ namespace logia
     /// @brief Compiler frontend, parsing and AST construction
     struct Frontend
     {
+        /// @brief Current working directory
+        char cwd[MAX_PATH];
         /// @brief Main entry point file
-        const char *entry_point_path;
+        char entry_point_fullpath[MAX_PATH];
+        /// @brief Absolute directory to entry point
+        char entry_point_absdir[MAX_PATH];
+        /// @brief Relative directory to entry point
+        char entry_point_reldir[MAX_PATH];
+        /// @brief entry point filename
+        char entry_point_filename[MAX_PATH];
+
         // CST - antlr
         LogiaParser *parser;
         antlr4::ANTLRErrorListener *errorListener;

@@ -7,7 +7,14 @@
 #include "LogiaLexer.h"
 
 #include "logia/cst2ast.h"
+
+#if _WIN32
 #include "windows.h"
+#include <shlwapi.h>
+#pragma comment(lib, "Shlwapi.lib") // Link with Shlwapi.lib
+#else
+// TODO On Linux/macOS
+#endif
 
 #include "ast/constexpr.h"
 
@@ -124,24 +131,58 @@ namespace logia
     }
     void Frontend::set_file(const char *file_path)
     {
-        this->entry_point_path = file_path;
-        DEBUG() << this->entry_point_path << std::endl;
+        CHAR **lppPart = {NULL};
+        GetCurrentDirectoryA(MAX_PATH, this->cwd);
+        auto retval = GetFullPathNameA(file_path,
+                                       MAX_PATH,
+                                       this->entry_point_fullpath,
+                                       lppPart);
+
+        if (retval == 0)
+        {
+            // Handle an error condition.
+            printf("GetFullPathName failed (%d)\n", GetLastError());
+            abort();
+        }
+
+        // retval -> last back slash backwards :)
+        do
+        {
+            --retval;
+        } while (retval > 0 && this->entry_point_fullpath[retval] != '\\' && this->entry_point_fullpath[retval] != '/');
+
+        strcpy_s(this->entry_point_filename, &this->entry_point_fullpath[retval + 1]);
+        strcpy_s(this->entry_point_absdir, MAX_PATH, this->entry_point_fullpath);
+        this->entry_point_absdir[retval + 1] = '\0';
+
+        BOOL success = PathRelativePathToA(
+            this->entry_point_reldir, // Output buffer
+            this->cwd,                // From path
+            FILE_ATTRIBUTE_DIRECTORY, // Base is a directory
+            this->entry_point_absdir, // To path
+            FILE_ATTRIBUTE_DIRECTORY  // Target is a file
+        );
+
+        DEBUG() << "entry_point_fullpath = " << entry_point_fullpath << std::endl
+                << "entry_point_absdir = " << entry_point_absdir << std::endl
+                << "entry_point_reldir = " << entry_point_reldir << std::endl
+                << "entry_point_filename = " << entry_point_filename << std::endl;
     }
 
     void Frontend::parse()
     {
         if (this->verbose)
         {
-            std::cout << "parse(" << this->entry_point_path << ")" << std::endl;
+            std::cout << "parse(" << this->entry_point_fullpath << ")" << std::endl;
         }
-        this->text = this->file_read(this->entry_point_path);
+        this->text = this->file_read(this->entry_point_fullpath);
 
         this->input = new antlr4::ANTLRInputStream(text);
 
         this->lexer = new LogiaLexer(input);
         this->tokens = new antlr4::CommonTokenStream(this->lexer);
         this->parser = new LogiaParser(this->tokens);
-        this->errorListener = (antlr4::ANTLRErrorListener *)new ErrorListener(this->entry_point_path, text);
+        this->errorListener = (antlr4::ANTLRErrorListener *)new ErrorListener(this->entry_point_fullpath, text);
         this->parser->addErrorListener(this->errorListener);
 
         if (this->is_program)
@@ -162,7 +203,7 @@ namespace logia
 
     void Frontend::build_ast()
     {
-        this->backend = new Backend(this->debug, this->coverage);
+        this->backend = new Backend(this, this->debug, this->coverage);
         this->backend->load_intrinsics();
 
         CST2AST *llvmVisitor = new CST2AST(this->backend->program);

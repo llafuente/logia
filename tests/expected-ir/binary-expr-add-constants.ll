@@ -17,7 +17,7 @@ function_body:
 !llvm.module.flags = !{!2, !3}
 
 !0 = distinct !DICompileUnit(language: DW_LANG_C, file: !1, producer: "logia", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug)
-!1 = !DIFile(filename: "xxx.logia", directory: ".")
+!1 = !DIFile(filename: "binary-expr-add-constants.logia", directory: ".\\tests\\logia\\")
 !2 = !{i32 2, !"Debug Info Version", i32 3}
 !3 = !{i32 2, !"Dwarf Version", i32 4}
 !4 = distinct !DISubprogram(name: "main", scope: !1, file: !1, line: 1, type: !5, spFlags: DISPFlagDefinition, unit: !0)
@@ -26,4 +26,4 @@ function_body:
 !7 = !DIBasicType(name: "i64", size: 1, encoding: DW_ATE_signed)
 !8 = !DILocation(line: 2, column: 11, scope: !9)
 !9 = distinct !DILexicalBlock(scope: !4, file: !1, line: 1, column: 20)
-!10 = !DILocation(line: 1, scope: !4)
+!10 = !DILocation(line: 2, column: 4, scope: !9)

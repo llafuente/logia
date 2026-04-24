@@ -783,8 +783,8 @@ namespace logia
             }
             catch (std::exception e)
             {
-                ERROR() << stmt->toStringTree() << std::endl;
-                ERROR() << e.what() << std::endl;
+                LERROR() << stmt->toStringTree() << std::endl;
+                LERROR() << e.what() << std::endl;
                 throw e;
             }
         }

@@ -37,10 +37,13 @@ namespace logia
 
 namespace logia
 {
+    struct Frontend;
     /// @brief Backend is the main entry point for code generation, it holds the LLVM context, module, builder and other data necesary for code generation
     struct Backend
     {
     public:
+        /// @brief back pointer to fronted to avoid duplication
+        Frontend *frontend = nullptr;
         /// @brief Enable debug mode -> output DWARF
         bool debug;
         /// @brief Enable code coverage -> output llvm-cov profdata
@@ -78,7 +81,7 @@ namespace logia
         /**
          * Initialize LLVM
          */
-        Backend(bool debug, bool coverage);
+        Backend(Frontend *frontend, bool debug, bool coverage);
         /**
          *
          */

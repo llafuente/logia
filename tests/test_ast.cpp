@@ -1,5 +1,6 @@
 // ./build-debug/bin/Debug/logia_test_suite.exe --gtest_break_on_failure
-
+#include "logia/frontend.h"
+#include "logia/backend.h"
 #include "ast/node.h"
 #include "ast/traverse.h"
 #include "ast/if_stmt.h"
@@ -28,13 +29,8 @@ void check_all_attached(logia::AST::Program *prg)
 // hello world example
 TEST(AST_Type, ast_create_program)
 {
-  DEBUG() << std::endl
-          << "TEST START" << std::endl
-          << std::endl;
-
+  LOGIA_BACKEND_START();
   using namespace logia::AST;
-  auto back = new logia::Backend(false, false);
-  auto program = back->program;
 
   EXPECT_EQ(program->parent_node, nullptr);
   EXPECT_EQ(program->children.size(), 11);
@@ -58,14 +54,9 @@ TEST(AST_Type, ast_create_program)
 
 TEST(AST_Type, ast_create_function_type)
 {
-  DEBUG() << std::endl
-          << "TEST START" << std::endl
-          << std::endl;
-
+  LOGIA_BACKEND_START();
   using namespace logia::AST;
 
-  auto back = new logia::Backend(false, false);
-  auto program = back->program;
   auto start_program_children = program->children.size();
   back->load_intrinsics();
 
@@ -134,14 +125,9 @@ TEST(AST_Type, ast_create_function_type)
 // hello world example
 TEST(AST_Type, ast_create_struct_type)
 {
-  DEBUG() << std::endl
-          << "TEST START" << std::endl
-          << std::endl;
+  LOGIA_BACKEND_START();
 
   using namespace logia::AST;
-
-  auto back = new logia::Backend(false, false);
-  auto program = back->program;
   auto start_program_children = program->children.size();
   back->load_intrinsics();
 
@@ -217,14 +203,10 @@ TEST(AST_Type, ast_create_struct_type)
 // hello world example
 TEST(AST_Type, ast_create_var_decl)
 {
-  DEBUG() << std::endl
-          << "TEST START" << std::endl
-          << std::endl;
+  LOGIA_BACKEND_START();
 
   using namespace logia::AST;
 
-  auto back = new logia::Backend(false, false);
-  auto program = back->program;
   auto start_program_children = program->children.size();
   back->load_intrinsics();
 
@@ -299,10 +281,6 @@ TEST(AST_Type, ast_create_var_decl)
 // sum 15+20 as variables
 TEST(AST_Type, ast_create_var_decl2)
 {
-  DEBUG() << std::endl
-          << "TEST START" << std::endl
-          << std::endl;
-
   LOGIA_BACKEND_START();
   using namespace logia::AST;
 
@@ -351,10 +329,6 @@ extern "C" int logia_compiler_to_jit_test()
 // expose compiler functions to logia
 TEST(AST_Type, logia_compiler_to_jit_test)
 {
-  DEBUG() << std::endl
-          << "TEST START" << std::endl
-          << std::endl;
-
   LOGIA_BACKEND_START();
   using namespace logia::AST;
 
@@ -384,10 +358,6 @@ TEST(AST_Type, logia_compiler_to_jit_test)
 // expose compiler functions to logia
 TEST(ast_create_if2, t1)
 {
-  DEBUG() << std::endl
-          << "TEST START" << std::endl
-          << std::endl;
-
   LOGIA_BACKEND_START();
   using namespace logia::AST;
 
@@ -427,10 +397,6 @@ function main() i64 {
 */
 TEST(ast_create_if3, t1)
 {
-  DEBUG() << std::endl
-          << "TEST START" << std::endl
-          << std::endl;
-
   LOGIA_BACKEND_START();
   using namespace logia::AST;
 

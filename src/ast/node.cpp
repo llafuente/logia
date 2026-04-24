@@ -55,7 +55,7 @@ namespace logia::AST
 
     void Node::__notify_attached()
     {
-        for (int i = 0; i < this->children.size(); ++i)
+        for (auto i = 0; i < this->children.size(); ++i)
         {
             this->children[i]->__notify_attached();
         }

@@ -83,7 +83,7 @@ namespace logia::AST
     {
         if (this->cg_value)
         {
-            WARNING() << "why ??" << std::endl;
+            LWARNING() << "why ??" << std::endl;
             return this->cg_value;
         }
 
@@ -120,8 +120,8 @@ namespace logia::AST
             backend->dscopes.push_back(scope);
         }
 
-        int max = this->children.size();
-        int last = max - 1;
+        auto max = this->children.size();
+        auto last = max - 1;
         for (size_t i = 0; i < max; ++i)
         {
         process_child:
@@ -137,7 +137,7 @@ namespace logia::AST
             // we need a way to detect this "dead code" and raise a semantic_errror -> the coder to remove it!
             if (this->llvm_basicblock && i != last && ast_llvm_block_has_terminator(backend->builder->GetInsertBlock()))
             {
-                WARNING() << "skip until next block, current block has terminator" << std::endl;
+                LWARNING() << "skip until next block, current block has terminator" << std::endl;
                 ++i;
                 do
                 {
@@ -147,7 +147,7 @@ namespace logia::AST
                         goto process_child;
                     }
 
-                    WARNING() << "skip [" << i << "] " << n->to_string() << std::endl;
+                    LWARNING() << "skip [" << i << "] " << n->to_string() << std::endl;
                     ++i;
                 } while (i < max);
                 --i;
