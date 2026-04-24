@@ -140,6 +140,24 @@ namespace logia::AST
         void post_attach() override;
     };
 
+    /// @brief Represents void aka no-type
+    /// @remarks llvm is created at pre_codegen, so it will be available anytime!
+    struct Void : public Type
+    {
+    public:
+        // NOTE Integer is a primitive, won't have rule
+        Void();
+        ~Void();
+
+        std::string to_string() override;
+
+        std::string get_repr() override;
+
+        void pre_codegen(logia::Backend *backend) override;
+
+        void post_attach() override;
+    };
+
     // REVIEW method aliasing ?
     /// @brief Defines a type alias, used for struct field alias
     struct StructAlias : Type

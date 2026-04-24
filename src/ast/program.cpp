@@ -42,6 +42,7 @@ namespace logia::AST
         body->push_child(new Integer(false, 32));
         body->push_child(new Integer(false, 64));
         body->push_child(new Integer(false, 128));
+        body->push_child(new Void());
 
         Type *f16 = new Type(nullptr, Primitives::F16_TY);
         f16->Float.bits = 16;
@@ -71,20 +72,19 @@ namespace logia::AST
 
         body->scope[(char *)"λf128"] = f128;
 
-        Type *lvoid = new Type(nullptr, Primitives::VOID_TY);
-        lvoid->ir_type = llvm::Type::getVoidTy(C);
-        lvoid->parent_node = body;
-
         // int is an alias of i64
         // float is an alias of f64
         body->scope[(char *)"int"] = body->scope[(char *)"λi64"];
         body->scope[(char *)"float"] = body->scope[(char *)"λf64"];
         body->scope[(char *)"bool"] = body->scope[(char *)"λi1"];
 
+        // TODO i64 is in fact a struct to support properties
+        // but atm it's just an alias here!
         // struct of all types
         body->scope[(char *)"i64"] = body->scope[(char *)"λi64"];
 
-        body->scope[(char *)"λvoid"] = lvoid;
+        // alias
+        body->scope[(char *)"void"] = body->scope[(char *)"λvoid"];
 
         // TODO study opaque pointers, while seem what we need
         Type *ptr = new Type(nullptr, Primitives::PTR_TY);

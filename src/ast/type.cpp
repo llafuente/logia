@@ -176,6 +176,43 @@ namespace logia::AST
     }
 
     //
+    // Void
+    //
+
+    Void::Void() : Type(nullptr, Primitives::VOID_TY) {}
+    Void::~Void() {}
+
+    std::string Void::to_string()
+    {
+        return std::format("void{}", Node::to_string());
+    }
+    std::string Void::get_repr()
+    {
+        return std::format("{}", "void");
+    }
+
+    void Void::pre_codegen(logia::Backend *backend)
+    {
+        this->ir_type = llvm::Type::getVoidTy(backend->context);
+        this->di_type = backend->dbuilder->createUnspecifiedType("void");
+
+        LOGIA_ASSERT(this->ir_type);
+        LOGIA_ASSERT(this->di_type);
+
+        this->cg_value = (llvm::Value *)this->ir_type;
+    }
+
+    void Void::post_attach()
+    {
+        // once guard
+        if (!this->is_attached)
+        {
+            this->is_attached = true;
+            this->__register_type(std::format("λ{}", this->get_repr()).c_str());
+        }
+    }
+
+    //
     // Struct
     //
     StructAlias::StructAlias(antlr4::ParserRuleContext *rule, Identifier *from, Identifier *to, const char *_docstring) : docstring(_docstring), Type(rule, Primitives::NONE)
