@@ -43,6 +43,7 @@ namespace logia::AST
         body->push_child(new Integer(false, 64));
         body->push_child(new Integer(false, 128));
         body->push_child(new Void());
+        body->push_child(new Pointer());
 
         Type *f16 = new Type(nullptr, Primitives::F16_TY);
         f16->Float.bits = 16;
@@ -85,13 +86,13 @@ namespace logia::AST
 
         // alias
         body->scope[(char *)"void"] = body->scope[(char *)"λvoid"];
+        body->scope[(char *)"ptr"] = body->scope[(char *)"λptr"];
 
-        // TODO study opaque pointers, while seem what we need
-        Type *ptr = new Type(nullptr, Primitives::PTR_TY);
-        // opaque pointer, do not store information about pointee
-        ptr->ir_type = llvm::PointerType::get(C, 0);
-        body->scope[(char *)"λptr"] = ptr;
-        ptr->parent_node = body;
+        // generate all primitives so we have a logia type to llvm and reverse!
+        for (Node *node : body->children)
+        {
+            node->codegen(backend);
+        }
 
         ast_create_instrinsic(body, ast_create_identifier("logia_intrinsics_bin_add_i64_i64"), i64);
         ast_create_instrinsic(body, ast_create_identifier("logia_intrinsics_bin_mul_i64_i64"), i64);

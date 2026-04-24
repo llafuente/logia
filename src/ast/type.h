@@ -87,7 +87,7 @@ namespace logia::AST
         bool readonly = false;
 
         llvm::Type *ir_type = nullptr;
-        llvm::DIBasicType *di_type = nullptr;
+        llvm::DIType *di_type = nullptr;
 
         // type properties
         union
@@ -148,6 +148,24 @@ namespace logia::AST
         // NOTE Integer is a primitive, won't have rule
         Void();
         ~Void();
+
+        std::string to_string() override;
+
+        std::string get_repr() override;
+
+        void pre_codegen(logia::Backend *backend) override;
+
+        void post_attach() override;
+    };
+
+    /// @brief Represents an opaque pointer
+    /// @remarks llvm is created at pre_codegen, so it will be available anytime!
+    struct Pointer : public Type
+    {
+    public:
+        // NOTE Integer is a primitive, won't have rule
+        Pointer();
+        ~Pointer();
 
         std::string to_string() override;
 

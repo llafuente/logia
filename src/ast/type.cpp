@@ -213,6 +213,50 @@ namespace logia::AST
     }
 
     //
+    // Pointer
+    //
+
+    Pointer::Pointer() : Type(nullptr, Primitives::PTR_TY) {}
+    Pointer::~Pointer() {}
+
+    std::string Pointer::to_string()
+    {
+        return std::format("ptr{}", Node::to_string());
+    }
+    std::string Pointer::get_repr()
+    {
+        return std::format("{}", "ptr");
+    }
+
+    void Pointer::pre_codegen(logia::Backend *backend)
+    {
+        this->ir_type = llvm::PointerType::get(backend->context, 0);
+        auto avoid = this->di_type = backend->dbuilder->createUnspecifiedType("void");
+        this->di_type = backend->dbuilder->createPointerType(
+            avoid,        // DIType *PointeeTy, Pointee type
+            64,           // uint64_t SizeInBits, Pointer size in bits
+            0,            // uint32_t AlignInBits, Alignment in bit
+            std::nullopt, // std::optional<unsigned> DWARFAddressSpace
+            "void*"       // StringRef Name, Optional name
+        );
+
+        LOGIA_ASSERT(this->ir_type);
+        LOGIA_ASSERT(this->di_type);
+
+        this->cg_value = (llvm::Value *)this->ir_type;
+    }
+
+    void Pointer::post_attach()
+    {
+        // once guard
+        if (!this->is_attached)
+        {
+            this->is_attached = true;
+            this->__register_type(std::format("λ{}", this->get_repr()).c_str());
+        }
+    }
+
+    //
     // Struct
     //
     StructAlias::StructAlias(antlr4::ParserRuleContext *rule, Identifier *from, Identifier *to, const char *_docstring) : docstring(_docstring), Type(rule, Primitives::NONE)
