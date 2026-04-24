@@ -46,3 +46,9 @@ cmake_install.cmake
 logia.log
 logia-tests.log
 tests/tmp
+
+# intrintics generated code
+intrinsics/generated-pre-unary-operator.cpp
+intrinsics/generated-post-unary-operator.cpp
+intrinsics/generated-binary-integer-operator.cpp
+intrinsics/generated-binary-floating-operator.cpp

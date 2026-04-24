@@ -13,10 +13,10 @@ node .\intrinsics\intrinsics.js > .\intrinsics\intrinsics.cpp
 & 'C:\Program Files\LLVM\bin\clang++.exe' -S -emit-llvm .\intrinsics\intrinsics.cpp -o .\intrinsics\intrinsics.ll
 ```
 
-## libc 
+## libc
 
-* https://gist.github.com/PewZ/8b473c2a6888c5c528635550d07c6186
-* https://www.ibm.com/docs/en/i/7.5.0?topic=extensions-standard-c-library-functions-table-by-name
+- https://gist.github.com/PewZ/8b473c2a6888c5c528635550d07c6186
+- https://www.ibm.com/docs/en/i/7.5.0?topic=extensions-standard-c-library-functions-table-by-name
 
 Here is the list of functions that are used and why.
 
@@ -33,3 +33,7 @@ int fputs(const char *string, FILE *stream);
 ```
 
 fwrite is used to write to stdout/stderr
+
+## optimizations
+
+- https://github.com/nadavrot/memset_benchmark
