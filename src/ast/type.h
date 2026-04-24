@@ -120,6 +120,7 @@ namespace logia::AST
         /// @param name
         void __register_type(const char *name);
     };
+
     /// @brief Represents an integer
     /// @remarks llvm is created at pre_codegen, so it will be available anytime!
     struct Integer : public Type
@@ -130,6 +131,25 @@ namespace logia::AST
         // NOTE Integer is a primitive, won't have rule
         Integer(bool is_signed, int bits);
         ~Integer();
+
+        std::string to_string() override;
+
+        std::string get_repr() override;
+
+        void pre_codegen(logia::Backend *backend) override;
+
+        void post_attach() override;
+    };
+
+    /// @brief Represents an floating point number
+    /// @remarks llvm is created at pre_codegen, so it will be available anytime!
+    struct Float : public Type
+    {
+    public:
+        int bits;
+        // NOTE Integer is a primitive, won't have rule
+        Float(int bits);
+        ~Float();
 
         std::string to_string() override;
 

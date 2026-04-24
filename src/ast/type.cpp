@@ -133,27 +133,27 @@ namespace logia::AST
         {
         case 1:
             this->ir_type = llvm::Type::getInt1Ty(backend->context);
-            this->di_type = backend->dbuilder->createBasicType("i1", 1, llvm::dwarf::DW_ATE_boolean);
+            this->di_type = backend->dbuilder->createBasicType("i1", this->bits, llvm::dwarf::DW_ATE_boolean);
             break;
         case 8:
             this->ir_type = llvm::Type::getInt8Ty(backend->context);
-            this->di_type = backend->dbuilder->createBasicType("i8", 1, this->is_signed ? llvm::dwarf::DW_ATE_signed : llvm::dwarf::DW_ATE_unsigned);
+            this->di_type = backend->dbuilder->createBasicType("i8", this->bits, this->is_signed ? llvm::dwarf::DW_ATE_signed : llvm::dwarf::DW_ATE_unsigned);
             break;
         case 16:
             this->ir_type = llvm::Type::getInt16Ty(backend->context);
-            this->di_type = backend->dbuilder->createBasicType("i16", 1, this->is_signed ? llvm::dwarf::DW_ATE_signed : llvm::dwarf::DW_ATE_unsigned);
+            this->di_type = backend->dbuilder->createBasicType("i16", this->bits, this->is_signed ? llvm::dwarf::DW_ATE_signed : llvm::dwarf::DW_ATE_unsigned);
             break;
         case 32:
             this->ir_type = llvm::Type::getInt32Ty(backend->context);
-            this->di_type = backend->dbuilder->createBasicType("i32", 1, this->is_signed ? llvm::dwarf::DW_ATE_signed : llvm::dwarf::DW_ATE_unsigned);
+            this->di_type = backend->dbuilder->createBasicType("i32", this->bits, this->is_signed ? llvm::dwarf::DW_ATE_signed : llvm::dwarf::DW_ATE_unsigned);
             break;
         case 64:
             this->ir_type = llvm::Type::getInt64Ty(backend->context);
-            this->di_type = backend->dbuilder->createBasicType("i64", 1, this->is_signed ? llvm::dwarf::DW_ATE_signed : llvm::dwarf::DW_ATE_unsigned);
+            this->di_type = backend->dbuilder->createBasicType("i64", this->bits, this->is_signed ? llvm::dwarf::DW_ATE_signed : llvm::dwarf::DW_ATE_unsigned);
             break;
         case 128:
             this->ir_type = llvm::Type::getInt128Ty(backend->context);
-            this->di_type = backend->dbuilder->createBasicType("i128", 1, this->is_signed ? llvm::dwarf::DW_ATE_signed : llvm::dwarf::DW_ATE_unsigned);
+            this->di_type = backend->dbuilder->createBasicType("i128", this->bits, this->is_signed ? llvm::dwarf::DW_ATE_signed : llvm::dwarf::DW_ATE_unsigned);
             break;
         default:
             throw std::runtime_error("Not supported number of bits");
@@ -166,6 +166,62 @@ namespace logia::AST
     }
 
     void Integer::post_attach()
+    {
+        // once guard
+        if (!this->is_attached)
+        {
+            this->is_attached = true;
+            this->__register_type(std::format("λ{}", this->get_repr()).c_str());
+        }
+    }
+
+    //
+    // Float
+    //
+
+    Float::Float(int bits) : Type(nullptr, Primitives::F16_TY), bits(bits) {}
+    Float::~Float() {}
+
+    std::string Float::to_string()
+    {
+        return std::format("Type[{}]{}", this->get_repr(), Node::to_string());
+    }
+    std::string Float::get_repr()
+    {
+        return std::format("f{}", this->bits);
+    }
+
+    void Float::pre_codegen(logia::Backend *backend)
+    {
+        switch (this->bits)
+        {
+        case 16:
+            this->ir_type = llvm::Type::getHalfTy(backend->context);
+            this->di_type = backend->dbuilder->createBasicType("f16", this->bits, llvm::dwarf::DW_ATE_float);
+            break;
+        case 32:
+            this->ir_type = llvm::Type::getFloatTy(backend->context);
+            this->di_type = backend->dbuilder->createBasicType("f32", this->bits, llvm::dwarf::DW_ATE_float);
+            break;
+        case 64:
+            this->ir_type = llvm::Type::getDoubleTy(backend->context);
+            this->di_type = backend->dbuilder->createBasicType("f64", this->bits, llvm::dwarf::DW_ATE_float);
+            break;
+        case 128:
+            this->ir_type = llvm::Type::getFP128Ty(backend->context);
+            this->di_type = backend->dbuilder->createBasicType("f128", this->bits, llvm::dwarf::DW_ATE_float);
+            break;
+        default:
+            throw std::runtime_error("Not supported number of bits");
+        }
+
+        LOGIA_ASSERT(this->ir_type);
+        LOGIA_ASSERT(this->di_type);
+
+        this->cg_value = (llvm::Value *)this->ir_type;
+    }
+
+    void Float::post_attach()
     {
         // once guard
         if (!this->is_attached)

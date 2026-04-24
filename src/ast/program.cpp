@@ -42,36 +42,14 @@ namespace logia::AST
         body->push_child(new Integer(false, 32));
         body->push_child(new Integer(false, 64));
         body->push_child(new Integer(false, 128));
+
         body->push_child(new Void());
         body->push_child(new Pointer());
 
-        Type *f16 = new Type(nullptr, Primitives::F16_TY);
-        f16->Float.bits = 16;
-        f16->ir_type = llvm::Type::getHalfTy(C);
-        f16->parent_node = body;
-
-        body->scope[(char *)"λf16"] = f16;
-
-        Type *f32 = new Type(nullptr, Primitives::F32_TY);
-        f32->Float.bits = 32;
-        f32->ir_type = llvm::Type::getFloatTy(C);
-        f32->parent_node = body;
-
-        body->scope[(char *)"λf32"] = f32;
-
-        Type *f64 = new Type(nullptr, Primitives::F64_TY);
-        f64->Float.bits = 64;
-        f64->ir_type = llvm::Type::getDoubleTy(C);
-        f64->parent_node = body;
-
-        body->scope[(char *)"λf64"] = f64;
-
-        Type *f128 = new Type(nullptr, Primitives::F128_TY);
-        f128->Float.bits = 64;
-        f128->ir_type = llvm::Type::getFP128Ty(C);
-        f128->parent_node = body;
-
-        body->scope[(char *)"λf128"] = f128;
+        body->push_child(new Float(16));
+        body->push_child(new Float(32));
+        body->push_child(new Float(64));
+        body->push_child(new Float(128));
 
         // int is an alias of i64
         // float is an alias of f64
