@@ -1,4 +1,4 @@
-# check-expected-ir -testFolder .\tests\tmp\ -referenceFolder .\tests\expected-ir\ -diffTool "C:\Users\luis\Desktop\git-for-windows\usr\bin\diff.exe"
+# check-expected-ir -testFolder .\tests\tmp\ -referenceFolder .\tests\expected-ir\ -diffTool git
 param(
     [string]$testFolder = (Join-Path -Path $PSScriptRoot -ChildPath 'test'),
     [string]$referenceFolder = (Join-Path -Path $PSScriptRoot -ChildPath 'dst'),
@@ -22,14 +22,24 @@ function Show-FileDiff {
 
     #$arguments = @("--color", "--side-by-side", "--suppress-common-lines", $ReferenceFile, $CandidateFile)
     #$arguments = @("--color", "--word-diff=porcelain", "--word-diff-regex=.", $ReferenceFile, $CandidateFile)
+    #$arguments = @("--color", "-U3", "--minimal", $ReferenceFile, $CandidateFile)
     #$arguments = @("--color", "-u", $ReferenceFile, $CandidateFile)
-    $arguments = @("--color", "-U3", "--minimal", $ReferenceFile, $CandidateFile)
+    #$arguments = @("--color", "--suppress-common-lines", $ReferenceFile, $CandidateFile)
+    #$arguments = @("--color", "--suppress-common-lines", "--side-by-side", "--width=200",  $ReferenceFile, $CandidateFile)
+    #$arguments = @("--color", "--side-by-side", '--unchanged-line-format=""', '--old-line-format=":%dn: %L"','--new-line-format=":%dn: %L"', "--width=200",  $ReferenceFile, $CandidateFile)
     
+    if ($diffTool -eq "git") {
+        # --word-diff-regex=.
+        $arguments = @("diff", "--no-index", "--word-diff=color",  $ReferenceFile, $CandidateFile)
+    } elseif ($diffTool -eq "diff") {
+        $arguments = @("--color", "--side-by-side", "--width=200",  $ReferenceFile, $CandidateFile)
+    } else {
+        $arguments = @($ReferenceFile, $CandidateFile)
+    }
     write-host "Running diff tool: $diffTool $($arguments -join ' ')" -ForegroundColor White
-    & $diffTool $arguments | write-host
-    $x = $LASTEXITCODE
+    & $diffTool $arguments
 
-    return $x
+    return $LASTEXITCODE
 
 }
 
@@ -58,13 +68,36 @@ foreach ($CandidateFile in $logiaFiles) {
     Write-Host "Reviewing: $($CandidateFile.Name)" -ForegroundColor Cyan
     Write-Host ('=' * 72) -ForegroundColor Cyan
 
+    # Filter out intrinsics declarations, as they do not add any information and will change a lot.
+    # remove "declare*logia_intrinsics_*"
+    $newlines = 0
+    $text = Get-Content -Path $CandidateFile.FullName -ReadCount 1 | ForEach-Object {
+        $line = $_.Trim()  # Remove leading/trailing spaces
+
+        # Example filter: only lines containing the word "ERROR" (case-insensitive)
+        if ($line -match "declare.*@logia.*") {
+        } else {
+            if ($line.length -gt 0) {
+                $newlines = 0
+            } else {
+                $newlines += 1
+            }
+            if ($newlines -lt 2) {
+                Write-Output $line
+            }
+        }
+    }
+
+    Set-Content -Path $CandidateFile.FullName -Value $text -Encoding UTF8
+
     if (-not (Test-Path -Path $ReferenceFile -PathType Leaf)) {
         Copy-Item -Path $CandidateFile.FullName -Destination $ReferenceFile -Force
         Write-Host "Not found -> Copied: $baseName" -ForegroundColor Green
         continue
     }
 
-    $ask = Show-FileDiff -ReferenceFile $ReferenceFile -CandidateFile $CandidateFile.FullName -diffTool $diffTool
+    Show-FileDiff -ReferenceFile $ReferenceFile -CandidateFile $CandidateFile.FullName -diffTool $diffTool
+    $ask = $LASTEXITCODE
 
     Write-Host ('=' * 72) -ForegroundColor Cyan
     if ($ask -eq 0) {

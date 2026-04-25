@@ -99,9 +99,9 @@ optimizations are good.
 ```ps1
 # run test suite
 ./build-debug/bin/Debug/logia_test_suite.exe
-# now check that not only the test is OK, the IR is valid
-$diffTool = where diff.exe
 
-# $diffTool = "C:\Program Files\Git\usr\bin\diff.exe"
-& .\check-expected-ir.ps1 -testFolder ".\tests\tmp\" -referenceFolder ".\tests\expected-ir\" -diffTool $diffTool
+# now check that not only the tests are OK, the produced IR is valid
+& .\check-expected-ir.ps1 -testFolder ".\tests\tmp\" -referenceFolder ".\tests\expected-ir\" -diffTool git
+# y -> accept changes
+# n -> skip
 ```

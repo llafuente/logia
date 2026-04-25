@@ -52,3 +52,4 @@ intrinsics/generated-prefix-operator.cpp
 intrinsics/generated-postfix-operator.cpp
 intrinsics/generated-binary-integer-operator.cpp
 intrinsics/generated-binary-floating-operator.cpp
+intrinsics/intrinsics.cpp
