@@ -73,11 +73,6 @@ namespace logia::AST
         Type *get_type() override;
     };
 
-    struct FloatProperties
-    {
-    public:
-        int bits;
-    };
     /// @brief Base class for all types
     struct LOGIA_EXPORT Type : public Node
     {
@@ -88,12 +83,6 @@ namespace logia::AST
 
         llvm::Type *ir_type = nullptr;
         llvm::DIType *di_type = nullptr;
-
-        // type properties
-        union
-        {
-            FloatProperties Float;
-        };
 
         Type(antlr4::ParserRuleContext *rule, Primitives prim);
         ~Type();
