@@ -190,6 +190,7 @@ namespace logia::AST
         const char *identifier;
 
         Identifier(antlr4::ParserRuleContext *rule, const char *identifier);
+        bool operator==(const char* id);
 
         /// @brief Gets the variable declaration associated with this identifier
         /// @return
@@ -221,7 +222,7 @@ namespace logia::AST
         uint32_t length = 0;
 
         StructInitializer(antlr4::ParserRuleContext *rule);
-        void set_type(Type *type);
+        void set_type(Type *type) override;
         void add_named_property(TypeDef *locator, Expression *value);
         void add_positional_property(Expression *value);
 

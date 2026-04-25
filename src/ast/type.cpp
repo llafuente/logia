@@ -411,13 +411,13 @@ namespace logia::AST
         return this->get_child<Identifier>(0);
     }
 
-    Identifier *Struct::get_alias_to(Identifier *from)
+    Identifier *Struct::get_alias_to(const char *from)
     {
         for (const auto &ptr : this->children)
         {
             if (auto alias = dynamic_cast<StructAlias *>(ptr))
             {
-                if (strcmp(from->identifier, alias->get_from()->identifier) == 0)
+                if (*alias->get_from() == from)
                 {
                     return alias->get_to();
                 }
@@ -427,12 +427,12 @@ namespace logia::AST
         return nullptr;
     }
 
-    StructField *Struct::get_field(Identifier *id)
+    StructField *Struct::get_field(const char *id)
     {
         auto to = this->get_alias_to(id);
         if (to != nullptr)
         {
-            id = to;
+            id = to->identifier;
         }
 
         uint32_t count = 0;
@@ -440,7 +440,7 @@ namespace logia::AST
         {
             if (auto field = dynamic_cast<StructField *>(ptr))
             {
-                if (strcmp(id->identifier, field->get_name()->identifier) == 0)
+                if (*field->get_name() == id)
                 {
                     return field;
                 }
@@ -449,12 +449,12 @@ namespace logia::AST
         return nullptr;
     }
 
-    uint32_t Struct::get_field_index(Identifier *id)
+    uint32_t Struct::get_field_index(const char *id)
     {
         auto to = this->get_alias_to(id);
         if (to != nullptr)
         {
-            id = to;
+            id = to->identifier;
         }
 
         uint32_t count = 0;
@@ -463,7 +463,7 @@ namespace logia::AST
         {
             if (auto field = dynamic_cast<StructField *>(ptr))
             {
-                if (strcmp(id->identifier, field->get_name()->identifier) == 0)
+                if (*field->get_name() == id)
                 {
                     return count;
                 }
@@ -476,7 +476,7 @@ namespace logia::AST
 
     Type *Struct::get_field_type(Identifier *id)
     {
-        return this->get_field(id)->get_type();
+        return this->get_field(id->identifier)->get_type();
     }
 
     std::string Struct::to_string()

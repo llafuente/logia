@@ -270,17 +270,17 @@ namespace logia::AST
         /// @brief Retrieves the target identifier of an alias
         /// @param from The source identifier of the alias
         /// @return The target identifier of the alias
-        Identifier *get_alias_to(Identifier *from);
+        Identifier *get_alias_to(const char *from);
 
         /// @brief Retrieves a field by its identifier
         /// @param id The identifier of the field
         /// @return The field corresponding to the identifier
-        StructField *get_field(Identifier *id);
+        StructField *get_field(const char *id);
 
         /// @brief Retrieves the index of a field by its identifier, used for struct field access codegen
         /// @param id The identifier of the field
         /// @return The index of the field
-        uint32_t get_field_index(Identifier *id);
+        uint32_t get_field_index(const char *id);
 
         /// @brief Retrieves the type of a field by its identifier
         /// @param id The identifier of the field

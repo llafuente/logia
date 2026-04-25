@@ -236,7 +236,7 @@ namespace logia::AST
         LOGIA_ASSERT(left_type->isStruct() && "left should be a struct");
         auto struct_ty = left_type->as<Struct>();
 
-        int propertyIndex = struct_ty->get_field_index(rightIdent);
+        int propertyIndex = struct_ty->get_field_index(rightIdent->identifier);
         auto propertyType = (llvm::Type *)struct_ty->get_field_type(rightIdent)->codegen(backend);
         if (propertyIndex == -1)
         {
@@ -482,6 +482,10 @@ namespace logia::AST
         }
         // TODO function? -> function pointer
         throw std::runtime_error(std::format("{}{}", "Identifier found but type not handled!", decl->to_string()));
+    }
+    bool Identifier::operator==(const char *id)
+    {
+        return strcmp(this->identifier, id) == 0;
     }
 
     VarDeclStmt *Identifier::get_var_decl()
