@@ -9,15 +9,14 @@
 #include "LogiaParser.h"
 #include "LogiaLexer.h"
 
-#include "llvmvisitor.h"
-#include "compiler.h"
-
 #include <Windows.h>
 
 #pragma execution_character_set("utf-8")
 
 #include "logia/help.h"
 #include "logia/run.h"
+#include "logia/compiler_error.h"
+#include "utils.h"
 
 // file structure
 // help
@@ -47,6 +46,10 @@ int main(int argc, const char *argv[])
 		std::cout << "unkown command: \"" << command << "\"" << std::endl;
 		logia::print_usage(nullptr);
 		return -1;
+	}
+	catch (const logia::compiler_error &e)
+	{
+		std::cerr << e.what() << std::endl;
 	}
 	catch (std::exception e)
 	{

@@ -37,6 +37,7 @@ set(LOGIA_SOURCE_FILES
   src/logia/help.cpp
   src/logia/run.cpp
   src/logia/cst2ast.cpp  
+  src/logia/compiler_error.cpp
   src/logia/frontend.cpp
   src/logia/backend.cpp
 

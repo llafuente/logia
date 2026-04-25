@@ -31,6 +31,20 @@ namespace logia
     /// @brief Compiler frontend, parsing and AST construction
     struct Frontend
     {
+        struct Config
+        {
+            bool is_program = true;
+            bool verbose = false;
+            bool debug = false;
+            bool coverage = false;
+            bool print = false;
+            bool print_cst = false;
+            bool print_ast = false;
+            bool emit_llvm = false;
+            const char *llfile = nullptr;
+            const char *objfile = nullptr;
+        } config;
+
         /// @brief Current working directory
         char cwd[MAX_PATH];
         /// @brief Main entry point file
@@ -59,21 +73,14 @@ namespace logia
         // aux
         char *text;
 
-        // options
-        bool is_program = true;
-        bool verbose = false;
-        bool debug = false;
-        bool coverage = false;
-
+        Frontend(const char *file_path, Config config);
         ~Frontend();
 
-        char *file_read(const char *file_path);
-        /// @brief Sets the main entry point
-        /// @param file_path
-        void set_file(const char *file_path);
         /// @brief Parses the input file and builds the CST tree
         void parse();
+        int run();
 
+    private:
         /// @brief Prints CST tree
         /// @param out The output stream to print the CST tree
         void print_cst(std::ostream &out);
@@ -83,6 +90,7 @@ namespace logia
         /// @brief Prints AST tree
         /// @param out The output stream to print the AST tree
         void print_ast(std::ostream &out);
+        char *__file_read(const char *file_path);
     };
 
 }

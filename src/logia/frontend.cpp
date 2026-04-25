@@ -7,6 +7,7 @@
 #include "LogiaLexer.h"
 
 #include "logia/cst2ast.h"
+#include "logia/compiler_error.h"
 
 #if _WIN32
 #include "windows.h"
@@ -77,59 +78,7 @@ namespace logia
     void ErrorListener::reportAttemptingFullContext(antlr4::Parser *recognizer, const antlr4::dfa::DFA &dfa, size_t startIndex, size_t stopIndex, const antlrcpp::BitSet &conflictingAlts, antlr4::atn::ATNConfigSet *configs) {}
     void ErrorListener::reportContextSensitivity(antlr4::Parser *recognizer, const antlr4::dfa::DFA &dfa, size_t startIndex, size_t stopIndex, size_t prediction, antlr4::atn::ATNConfigSet *configs) {}
 
-    Frontend::~Frontend()
-    {
-        // parser will remove this
-        this->cst_tree = nullptr;
-
-        this->parser->removeErrorListeners();
-        delete this->errorListener;
-
-        delete this->parser;
-
-        delete this->tokens;
-        delete this->lexer;
-        delete this->input;
-        free(this->text);
-    }
-
-    char *Frontend::file_read(const char *file_path)
-    {
-        FILE *file;
-        auto err = fopen_s(&file, file_path, "rb");
-        if (err)
-        {
-            std::stringstream ss;
-            ss << "Error opening file: " << file_path;
-
-            perror(ss.str().c_str());
-            return nullptr;
-        }
-
-        // Seek to the end to determine file size
-        fseek(file, 0, SEEK_END);
-        auto fileSize = ftell(file);
-        rewind(file);
-
-        // Allocate memory for the file content
-        char *buffer = (char *)malloc(fileSize + 2);
-        if (buffer == NULL)
-        {
-            perror("Memory allocation failed");
-            fclose(file);
-
-            return nullptr;
-        }
-
-        // Read the file into the buffer
-        fread(buffer, 1, fileSize, file);
-        buffer[fileSize] = '\n';     // Null-terminate the string
-        buffer[fileSize + 1] = '\0'; // Null-terminate the string
-
-        fclose(file);
-        return buffer;
-    }
-    void Frontend::set_file(const char *file_path)
+    Frontend::Frontend(const char *file_path, Config config) : config(config)
     {
         CHAR **lppPart = {NULL};
         GetCurrentDirectoryA(MAX_PATH, this->cwd);
@@ -140,9 +89,7 @@ namespace logia
 
         if (retval == 0)
         {
-            // Handle an error condition.
-            printf("GetFullPathName failed (%d)\n", GetLastError());
-            abort();
+            throw_compiler_error(std::format("GetFullPathName failed: {}. Error: {}", file_path, GetLastError()));
         }
 
         // retval -> last back slash backwards :)
@@ -163,19 +110,93 @@ namespace logia
             FILE_ATTRIBUTE_DIRECTORY  // Target is a file
         );
 
+        if (!success)
+        {
+            throw_compiler_error(std::format("PathRelativePathToA failed: {}. Error: {}", file_path, GetLastError()));
+        }
+
         DEBUG() << "entry_point_fullpath = " << entry_point_fullpath << std::endl
                 << "entry_point_absdir = " << entry_point_absdir << std::endl
                 << "entry_point_reldir = " << entry_point_reldir << std::endl
-                << "entry_point_filename = " << entry_point_filename << std::endl;
+                << "entry_point_filename = " << entry_point_filename << std::endl
+
+                << "verbose = " << config.verbose << std::endl
+                << "print = " << config.print << std::endl
+                << "print_cst = " << config.print_cst << std::endl
+                << "print_ast = " << config.print_ast << std::endl
+
+                << "llfile = " << (config.llfile == nullptr ? "no" : config.llfile) << std::endl
+                << "objfile = " << (config.objfile == nullptr ? "no" : config.objfile) << std::endl
+
+                << "is_program = " << config.is_program << std::endl
+                << "debug = " << config.debug << std::endl
+                << "coverage = " << config.coverage << std::endl;
+    }
+
+    Frontend::~Frontend()
+    {
+        // parser will remove this
+        this->cst_tree = nullptr;
+
+        this->parser->removeErrorListeners();
+        delete this->errorListener;
+
+        delete this->parser;
+
+        delete this->tokens;
+        delete this->lexer;
+        delete this->input;
+        free(this->text);
+    }
+
+    char *Frontend::__file_read(const char *file_path)
+    {
+        FILE *file;
+        auto err = fopen_s(&file, file_path, "rb");
+        if (err)
+        {
+            throw_compiler_error(std::format("Error opening file: {}", file_path));
+        }
+
+        // Seek to the end to determine file size
+        fseek(file, 0, SEEK_END);
+        auto fileSize = ftell(file);
+        rewind(file);
+
+        // Allocate memory for the file content
+        char *buffer = (char *)malloc(fileSize + 2);
+        if (buffer == NULL)
+        {
+            fclose(file);
+            throw_compiler_error(std::format("Memory allocation failed: {}", file_path));
+        }
+
+        // Read the file into the buffer
+        fread(buffer, 1, fileSize, file);
+        buffer[fileSize] = '\n';     // Null-terminate the string
+        buffer[fileSize + 1] = '\0'; // Null-terminate the string
+
+        fclose(file);
+        return buffer;
     }
 
     void Frontend::parse()
     {
-        if (this->verbose)
+        if (!this->entry_point_filename)
+        {
+            throw_compiler_error("Frontend: File not specified");
+        }
+        if (this->config.verbose)
         {
             std::cout << "parse(" << this->entry_point_fullpath << ")" << std::endl;
         }
-        this->text = this->file_read(this->entry_point_fullpath);
+        this->text = this->__file_read(this->entry_point_fullpath);
+
+        if (this->config.print)
+        {
+            std::cerr << "File Contents:" << std::endl
+                      << this->text << std::endl;
+        }
 
         this->input = new antlr4::ANTLRInputStream(text);
 
@@ -185,7 +206,7 @@ namespace logia
         this->errorListener = (antlr4::ANTLRErrorListener *)new ErrorListener(this->entry_point_fullpath, text);
         this->parser->addErrorListener(this->errorListener);
 
-        if (this->is_program)
+        if (this->config.is_program)
         {
             this->cst_tree = this->parser->program();
         }
@@ -193,6 +214,38 @@ namespace logia
         {
             this->cst_tree = this->parser->packageProgram();
         }
+
+        this->print_cst(this->config.print_cst ? std::cerr : logia_log_file);
+
+        this->build_ast();
+
+        this->print_ast(this->config.print_ast ? std::cerr : logia_log_file);
+
+        // TODO maybe we should fordward to backend in a far future when api stable
+        // backend starts
+
+        if (this->config.llfile != nullptr)
+        {
+            if (config.verbose)
+            {
+                std::cerr << "Emit ir file:" << this->config.llfile << std::endl;
+            }
+            this->backend->emitTargetLLVMIR(this->config.llfile);
+        }
+
+        if (this->config.objfile != nullptr)
+        {
+            if (config.verbose)
+            {
+                std::cout << "Emit obj file: " << this->config.objfile << std::endl;
+            }
+            this->backend->emitTargetObjectFile(this->config.objfile);
+        }
+    }
+
+    int Frontend::run()
+    {
+        return this->backend->run_jit("main");
     }
 
     void Frontend::print_cst(std::ostream &out)
@@ -203,7 +256,7 @@ namespace logia
 
     void Frontend::build_ast()
     {
-        this->backend = new Backend(this, this->debug, this->coverage);
+        this->backend = new Backend(this, this->config.debug, this->config.coverage);
         this->backend->load_intrinsics();
 
         CST2AST *llvmVisitor = new CST2AST(this->backend->program);
