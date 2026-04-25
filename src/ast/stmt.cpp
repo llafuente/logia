@@ -47,6 +47,16 @@ namespace logia::AST
         return (Expression *)this->children[0];
     }
 
+    void ReturnStmt::post_type_inference()
+    {
+        auto expr = this->get_expr()->get_final_type();
+        if (expr->is<InferType>())
+        {
+            // enforce type to be the returned type
+            expr->set_type(this->first_parent<Function>()->get_return_type());
+        }
+    }
+
     llvm::Value *ReturnStmt::post_codegen(logia::Backend *backend)
     {
         DEBUG() << this->to_string() << std::endl;
@@ -64,14 +74,14 @@ namespace logia::AST
     }
 
     //
-    //
+    // VarDeclStmt
     //
     VarDeclStmt::VarDeclStmt(antlr4::ParserRuleContext *rule, Identifier *id, Type *type, Expression *expr) : Stmt(rule), alloca_inst(nullptr)
     {
         this->push_child(id);
         if (type == nullptr)
         {
-            this->push_child(new NoOp());
+            this->push_child(new InferType());
         }
         else
         {
@@ -231,14 +241,6 @@ namespace logia::AST
     }
     Type *VarDeclStmt::get_type()
     {
-        // replace NoOp ?
-        // TODO REVIEW this may be too soon...
-        if (this->is_child<NoOp>(1))
-        {
-            // NoOp
-            throw std::runtime_error("????");
-        }
-
         return ast_resolve_type(this->get_child<Type>(1));
     }
 
@@ -248,7 +250,7 @@ namespace logia::AST
         {
             // TODO determine type if possible
             // TODO what we do when we cant ? push somewhere and back later ?
-            auto t = this->get_type();
+            auto t = this->get_final_type();
             if (t->is<Struct>())
             {
                 // if rhs is struct initializer -> set_type
@@ -257,6 +259,12 @@ namespace logia::AST
                 {
                     expr->as<StructInitializer>()->set_type(t);
                 }
+            }
+            else
+            {
+                auto expr = this->get_expr();
+                // expr->set
+                expr->set_type(t);
             }
         }
         return true;

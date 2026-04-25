@@ -71,7 +71,10 @@ namespace logia::AST
         void push_child(Node *child);
 
         /// @brief Adds child at the beginning
-        void unshift_child(Node *child);
+        void unshift_child(Node *new_node);
+
+        /// @brief Replace current node for the given one
+        void replace_self(Node *child);
 
         void _has_to_notify_attached(Node *child);
 

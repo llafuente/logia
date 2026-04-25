@@ -100,7 +100,7 @@ namespace logia::AST
             if (node->is<Type>())
             {
                 auto ltype = node->as<Type>();
-                //DEBUG() << ltype->to_string() << std::endl;
+                // DEBUG() << ltype->to_string() << std::endl;
                 if (ltype->ir_type == type)
                 {
                     return ltype;

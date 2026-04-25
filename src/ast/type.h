@@ -381,7 +381,17 @@ namespace logia::AST
         void post_attach() override;
         /// @brief generate parameters alloca. Used at FunctionBlock
         void codegen_parameters(logia::Backend *backend);
-        void pre_codegen(logia::Backend *backend);
+        void pre_codegen(logia::Backend *backend) override;
+        llvm::Value *post_codegen(logia::Backend *backend) override;
+    };
+
+    struct InferType : Type
+    {
+        InferType();
+        ~InferType();
+        void set_type(Type *t) override;
+        std::string to_string() override;
+        void pre_codegen(logia::Backend *backend) override;
         llvm::Value *post_codegen(logia::Backend *backend) override;
     };
 

@@ -853,6 +853,33 @@ namespace logia::AST
         return Type::post_codegen(backend);
     }
 
+    //
+    // InferType
+    //
+    InferType::InferType() : Type(nullptr, Primitives::NONE) {}
+
+    InferType::~InferType() {}
+
+    void InferType::set_type(Type *t)
+    {
+        this->replace_self(t);
+    }
+
+    std::string InferType::to_string()
+    {
+        return std::format("InferType");
+    }
+
+    void InferType::pre_codegen(logia::Backend *backend)
+    {
+        throw std::runtime_error("InferType cannot be codegen!");
+    }
+
+    llvm::Value *InferType::post_codegen(logia::Backend *backend)
+    {
+        throw std::runtime_error("InferType cannot be codegen!");
+    }
+
     LOGIA_API LOGIA_LEND Function *ast_create_function_type(Identifier *id, Type *return_type)
     {
         return new Function(nullptr, id, return_type);

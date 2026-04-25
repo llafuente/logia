@@ -30,6 +30,8 @@ namespace logia::AST
         ReturnStmt(antlr4::ParserRuleContext *rule, Expression *expr);
 
         std::string to_string() override;
+        
+        void post_type_inference() override;
 
         llvm::Value *post_codegen(logia::Backend *backend) override;
 

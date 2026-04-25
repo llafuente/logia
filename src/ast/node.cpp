@@ -43,6 +43,12 @@ namespace logia::AST
         this->_has_to_notify_attached(child);
     }
 
+    void Node::replace_self(Node *new_node)
+    {
+        auto parent = this->parent_node;
+        std::replace(parent->children.begin(), parent->children.end(), this, new_node);
+    }
+
     void Node::_has_to_notify_attached(Node *child)
     {
         // an attached node is the one that can reach program
@@ -111,17 +117,41 @@ namespace logia::AST
 
     Type *Node::get_final_type()
     {
+        // this resolve types in the following manner
+        // TypeDef -> get referenced type
+        // Struct
+        // * has one field with "λ" as name -> return the "λ" type
+        // * return the struct
+        // AnyOther -> return
+
         auto type = this->get_type();
         int MAX = 10;
-        while (type->is<TypeDef>() && --MAX)
+        for (; MAX > 0; --MAX)
         {
-            type = type->get_type();
+            if (type->is<TypeDef>())
+            {
+                type = type->get_type();
+            }
+            else if (type->is<Struct>())
+            {
+                auto s = type->as<Struct>();
+                if (s->field_count == 1)
+                {
+                    auto field = s->get_field("λ");
+                    if (field != nullptr)
+                    {
+                        return field->get_final_type();
+                    }
+                }
+                return type;
+            }
+            else
+            {
+                return type;
+            }
         }
-        if (MAX == 0)
-        {
-            throw std::runtime_error(std::format("exceeded MAX iteration"));
-        }
-        return type;
+
+        throw std::runtime_error(std::format("exceeded MAX iteration"));
     }
 
     Node *Node::resolve()

@@ -135,17 +135,17 @@ TEST(AST_Type, ast_create_struct_type)
   EXPECT_EQ(string_t->field_count, 0);
   string_t->add_field(nullptr, ast_create_identifier("capacity"), program->lookup<Type>("λi64"), nullptr, "");
   EXPECT_EQ(string_t->field_count, 1);
-  EXPECT_EQ(string_t->get_field_index(ast_create_identifier("capacity")), 0);
+  EXPECT_EQ(string_t->get_field_index("capacity"), 0);
 
   string_t->add_field(nullptr, ast_create_identifier("length"), program->lookup<Type>("λi64"), nullptr, "");
   EXPECT_EQ(string_t->field_count, 2);
-  EXPECT_EQ(string_t->get_field_index(ast_create_identifier("length")), 1);
+  EXPECT_EQ(string_t->get_field_index("length"), 1);
 
   string_t->add_field(nullptr, ast_create_identifier("value"), program->lookup<Type>("λptr"), nullptr, "");
   EXPECT_EQ(string_t->field_count, 3);
-  EXPECT_EQ(string_t->get_field_index(ast_create_identifier("value")), 2);
+  EXPECT_EQ(string_t->get_field_index("value"), 2);
 
-  EXPECT_EQ(string_t->get_field_index(ast_create_identifier("xxx")), -1);
+  EXPECT_EQ(string_t->get_field_index("xxx"), -1);
 
   // invalid ?
   // program->add_statement(string_t);
@@ -224,10 +224,10 @@ TEST(AST_Type, ast_create_var_decl)
   string_t->add_alias(nullptr, ast_create_identifier("len"), ast_create_identifier("length"), "");
   EXPECT_EQ(string_t->alias_count, 2);
 
-  EXPECT_EQ(string_t->get_alias_to(ast_create_identifier("cap")), aliased_capacity);
-  EXPECT_EQ(string_t->get_alias_to(ast_create_identifier("xxx")), nullptr);
-  EXPECT_EQ(string_t->get_field_index(ast_create_identifier("cap")), 0);
-  EXPECT_EQ(string_t->get_field_index(ast_create_identifier("len")), 1);
+  EXPECT_EQ(string_t->get_alias_to("cap"), aliased_capacity);
+  EXPECT_EQ(string_t->get_alias_to("xxx"), nullptr);
+  EXPECT_EQ(string_t->get_field_index("cap"), 0);
+  EXPECT_EQ(string_t->get_field_index("len"), 1);
 
   // invalid ?
   // program->add_statement(string_t);

@@ -1,5 +1,6 @@
 #include "logia/cst2ast.h"
 
+#include "ast/type.h"
 #include "ast/constexpr.h"
 #include "ast/if_stmt.h"
 
@@ -73,7 +74,7 @@ namespace logia
         DEBUG() << context->getText() << std::endl;
 
         auto text = context->getText();
-        return ANY_VOIDP_STORE(new AST::IntegerLiteral(context, text.c_str(), this->program->lookup<AST::Type>("λi64")));
+        return ANY_VOIDP_STORE(new AST::IntegerLiteral(context, text.c_str(), new AST::InferType()));
     }
 
     // rhsExpr it's just a container not needed
@@ -848,18 +849,21 @@ namespace logia
         AST::Expression *expr = nullptr;
 
         auto rhs = context->rhsExpr();
+        auto constructor_arguments = context->argumentExprList();
         if (rhs != nullptr)
         {
             expr = ANY_VOIDP_CAST(AST::Expression *, this->visitRhsExpr(rhs));
         }
-
-        auto constructor_arguments = context->argumentExprList();
-        if (constructor_arguments != nullptr)
+        else if (constructor_arguments != nullptr)
         {
             auto locator = new AST::Identifier(context, strdup("new"));
             auto callexpr = new AST::CallExpression(context, locator, {});
             this->parseArguments(callexpr, constructor_arguments);
             expr = callexpr;
+        }
+        else
+        {
+            CST_UNREACHABLE();
         }
 
         auto type_def = ANY_VOIDP_CAST(AST::Type *, this->visitTypeDefinition(context->typeDefinition()));
