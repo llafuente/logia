@@ -11,6 +11,57 @@ namespace logia::AST
 {
     Program::Program(antlr4::ParserRuleContext *rule, const char *entry_point_file) : Block(rule, ast_create_identifier("program")), entry_point_file(entry_point_file)
     {
+        // we know declare all primitives
+        // any type in the language should use those
+        // it's prohibited to create type using llvm
+        // everything shall be supported directly
+        this->push_child(new Integer(true, 1));
+        auto i1 = this->children[this->children.size() - 1]->as<Type>();
+        this->push_child(new Integer(true, 8));
+        this->push_child(new Integer(true, 16));
+        this->push_child(new Integer(true, 32));
+        this->push_child(new Integer(true, 64));
+        auto i64 = this->children[this->children.size() - 1]->as<Type>();
+        this->push_child(new Integer(true, 128));
+
+        this->push_child(new Integer(false, 8));
+        this->push_child(new Integer(false, 16));
+        this->push_child(new Integer(false, 32));
+        this->push_child(new Integer(false, 64));
+        this->push_child(new Integer(false, 128));
+
+        this->push_child(new Void());
+        this->push_child(new Pointer());
+
+        this->push_child(new Float(16));
+        this->push_child(new Float(32));
+        this->push_child(new Float(64));
+        this->push_child(new Float(128));
+
+        // int is an alias of i64
+        // float is an alias of f64
+        this->scope[(char *)"int"] = this->scope[(char *)"λi64"];
+        this->scope[(char *)"float"] = this->scope[(char *)"λf64"];
+        this->scope[(char *)"bool"] = this->scope[(char *)"λi1"];
+
+        // TODO i64 is in fact a struct to support properties
+        // but atm it's just an alias here!
+        // struct of all types
+        this->scope[(char *)"i64"] = this->scope[(char *)"λi64"];
+
+        // alias
+        this->scope[(char *)"void"] = this->scope[(char *)"λvoid"];
+        this->scope[(char *)"ptr"] = this->scope[(char *)"λptr"];
+
+        this->primitive_count = this->children.size();
+    }
+
+    void Program::codegen_primitives(logia::Backend *backend)
+    {
+        for (auto i = 0; i < this->primitive_count; ++i)
+        {
+            this->children[i]->codegen(backend);
+        }
     }
 
     Type *Program::get_type()
@@ -21,65 +72,6 @@ namespace logia::AST
     std::string Program::to_string()
     {
         return std::format("Program.{}", Block::to_string());
-    }
-
-    LOGIA_API Program *ast_create_program(Backend *backend, const char *entry_point_file)
-    {
-        auto body = new Program(nullptr, entry_point_file);
-
-        // we know declare all primitives
-        // any type in the language should use those
-        // it's prohibited to create type using llvm
-        // everything shall be supported directly
-        body->push_child(new Integer(true, 1));
-        auto i1 = body->children[body->children.size() - 1]->as<Type>();
-        body->push_child(new Integer(true, 8));
-        body->push_child(new Integer(true, 16));
-        body->push_child(new Integer(true, 32));
-        body->push_child(new Integer(true, 64));
-        auto i64 = body->children[body->children.size() - 1]->as<Type>();
-        body->push_child(new Integer(true, 128));
-
-        body->push_child(new Integer(false, 8));
-        body->push_child(new Integer(false, 16));
-        body->push_child(new Integer(false, 32));
-        body->push_child(new Integer(false, 64));
-        body->push_child(new Integer(false, 128));
-
-        body->push_child(new Void());
-        body->push_child(new Pointer());
-
-        body->push_child(new Float(16));
-        body->push_child(new Float(32));
-        body->push_child(new Float(64));
-        body->push_child(new Float(128));
-
-        // int is an alias of i64
-        // float is an alias of f64
-        body->scope[(char *)"int"] = body->scope[(char *)"λi64"];
-        body->scope[(char *)"float"] = body->scope[(char *)"λf64"];
-        body->scope[(char *)"bool"] = body->scope[(char *)"λi1"];
-
-        // TODO i64 is in fact a struct to support properties
-        // but atm it's just an alias here!
-        // struct of all types
-        body->scope[(char *)"i64"] = body->scope[(char *)"λi64"];
-
-        // alias
-        body->scope[(char *)"void"] = body->scope[(char *)"λvoid"];
-        body->scope[(char *)"ptr"] = body->scope[(char *)"λptr"];
-
-        // generate all primitives so we have a logia type to llvm and reverse!
-        for (Node *node : body->children)
-        {
-            node->codegen(backend);
-        }
-
-        // ast_create_instrinsic(body, ast_create_identifier("logia_intrinsics_bin_add_i64_i64"), i64);
-        // ast_create_instrinsic(body, ast_create_identifier("logia_intrinsics_bin_mul_i64_i64"), i64);
-        // ast_create_instrinsic(body, ast_create_identifier("logia_intrinsics_bin_lt_i64_i64"), i1);
-
-        return body;
     }
 
     void Program::add_intrinsic(const char *name, Type *return_type, std::vector<Type *> arguments)

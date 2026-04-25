@@ -78,7 +78,7 @@ namespace logia
     void ErrorListener::reportAttemptingFullContext(antlr4::Parser *recognizer, const antlr4::dfa::DFA &dfa, size_t startIndex, size_t stopIndex, const antlrcpp::BitSet &conflictingAlts, antlr4::atn::ATNConfigSet *configs) {}
     void ErrorListener::reportContextSensitivity(antlr4::Parser *recognizer, const antlr4::dfa::DFA &dfa, size_t startIndex, size_t stopIndex, size_t prediction, antlr4::atn::ATNConfigSet *configs) {}
 
-    Frontend::Frontend(const char *file_path, Config config) : config(config)
+    Frontend::Frontend(const char *file_path, ::logia::Config config) : config(config)
     {
         CHAR **lppPart = {NULL};
         GetCurrentDirectoryA(MAX_PATH, this->cwd);
@@ -180,7 +180,7 @@ namespace logia
         return buffer;
     }
 
-    void Frontend::parse()
+    AST::Program *Frontend::parse()
     {
         if (!this->entry_point_filename)
         {
@@ -221,31 +221,7 @@ namespace logia
 
         this->print_ast(this->config.print_ast ? std::cerr : logia_log_file);
 
-        // TODO maybe we should fordward to backend in a far future when api stable
-        // backend starts
-
-        if (this->config.llfile != nullptr)
-        {
-            if (config.verbose)
-            {
-                std::cerr << "Emit ir file:" << this->config.llfile << std::endl;
-            }
-            this->backend->emitTargetLLVMIR(this->config.llfile);
-        }
-
-        if (this->config.objfile != nullptr)
-        {
-            if (config.verbose)
-            {
-                std::cout << "Emit obj file: " << this->config.objfile << std::endl;
-            }
-            this->backend->emitTargetObjectFile(this->config.objfile);
-        }
-    }
-
-    int Frontend::run()
-    {
-        return this->backend->run_jit("main");
+        return this->ast_tree;
     }
 
     void Frontend::print_cst(std::ostream &out)
@@ -256,12 +232,10 @@ namespace logia
 
     void Frontend::build_ast()
     {
-        this->backend = new Backend(this, this->config.debug, this->config.coverage);
-        this->backend->load_intrinsics();
+        this->ast_tree = new AST::Program(nullptr, this->entry_point_fullpath);
 
-        CST2AST *llvmVisitor = new CST2AST(this->backend->program);
+        CST2AST *llvmVisitor = new CST2AST(this->ast_tree);
         llvmVisitor->visit(this->cst_tree);
-        this->ast_tree = this->backend->program;
     }
 
     void Frontend::print_ast(std::ostream &out)

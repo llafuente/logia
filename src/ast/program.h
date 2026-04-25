@@ -30,7 +30,8 @@ namespace logia::AST
     class Program : public Block
     {
     public:
-        const char *entry_point_file;
+        const char *entry_point_file = nullptr;
+        size_t primitive_count = 0;
 
         Program(antlr4::ParserRuleContext *rule, const char *entry_point_file);
 
@@ -47,15 +48,12 @@ namespace logia::AST
 
         void add_intrinsic(const char *name, Type *return_type, std::vector<Type *> arguments);
 
+        void codegen_primitives(logia::Backend *backend);
+
         void pre_codegen(logia::Backend *backend) override;
 
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
         void post_attach() override;
     };
-
-    /// @brief Creates a minimal logia program
-    /// @details Primitives and intrinsics included
-    /// @remarks Does not include core library
-    LOGIA_API LOGIA_LEND Program *ast_create_program(Backend *backend, const char *entry_point_file);
 }

@@ -27,6 +27,8 @@
 
 #include "antlr4-runtime.h"
 
+#include "logia/config.h"
+
 namespace logia
 {
     namespace AST
@@ -44,10 +46,8 @@ namespace logia
     public:
         /// @brief back pointer to fronted to avoid duplication
         Frontend *frontend = nullptr;
-        /// @brief Enable debug mode -> output DWARF
+        ::logia::Config config;
         bool debug;
-        /// @brief Enable code coverage -> output llvm-cov profdata
-        bool coverage;
         /**
          * llvm context
          */
@@ -81,7 +81,7 @@ namespace logia
         /**
          * Initialize LLVM
          */
-        Backend(Frontend *frontend, bool debug, bool coverage);
+        Backend(Frontend *frontend, AST::Program *program, ::logia::Config config);
         /**
          *
          */

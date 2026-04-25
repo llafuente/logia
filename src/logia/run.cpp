@@ -14,7 +14,7 @@ namespace logia
             return 0;
         }
 
-        logia::Frontend::Config config;
+        logia::Config config;
 
         // skip first, it's entry point file
         for (int i = 1; i < argc; ++i)
@@ -86,8 +86,28 @@ namespace logia
         // frontend starts
         logia::Frontend *frontend = new logia::Frontend(argv[0], config);
 
-        frontend->parse();
-        auto ret = frontend->run();
+        auto program = frontend->parse();
+
+        auto backend = new logia::Backend(frontend, program, config);
+        backend->load_intrinsics();
+        if (config.llfile != nullptr)
+        {
+            if (config.verbose)
+            {
+                std::cerr << "Emit ir file:" << config.llfile << std::endl;
+            }
+            backend->emitTargetLLVMIR(config.llfile);
+        }
+
+        if (config.objfile != nullptr)
+        {
+            if (config.verbose)
+            {
+                std::cout << "Emit obj file: " << config.objfile << std::endl;
+            }
+            backend->emitTargetObjectFile(config.objfile);
+        }
+        auto ret = backend->run_jit("main");
 
         delete frontend;
         return ret;

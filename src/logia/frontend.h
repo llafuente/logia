@@ -6,6 +6,7 @@
 #include "utils.h"
 
 #include "ast/program.h"
+#include "logia/config.h"
 
 #include <Windows.h>
 
@@ -31,19 +32,7 @@ namespace logia
     /// @brief Compiler frontend, parsing and AST construction
     struct Frontend
     {
-        struct Config
-        {
-            bool is_program = true;
-            bool verbose = false;
-            bool debug = false;
-            bool coverage = false;
-            bool print = false;
-            bool print_cst = false;
-            bool print_ast = false;
-            bool emit_llvm = false;
-            const char *llfile = nullptr;
-            const char *objfile = nullptr;
-        } config;
+        ::logia::Config config;
 
         /// @brief Current working directory
         char cwd[MAX_PATH];
@@ -73,11 +62,13 @@ namespace logia
         // aux
         char *text;
 
-        Frontend(const char *file_path, Config config);
+        Frontend(const char *file_path, ::logia::Config config);
         ~Frontend();
 
-        /// @brief Parses the input file and builds the CST tree
-        void parse();
+        /// @brief Parses the input file and builds the CST tree then transform it into AST
+        AST::Program *parse();
+
+        /// @brief run current AST
         int run();
 
     private:

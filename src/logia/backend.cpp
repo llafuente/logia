@@ -41,7 +41,7 @@
 
 namespace logia
 {
-    Backend::Backend(Frontend *frontend, bool debug, bool coverage) : debug(debug), coverage(coverage), frontend(frontend)
+    Backend::Backend(Frontend *frontend, AST::Program *program, ::logia::Config config) : config(config), frontend(frontend), program(program), debug(config.debug)
     {
 #ifdef CODEGEN_NATIVE
         llvm::InitializeNativeTarget();
@@ -69,7 +69,7 @@ namespace logia
 
         builder = new llvm::IRBuilder<>(context);
 
-        if (debug)
+        if (config.debug)
         {
             // Create a DIBuilder for debug info
             dbuilder = new llvm::DIBuilder(*this->module);
@@ -102,8 +102,6 @@ namespace logia
 
         session = std::make_unique<llvm::orc::ExecutionSession>(std::move(*EPC));
         session->createBareJITDylib("<main>");
-
-        this->program = AST::ast_create_program(this, frontend->entry_point_fullpath);
     }
 
     Backend::~Backend()
@@ -113,6 +111,9 @@ namespace logia
 
     void Backend::load_intrinsics(char *filepath)
     {
+        // to found LLVM Type to logia type we need to codegen types first!
+        this->program->codegen_primitives(this);
+
         llvm::SMDiagnostic diag;
         this->intrinsics_module = llvm::parseIRFile(filepath, diag, context);
         if (!this->intrinsics_module)
@@ -289,7 +290,7 @@ namespace logia
         {
             this->program->codegen(this);
         }
-        if (debug)
+        if (config.debug)
         {
             // Finalize the debug info
             this->dbuilder->finalize();
@@ -520,7 +521,7 @@ namespace logia
 
     void Backend::set_debug_information(antlr4::ParserRuleContext *context, llvm::DIScope *scope)
     {
-        if (!this->debug)
+        if (!this->config.debug)
         {
             return;
         }
@@ -550,7 +551,7 @@ namespace logia
 
     void Backend::set_debug_loc(llvm::Instruction *value, antlr4::ParserRuleContext *context)
     {
-        if (this->debug)
+        if (this->config.debug)
         {
             // value->setDebugLoc(llvm::DebugLoc::get(1, 0, this->dfile));
             value->setDebugLoc(llvm::DILocation::get(this->context, context->start->getLine(), context->start->getCharPositionInLine(), this->dscopes[this->dscopes.size() - 1]));
