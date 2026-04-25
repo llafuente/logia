@@ -76,6 +76,11 @@ namespace logia::AST
 
         return out;
     }
+    void Node::set_type(Type *t)
+    {
+        LERROR() << this->to_string() << std::endl;
+        throw std::runtime_error("set_type not supported for this type node");
+    };
 
     void Node::post_attach()
     {

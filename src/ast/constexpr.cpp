@@ -87,14 +87,39 @@ namespace logia::AST
         return std::format("IntegerLiteral[{}] {}/{}{}", this->get_type()->to_string(), this->number_str, this->as_signed(), Node::to_string());
     }
 
+    void IntegerLiteral::set_type(Type *t)
+    {
+        // TODO do we need to handle deletion or "anything" ?
+        this->children[0] = t;
+    }
+
     llvm::Value *IntegerLiteral::post_codegen(logia::Backend *backend)
     {
         DEBUG() << this->to_string() << std::endl;
-        auto type = this->get_type()->as<Integer>();
+        auto type = this->get_type();
+        auto llvm_type = (llvm::Type *)this->get_final_type()->codegen(backend);
 
-        // TODO add support for octal
-        // TODO add support for hexadecimal
-        this->cg_value = llvm::ConstantInt::get((llvm::Type *)this->get_type()->codegen(backend), llvm::APInt(type->bits, this->number_str, 10));
+        if (type->is<Integer>())
+        {
+            auto itype = type->as<Integer>();
+            // TODO add support for octal
+            // TODO add support for hexadecimal
+            this->cg_value = llvm::ConstantInt::get(llvm_type, llvm::APInt(itype->bits, this->number_str, 10));
+        }
+        else if (type->is<Float>())
+        {
+            auto ftype = type->as<Float>();
+            this->cg_value = llvm::ConstantFP::get(
+                llvm_type,
+                this->number_str
+                // llvm::APFloat(ftype->bits, this->number_str) // APFloat from float
+            );
+        }
+        else
+        {
+            throw std::runtime_error(std::format("Unexpected type {}, could not generate an literal from it", type->get_repr()));
+        }
+
         return ConstExpression::post_codegen(backend);
     }
 

@@ -99,6 +99,11 @@ namespace logia::AST
         /// @return
         virtual Type *get_type() = 0;
 
+        /// @brief override node type, it's only allowed in a few node. by default throws atm!
+        /// @remarks this may be available only after type inference pass
+        /// @return
+        virtual void set_type(Type *t);
+
         /// @brief called after the node is attached to a program
         virtual void post_attach();
 

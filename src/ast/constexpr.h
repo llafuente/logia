@@ -65,6 +65,8 @@ namespace logia::AST
 
         std::string to_string() override;
 
+        void set_type(Type *t) override;
+
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
         Type *get_type() override;
