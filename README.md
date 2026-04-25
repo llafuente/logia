@@ -1,10 +1,24 @@
 # logia
 
-Compiler for logia language (logia language
-spec)[https://github.com/llafuente/language-spec]
+Compiler for logia language
+[logia language spec](https://github.com/llafuente/language-spec)
 
 Due to the nature of the language, most of the compiler is in fact inside the
-languae so the compiler sould be used to develop other languages.
+language core so the compiler could be used to develop other languages. Another
+objective for the compiler is to target only latest hardware and target that
+hardware having intrinsics written in LLVM IR rather than inside the compiler.
+
+The compiler has 4 very different stages.
+
+- Frontend
+  - CST (antlr4, tied to logia grammar)
+  - AST
+- Backend
+  - type-system (AST)
+  - codegen (LLVM)
+
+The compiler is not ready for public usage yet. It still run very basic
+programs.
 
 ## install/build/develop
 
