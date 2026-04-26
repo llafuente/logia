@@ -6,35 +6,24 @@ namespace logia::AST
 {
     struct Identifier;
 
-    /// @brief A block of code aka scope
-    struct Block : public Node
+    struct Scope : public Node
     {
     public:
-        /// @brief Defines the block name -> (goto identifier)
-        /// @remarks This cannot be a children of the block because it's a mess, but should be one day.
-        Identifier *name;
+        /// @brief Back pointer to fast access
+        Scope *parentScope = nullptr;
+
+        Scope(antlr4::ParserRuleContext *rule);
 
         // NOTE: about cpp
         // std::unordered_map<char*, Node*> scope; --> wrong char* is not the expected type, no "=="
         // std::unordered_map<string, Node*> scope; --> misc errors
         /// @brief Defines the block scope, used for name resolution
         std::unordered_map<std::string_view, Node *> scope;
-        /// @brief Back pointer to fast access
-        Block *parent = nullptr;
-        /// @brief BasicBlock will be populated at pre_codegen and cached
-        /// @remarks BasicBlock needs to be attached before codegen into them
-        llvm::BasicBlock *llvm_basicblock = nullptr;
-
-        Block(antlr4::ParserRuleContext *rule, Identifier *name);
-
-        /// @brief Retrieves the block name, used for goto and debugging
-        Identifier *get_identifier();
-
-        /// @brief Shortcut to name as cstring
-        const char *get_name();
 
         /// @brief Register a name in the scope
         void set(const char *name, Node *node);
+
+        void post_attach() override;
 
         /// @brief lookup a name into the current scope gracefully
         /// @example
@@ -86,7 +75,7 @@ namespace logia::AST
             DEBUG() << name << std::endl;
 
             std::string_view name_view(name);
-            Block *p = this;
+            Scope *p = this;
             do
             {
                 auto it = p->scope.find(name_view);
@@ -95,7 +84,7 @@ namespace logia::AST
                     *out = it->second->as<T>();
                     return true;
                 }
-                p = p->parent;
+                p = p->parentScope;
             } while (p != nullptr);
 
             return false;
@@ -109,7 +98,7 @@ namespace logia::AST
             DEBUG() << name << std::endl;
 
             std::string_view name_view(name);
-            Block *p = this;
+            Scope *p = this;
             do
             {
                 auto it = p->scope.find(name_view);
@@ -117,11 +106,32 @@ namespace logia::AST
                 {
                     return it->second->as<T>();
                 }
-                p = p->parent;
+                p = p->parentScope;
             } while (p != nullptr);
 
             throw std::runtime_error(std::format("not found in scope: {} of type {}", name, typeid(T).name()));
         }
+    };
+
+    /// @brief A block
+    struct Block : public Scope
+    {
+    public:
+        /// @brief Defines the block name -> (goto identifier)
+        /// @remarks This cannot be a children of the block because it's a mess, but should be one day.
+        Identifier *name;
+
+        /// @brief BasicBlock will be populated at pre_codegen and cached
+        /// @remarks BasicBlock needs to be attached before codegen into them
+        llvm::BasicBlock *llvm_basicblock = nullptr;
+
+        Block(antlr4::ParserRuleContext *rule, Identifier *name);
+
+        /// @brief Retrieves the block name, used for goto and debugging
+        Identifier *get_identifier();
+
+        /// @brief Shortcut to name as cstring
+        const char *get_name();
 
         std::string to_string() override;
 

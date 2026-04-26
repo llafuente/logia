@@ -1,11 +1,37 @@
 #include "ast/block.h"
 #include "ast/traverse.h"
 #include "ast/llvm.h"
+#include "ast/semantic_error.h"
 
 namespace logia::AST
 {
+    //
+    // Scope
+    //
+    Scope::Scope(antlr4::ParserRuleContext *rule) : Node(rule) {}
 
-    Block::Block(antlr4::ParserRuleContext *rule, Identifier *name) : Node(rule), name(name)
+    void Scope::set(const char *name, Node *node)
+    {
+        if (!node->is<Type>() && !node->is<Block>() && !node->is<VarDeclStmt>() && !node->is<FunctionParameter>())
+        {
+            throw std::runtime_error(std::format("invalid node type: {} - {}", typeid(node).name(), node->to_string()));
+        }
+        this->scope[strdup(name)] = node;
+    }
+
+    void Scope::post_attach()
+    {
+        // keep parent body in sync regardless being already attached, allow blocks to be moved.
+        auto parentBody = this->first_parent<Block>();
+        LOGIA_ASSERT(parentBody);
+        this->parentScope = parentBody;
+    }
+
+    //
+    // Block
+    //
+
+    Block::Block(antlr4::ParserRuleContext *rule, Identifier *name) : Scope(rule), name(name)
     {
         name->skip_codegen = true; // even if it's not reachable we should be careful
     }
@@ -18,15 +44,6 @@ namespace logia::AST
     const char *Block::get_name()
     {
         return this->get_identifier()->identifier;
-    }
-
-    void Block::set(const char *name, Node *node)
-    {
-        if (!node->is<Type>() && !node->is<Block>() && !node->is<VarDeclStmt>() && !node->is<FunctionParameter>())
-        {
-            throw std::runtime_error(std::format("invalid node type: {} - {}", typeid(node).name(), node->to_string()));
-        }
-        this->scope[strdup(name)] = node;
     }
 
     Type *Block::get_type()
@@ -48,21 +65,24 @@ namespace logia::AST
 
     void Block::post_attach()
     {
-        auto parentBody = this->first_parent<Block>();
-        LOGIA_ASSERT(parentBody);
-        this->parent = parentBody;
+        Scope::post_attach();
 
+        // TODO we should throw if the block is moved outside current function!!
         if (!this->is_attached)
         {
             this->is_attached = true;
 
             if (!is<FunctionBlock>())
             {
-
-                auto fblock = this->first_parent<FunctionBlock>();
-                LOGIA_ASSERT(fblock);
-
-                fblock->set(this->get_name(), this);
+                try
+                {
+                    auto fblock = this->first_parent<FunctionBlock>();
+                    fblock->set(this->get_name(), this);
+                }
+                catch (std::exception e)
+                {
+                    throw_semantic_error(this, "Expected block to be attached to a function");
+                }
             }
         }
     }
