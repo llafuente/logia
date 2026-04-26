@@ -10,7 +10,7 @@
 
 namespace logia::AST
 {
-    Program::Program(antlr4::ParserRuleContext *rule, const char *entry_point_file) : Block(rule, ast_create_identifier("program")), entry_point_file(entry_point_file)
+    Program::Program(antlr4::ParserRuleContext *rule, const char *entry_point_file, const char *file_contents) : Block(rule, ast_create_identifier("program")), entry_point_file(entry_point_file), file_contents(file_contents)
     {
         // we know declare all primitives
         // any type in the language should use those
