@@ -78,8 +78,10 @@ namespace logia
     void ErrorListener::reportAttemptingFullContext(antlr4::Parser *recognizer, const antlr4::dfa::DFA &dfa, size_t startIndex, size_t stopIndex, const antlrcpp::BitSet &conflictingAlts, antlr4::atn::ATNConfigSet *configs) {}
     void ErrorListener::reportContextSensitivity(antlr4::Parser *recognizer, const antlr4::dfa::DFA &dfa, size_t startIndex, size_t stopIndex, size_t prediction, antlr4::atn::ATNConfigSet *configs) {}
 
-    Frontend::Frontend(const char *file_path, ::logia::Config config) : config(config)
+    ParseResult::ParseResult(const char *file_path)
     {
+        DEBUG() << logia_config.to_string() << std::endl;
+
         CHAR **lppPart = {NULL};
         GetCurrentDirectoryA(MAX_PATH, this->cwd);
         auto retval = GetFullPathNameA(file_path,
@@ -118,22 +120,10 @@ namespace logia
         DEBUG() << "entry_point_fullpath = " << entry_point_fullpath << std::endl
                 << "entry_point_absdir = " << entry_point_absdir << std::endl
                 << "entry_point_reldir = " << entry_point_reldir << std::endl
-                << "entry_point_filename = " << entry_point_filename << std::endl
-
-                << "verbose = " << config.verbose << std::endl
-                << "print = " << config.print << std::endl
-                << "print_cst = " << config.print_cst << std::endl
-                << "print_ast = " << config.print_ast << std::endl
-
-                << "llfile = " << (config.llfile == nullptr ? "no" : config.llfile) << std::endl
-                << "objfile = " << (config.objfile == nullptr ? "no" : config.objfile) << std::endl
-
-                << "is_program = " << config.is_program << std::endl
-                << "debug = " << config.debug << std::endl
-                << "coverage = " << config.coverage << std::endl;
+                << "entry_point_filename = " << entry_point_filename << std::endl;
     }
 
-    Frontend::~Frontend()
+    ParseResult::~ParseResult()
     {
         // parser will remove this
         this->cst_tree = nullptr;
@@ -149,7 +139,7 @@ namespace logia
         free(this->text);
     }
 
-    char *Frontend::__file_read(const char *file_path)
+    char *ParseResult::__file_read(const char *file_path)
     {
         FILE *file;
         auto err = fopen_s(&file, file_path, "rb");
@@ -180,19 +170,19 @@ namespace logia
         return buffer;
     }
 
-    AST::Program *Frontend::parse()
+    AST::Program *ParseResult::parse(bool is_program)
     {
         if (!this->entry_point_filename)
         {
-            throw_compiler_error("Frontend: File not specified");
+            throw_compiler_error("ParseResult: File not specified");
         }
-        if (this->config.verbose)
+        if (logia_config.verbose)
         {
             std::cout << "parse(" << this->entry_point_fullpath << ")" << std::endl;
         }
         this->text = this->__file_read(this->entry_point_fullpath);
 
-        if (this->config.print)
+        if (logia_config.print)
         {
             std::cerr << "File Contents:" << std::endl
                       << this->text << std::endl;
@@ -206,41 +196,50 @@ namespace logia
         this->errorListener = (antlr4::ANTLRErrorListener *)new ErrorListener(this->entry_point_fullpath, text);
         this->parser->addErrorListener(this->errorListener);
 
-        if (this->config.is_program)
+        this->cst_tree = this->parser->program();
+
+        this->print_cst(logia_config.print_cst ? std::cerr : logia_log_file);
+
+        if (is_program)
         {
-            this->cst_tree = this->parser->program();
+            this->ast_tree = new AST::Program(nullptr, this->entry_point_fullpath, this->text);
         }
         else
         {
-            this->cst_tree = this->parser->packageProgram();
+            // TODO @llafuente invalid cast
+            this->ast_tree = (AST::Program *)new AST::Package(nullptr, this->entry_point_fullpath, this->text);
         }
 
-        this->print_cst(this->config.print_cst ? std::cerr : logia_log_file);
+        CST2AST *llvmVisitor = new CST2AST(this->ast_tree);
+        llvmVisitor->visit(this->cst_tree);
 
-        this->build_ast();
-
-        this->print_ast(this->config.print_ast ? std::cerr : logia_log_file);
+        this->print_ast(logia_config.print_ast ? std::cerr : logia_log_file);
 
         return this->ast_tree;
     }
 
-    void Frontend::print_cst(std::ostream &out)
+    void ParseResult::print_cst(std::ostream &out)
     {
         out << "cst:" << std::endl
             << this->cst_tree->toStringTree(this->parser, true) << std::endl;
     }
 
-    void Frontend::build_ast()
-    {
-        this->ast_tree = new AST::Program(nullptr, this->entry_point_fullpath);
-
-        CST2AST *llvmVisitor = new CST2AST(this->ast_tree);
-        llvmVisitor->visit(this->cst_tree);
-    }
-
-    void Frontend::print_ast(std::ostream &out)
+    void ParseResult::print_ast(std::ostream &out)
     {
         out << "ast:" << std::endl
             << this->ast_tree->to_string_tree() << std::endl;
+    }
+
+    ParseResult *logia_parse_package(const char *file_path)
+    {
+        auto parse_result = new ParseResult(file_path);
+        parse_result->parse(true);
+        return parse_result;
+    }
+    ParseResult *logia_parse_program(const char *file_path)
+    {
+        auto parse_result = new ParseResult(file_path);
+        parse_result->parse(false);
+        return parse_result;
     }
 }

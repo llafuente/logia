@@ -723,9 +723,9 @@ namespace logia
         }
         else if (context->locator2 != nullptr)
         {
-            imp->set_package(this->parseIdentifierChain(context->locator2->identifierChain()));
+            imp->set_package(this->parseIdentifierChain(context->locator2));
 
-            if (context->locator2->all != nullptr)
+            if (context->all != nullptr)
             {
                 imp->set_import_all();
             }

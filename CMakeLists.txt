@@ -43,14 +43,17 @@ set(LOGIA_SOURCE_FILES
   src/logia/backend.cpp
 
   src/ast/node.cpp
+  src/ast/semantic_error.cpp
   src/ast/type.cpp
   src/ast/traverse.cpp
 
   src/ast/block.cpp
   src/ast/program.cpp
+  src/ast/package.cpp
   
-  src/ast/stmt.cpp  
-  src/ast/if_stmt.cpp  
+  src/ast/stmt.cpp
+  src/ast/if_stmt.cpp
+  src/ast/import.cpp
   
   src/ast/expr.cpp
   src/ast/constexpr.cpp

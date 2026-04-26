@@ -1099,23 +1099,18 @@ packageStmts
 
 
 packageDefinitionStmt
-  : 'package' name=package version=stringLiteral endOfStmt
+  : 'package' name=identifier version=stringLiteral endOfStmt
   ;
-
-// package name / import everything from package
-package
-  : identifierChain ('.' all='*')?
-  ;
-
 
 importStmt
   // TODO allow to import an specific version? -> semver
 
-  // import into current scope
-  : 'import' locator=identifierChain
-
   // import renamed and list
-  | 'import' identifierList 'from' locator2=package
+  : 'import' items=identifierList 'from' locator2=identifierChain
+
+  // import into current scope
+  | 'import' locator=identifierChain ('.' all='*')?
+
   ;
 
 //file: spec\preprocessor-and-metaprogramming.md

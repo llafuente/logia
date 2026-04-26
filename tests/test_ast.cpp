@@ -78,7 +78,7 @@ TEST(AST_Type, ast_create_function_type)
   EXPECT_EQ(func->get_identifier()->parent_node, func);
   EXPECT_EQ(func->get_return_type()->parent_node, func);
   EXPECT_EQ(func->get_body()->parent_node, func);
-  EXPECT_EQ(func->get_body()->parent, program);
+  EXPECT_EQ(func->get_body()->parentScope, program);
 
   // function body is connected to program, type available
   EXPECT_TRUE(ast_get_type_by_name(func->get_body(), strdup("λi8")));

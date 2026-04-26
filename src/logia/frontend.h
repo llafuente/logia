@@ -6,6 +6,7 @@
 #include "utils.h"
 
 #include "ast/program.h"
+#include "ast/package.h"
 #include "logia/config.h"
 
 #include <Windows.h>
@@ -30,10 +31,8 @@ namespace logia
         void reportContextSensitivity(antlr4::Parser *recognizer, const antlr4::dfa::DFA &dfa, size_t startIndex, size_t stopIndex, size_t prediction, antlr4::atn::ATNConfigSet *configs) override;
     };
     /// @brief Compiler frontend, parsing and AST construction
-    struct Frontend
+    struct ParseResult
     {
-        ::logia::Config config;
-
         /// @brief Current working directory
         char cwd[MAX_PATH];
         /// @brief Main entry point file
@@ -62,26 +61,25 @@ namespace logia
         // aux
         char *text;
 
-        Frontend(const char *file_path, ::logia::Config config);
-        ~Frontend();
+        ParseResult(const char *file_path);
+        ~ParseResult();
 
         /// @brief Parses the input file and builds the CST tree then transform it into AST
-        AST::Program *parse();
-
-        /// @brief run current AST
-        int run();
+        AST::Program *parse(bool is_program);
 
     private:
         /// @brief Prints CST tree
         /// @param out The output stream to print the CST tree
         void print_cst(std::ostream &out);
 
-        /// @brief Builds the AST from the CST tree
-        void build_ast();
         /// @brief Prints AST tree
         /// @param out The output stream to print the AST tree
         void print_ast(std::ostream &out);
         char *__file_read(const char *file_path);
     };
+
+    void logia_parse(ParseResult *parse_result);
+    ParseResult *logia_parse_package(const char *file_path);
+    ParseResult *logia_parse_program(const char *file_path);
 
 }

@@ -1,6 +1,7 @@
 #include "ast/import.h"
 #include "ast/block.h"
 #include "ast/expr.h"
+#include "ast/package.h"
 
 #include "logia/frontend.h"
 
@@ -40,7 +41,7 @@ namespace logia::AST
 
     void Import::post_attach()
     {
-        auto parse_data = parse_logia_file("core/primitives.logia");
+        auto parse_data = logia_parse_package("core/primitives.logia");
         this->push_child(parse_data->ast_tree); // program attached? :P
         // parse
         // append to parent block everything!

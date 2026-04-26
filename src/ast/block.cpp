@@ -179,6 +179,10 @@ namespace logia::AST
         }
     }
 
+    //
+    // FunctionBlock
+    //
+
     FunctionBlock::FunctionBlock(antlr4::ParserRuleContext *rule, Identifier *name) : Block(rule, name) {}
     std::string FunctionBlock::to_string()
     {

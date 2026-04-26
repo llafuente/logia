@@ -13,7 +13,7 @@
 namespace logia
 {
     struct Backend;
-    struct Frontend;
+    struct ParseResult;
 }
 
 namespace logia::AST

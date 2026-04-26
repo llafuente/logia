@@ -41,7 +41,7 @@
 
 namespace logia
 {
-    Backend::Backend(Frontend *frontend, AST::Program *program, ::logia::Config config) : config(config), frontend(frontend), program(program), debug(config.debug)
+    Backend::Backend(ParseResult *parse_result) : parse_result(parse_result), program(parse_result->ast_tree), debug(logia_config.debug)
     {
 #ifdef CODEGEN_NATIVE
         llvm::InitializeNativeTarget();
@@ -69,14 +69,14 @@ namespace logia
 
         builder = new llvm::IRBuilder<>(context);
 
-        if (config.debug)
+        if (logia_config.debug)
         {
             // Create a DIBuilder for debug info
             dbuilder = new llvm::DIBuilder(*this->module);
 
             // Create a file descriptor for the source file
             // TODO pass this variable, but it's not that easy atp, because could be an import, think about it!
-            this->dfile = this->dbuilder->createFile(frontend->entry_point_filename, frontend->entry_point_reldir);
+            this->dfile = this->dbuilder->createFile(parse_result->entry_point_filename, parse_result->entry_point_reldir);
 
             // Create the compile unit
             this->dcompilation_unit = this->dbuilder->createCompileUnit(
@@ -290,7 +290,7 @@ namespace logia
         {
             this->program->codegen(this);
         }
-        if (config.debug)
+        if (logia_config.debug)
         {
             // Finalize the debug info
             this->dbuilder->finalize();
@@ -521,7 +521,7 @@ namespace logia
 
     void Backend::set_debug_information(antlr4::ParserRuleContext *context, llvm::DIScope *scope)
     {
-        if (!this->config.debug)
+        if (!logia_config.debug)
         {
             return;
         }
@@ -551,7 +551,7 @@ namespace logia
 
     void Backend::set_debug_loc(llvm::Instruction *value, antlr4::ParserRuleContext *context)
     {
-        if (this->config.debug)
+        if (logia_config.debug)
         {
             // value->setDebugLoc(llvm::DebugLoc::get(1, 0, this->dfile));
             value->setDebugLoc(llvm::DILocation::get(this->context, context->start->getLine(), context->start->getCharPositionInLine(), this->dscopes[this->dscopes.size() - 1]));
