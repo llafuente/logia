@@ -1,7 +1,13 @@
 #pragma once
 
+#include <string>
+
 namespace logia
 {
+    struct Config;
+
+    extern Config logia_config;
+
     struct Config
     {
         bool is_program = true;
@@ -14,5 +20,11 @@ namespace logia
         bool emit_llvm = false;
         const char *llfile = nullptr;
         const char *objfile = nullptr;
+
+        Config *instance()
+        {
+            return &logia_config;
+        }
+        std::string to_string();
     };
 }
