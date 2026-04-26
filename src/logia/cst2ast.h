@@ -61,11 +61,16 @@ namespace logia
 
         std::any visitIdentifier(LogiaParser::IdentifierContext *context) override;
         std::any visitStringLiteral(LogiaParser::StringLiteralContext *context) override;
-
+        //
+        // stmts
+        //
         std::any visitReturnStmt(LogiaParser::ReturnStmtContext *context) override;
         std::any visitLabeledStmt(LogiaParser::LabeledStmtContext *context) override;
         std::any visitGotoStmt(LogiaParser::GotoStmtContext *context) override;
         std::any visitIfStmt(LogiaParser::IfStmtContext *context) override;
+        std::vector<AST::Identifier *> parseIdentifierChain(LogiaParser::IdentifierChainContext *context);
+        std::vector<AST::Identifier *> parseIdentifierList(LogiaParser::IdentifierListContext *context);
+        std::any visitImportStmt(LogiaParser::ImportStmtContext *context) override;
 
         //
         // functions

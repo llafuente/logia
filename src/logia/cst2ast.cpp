@@ -3,6 +3,7 @@
 #include "ast/type.h"
 #include "ast/constexpr.h"
 #include "ast/if_stmt.h"
+#include "ast/import.h"
 
 #define CST_THROW(msg)                                         \
     do                                                         \
@@ -680,6 +681,62 @@ namespace logia
         return ANY_VOIDP_STORE(ifstmt);
     }
 
+    std::vector<AST::Identifier *> CST2AST::parseIdentifierChain(LogiaParser::IdentifierChainContext *context)
+    {
+        auto list = std::vector<AST::Identifier *>();
+        for (int i = 0;; ++i)
+        {
+            auto ident = context->identifier(i);
+            if (ident == nullptr)
+            {
+                break;
+            }
+            auto name = ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(ident));
+            list.push_back(name);
+        }
+        return list;
+    }
+
+    std::vector<AST::Identifier *> CST2AST::parseIdentifierList(LogiaParser::IdentifierListContext *context)
+    {
+        auto list = std::vector<AST::Identifier *>();
+        for (int i = 0;; ++i)
+        {
+            auto ident = context->identifier(i);
+            if (ident == nullptr)
+            {
+                break;
+            }
+            auto name = ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(ident));
+            list.push_back(name);
+        }
+        return list;
+    }
+
+    std::any CST2AST::visitImportStmt(LogiaParser::ImportStmtContext *context)
+    {
+        auto imp = new AST::Import(context);
+        if (context->locator != nullptr)
+        {
+            imp->set_package(this->parseIdentifierChain(context->locator));
+            imp->set_import_into_scope();
+        }
+        else if (context->locator2 != nullptr)
+        {
+            imp->set_package(this->parseIdentifierChain(context->locator2->identifierChain()));
+
+            if (context->locator2->all != nullptr)
+            {
+                imp->set_import_all();
+            }
+            imp->set_import_list(this->parseIdentifierList(context->identifierList()));
+        }
+        else
+        {
+            CST_UNREACHABLE();
+        }
+    }
+
     std::any CST2AST::visitIdentifier(LogiaParser::IdentifierContext *context)
     {
         DEBUG() << context->getText() << std::endl;
@@ -795,8 +852,10 @@ namespace logia
     {
         CST_DEBUG_FUNCTION();
 
-        CST_TODO_BRANCH(globalImportVar, visitGlobalImportVar);
         CST_VISIT_BRANCH(labeledStmt, visitLabeledStmt);
+        CST_VISIT_BRANCH(importStmt, visitImportStmt);
+
+        CST_TODO_BRANCH(globalImportVar, visitGlobalImportVar);
         CST_VISIT_BRANCH(blockStmt, visitBlockStmt);
         CST_VISIT_BRANCH(aliasDeclStmt, visitAliasDeclStmt);
         CST_VISIT_BRANCH(typeDecl, visitTypeDecl);

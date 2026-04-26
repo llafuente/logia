@@ -621,6 +621,7 @@ blockStmt
 
 stmt
   : (labeledStmt
+  | importStmt
   | globalImportVar
   | blockStmt
   | comments
@@ -664,6 +665,14 @@ dollarIdentifier
   : '$' identifier
   ;
 
+identifierList
+    : identifier (',' identifier)*
+    ;
+
+identifierChain
+    : identifier ('.' identifier)*
+    ;
+
 dollarIdentifierList
   : dollarIdentifier (',' dollarIdentifier)*
   ;
@@ -687,7 +696,7 @@ anyNonNewLine
 
 // main program entry point!
 program
-  : preprocessors=preprocessorProgramStmtList? imports=importStmtList? statements=programStmsList? EOF
+  : preprocessors=preprocessorProgramStmtList? statements=programStmsList? EOF
   ;
 
 programStmsList
@@ -1065,7 +1074,7 @@ unaryCloneExpression
 //file: spec\package-system.md
 // package entry point!
 packageProgram
-  : (comments endOfStmt?)* packageDefinitionStmt importStmtList? preprocessorProgramStmtList? packageStmsList? EOF
+  : (comments endOfStmt?)* packageDefinitionStmt preprocessorProgramStmtList? packageStmsList? EOF
   ;
 
 
@@ -1090,22 +1099,23 @@ packageStmts
 
 
 packageDefinitionStmt
-  : 'package' name=packageName version=stringLiteral endOfStmt
+  : 'package' name=package version=stringLiteral endOfStmt
   ;
 
-
-packageName
-  : packageName ('.' (identifier | '*'))
-  | identifier
+// package name / import everything from package
+package
+  : identifierChain ('.' all='*')?
   ;
+
 
 importStmt
-  : 'import' location=packageName version=stringLiteral? ('as' name=identifier)? endOfStmt
-  | endOfStmt
-  ;
+  // TODO allow to import an specific version? -> semver
 
-importStmtList
-  : importStmt+
+  // import into current scope
+  : 'import' locator=identifierChain
+
+  // import renamed and list
+  | 'import' identifierList 'from' locator2=package
   ;
 
 //file: spec\preprocessor-and-metaprogramming.md
@@ -1209,10 +1219,6 @@ execStmt
   : '#exec' anyNonNewLine
   ;
 
-
-identifierList
-    : identifier? (',' identifier)*
-    ;
 
 preprocessorRepeatExpr
   : '#repeat' '(' identifierList ')'

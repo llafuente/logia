@@ -4,6 +4,7 @@
 #include "ast/type.h"
 #include "ast/traverse.h"
 #include "ast/expr.h"
+#include "ast/import.h"
 
 #include "logia/backend.h"
 
@@ -37,6 +38,12 @@ namespace logia::AST
         this->push_child(new Float(32));
         this->push_child(new Float(64));
         this->push_child(new Float(128));
+
+        auto imp = new Import(nullptr);
+        imp->set_import_into_scope();
+        imp->set_package({new Identifier(nullptr, "core"), new Identifier(nullptr, "primitives")});
+
+        this->push_child(imp);
 
         // int is an alias of i64
         // float is an alias of f64

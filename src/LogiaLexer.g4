@@ -173,6 +173,7 @@ OR_ASSIGN_TK : '|=';
 
 // package system
 IMPORT_TK : 'import';
+FROM_TK : 'from';
 AS_TK : 'as';
 
 // WS : [ \t\f]+                        -> channel(HIDDEN);
