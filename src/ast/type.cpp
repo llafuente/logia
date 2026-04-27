@@ -814,7 +814,7 @@ namespace logia::AST
     {
         DEBUG() << this->to_string() << std::endl;
         // generate return type, as it's the first in metada
-        auto rtype = this->get_return_type();
+        auto rtype = this->get_return_type()->get_final_type();
         rtype->codegen(backend);
 
         // generate all parameters

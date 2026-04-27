@@ -51,11 +51,6 @@ namespace logia::AST
         this->scope[(char *)"float"] = this->scope[(char *)"λf64"];
         this->scope[(char *)"bool"] = this->scope[(char *)"λi1"];
 
-        // TODO i64 is in fact a struct to support properties
-        // but atm it's just an alias here!
-        // struct of all types
-        this->scope[(char *)"i64"] = this->scope[(char *)"λi64"];
-
         // alias
         this->scope[(char *)"void"] = this->scope[(char *)"λvoid"];
         this->scope[(char *)"ptr"] = this->scope[(char *)"λptr"];

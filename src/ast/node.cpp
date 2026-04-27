@@ -69,15 +69,28 @@ namespace logia::AST
         this->post_attach();
     }
 
-    std::string Node::to_string_tree(std::string padding)
+    std::string Node::to_string_tree(std::string padding, bool last_child)
     {
-        std::string out = std::format("{} {} (parent {:p}){},{}\n", padding, this->to_string(), static_cast<void *>(this->parent_node), this->is_pre_codegen ? "precg" : "", this->is_post_codegen ? "postcg" : "");
+        std::string out;
+        if (padding.length() == 0 || last_child)
+        {
+            // root
+            out += std::format("{}{} [{},{}]\n", padding, this->to_string(), this->is_pre_codegen ? "precg" : "", this->is_post_codegen ? "postcg" : "");
+        }
+        else
+        {
+            // children
+            out += std::format("{}{} [{},{}]\n", padding, this->to_string(), this->is_pre_codegen ? "precg" : "", this->is_post_codegen ? "postcg" : "");
+        }
+
+        // std::string out = std::format("{} {} (parent {:p}){},{}\n", padding, this->to_string(), static_cast<void *>(this->parent_node), this->is_pre_codegen ? "precg" : "", this->is_post_codegen ? "postcg" : "");
 
         padding += "  ";
-
-        for (size_t i = 0; i < this->children.size(); i++)
+        auto max = this->children.size();
+        auto last = max - 1;
+        for (auto i = 0; i < max; i++)
         {
-            out += this->children[i]->to_string_tree(padding);
+            out += this->children[i]->to_string_tree(padding, last == i);
         }
 
         return out;

@@ -762,7 +762,16 @@ namespace logia
 
         // auto name = (AST::Identifier *)(this->visitIdentifier(def->functionName()->identifier()));
         auto name = ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(def->functionName()->identifier()));
-        auto ret_type = this->program->lookup<AST::Type>("λi64");
+        // auto ret_type = this->program->lookup<AST::Type>("λi64");
+        AST::Type *ret_type;
+        if (def->return_type == nullptr)
+        {
+            ret_type = new AST::InferType();
+        }
+        else
+        {
+            ret_type = ANY_VOIDP_CAST(AST::Type *, this->visitTypeDefinition(def->return_type));
+        }
         auto fn = new AST::Function(context, name, ret_type);
 
         auto plist = def->functionParameterList();

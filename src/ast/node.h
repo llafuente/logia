@@ -83,7 +83,7 @@ namespace logia::AST
         /// @brief returns a string representation of the tree starting from this node, with padding for each level
         /// @param padding
         /// @return
-        std::string to_string_tree(std::string padding = "");
+        std::string to_string_tree(std::string padding = "", bool last_child = false);
 
         /// @brief returns essential information nto debug
         virtual std::string to_string();

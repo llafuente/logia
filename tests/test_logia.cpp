@@ -15,7 +15,8 @@
 
 int test_single_file(const char *logia_folder, const char *ir_folder, const char *obj_folder, const char *file)
 {
-    std::cout << "run: " << file << std::endl;
+    std::cout << std::endl
+              << "run: " << logia_folder << file << ".logia" << std::endl;
 
     bool debug = true;
 
@@ -71,4 +72,6 @@ TEST(run_from_file, sum_logia)
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "if-stmt"), 3);
 
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "expr-all-operator-i64"), 0);
+
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "numeric-vardecl"), 15);
 }

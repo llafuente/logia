@@ -49,11 +49,12 @@ namespace logia::AST
 
     void ReturnStmt::post_type_inference()
     {
-        auto expr = this->get_expr()->get_final_type();
-        if (expr->is<InferType>())
+        auto exprty = this->get_expr()->get_final_type();
+        DEBUG() << exprty->to_string() << std::endl;
+        if (exprty->is<InferType>())
         {
             // enforce type to be the returned type
-            expr->set_type(this->first_parent<Function>()->get_return_type());
+            exprty->set_type(this->first_parent<Function>()->get_return_type());
         }
     }
 

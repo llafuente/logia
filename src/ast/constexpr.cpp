@@ -96,7 +96,7 @@ namespace logia::AST
     llvm::Value *IntegerLiteral::post_codegen(logia::Backend *backend)
     {
         DEBUG() << this->to_string() << std::endl;
-        auto type = this->get_type();
+        auto type = this->get_final_type();
         auto llvm_type = (llvm::Type *)this->get_final_type()->codegen(backend);
 
         if (type->is<Integer>())
@@ -117,7 +117,7 @@ namespace logia::AST
         }
         else
         {
-            throw std::runtime_error(std::format("Unexpected type {}, could not generate an literal from it", type->get_repr()));
+            throw std::runtime_error(std::format("Unexpected type {}, could not generate an integer/floating point literal from it", type->get_repr()));
         }
 
         return ConstExpression::post_codegen(backend);

@@ -233,13 +233,13 @@ namespace logia
     ParseResult *logia_parse_package(const char *file_path)
     {
         auto parse_result = new ParseResult(file_path);
-        parse_result->parse(true);
+        parse_result->parse(false);
         return parse_result;
     }
     ParseResult *logia_parse_program(const char *file_path)
     {
         auto parse_result = new ParseResult(file_path);
-        parse_result->parse(false);
+        parse_result->parse(true);
         return parse_result;
     }
 }
