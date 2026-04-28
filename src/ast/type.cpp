@@ -93,8 +93,8 @@ namespace logia::AST
     void Type::__register_type(const char *name)
     {
         // TODO REVIEW function block scope ? -> or closest block scope!?
-        auto block = this->first_parent<Block>();
-        block->set(name, this);
+        auto scope = this->first_parent<Scope>();
+        scope->scope_set(name, this);
     }
 
     llvm::Value *Type::post_codegen(logia::Backend *backend)
@@ -585,8 +585,8 @@ namespace logia::AST
         LOGIA_ASSERT(this->children.size() != 1, "TODO: single resolve atm");
         // search children!
         auto id = this->get_child<Identifier>(0);
-        auto block = this->first_parent<Block>();
-        auto node = block->lookup<Node>(id->identifier);
+        auto scope = this->first_parent<Scope>();
+        auto node = scope->lookup<Node>(id->identifier);
 
         return node->get_type();
     }
@@ -945,7 +945,7 @@ namespace logia::AST
         LOGIA_ASSERT(!this->is_attached && "Function type should be created before attached");
 
         this->push_child(param);
-        this->get_body()->set(param->get_name()->identifier, param);
+        this->get_body()->scope_set(param->get_name()->identifier, param);
     }
 
     void Function::check_call(CallExpression *callee)

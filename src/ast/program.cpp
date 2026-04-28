@@ -12,57 +12,59 @@ namespace logia::AST
 {
     Program::Program(antlr4::ParserRuleContext *rule, const char *entry_point_file, const char *file_contents) : Block(rule, ast_create_identifier("program")), entry_point_file(entry_point_file), file_contents(file_contents)
     {
+        intrinsics = new Scope(nullptr);
+        this->push_child(intrinsics);
         // we know declare all primitives
         // any type in the language should use those
         // it's prohibited to create type using llvm
         // everything shall be supported directly
-        this->push_child(new Integer(true, 1));
-        auto i1 = this->children[this->children.size() - 1]->as<Type>();
-        this->push_child(new Integer(true, 8));
-        this->push_child(new Integer(true, 16));
-        this->push_child(new Integer(true, 32));
-        this->push_child(new Integer(true, 64));
-        auto i64 = this->children[this->children.size() - 1]->as<Type>();
-        this->push_child(new Integer(true, 128));
+        intrinsics->push_child(new Integer(true, 1));
+        intrinsics->push_child(new Integer(true, 8));
+        intrinsics->push_child(new Integer(true, 16));
+        intrinsics->push_child(new Integer(true, 32));
+        intrinsics->push_child(new Integer(true, 64));
+        intrinsics->push_child(new Integer(true, 128));
 
-        this->push_child(new Integer(false, 8));
-        this->push_child(new Integer(false, 16));
-        this->push_child(new Integer(false, 32));
-        this->push_child(new Integer(false, 64));
-        this->push_child(new Integer(false, 128));
+        intrinsics->push_child(new Integer(false, 8));
+        intrinsics->push_child(new Integer(false, 16));
+        intrinsics->push_child(new Integer(false, 32));
+        intrinsics->push_child(new Integer(false, 64));
+        intrinsics->push_child(new Integer(false, 128));
 
-        this->push_child(new Void());
-        this->push_child(new Pointer());
+        intrinsics->push_child(new Void());
+        intrinsics->push_child(new Pointer());
 
-        this->push_child(new Float(16));
-        this->push_child(new Float(32));
-        this->push_child(new Float(64));
-        this->push_child(new Float(128));
+        intrinsics->push_child(new Float(16));
+        intrinsics->push_child(new Float(32));
+        intrinsics->push_child(new Float(64));
+        intrinsics->push_child(new Float(128));
 
         auto imp = new Import(nullptr);
         imp->set_import_into_scope();
         imp->set_package({new Identifier(nullptr, "core"), new Identifier(nullptr, "primitives")});
+        imp->set_scope_target(this);
 
-        this->push_child(imp);
+        intrinsics->push_child(imp);
 
-        // int is an alias of i64
-        // float is an alias of f64
+        intrinsics->scope_copy_all(this);
+
+        this->children.pop_back(); // safe to remove now
+
+        DEBUG() << intrinsics->to_string_tree() << std::endl;
+
+        // alias
         this->scope[(char *)"int"] = this->scope[(char *)"λi64"];
         this->scope[(char *)"float"] = this->scope[(char *)"λf64"];
         this->scope[(char *)"bool"] = this->scope[(char *)"λi1"];
-
-        // alias
         this->scope[(char *)"void"] = this->scope[(char *)"λvoid"];
         this->scope[(char *)"ptr"] = this->scope[(char *)"λptr"];
-
-        this->primitive_count = this->children.size();
     }
 
     void Program::codegen_primitives(logia::Backend *backend)
     {
-        for (auto i = 0; i < this->primitive_count; ++i)
+        for (const auto it : intrinsics->children)
         {
-            this->children[i]->codegen(backend);
+            it->codegen(backend);
         }
     }
 
@@ -83,14 +85,16 @@ namespace logia::AST
         {
             f->add_param(new FunctionParameter(new Identifier(nullptr, ""), t, nullptr));
         }
-        this->push_child(f);
+        intrinsics->push_child(f);
         DEBUG() << f->to_string() << std::endl;
     }
 
     Type *Program::get_ast_type(llvm::Type *type)
     {
-        for (Node *node : this->children)
+        // search in the scope, not in children
+        for (const auto &it : scope)
         {
+            auto node = it.second;
             if (node->is<Type>())
             {
                 auto ltype = node->as<Type>();
@@ -102,7 +106,7 @@ namespace logia::AST
             }
         }
 
-        throw std::runtime_error(std::format("llvm type not found: {}", llvm_type_to_string(type)));
+        throw_compiler_error(std::format("llvm type not found: {}", llvm_type_to_string(type)));
     }
 
     void Program::post_attach()
@@ -123,9 +127,10 @@ namespace logia::AST
     {
         DEBUG() << this->to_string() << std::endl;
 
+        this->intrinsics->codegen(backend); // forward, it's hidden from tree
+
         // NOTE: overwrite - no override!
         // Block::post_codegen(backend);
-
         this->codegen_children(backend);
 
         this->cg_value = nullptr; // nobody need program return type!

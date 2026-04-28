@@ -30,9 +30,11 @@ namespace logia::AST
     class Program : public Block
     {
     public:
+        // hide intrinsics tree from user
+        Scope *intrinsics = nullptr;
+
         const char *entry_point_file = nullptr;
         const char *file_contents = nullptr;
-        size_t primitive_count = 0;
 
         Program(antlr4::ParserRuleContext *rule, const char *entry_point_file, const char *file_contents);
 

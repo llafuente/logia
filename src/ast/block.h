@@ -22,9 +22,17 @@ namespace logia::AST
         std::unordered_map<std::string_view, Node *> scope;
 
         /// @brief Register a name in the scope
-        void set(const char *name, Node *node);
+        void scope_set(const char *name, Node *node);
+
+        /// @brief Copy given identifiers into target
+        void scope_copy(std::vector<Identifier *> list, Scope *target);
+
+        /// @brief Copy everything into target
+        void scope_copy_all(Scope *target);
 
         void post_attach() override;
+
+        Type *get_type() override;
 
         /// @brief lookup a name into the current scope gracefully
         /// @example

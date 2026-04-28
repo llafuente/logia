@@ -10,7 +10,7 @@ namespace logia::AST
     //
     Scope::Scope(antlr4::ParserRuleContext *rule) : Node(rule) {}
 
-    void Scope::set(const char *name, Node *node)
+    void Scope::scope_set(const char *name, Node *node)
     {
         if (!node->is<Type>() && !node->is<Block>() && !node->is<VarDeclStmt>() && !node->is<FunctionParameter>())
         {
@@ -19,12 +19,36 @@ namespace logia::AST
         this->scope[strdup(name)] = node;
     }
 
+    void Scope::scope_copy(std::vector<Identifier *> list, Scope *target)
+    {
+        for (const auto &it : list)
+        {
+            const char *name = it->identifier;
+            // TODO handle don't exist -> compiler_error
+            auto node = this->scope[name];
+
+            target->scope_set(name, node);
+        }
+    }
+    void Scope::scope_copy_all(Scope *target)
+    {
+        for (const auto &it : scope)
+        {
+            target->scope_set(it.first.data(), it.second);
+        }
+    }
+
     void Scope::post_attach()
     {
         // keep parent body in sync regardless being already attached, allow blocks to be moved.
-        auto parentBody = this->first_parent<Block>();
+        auto parentBody = this->first_parent<Scope>();
         LOGIA_ASSERT(parentBody);
         this->parentScope = parentBody;
+    }
+
+    Type *Scope::get_type()
+    {
+        return nullptr;
     }
 
     //
@@ -77,7 +101,7 @@ namespace logia::AST
                 try
                 {
                     auto fblock = this->first_parent<FunctionBlock>();
-                    fblock->set(this->get_name(), this);
+                    fblock->scope_set(this->get_name(), this);
                 }
                 catch (std::exception e)
                 {

@@ -39,8 +39,8 @@ namespace logia::AST
         std::vector<AST::Identifier *> package;
         std::vector<AST::Identifier *> import_list;
 
-        // resolved from package
-        const char *entry_point_file;
+        ParseResult *parse_result;
+        Scope *target;
 
         Import(antlr4::ParserRuleContext *rule);
 
@@ -50,6 +50,7 @@ namespace logia::AST
         void set_import_into_scope();
         void set_import_all();
         void set_import_list(std::vector<AST::Identifier *> list);
+        void set_scope_target(Scope *target);
 
         Type *get_type() override;
         void post_attach() override;

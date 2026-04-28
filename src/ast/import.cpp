@@ -38,12 +38,25 @@ namespace logia::AST
     {
         throw std::runtime_error("??");
     }
+    void Import::set_scope_target(Scope *target)
+    {
+        this->target = target;
+    }
 
     void Import::post_attach()
     {
-        auto parse_data = logia_parse_package("core/primitives.logia");
-        this->push_child(parse_data->ast_tree); // program attached? :P
+        parse_result = logia_parse_package("core/primitives.logia");
+        this->push_child(parse_result->ast_tree); // program attached? :P
         // parse
         // append to parent block everything!
+        if (target == nullptr)
+        {
+            target = this->first_parent<Scope>();
+        }
+
+        if (this->is_import_into_scope)
+        {
+            this->scope_copy_all(target);
+        }
     }
 }

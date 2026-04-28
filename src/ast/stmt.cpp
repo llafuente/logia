@@ -237,7 +237,7 @@ namespace logia::AST
         {
             this->is_attached = true;
             auto block = this->first_parent<Block>();
-            block->set(this->get_name(), this);
+            block->scope_set(this->get_name(), this);
         }
     }
     Type *VarDeclStmt::get_type()
