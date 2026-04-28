@@ -49,13 +49,6 @@ namespace logia::AST
 
     void ReturnStmt::post_type_inference()
     {
-        auto exprty = this->get_expr()->get_final_type();
-        DEBUG() << exprty->to_string() << std::endl;
-        if (exprty->is<InferType>())
-        {
-            // enforce type to be the returned type
-            exprty->set_type(this->first_parent<Function>()->get_return_type());
-        }
     }
 
     llvm::Value *ReturnStmt::post_codegen(logia::Backend *backend)
@@ -242,32 +235,21 @@ namespace logia::AST
     }
     Type *VarDeclStmt::get_type()
     {
-        return ast_resolve_type(this->get_child<Type>(1));
+        return this->get_child<Type>(1)->get_final_type();
+    }
+    void VarDeclStmt::set_type(Type *ty)
+    {
+        if (this->is_typed)
+        {
+            throw_compiler_error("already has a type!");
+        }
+        // TODO assume [1] is InferType ?
+        this->children[1]->set_type(ty);
+        this->is_typed = true;
     }
 
     bool VarDeclStmt::pre_type_inference()
     {
-        if (is_typed)
-        {
-            // TODO determine type if possible
-            // TODO what we do when we cant ? push somewhere and back later ?
-            auto t = this->get_final_type();
-            if (t->is<Struct>())
-            {
-                // if rhs is struct initializer -> set_type
-                auto expr = this->get_expr();
-                if (expr != nullptr && expr->is<StructInitializer>())
-                {
-                    expr->as<StructInitializer>()->set_type(t);
-                }
-            }
-            else
-            {
-                auto expr = this->get_expr();
-                // expr->set
-                expr->set_type(t);
-            }
-        }
         return true;
     }
 

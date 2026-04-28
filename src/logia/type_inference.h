@@ -2,7 +2,7 @@
 
 namespace logia
 {
-    namespace
+    namespace AST
     {
         struct Program;
     }

@@ -34,6 +34,7 @@
 
 #include "utils.h"
 #include "logia/frontend.h"
+#include "logia/type_inference.h"
 #include "ast/program.h"
 
 // cross compile support ?
@@ -288,6 +289,7 @@ namespace logia
     {
         if (!program->is_codegen)
         {
+            type_inference(this->program);
             this->program->codegen(this);
         }
         if (logia_config.debug)

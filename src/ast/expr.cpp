@@ -49,10 +49,52 @@ namespace logia::AST
     Node *MemberAccessExpression::resolve()
     {
         auto left = this->get_left()->resolve();
-        auto left_type = left->get_type();
-        LOGIA_ASSERT(left_type->isStruct(), "only structs can be resolved atm.");
+        auto left_type = left->get_final_type();
+
+        if (!left_type->is<Struct>())
+        {
+            throw_compiler_error("TODO! Only structs can be resolved atm.");
+        }
+
         auto left_as_struct = left_type->as<Struct>();
-        return left_as_struct->get_field_type(this->get_right());
+        return left_as_struct->get_field_type(this->get_right())->get_final_type();
+    }
+
+    std::string MemberAccessExpression::to_string()
+    {
+        return std::format("MemberAccessExpression[left {} / right {}]{}", this->get_left()->to_string(), this->get_right()->to_string(), Node::to_string());
+    }
+
+    llvm::Value *MemberAccessExpression::post_codegen(logia::Backend *backend)
+    {
+        DEBUG() << this->to_string() << std::endl;
+        // TODO handle left side to be a pointer to struct or struct itself, for now we assume it's always a pointer
+        auto left = this->get_left();
+        auto left_type = left->get_final_type();
+        auto leftValue = left->codegen(backend);
+
+        if (!left_type->is<Struct>())
+        {
+            throw_semantic_error(left, "Expected left to be a struct");
+        }
+        auto struct_ty = left_type->as<Struct>();
+
+        auto right = this->get_right();
+        auto rightIdent = right->as<Identifier>();
+
+        int propertyIndex = struct_ty->get_field_index(rightIdent->identifier);
+        if (propertyIndex == -1)
+        {
+            throw_semantic_error(left, std::format("struct property with name '{}' not found", rightIdent->identifier));
+        }
+
+        auto property_ty = (llvm::Type *)struct_ty->get_field_type(rightIdent)->codegen(backend);
+        auto ptr = backend->builder->CreateStructGEP(struct_ty->ir_type, leftValue, propertyIndex);
+
+        DEBUG() << llvm_type_to_string(property_ty) << std::endl;
+
+        this->cg_value = backend->builder->CreateLoad(property_ty, ptr);
+        return Expression::post_codegen(backend);
     }
 
     //
@@ -134,8 +176,14 @@ namespace logia::AST
     }
     Type *CallExpression::get_type()
     {
-        // CallExpression should point to a function
-        Function *f = this->get_locator()->get_type()->as<Function>();
+        // a callExpression should point to a function
+        auto ty = this->get_locator()->get_type();
+        if (ty->is<InferType>())
+        {
+            return ty;
+        }
+        // otherwise -> function!
+        Function *f = ty->as<Function>();
 
         return f->get_return_type();
     }
@@ -181,20 +229,20 @@ namespace logia::AST
         std::vector<llvm::Value *> ArgsV;
         for (size_t i = 0, e = arguments.size(); i != e; ++i)
         {
-            auto callee_arg = CalleeF->getArg(i);
+            auto argument = arguments[i];
+
+            auto callee_parameter = CalleeF->getArg(i);
             DEBUG() << "argument[" << i << "]" << std::endl;
-            auto caller_arg = arguments[i]->codegen(backend);
+            auto ir_caller_argument = argument->codegen(backend);
 
             // check arguments type are compatible one by one
-            if (callee_arg->getType() != caller_arg->getType())
+            if (callee_parameter->getType() != ir_caller_argument->getType())
             {
-                auto message = std::format("Invalid argument {}:{} of type {} expected type {}", i, name->identifier, llvm_type_to_string(caller_arg->getType()), llvm_type_to_string(callee_arg->getType()));
-                DEBUG() << message << std::endl
-                        << arguments[i]->to_string_tree();
-                throw std::runtime_error(message);
+                LERROR() << this->to_string_tree();
+                throw_semantic_error(argument, std::format("Invalid argument {} '{}' of type '{}' expected type '{}'", i, name->identifier, llvm_type_to_string(ir_caller_argument->getType()), llvm_type_to_string(callee_parameter->getType())));
             }
 
-            ArgsV.push_back(caller_arg);
+            ArgsV.push_back(ir_caller_argument);
             if (!ArgsV.back())
             {
                 return nullptr;
@@ -213,40 +261,6 @@ namespace logia::AST
         auto callexpr = new CallExpression(nullptr, locator, arguments);
 
         return callexpr;
-    }
-
-    //
-    // MemberExpression
-    //
-    std::string MemberAccessExpression::to_string()
-    {
-        return std::format("MemberAccessExpression[left {} / right {}]{}", this->get_left()->to_string(), this->get_right()->to_string(), Node::to_string());
-    }
-
-    llvm::Value *MemberAccessExpression::post_codegen(logia::Backend *backend)
-    {
-        DEBUG() << this->to_string() << std::endl;
-        // TODO handle left side to be a pointer to struct or struct itself, for now we assume it's always a pointer
-        auto left = this->get_left();
-        auto right = this->get_right();
-
-        auto leftValue = left->codegen(backend);
-        auto rightIdent = right->as<Identifier>();
-        auto left_type = left->get_type();
-        LOGIA_ASSERT(left_type->isStruct() && "left should be a struct");
-        auto struct_ty = left_type->as<Struct>();
-
-        int propertyIndex = struct_ty->get_field_index(rightIdent->identifier);
-        auto propertyType = (llvm::Type *)struct_ty->get_field_type(rightIdent)->codegen(backend);
-        if (propertyIndex == -1)
-        {
-            throw std::runtime_error(std::string("Unknown struct property: ") + rightIdent->identifier);
-        }
-
-        auto ptr = backend->builder->CreateStructGEP(struct_ty->ir_type, leftValue, propertyIndex);
-
-        this->cg_value = backend->builder->CreateLoad(propertyType, ptr);
-        return Expression::post_codegen(backend);
     }
 
     // TODO create
@@ -465,7 +479,7 @@ namespace logia::AST
     {
         DEBUG() << this->to_string() << std::endl;
 
-        auto decl = this->first_parent<Block>()->lookup<Node>(this->identifier);
+        auto decl = this->first_parent<Scope>()->lookup<Node>(this->identifier);
         if (decl->is<VarDeclStmt>())
         {
             auto vdecl = decl->as<VarDeclStmt>();
@@ -481,7 +495,7 @@ namespace logia::AST
             return Expression::post_codegen(backend);
         }
         // TODO function? -> function pointer
-        throw std::runtime_error(std::format("{}{}", "Identifier found but type not handled!", decl->to_string()));
+        throw_compiler_error(std::format("{}{}", "Identifier found but type not handled yet {}!", decl->to_string(), typeid(decl).name()));
     }
     bool Identifier::operator==(const char *id)
     {
@@ -513,7 +527,7 @@ namespace logia::AST
     {
         if (this->identifier == nullptr || strlen(this->identifier) == 0)
         {
-            throw std::runtime_error("Cannot retrieve type. Call type_inference first.");
+            return new InferType(); // TODO new ?
         }
         auto block = this->first_parent<Block>();
         return block->lookup<Node>(this->identifier);
@@ -531,12 +545,16 @@ namespace logia::AST
     //
 
     StructInitializer::StructInitializer(antlr4::ParserRuleContext *rule) : Expression(rule) {}
+    std::string StructInitializer::to_string()
+    {
+        return std::format("{}{}", "StructInitializer", Expression::to_string());
+    }
 
     void StructInitializer::set_type(Type *type)
     {
         if (this->is_typed)
         {
-            throw std::runtime_error("type was already set");
+            throw_compiler_error("type was already set");
         }
 
         this->is_typed = true;
@@ -572,47 +590,54 @@ namespace logia::AST
     {
         if (!this->is_constant)
         {
-            throw std::runtime_error("non-constant initialization not supported atm.");
+            throw_semantic_error(this, "non-constant initialization not supported atm.");
         }
 
         auto &ctx = backend->context;
         const llvm::DataLayout &dl = backend->module->getDataLayout();
 
+        auto struct_ty = this->get_type()->as<Struct>();
+
         auto v = std::vector<llvm::Constant *>();
         v.reserve(this->length);
 
         // skip first, it's the type
-        for (size_t i = 1; i < this->children.size(); i += 2)
+
+        for (auto field_index = 0, i = 1; i < this->children.size(); i += 2, ++field_index)
         {
-            auto ptr = this->children[i + 1];
-            auto out = dynamic_cast<Expression *>(ptr);
-            auto ir = out->codegen(backend);
-            // if (auto cir = dynamic_cast<llvm::Constant*>(ir)) {
-            if (auto cir = (llvm::Constant *)(ir))
+            auto field_ty = struct_ty->get_field_by_index(field_index)->get_final_type();
+            field_ty->codegen(backend);
+
+            auto item = this->get_child<Expression>(i + 1);
+            auto item_ty = item->get_final_type();
+            item_ty->codegen(backend);
+
+            auto ir_item_value = item->codegen(backend);
+            auto cir_item_value = (llvm::Constant *)(ir_item_value);
+
+            if (field_ty->ir_type != item_ty->ir_type)
             {
-                v.push_back(cir);
+                throw_semantic_error(item, std::format("Expected type {} found type {}", field_ty->get_repr(), item_ty->get_repr()));
             }
-            else
-            {
-                throw std::runtime_error("??");
-            }
+
+            v.push_back(cir_item_value);
         }
 
-        auto structTy = (llvm::StructType *)this->get_type()->as<Struct>()->codegen(backend);
+        auto ir_struct_ty = (llvm::StructType *)struct_ty->codegen(backend);
 
         // 1) Constant initializer (replace with your child constants)
-        llvm::Constant *init = llvm::ConstantStruct::get(structTy, v);
+        llvm::Constant *init = llvm::ConstantStruct::get(ir_struct_ty, v);
 
         // 2) Materialize constant in read-only global memory (memcpy source must be an address)
         auto *srcGlobal = new llvm::GlobalVariable(
             *backend->module,
-            structTy,
+            ir_struct_ty,
             true, // isConstant
             llvm::GlobalValue::PrivateLinkage,
             init,
             ".struct.init");
 
-        auto abiAlign = llvm::Align(dl.getABITypeAlign(structTy).value());
+        auto abiAlign = llvm::Align(dl.getABITypeAlign(ir_struct_ty).value());
         srcGlobal->setAlignment(abiAlign);
 
         this->cg_value = srcGlobal;

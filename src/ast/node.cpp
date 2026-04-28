@@ -185,39 +185,11 @@ namespace logia::AST
     llvm::Value *Node::codegen(logia::Backend *backend)
     {
         this->pre_codegen(backend);
-        /*
-        this->foreach_descendant([backend](auto node, auto deep)
-                                 {
-                                     if (node->is_codegen || node->skip_codegen)
-                                     {
-                                         DEBUG() << "SKIP codegen - " << node->to_string() << std::endl;
-                                         return false; // stop
-                                     }
-                                     node->pre_codegen(backend);
-                                     return true; // continue
-                                 });
-        */
+        if (this->cg_value) {
+            return this->cg_value;
+        }
+
         return (this->cg_value = this->post_codegen(backend));
-
-        /*
-        if (this->is_codegen || this->skip_codegen)
-        {
-            return this->cg_value;
-        }
-
-        this->pre_codegen(backend);
-        for (size_t i = 0; i < this->children.size(); i++)
-        {
-            this->children[i]->codegen(backend);
-        }
-        // some node need to be created in a specific order, do not "double" post
-        if (this->is_codegen) {
-            return this->cg_value;
-        }
-        this->cg_value = this->post_codegen(backend);
-        this->is_codegen = true;
-        return this->cg_value;
-        */
     }
 
     //

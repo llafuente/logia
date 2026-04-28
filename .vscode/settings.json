@@ -90,5 +90,6 @@
         "LLVM_DIR": "C:/Program Files (x86)/LLVM/lib/cmake/llvm/"
     },
     "cmake.configureArgs": [],
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "files.trimTrailingWhitespace": true
 }

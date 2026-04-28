@@ -71,9 +71,6 @@ namespace logia::AST
         return this->to_string();
     }
 
-    bool Type::isFunction() { return this->primitive == Primitives::FUNCTION_TY; };
-    bool Type::isStruct() { return this->primitive == Primitives::STRUCT_TY; };
-
     Type *Type::get_type()
     {
         return this;
@@ -521,6 +518,25 @@ namespace logia::AST
         return this->get_field(id->identifier)->get_type();
     }
 
+    StructField *Struct::get_field_by_index(uint32_t index)
+    {
+        StructField *field;
+        auto count = 0;
+        for (const auto &ptr : this->children)
+        {
+            if (ptr->try_cast<StructField>(&field))
+            {
+                if (count == index)
+                {
+                    return field;
+                }
+                ++count;
+            }
+        }
+
+        throw_compiler_error(std::format("index {} out of bounds", index));
+    }
+
     std::string Struct::to_string()
     {
         return std::format("Type[struct {}]{}", this->get_name(), Node::to_string());
@@ -551,11 +567,12 @@ namespace logia::AST
 
         std::vector<llvm::Type *> elements;
         elements.reserve(this->field_count);
+        StructField *field;
         for (auto &prop : this->children)
         {
-            if (auto field = dynamic_cast<StructField *>(prop)) // review it works ?
+            if (prop->try_cast(&field))
             {
-                elements.push_back((llvm::Type *)field->get_type()->codegen(backend));
+                elements.push_back((llvm::Type *)field->get_final_type()->codegen(backend));
             }
         }
 
@@ -654,7 +671,7 @@ namespace logia::AST
     }
     llvm::Value *FunctionParameter::post_codegen(logia::Backend *backend)
     {
-        this->cg_value = this->alloca_inst = backend->builder->CreateAlloca((llvm::Type *)this->get_type()->codegen(backend), nullptr, this->get_name()->identifier);
+        this->cg_value = this->alloca_inst = backend->builder->CreateAlloca((llvm::Type *)this->get_final_type()->codegen(backend), nullptr, this->get_name()->identifier);
         return Node::post_codegen(backend);
     }
     //
@@ -965,11 +982,14 @@ namespace logia::AST
         Expression *default_value,
         const char *docstring)
     {
-        LOGIA_ASSERT(this);
-        LOGIA_ASSERT(this->isStruct());
-
-        LOGIA_ASSERT(type && "type is required for fields");
-        LOGIA_ASSERT(name && "name is required for fields");
+        if (!type)
+        {
+            throw_compiler_error("type is required for fields");
+        }
+        if (!name)
+        {
+            throw_compiler_error("name is required for fields");
+        }
 
         this->push_child(new StructField(rule, name, type, default_value, docstring));
         ++this->field_count;

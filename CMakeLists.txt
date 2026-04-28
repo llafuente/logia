@@ -41,6 +41,7 @@ set(LOGIA_SOURCE_FILES
   src/logia/config.cpp
   src/logia/frontend.cpp
   src/logia/backend.cpp
+  src/logia/type_inference.cpp
 
   src/ast/node.cpp
   src/ast/semantic_error.cpp

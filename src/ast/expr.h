@@ -91,9 +91,11 @@ namespace logia::AST
     /// @return The created member access expression
     LOGIA_API LOGIA_LEND MemberAccessExpression *ast_create_memberaccess_expr(Node *left, Node *right);
 
+    /// @brief Operators for binary expressions expression
+    /// @remarks It starts at 128, there shall be no collisions with other operators!
     enum class BinaryOperator
     {
-        ADD,                 // +
+        ADD = 1,             // +
         SUB,                 // -
         MUL,                 // *
         DIV,                 // /
@@ -133,14 +135,16 @@ namespace logia::AST
 
     LOGIA_API LOGIA_LEND BinaryExpression *ast_create_binary_expr(Expression *left, BinaryOperator op, Expression *right);
 
+    /// @brief Prefix operators for unary expression
+    /// @remarks It starts at 128, there shall be no collisions with other operators!
     enum class PrefixUnaryOperator
     {
-        DEREFERENCE, // &
-        NEGATION,    // -
-        LOGICAL_NOT, // !
-        INCREMENT,   // ++
-        DECREMENT,   // --
-        BITWISE_NOT, // ~
+        DEREFERENCE = 128, // &
+        NEGATION,          // -
+        LOGICAL_NOT,       // !
+        INCREMENT,         // ++
+        DECREMENT,         // --
+        BITWISE_NOT,       // ~
     };
     /// @brief Prefix unary expression, used for prefix unary operators
     /// @remarks Implemented as a call expression to be able to resolve operator overloads and use intrinsics for codegen
@@ -166,10 +170,12 @@ namespace logia::AST
     /// @return The created prefix unary expression
     LOGIA_API LOGIA_LEND PrefixUnaryExpression *ast_create_preunary_expr(PrefixUnaryOperator op, Expression *operand);
 
+    /// @brief Postfix operators for unary expression
+    /// @remarks It starts at 256, there shall be no collisions with other operators!
     enum class PostfixUnaryOperator
     {
-        INCREMENT, // ++
-        DECREMENT, // --
+        INCREMENT = 256, // ++
+        DECREMENT,       // --
     };
 
     /// @brief Postfix unary expression, used for postfix unary operators
@@ -190,7 +196,7 @@ namespace logia::AST
         const char *identifier;
 
         Identifier(antlr4::ParserRuleContext *rule, const char *identifier);
-        bool operator==(const char* id);
+        bool operator==(const char *id);
 
         /// @brief Gets the variable declaration associated with this identifier
         /// @return
@@ -222,6 +228,9 @@ namespace logia::AST
         uint32_t length = 0;
 
         StructInitializer(antlr4::ParserRuleContext *rule);
+
+        std::string to_string() override;
+
         void set_type(Type *type) override;
         void add_named_property(TypeDef *locator, Expression *value);
         void add_positional_property(Expression *value);

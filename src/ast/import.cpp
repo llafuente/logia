@@ -45,6 +45,7 @@ namespace logia::AST
 
     void Import::post_attach()
     {
+        Scope::post_attach();
         parse_result = logia_parse_package("core/primitives.logia");
         this->push_child(parse_result->ast_tree); // program attached? :P
         // parse
@@ -56,7 +57,8 @@ namespace logia::AST
 
         if (this->is_import_into_scope)
         {
-            this->scope_copy_all(target);
+            auto package = this->get_child<Package>(0);
+            package->scope_copy_all(target);
         }
     }
 }

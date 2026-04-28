@@ -1,4 +1,4 @@
-function sum(i64 a, i64 b)  {
+function sum(i64 a, i64 b) i64 {
     return a + b;
 }
 

@@ -87,9 +87,6 @@ namespace logia::AST
         Type(antlr4::ParserRuleContext *rule, Primitives prim);
         ~Type();
 
-        bool isFunction();
-        bool isStruct();
-
         std::string to_string() override;
         virtual std::string get_repr(); // TODO do it pure virtual asap :)
 
@@ -286,6 +283,8 @@ namespace logia::AST
         /// @param id The identifier of the field
         /// @return The type of the field
         Type *get_field_type(Identifier *id);
+
+        StructField *get_field_by_index(uint32_t index);
 
         std::string to_string() override;
 

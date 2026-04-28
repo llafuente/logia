@@ -86,6 +86,8 @@ namespace logia::AST
             f->add_param(new FunctionParameter(new Identifier(nullptr, ""), t, nullptr));
         }
         intrinsics->push_child(f);
+        // expose intrinsic to current "program"
+        scope_set(name, f);
         DEBUG() << f->to_string() << std::endl;
     }
 

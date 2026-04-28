@@ -294,6 +294,21 @@ namespace logia::AST
             }
             return false;
         }
+
+        /// @brief reverse the tree and returns true if found a match, false otherwise
+        /// @tparam T
+        /// @param cb
+        /// @return
+        template <typename T>
+        bool try_cast(T **out)
+        {
+            if (auto tmp = dynamic_cast<T *>(this))
+            {
+                *out = tmp;
+                return true;
+            }
+            return false;
+        }
     };
 
     /// @brief A node that does nothing
