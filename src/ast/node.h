@@ -6,6 +6,7 @@
 
 #include "utils.h"
 #include "logia/backend.h"
+#include "logia/compiler_error.h"
 
 #include "antlr4-runtime.h"
 #include "llvm/IR/IRBuilder.h"
@@ -185,7 +186,7 @@ namespace logia::AST
                 }
             }
 
-            throw std::runtime_error(std::format("not found {} above {}", typeid(T).name(), this->to_string()));
+            throw_compiler_error(std::format("not found {} above {}", typeid(T).name(), this->to_string()));
         }
 
         /// @brief reverse the tree and returns the first node that match given type or throws
@@ -207,7 +208,7 @@ namespace logia::AST
                 // DEBUG() << (ptr != nullptr ? ptr->to_string() : "nullptr") << std::endl;
             } while (ptr != nullptr);
 
-            throw std::runtime_error(std::format("not found {} above {}", typeid(T).name(), this->to_string()));
+            throw_compiler_error(std::format("not found {} above {}", typeid(T).name(), this->to_string()));
         }
 
         /// @brief reverse the tree and returns true if found a match, false otherwise
@@ -246,7 +247,7 @@ namespace logia::AST
             {
                 return out;
             }
-            throw std::runtime_error(std::format("unexpected type {} expected {}", typeid(node).name(), typeid(T).name()));
+            throw_compiler_error(std::format("unexpected type {} expected {}", typeid(node).name(), typeid(T).name()));
         }
 
         /// @brief Retrieve children at given position as given type. If fail throws.
@@ -276,9 +277,9 @@ namespace logia::AST
             }
             if (message)
             {
-                throw std::runtime_error(message);
+                throw_compiler_error(message);
             }
-            throw std::runtime_error(std::format("unexpected type {} expected {}", typeid(this).name(), typeid(T).name()));
+            throw_compiler_error(std::format("unexpected type {} expected {}`n{}", typeid(this).name(), typeid(T).name(), this->to_string()));
         }
 
         /// @brief Checks if the node is of the given type
@@ -316,7 +317,7 @@ namespace logia::AST
         {
             return;
         }
-        throw std::runtime_error(std::format("{}\nExpected type: {}\n{}", message, typeid(T).name(), node->to_string()));
+        throw_compiler_error(std::format("{}\nExpected type: {}\n{}", message, typeid(T).name(), node->to_string()));
     }
 
     /// @brief Throws if node is not of given type
@@ -331,7 +332,7 @@ namespace logia::AST
         {
             return;
         }
-        throw std::runtime_error(std::format("{}\nExpected type: {} or {}\n{}", message, typeid(T).name(), typeid(T2).name(), node->to_string()));
+        throw_compiler_error(std::format("{}\nExpected type: {} or {}\n{}", message, typeid(T).name(), typeid(T2).name(), node->to_string()));
     }
 
     /// @brief Throws if node is not of given type
@@ -346,6 +347,6 @@ namespace logia::AST
         {
             return;
         }
-        throw std::runtime_error(std::format("{}\nExpected type: {} or {} or {}\n{}", message, typeid(T).name(), typeid(T2).name(), typeid(T3).name(), node->to_string()));
+        throw_compiler_error(std::format("{}\nExpected type: {} or {} or {}\n{}", message, typeid(T).name(), typeid(T2).name(), typeid(T3).name(), node->to_string()));
     }
 }

@@ -1,3 +1,4 @@
+#include "logia/compiler_error.h"
 #include "ast/constexpr.h"
 #include "ast/type.h"
 #include "utils.h"
@@ -117,7 +118,7 @@ namespace logia::AST
         }
         else
         {
-            throw std::runtime_error(std::format("Unexpected type {}, could not generate an integer/floating point literal from it", type->get_repr()));
+            throw_compiler_error(std::format("Unexpected type {}, could not generate an integer/floating point literal from it", type->get_repr()));
         }
 
         return ConstExpression::post_codegen(backend);
@@ -147,7 +148,7 @@ namespace logia::AST
     {
         DEBUG() << this->to_string() << std::endl;
         this->cg_value = nullptr;
-        throw std::runtime_error(__FUNCTION__ "todo");
+        throw_compiler_error("TODO!");
         return ConstExpression::post_codegen(backend);
     }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ast/node.h"
+#include "ast/semantic_error.h"
 
 namespace logia::AST
 {
@@ -60,7 +61,7 @@ namespace logia::AST
                 return it->second->as<T>();
             }
 
-            throw std::runtime_error(std::format("not found in scope: {}", name));
+            throw_semantic_error(this, std::format("Identifier '{}' not found in current scope.", name));
         }
 
         /// @brief lookup a name into the scope chain gracefully
@@ -109,7 +110,7 @@ namespace logia::AST
                 p = p->parentScope;
             } while (p != nullptr);
 
-            throw std::runtime_error(std::format("not found in scope: {} of type {}", name, typeid(T).name()));
+            throw_semantic_error(this, std::format("Identifier '{}' of type '{}' Not found in scope.", name, typeid(T).name()));
         }
     };
 
