@@ -383,7 +383,8 @@ namespace logia::AST
                              Identifier *name,
                              Type *type,
                              Expression *default_value,
-                             const char *docstring) : docstring(docstring), Type(rule, Primitives::NONE)
+                             uint32_t index,
+                             const char *docstring) : docstring(docstring), Type(rule, Primitives::NONE), index(index)
     {
         this->push_child(name);
         this->push_child(type);
@@ -488,31 +489,6 @@ namespace logia::AST
         return nullptr;
     }
 
-    uint32_t Struct::get_field_index(const char *id)
-    {
-        auto to = this->get_alias_to(id);
-        if (to != nullptr)
-        {
-            id = to->identifier;
-        }
-
-        uint32_t count = 0;
-
-        for (const auto &ptr : this->children)
-        {
-            if (auto field = dynamic_cast<StructField *>(ptr))
-            {
-                if (*field->get_name() == id)
-                {
-                    return count;
-                }
-                ++count;
-            }
-        }
-
-        return -1;
-    }
-
     Type *Struct::get_field_type(Identifier *id)
     {
         return this->get_field(id->identifier)->get_type();
@@ -521,16 +497,14 @@ namespace logia::AST
     StructField *Struct::get_field_by_index(uint32_t index)
     {
         StructField *field;
-        auto count = 0;
         for (const auto &ptr : this->children)
         {
             if (ptr->try_cast<StructField>(&field))
             {
-                if (count == index)
+                if (field->index == index)
                 {
                     return field;
                 }
-                ++count;
             }
         }
 
@@ -991,8 +965,7 @@ namespace logia::AST
             throw_compiler_error("name is required for fields");
         }
 
-        this->push_child(new StructField(rule, name, type, default_value, docstring));
-        ++this->field_count;
+        this->push_child(new StructField(rule, name, type, default_value, this->field_count++, docstring));
     }
 
     void Struct::add_alias(antlr4::ParserRuleContext *rule, Identifier *from, Identifier *to, const char *docstring)

@@ -205,11 +205,14 @@ namespace logia::AST
     {
         const char *docstring;
 
+        uint32_t index;
+
         StructField(
             antlr4::ParserRuleContext *rule,
             Identifier *name,
             Type *type,
             Expression *default_value,
+            uint32_t index,
             const char *docstring = nullptr);
 
         std::string to_string() override;
@@ -273,11 +276,6 @@ namespace logia::AST
         /// @param id The identifier of the field
         /// @return The field corresponding to the identifier
         StructField *get_field(const char *id);
-
-        /// @brief Retrieves the index of a field by its identifier, used for struct field access codegen
-        /// @param id The identifier of the field
-        /// @return The index of the field
-        uint32_t get_field_index(const char *id);
 
         /// @brief Retrieves the type of a field by its identifier
         /// @param id The identifier of the field

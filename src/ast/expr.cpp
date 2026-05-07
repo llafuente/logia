@@ -71,27 +71,33 @@ namespace logia::AST
         // TODO handle left side to be a pointer to struct or struct itself, for now we assume it's always a pointer
         auto left = this->get_left();
         auto left_type = left->get_final_type();
-        auto leftValue = left->codegen(backend);
+        auto left_value = left->codegen(backend);
 
         if (!left_type->is<Struct>())
         {
+            LERROR() << left->to_string_tree() << std::endl;
             throw_semantic_error(left, "Expected left to be a struct");
         }
         auto struct_ty = left_type->as<Struct>();
 
         auto right = this->get_right();
-        auto rightIdent = right->as<Identifier>();
-
-        int propertyIndex = struct_ty->get_field_index(rightIdent->identifier);
-        if (propertyIndex == -1)
+        if (right->is<Struct>())
         {
-            throw_semantic_error(left, std::format("struct property with name '{}' not found", rightIdent->identifier));
+            LERROR() << left->to_string_tree() << std::endl;
+            throw_semantic_error(left, "Expected right to be an identifier");
+        }
+        auto right_ident = right->as<Identifier>();
+
+        auto field = struct_ty->get_field(right_ident->identifier);
+        if (field == nullptr)
+        {
+            throw_semantic_error(left, std::format("struct '{}' do not contains a property with name '{}'", struct_ty->get_name(), right_ident->identifier));
         }
 
-        auto property_ty = (llvm::Type *)struct_ty->get_field_type(rightIdent)->codegen(backend);
-        auto ptr = backend->builder->CreateStructGEP(struct_ty->ir_type, leftValue, propertyIndex);
+        auto property_ty = (llvm::Type *)field->get_final_type()->codegen(backend);
+        auto ptr = backend->builder->CreateStructGEP(struct_ty->ir_type, left_value, field->index);
 
-        DEBUG() << llvm_type_to_string(property_ty) << std::endl;
+        DEBUG() << "load - " << llvm_type_to_string(property_ty) << std::endl;
 
         this->cg_value = backend->builder->CreateLoad(property_ty, ptr);
         return Expression::post_codegen(backend);

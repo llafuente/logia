@@ -5,6 +5,6 @@ type point = struct {
 
 function main() i64 {
     var point p = {10, 11}
-    
+
     return p.x + p.y
 }
