@@ -25,6 +25,7 @@ namespace logia::AST
     /// @brief Call expression, can be a function call, method call, operator call, etc.
     struct CallExpression : Expression
     {
+        uint32_t argument_count = 0;
         /// @brief Empty constructor for internal usage of CallExpression
         /// @remarks Do not use the constructor to build ASTs
         CallExpression(antlr4::ParserRuleContext *rule);

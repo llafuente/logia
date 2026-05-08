@@ -135,6 +135,8 @@ namespace logia::AST
 
         this->push_child(name);
         this->push_child(expr);
+
+        ++argument_count;
     }
     void CallExpression::add_positional_argument(Expression *expr)
     {
@@ -146,6 +148,8 @@ namespace logia::AST
 
         this->push_child(name); // TODO maybe empty identifier ?!
         this->push_child(expr);
+
+        ++argument_count;
     }
 
     Expression *CallExpression::get_locator()
