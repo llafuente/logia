@@ -16,7 +16,14 @@ namespace logia::AST
         {
             throw std::runtime_error(std::format("invalid node type: {} - {}", typeid(node).name(), node->to_string()));
         }
-        this->scope[strdup(name)] = node;
+        if (!this->scope.contains(name))
+        {
+            this->scope[strdup(name)] = {node};
+        }
+        else
+        {
+            this->scope[name].push_back(node);
+        }
     }
 
     void Scope::scope_copy(std::vector<Identifier *> list, Scope *target)
@@ -25,16 +32,23 @@ namespace logia::AST
         {
             const char *name = it->identifier;
             // TODO handle don't exist -> compiler_error
-            auto node = this->scope[name];
+            auto vec = this->scope[name];
 
-            target->scope_set(name, node);
+            for (const auto &it2 : vec)
+            {
+                target->scope_set(name, it2);
+            }
         }
     }
     void Scope::scope_copy_all(Scope *target)
     {
         for (const auto &it : scope)
         {
-            target->scope_set(it.first.data(), it.second);
+            auto vec = it.second;
+            for (const auto &it2 : vec)
+            {
+                target->scope_set(it.first.data(), it2);
+            }
         }
     }
 

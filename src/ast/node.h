@@ -154,7 +154,7 @@ namespace logia::AST
             }
         }
 
-        /// @brief traverse tree while lambda returns true
+        /// @brief traverse tree inorder while lambda returns true
         /// @tparam T
         /// @param cb
         void foreach_descendant(std::function<bool(Node *node, int deep)> cb, int deep = 0)
@@ -165,6 +165,18 @@ namespace logia::AST
                 {
                     ptr->foreach_descendant(cb, deep + 1);
                 }
+            }
+        }
+
+        /// @brief traverse tree Depth-First Traversal
+        /// @tparam T
+        /// @param cb
+        void foreach_post_descendant(std::function<void(Node *node, int deep)> cb, int deep = 0)
+        {
+            for (const auto &ptr : this->children)
+            {
+                ptr->foreach_post_descendant(cb, deep + 1);
+                cb(ptr, deep);
             }
         }
 

@@ -112,9 +112,12 @@ return true; });
     {
         DEBUG() << program->to_string_tree() << std::endl;
 
+        program->foreach_descendant([](Node *node, int deep)
+                                    { node->pre_type_inference(); return true; });
+
         program->foreach_descendant([program](Node *node, int deep)
                                     {
-                                        node->pre_type_inference();
+
 
                                         if (node->is<VarDeclStmt>()) {
                                             type_inference_vardecl(node->as<VarDeclStmt>());
@@ -134,7 +137,6 @@ return true; });
                                         else if (node->is<FloatLiteral>()) {
                                             todo_type_stack.push_back({ node, program->look<Type>("λf64") });
                                         }
-                                        node->post_type_inference();
                                     return true; });
 
         // if at the end, this nodes are not resolved, force them!
@@ -147,6 +149,9 @@ return true; });
             }
         }
         todo_type_stack.clear();
+
+        program->foreach_post_descendant([](Node *node, int deep)
+                                         { node->post_type_inference(); });
 
         DEBUG() << program->to_string_tree() << std::endl;
     }

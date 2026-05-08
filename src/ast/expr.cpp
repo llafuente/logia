@@ -282,7 +282,7 @@ namespace logia::AST
     std::string BinaryExpression::to_string()
     {
         auto id = this->get_locator()->as<Identifier>();
-        return std::format("BinaryExpression[{}({}, {}){}", id->identifier, this->get_left()->to_string(), this->get_right()->to_string(), Node::to_string());
+        return std::format("BinaryExpression.{}", id->identifier, CallExpression::to_string());
     }
 
     BinaryExpression::BinaryExpression(antlr4::ParserRuleContext *rule, Expression *left, BinaryOperator op, Expression *right) : CallExpression(rule)
@@ -328,7 +328,17 @@ namespace logia::AST
     void BinaryExpression::post_type_inference()
     {
         auto left = this->get_left()->get_final_type();
+        if (left->is<InferType>())
+        {
+            LERROR() << this->to_string_tree() << std::endl;
+            throw_compiler_error("Unexpected left side infer type");
+        }
         auto right = this->get_right()->get_final_type();
+        if (right->is<InferType>())
+        {
+            LERROR() << this->to_string_tree() << std::endl;
+            throw_compiler_error("Unexpected right side infer type");
+        }
         auto ident = this->get_locator()->as<Identifier>();
         ident->identifier = strdup(ast_binary_operator_to_string(op, left, right));
     }
@@ -379,8 +389,17 @@ namespace logia::AST
 
     Type *PrefixUnaryExpression::get_type()
     {
-        // TODO REVIEW impl totally false!
-        return this->get_operand()->get_type();
+        // TODO this should be ptr when deferenced, but we use this type atm to generate callexpr identifier
+        return this->get_operand()->get_final_type();
+        /*
+            switch (this->op)
+            {
+            case PrefixUnaryOperator::DEREFERENCE:
+                return this->first_parent<Scope>()->lookup<Type>("ptr");
+                break;
+            default:
+            }
+        */
     }
 
     void PrefixUnaryExpression::post_type_inference()
@@ -539,8 +558,8 @@ namespace logia::AST
         {
             return new InferType(); // TODO new ?
         }
-        auto block = this->first_parent<Block>();
-        return block->lookup<Node>(this->identifier);
+        auto scope = this->first_parent<Scope>();
+        return scope->lookup<Node>(this->identifier);
     }
 
     LOGIA_API Identifier *ast_create_identifier(LOGIA_CLONE const char *name)

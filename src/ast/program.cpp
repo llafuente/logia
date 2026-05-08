@@ -96,10 +96,10 @@ namespace logia::AST
         // search in the scope, not in children
         for (const auto &it : scope)
         {
-            auto node = it.second;
-            if (node->is<Type>())
+            auto vec = it.second;
+            if (vec[0]->is<Type>())
             {
-                auto ltype = node->as<Type>();
+                auto ltype = vec[0]->as<Type>();
                 // DEBUG() << ltype->to_string() << std::endl;
                 if (ltype->ir_type == type)
                 {

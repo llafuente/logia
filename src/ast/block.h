@@ -19,7 +19,7 @@ namespace logia::AST
         // std::unordered_map<char*, Node*> scope; --> wrong char* is not the expected type, no "=="
         // std::unordered_map<string, Node*> scope; --> misc errors
         /// @brief Defines the block scope, used for name resolution
-        std::unordered_map<std::string_view, Node *> scope;
+        std::unordered_map<std::string_view, std::vector<Node *>> scope;
 
         /// @brief Register a name in the scope
         void scope_set(const char *name, Node *node);
@@ -49,7 +49,8 @@ namespace logia::AST
             auto it = this->scope.find(name_view);
             if (it != this->scope.end())
             {
-                *out = it->second->as<T>();
+                auto vec = it->second;
+                *out = vec[0]->as<T>();
                 return true;
             }
 
@@ -66,7 +67,8 @@ namespace logia::AST
             auto it = this->scope.find(name_view);
             if (it != this->scope.end())
             {
-                return it->second->as<T>();
+                auto vec = it->second;
+                return vec[0]->as<T>();
             }
 
             throw_semantic_error(this, std::format("Identifier '{}' not found in current scope.", name));
@@ -113,7 +115,8 @@ namespace logia::AST
                 auto it = p->scope.find(name_view);
                 if (it != p->scope.end())
                 {
-                    return it->second->as<T>();
+                    auto vec = it->second;
+                    return vec[0]->as<T>();
                 }
                 p = p->parentScope;
             } while (p != nullptr);
