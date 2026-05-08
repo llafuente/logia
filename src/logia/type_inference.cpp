@@ -24,6 +24,8 @@ namespace logia
 
     void type_inference_expression(Expression *expr, Type *enforce_type)
     {
+        DEBUG() << expr->to_string_tree() << "=" << enforce_type->get_repr() << std::endl;
+
         StructInitializer *sinit;
         if (expr->try_cast<StructInitializer>(&sinit))
         {
@@ -40,7 +42,7 @@ namespace logia
                 // TODO warning, "double type!?"
             }
         }
-        else if (expr->is<Integer>() || expr->is<Float>()) // TODO string?
+        else if (expr->is<IntegerLiteral>() || expr->is<FloatLiteral>() || expr->is<StringLiteral>())
         {
             expr->set_type(enforce_type);
         }
@@ -112,6 +114,8 @@ return true; });
 
         program->foreach_descendant([program](Node *node, int deep)
                                     {
+                                        node->pre_type_inference();
+
                                         if (node->is<VarDeclStmt>()) {
                                             type_inference_vardecl(node->as<VarDeclStmt>());
                                         } else if (node->is<Function>()) {
@@ -130,6 +134,7 @@ return true; });
                                         else if (node->is<FloatLiteral>()) {
                                             todo_type_stack.push_back({ node, program->look<Type>("λf64") });
                                         }
+                                        node->post_type_inference();
                                     return true; });
 
         // if at the end, this nodes are not resolved, force them!
@@ -137,6 +142,7 @@ return true; });
         {
             if (it.first->get_type()->is<InferType>())
             {
+                DEBUG() << "set default type because it's infer" << it.first->to_string() << std::endl;
                 it.first->set_type(it.second);
             }
         }

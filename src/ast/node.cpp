@@ -16,7 +16,7 @@ namespace logia::AST
 
     std::string Node::to_string()
     {
-        return std::format("| {} [@{}]", static_cast<void *>(this), static_cast<void *>(this->parent_node));
+        return std::format("| {} [@{}] ty={}", static_cast<void *>(this), static_cast<void *>(this->parent_node), skip_codegen ? "skip" : (is_typed && is_attached ? this->get_final_type()->get_repr() : "??"));
     }
 
     void Node::push_child(Node *child)
@@ -106,26 +106,14 @@ namespace logia::AST
         this->is_attached = true;
     }
 
-    void Node::type_inference()
+    void Node::pre_type_inference()
     {
-        // TODO how to handle inference can't detect the type -> pre_type_inference return false ??
-        this->pre_type_inference();
-        for (size_t i = 0; i < this->children.size(); i++)
-        {
-            this->children[i]->type_inference();
-        }
-        this->post_type_inference();
-    }
-
-    bool Node::pre_type_inference()
-    {
-        DEBUG() << this->to_string() << std::endl;
-        return true;
+        // DEBUG() << this->to_string() << std::endl;
     }
 
     void Node::post_type_inference()
     {
-        DEBUG() << this->to_string() << std::endl;
+        // DEBUG() << this->to_string() << std::endl;
     }
 
     Type *Node::get_final_type()
@@ -185,7 +173,8 @@ namespace logia::AST
     llvm::Value *Node::codegen(logia::Backend *backend)
     {
         this->pre_codegen(backend);
-        if (this->cg_value) {
+        if (this->cg_value)
+        {
             return this->cg_value;
         }
 

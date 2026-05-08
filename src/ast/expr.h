@@ -129,8 +129,8 @@ namespace logia::AST
         Expression *get_left();
         Expression *get_right();
         std::string to_string() override;
-        virtual bool pre_type_inference() override;
-        virtual void post_type_inference() override;
+
+        void post_type_inference() override;
     };
 
     LOGIA_API LOGIA_LEND BinaryExpression *ast_create_binary_expr(Expression *left, BinaryOperator op, Expression *right);
@@ -235,7 +235,7 @@ namespace logia::AST
         void add_named_property(TypeDef *locator, Expression *value);
         void add_positional_property(Expression *value);
 
-        bool pre_type_inference() override;
+        void pre_type_inference() override;
 
         // Inherited via Expression
         llvm::Value *post_codegen(logia::Backend *backend) override;

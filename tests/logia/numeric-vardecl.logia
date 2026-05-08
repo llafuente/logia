@@ -1,0 +1,19 @@
+function main() i64 {
+
+    var i8 a = 1
+    var i16 b = 2
+    var i32 c = 3
+    var i64 d = 4
+    var i128 e = 5
+    var u8 f = 6
+    var u16 g = 7
+    var u32 h = 8
+    var u64 i = 9
+    var u128 j = 10
+    var f16 k = 11
+    var f32 l = 12
+    var f64 m = 13
+    var f128 n = 14
+
+    return 15
+}

@@ -321,10 +321,6 @@ namespace logia::AST
         return this->get_argument(1);
     }
 
-    bool BinaryExpression::pre_type_inference()
-    {
-        return true;
-    }
     void BinaryExpression::post_type_inference()
     {
         auto left = this->get_left()->get_final_type();
@@ -582,14 +578,13 @@ namespace logia::AST
         ++this->length;
     }
 
-    bool StructInitializer::pre_type_inference()
+    void StructInitializer::pre_type_inference()
     {
         // if every value is constant -> we are constant!
         int count = 0;
         this->foreach_child<ConstExpression>([&count](auto x)
                                              { ++count; });
         this->is_constant = count == this->length;
-        return true;
     }
 
     llvm::Value *StructInitializer::post_codegen(logia::Backend *backend)

@@ -118,11 +118,6 @@ namespace logia::AST
 
     void Program::pre_codegen(logia::Backend *backend)
     {
-        if (!is_typed)
-        {
-            is_typed = true;
-            this->type_inference();
-        }
     }
 
     llvm::Value *Program::post_codegen(logia::Backend *backend)

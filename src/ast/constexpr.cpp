@@ -90,6 +90,10 @@ namespace logia::AST
 
     void IntegerLiteral::set_type(Type *t)
     {
+        if (!this->get_type()->is<InferType>() && this->children[0] != t)
+        {
+            throw_compiler_error("type already defined!");
+        }
         // TODO do we need to handle deletion or "anything" ?
         this->children[0] = t;
     }

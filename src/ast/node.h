@@ -111,14 +111,11 @@ namespace logia::AST
         /// @brief called after the node is attached to a program
         virtual void post_attach();
 
-        /// @brief start type inference pass
-        void type_inference();
-
         /// @brief notify node type inferece pass start
         /// @return
-        virtual bool pre_type_inference();
+        virtual void pre_type_inference();
 
-        /// @brief notify node type inferece pass end, all children type should be already inferred
+        /// @brief notify node type inferece pass ended
         virtual void post_type_inference();
 
         virtual Type *get_final_type();

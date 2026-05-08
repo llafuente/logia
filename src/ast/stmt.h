@@ -66,10 +66,6 @@ namespace logia::AST
         Type *get_type() override;
 
         void set_type(Type *ty) override;
-
-        bool pre_type_inference() override;
-
-        void post_type_inference() override;
     };
 
     /// @brief Goto statement

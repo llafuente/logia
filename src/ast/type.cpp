@@ -68,7 +68,7 @@ namespace logia::AST
 
     std::string Type::get_repr()
     {
-        return this->to_string();
+        return "ty TODO!";
     }
 
     Type *Type::get_type()
@@ -112,7 +112,10 @@ namespace logia::AST
     // Integer
     //
 
-    Integer::Integer(bool is_signed, int bits) : Type(nullptr, Primitives::I8_TY), is_signed(is_signed), bits(bits) {}
+    Integer::Integer(bool is_signed, int bits) : Type(nullptr, Primitives::I8_TY), is_signed(is_signed), bits(bits)
+    {
+        this->is_typed = true;
+    }
     Integer::~Integer() {}
 
     std::string Integer::to_string()
@@ -197,7 +200,10 @@ namespace logia::AST
     // Float
     //
 
-    Float::Float(int bits) : Type(nullptr, Primitives::F16_TY), bits(bits) {}
+    Float::Float(int bits) : Type(nullptr, Primitives::F16_TY), bits(bits)
+    {
+        this->is_typed = true;
+    }
     Float::~Float() {}
 
     std::string Float::to_string()
@@ -268,7 +274,10 @@ namespace logia::AST
     // Void
     //
 
-    Void::Void() : Type(nullptr, Primitives::VOID_TY) {}
+    Void::Void() : Type(nullptr, Primitives::VOID_TY)
+    {
+        this->is_typed = true;
+    }
     Void::~Void() {}
 
     std::string Void::to_string()
@@ -308,7 +317,10 @@ namespace logia::AST
     // Pointer
     //
 
-    Pointer::Pointer() : Type(nullptr, Primitives::PTR_TY) {}
+    Pointer::Pointer() : Type(nullptr, Primitives::PTR_TY)
+    {
+        this->is_typed = true;
+    }
     Pointer::~Pointer() {}
 
     std::string Pointer::to_string()
@@ -356,6 +368,7 @@ namespace logia::AST
     //
     StructAlias::StructAlias(antlr4::ParserRuleContext *rule, Identifier *from, Identifier *to, const char *_docstring) : docstring(_docstring), Type(rule, Primitives::NONE)
     {
+        this->is_typed = true;
         this->push_child(from);
         this->push_child(to);
     }
@@ -386,6 +399,7 @@ namespace logia::AST
                              uint32_t index,
                              const char *docstring) : docstring(docstring), Type(rule, Primitives::NONE), index(index)
     {
+        this->is_typed = true;
         this->push_child(name);
         this->push_child(type);
         if (default_value == nullptr)
@@ -417,6 +431,7 @@ namespace logia::AST
 
     Struct::Struct(antlr4::ParserRuleContext *rule, Identifier *id) : Type(rule, Primitives::STRUCT_TY)
     {
+        this->is_typed = true;
         if (id != nullptr)
         {
             this->set_identifier(id);
@@ -515,6 +530,26 @@ namespace logia::AST
     {
         return std::format("Type[struct {}]{}", this->get_name(), Node::to_string());
     }
+    std::string Struct::get_repr()
+    {
+        std::string list = "";
+
+        StructField *field;
+        for (const auto &ptr : this->children)
+        {
+            if (ptr->try_cast<StructField>(&field))
+            {
+                if (!list.empty())
+                {
+                    list += ", ";
+                }
+                list += field->get_repr();
+            }
+        }
+
+        // return std::format("struct {} {{ {} }}", this->get_name(), fields);
+        return std::format("struct {} {}", this->get_name(), list);
+    }
 
     void Struct::post_attach()
     {
@@ -561,7 +596,10 @@ namespace logia::AST
     // TypeDef
     //
     // REVIEW, it's a type but it's definition, need to  distinguish both ?
-    TypeDef::TypeDef() : Type(nullptr, Primitives::NONE) {}
+    TypeDef::TypeDef() : Type(nullptr, Primitives::NONE)
+    {
+        this->is_typed = true;
+    }
     TypeDef::~TypeDef() {}
 
     void TypeDef::add_locator(Identifier *name)
@@ -614,6 +652,8 @@ namespace logia::AST
     {
         LOGIA_ASSERT(name);
         LOGIA_ASSERT(type);
+
+        this->is_typed = true;
         name->skip_codegen = true;
 
         this->push_child(name);
@@ -655,7 +695,10 @@ namespace logia::AST
     Function::Function(antlr4::ParserRuleContext *rule, Identifier *name, Type *return_type, bool is_intrinsic) : Type(rule, Primitives::FUNCTION_TY)
     {
         LOGIA_ASSERT(name && "name parameter is required");
+
+        this->is_typed = true;
         name->skip_codegen = true;
+
         if (return_type == nullptr)
         {
             return_type = new Type(nullptr, Primitives::VOID_TY);
@@ -682,6 +725,11 @@ namespace logia::AST
 
     std::string Function::to_string()
     {
+        return std::format("Type[{}] {}", this->get_repr(), Node::to_string());
+    }
+
+    std::string Function::get_repr()
+    {
         std::string list;
         // concat each parameter type
         auto parameters = this->get_parameters();
@@ -693,8 +741,9 @@ namespace logia::AST
             }
             list += param->get_type()->to_string();
         }
-        return std::format("Type[{} function {} ({})] {}", this->get_return_type()->to_string(), this->get_name(), list, Node::to_string());
+        return std::format("function {} ({}) {}", this->get_name(), list, this->get_return_type()->get_repr());
     }
+
     std::vector<FunctionParameter *> Function::get_parameters()
     {
         std::vector<FunctionParameter *> out;

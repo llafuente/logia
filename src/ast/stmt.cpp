@@ -247,24 +247,4 @@ namespace logia::AST
         this->children[1]->set_type(ty);
         this->is_typed = true;
     }
-
-    bool VarDeclStmt::pre_type_inference()
-    {
-        return true;
-    }
-
-    void VarDeclStmt::post_type_inference()
-    {
-        if (!this->is_typed)
-        {
-            auto expr = this->get_expr();
-            if (expr == nullptr)
-            {
-                throw std::runtime_error("type guessing not implemented yet!");
-            }
-
-            // override type with initializer
-            this->children[1] = this->get_expr()->get_type();
-        }
-    }
 }
