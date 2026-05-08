@@ -507,6 +507,10 @@ namespace logia::AST
     {
         return strcmp(this->identifier, id) == 0;
     }
+    bool Identifier::operator==(const Identifier *id)
+    {
+        return strcmp(this->identifier, id->identifier) == 0;
+    }
 
     VarDeclStmt *Identifier::get_var_decl()
     {

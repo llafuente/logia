@@ -198,6 +198,7 @@ namespace logia::AST
 
         Identifier(antlr4::ParserRuleContext *rule, const char *identifier);
         bool operator==(const char *id);
+        bool operator==(const Identifier *id);
 
         /// @brief Gets the variable declaration associated with this identifier
         /// @return
