@@ -26,7 +26,46 @@ namespace logia::AST
             // TODO extract code snippet!!
             auto program = node->first_parent<Program>();
 
-            code_location = std::format("at {}:{}:{}", program->entry_point_file, node->rule->start->getLine(), node->rule->start->getCharPositionInLine());
+            auto err_line = node->rule->start->getLine();
+            auto err_start_column = node->rule->start->getCharPositionInLine();
+            auto err_stop_column = std::max<int>(err_start_column + 1, node->rule->stop->getCharPositionInLine());
+
+            auto start_line = std::max<size_t>(0, err_line - 2);
+            auto end_line = err_line + 2;
+
+            char snippet[1024];
+            const char *text = node->first_parent<Program>()->file_contents;
+            size_t src = 0;
+            size_t dst = 0;
+            size_t line = 0;
+            char c;
+            while ((c = text[src++]) != '\0')
+            {
+                if (line >= start_line && line <= end_line)
+                {
+                    snippet[dst++] = c;
+                }
+
+                if (c == '\n')
+                {
+                    if (line == err_line)
+                    {
+                        for (size_t j = 0; j < err_start_column; ++j)
+                        {
+                            snippet[dst++] = ' ';
+                        }
+                        for (size_t j = err_start_column; j < err_stop_column; ++j)
+                        {
+                            snippet[dst++] = '^';
+                        }
+                        snippet[dst++] = '\n';
+                    }
+                    ++line;
+                }
+            }
+            snippet[dst++] = '\0';
+
+            code_location = std::format("at {}:{}:{}\n{}", program->entry_point_file, err_line + 1, err_start_column, snippet);
         }
 
         return std::format("semantic error:\n    \033[31m{}\033[0m\nat: {}\nExpcetion thrown at {} {}:{}\n\nstacktrace:\n{}", message, code_location, function, file, line, trace);
