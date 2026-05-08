@@ -573,6 +573,6 @@ namespace logia
             return func;
         }
 
-        throw std::runtime_error(std::format("{}{}", "function not found in current module or intrinsics", name));
+        throw_compiler_error(std::format("{}{}", "function not found in current module or intrinsics", name));
     }
 }

@@ -1037,10 +1037,24 @@ namespace logia
             return;
         }
 
-        CST_TODO_BRANCH(propertyAlias, PropertyAlias);
+        auto operatorDecl = context->operatorFunctionDecl();
+        if (operatorDecl != nullptr)
+        {
+            return;
+        }
+
+        auto propertyAlias = context->propertyAlias();
+        if (propertyAlias != nullptr)
+        {
+            auto from = ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(propertyAlias->from));
+            auto to = ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(propertyAlias->to));
+            structure->add_alias(propertyAlias, from, to, "");
+            return;
+        }
+
+        CST_TODO_BRANCH(operatorFunctionDecl, OperatorFunctionDecl);
         CST_TODO_BRANCH(functionDecl, FunctionDecl); // functionBody
         CST_TODO_BRANCH(memoryFunctionDecl, MemoryFunctionDecl);
-        CST_TODO_BRANCH(operatorFunctionDecl, OperatorFunctionDecl);
         CST_TODO_BRANCH(structGetterDecl, StructGetterDecl);
         CST_TODO_BRANCH(structSetterDecl, StructSetterDecl);
         CST_UNREACHABLE();

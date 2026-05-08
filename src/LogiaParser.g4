@@ -942,7 +942,7 @@ structPropertyModifiers
   ;
 
 propertyAlias
-  : 'alias' identifier identifier
+  : 'alias' from=identifier to=identifier
   ;
 
 structGetterDecl
