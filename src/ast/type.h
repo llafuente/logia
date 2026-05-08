@@ -67,6 +67,7 @@ namespace logia::AST
 
         Identifier *get_name();
         Expression *get_default_value();
+        bool has_default_value();
 
         std::string to_string() override;
         llvm::Value *post_codegen(logia::Backend *backend) override;
@@ -374,7 +375,7 @@ namespace logia::AST
         /// @details Checks if the number of arguments and their types are compatible with the function parameters
         /// Modify callee sorting named arguments and adding default values for optional parameters if needed
         /// @param callee The call expression to check
-        void check_call(CallExpression *callee);
+        void validate_and_fill_call(CallExpression *callee);
 
         std::string to_string() override;
         std::string get_repr() override;

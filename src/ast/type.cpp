@@ -679,6 +679,10 @@ namespace logia::AST
     {
         return this->get_child<Expression>(2);
     }
+    bool FunctionParameter::has_default_value()
+    {
+        return !this->children[2]->is<NoOp>();
+    }
     std::string FunctionParameter::to_string()
     {
         return std::format("Parameter[{}][{}]{}", this->get_name()->identifier, this->get_type()->to_string(), Node::to_string());
@@ -988,9 +992,64 @@ namespace logia::AST
         this->get_body()->scope_set(param->get_name()->identifier, param);
     }
 
-    void Function::check_call(CallExpression *callee)
+    void Function::validate_and_fill_call(CallExpression *callee)
     {
-        // TODO
+        auto cpy = callee->children;
+        callee->children.clear();
+        // reset CallExpression
+        callee->children.push_back(cpy[0]); // copy locator
+        callee->argument_count = 0;
+
+        auto param_count = this->get_parameter_count();
+        for (auto i = 0; i < param_count; ++i)
+        {
+            auto param = this->get_parameter(i);
+            auto param_name = param->get_name();
+
+            // search if any argument has the name -> true use it, false use the first
+            auto found = false;
+            for (auto j = 0; j < cpy.size(); j += 2)
+            {
+                auto arg_name = cpy[j]->as<Identifier>();
+                if (arg_name == param_name)
+                {
+                    callee->add_named_argument(param_name, cpy[j + 1]->as<Expression>());
+                    cpy.erase(cpy.begin() + j, cpy.begin() + j + 1);
+
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+            {
+                // fetch the first "non-named" param
+                for (auto j = 0; j < cpy.size(); j += 2)
+                {
+                    auto arg_name = cpy[j]->as<Identifier>();
+                    if (arg_name->operator==(""))
+                    {
+                        callee->add_named_argument(param_name, cpy[j + 1]->as<Expression>());
+                        cpy.erase(cpy.begin() + j, cpy.begin() + j + 1);
+
+                        found = true;
+                        break;
+                    }
+                }
+            }
+
+            // still not found ? -> default ?
+            if (!found && param->has_default_value())
+            {
+                found = true;
+                callee->add_named_argument(param_name, param->get_default_value());
+            }
+
+            if (!found)
+            {
+                throw_semantic_error(callee, "parameter '{}' not sent", param_name->identifier);
+            }
+        }
     }
 
     LOGIA_API LOGIA_LEND Struct *ast_create_struct_type(Identifier *id)
