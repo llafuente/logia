@@ -539,7 +539,7 @@ functionName
   ;
 
 functionDef
-  : function_mod=functionModifiers* 'function' name=functionName template_def=templateDefinition? '(' functionParameterList? ')' return_type_modifiers=functionReturnTypeModifiers* return_type=typeDefinition?
+  : function_mod=functionModifiers* 'function' name=functionName template_def=templateDefinition? '(' parameters=functionParameterList? ')' return_type_modifiers=functionReturnTypeModifiers* return_type=typeDefinition?
   ;
 
 memoryFunctionDecl
@@ -551,11 +551,11 @@ memoryFunctionDef
   ;
 
 operatorFunctionDecl
-  : functionModifiers* operatorFunctionDef blockStmt
+  : operatorFunctionDef blockStmt
   ;
 
 operatorFunctionDef
-  : 'operator' overloadableOperators templateDefinition? '(' functionParameterList? ')' functionReturnTypeModifiers* typeDefinition?
+  : function_mod=functionModifiers* 'operator' op=overloadableOperators template_def=templateDefinition? '(' parameters=functionParameterList? ')' return_type_modifiers=functionReturnTypeModifiers* return_type=typeDefinition?
   ;
 
 overloadableOperators

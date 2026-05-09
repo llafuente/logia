@@ -3,6 +3,7 @@
 #include "ast/node.h"
 #include "ast/type.h"
 #include "ast/stmt.h"
+#include "ast/operators.h"
 
 namespace logia::AST
 {
@@ -10,6 +11,7 @@ namespace logia::AST
     struct Identifier;
     struct TypeDef;
     struct Function;
+    enum class Operators;
 
     /// @brief Base expression
     struct Expression : Node
@@ -92,41 +94,12 @@ namespace logia::AST
     /// @return The created member access expression
     LOGIA_API LOGIA_LEND MemberAccessExpression *ast_create_memberaccess_expr(Node *left, Node *right);
 
-    /// @brief Operators for binary expressions expression
-    /// @remarks It starts at 128, there shall be no collisions with other operators!
-    enum class BinaryOperator
-    {
-        ADD = 1,             // +
-        SUB,                 // -
-        MUL,                 // *
-        DIV,                 // /
-        MOD,                 // %
-        LOGIAL_EQ,           // ==
-        LOGIAL_NEQ,          // !=
-        LOGIAL_LT,           // <
-        LOGIAL_GT,           // >
-        LOGIAL_LTE,          // <=
-        LOGIAL_GTE,          // >=
-        LOGICAL_AND,         // &&
-        LOGICAL_OR,          // ||
-        ASSIGN,              // =
-        ADD_ASSIGN,          // +=
-        SUB_ASSIGN,          // -=
-        MUL_ASSIGN,          // *=
-        DIV_ASSIGN,          // /=
-        BITWISE_OR,          // |
-        BITWISE_AND,         // &
-        BITWISE_XOR,         // ^
-        BITWISE_LEFT_SHIFT,  // <<
-        BITWISE_RIGHT_SHIFT, // >>
-    };
-
     /// @brief Binary expression, used for binary operators
     /// @remarks Implemented as a call expression to be able to resolve operator overloads and use intrinsics for codegen
     struct BinaryExpression : CallExpression
     {
-        BinaryOperator op;
-        BinaryExpression(antlr4::ParserRuleContext *rule, Expression *left, BinaryOperator op, Expression *right);
+        Operators op;
+        BinaryExpression(antlr4::ParserRuleContext *rule, Expression *left, Operators op, Expression *right);
         Expression *get_left();
         Expression *get_right();
         std::string to_string() override;
@@ -134,26 +107,15 @@ namespace logia::AST
         void post_type_inference() override;
     };
 
-    LOGIA_API LOGIA_LEND BinaryExpression *ast_create_binary_expr(Expression *left, BinaryOperator op, Expression *right);
+    LOGIA_API LOGIA_LEND BinaryExpression *ast_create_binary_expr(Expression *left, Operators op, Expression *right);
 
-    /// @brief Prefix operators for unary expression
-    /// @remarks It starts at 128, there shall be no collisions with other operators!
-    enum class PrefixUnaryOperator
-    {
-        DEREFERENCE = 128, // &
-        NEGATION,          // -
-        LOGICAL_NOT,       // !
-        INCREMENT,         // ++
-        DECREMENT,         // --
-        BITWISE_NOT,       // ~
-    };
     /// @brief Prefix unary expression, used for prefix unary operators
     /// @remarks Implemented as a call expression to be able to resolve operator overloads and use intrinsics for codegen
     /// @remarks Reference operator can be an instrinic and it's implemented directly
     struct PrefixUnaryExpression : CallExpression
     {
-        PrefixUnaryOperator op;
-        PrefixUnaryExpression(antlr4::ParserRuleContext *rule, PrefixUnaryOperator op, Expression *operand);
+        Operators op;
+        PrefixUnaryExpression(antlr4::ParserRuleContext *rule, Operators op, Expression *operand);
         Expression *get_operand();
         std::string to_string() override;
         llvm::Value *post_codegen(logia::Backend *backend) override;
@@ -169,22 +131,14 @@ namespace logia::AST
     /// @param op The prefix unary operator
     /// @param operand The operand of the prefix unary expression
     /// @return The created prefix unary expression
-    LOGIA_API LOGIA_LEND PrefixUnaryExpression *ast_create_preunary_expr(PrefixUnaryOperator op, Expression *operand);
-
-    /// @brief Postfix operators for unary expression
-    /// @remarks It starts at 256, there shall be no collisions with other operators!
-    enum class PostfixUnaryOperator
-    {
-        INCREMENT = 256, // ++
-        DECREMENT,       // --
-    };
+    LOGIA_API LOGIA_LEND PrefixUnaryExpression *ast_create_preunary_expr(Operators op, Expression *operand);
 
     /// @brief Postfix unary expression, used for postfix unary operators
     /// @remarks Implemented as a call expression to be able to resolve operator overloads and use intrinsics for codegen
     struct PostfixUnaryExpression : CallExpression
     {
-        PostfixUnaryOperator op;
-        PostfixUnaryExpression(antlr4::ParserRuleContext *rule, PostfixUnaryOperator op, Expression *operand);
+        Operators op;
+        PostfixUnaryExpression(antlr4::ParserRuleContext *rule, Operators op, Expression *operand);
         Expression *get_operand();
         std::string to_string() override;
         virtual void post_type_inference() override;
@@ -249,16 +203,16 @@ namespace logia::AST
     //
 
     /// @brief Converts a binary operator to its string representation
-    LOGIA_API const char *ast_postfix_unary_operator_to_string(PostfixUnaryOperator op, Type *operand);
+    LOGIA_API const char *ast_postfix_unary_operator_to_string(Operators op, Type *operand);
 
     /// @brief Converts a binary operator to its string representation
-    LOGIA_API const char *ast_prefix_unary_operator_to_string(PrefixUnaryOperator op, Type *operand);
+    LOGIA_API const char *ast_prefix_unary_operator_to_string(Operators op, Type *operand);
 
     /// @brief Converts a binary operator to its string representation
     /// @param op The binary operator
     /// @param left The left operand type
     /// @param right The right operand type
     /// @return The string representation of the binary operator
-    LOGIA_API const char *ast_binary_operator_to_string(BinaryOperator op, Type *left, Type *right);
+    LOGIA_API const char *ast_binary_operator_to_string(Operators op, Type *left, Type *right);
 
 }

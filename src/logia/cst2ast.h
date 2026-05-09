@@ -78,7 +78,10 @@ namespace logia
         std::any visitFunctionDecl(LogiaParser::FunctionDeclContext *context) override;
         std::any visitBlockStmt(LogiaParser::BlockStmtContext *context) override;
         std::any visitStmt(LogiaParser::StmtContext *context) override;
+        AST::Function *parseFunctionDef(LogiaParser::FunctionDefContext *context);
         void parseBlock(LogiaParser::BlockStmtContext *context, AST::Block *block);
+        AST::Type *parseTypeDefinition(LogiaParser::TypeDefinitionContext *context);
+        void parseParameterList(LogiaParser::FunctionParameterListContext *plist, AST::Function *fn);
         std::any visitEndOfStmt(LogiaParser::EndOfStmtContext *context) override;
 
         //

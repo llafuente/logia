@@ -36,7 +36,7 @@ message(STATUS "ANTLR_LogiaGrammarParser_CXX_OUTPUTS ${ANTLR_LogiaGrammarParser_
 set(LOGIA_SOURCE_FILES
   src/logia/help.cpp
   src/logia/run.cpp
-  src/logia/cst2ast.cpp  
+  src/logia/cst2ast.cpp
   src/logia/compiler_error.cpp
   src/logia/config.cpp
   src/logia/frontend.cpp
@@ -51,11 +51,12 @@ set(LOGIA_SOURCE_FILES
   src/ast/block.cpp
   src/ast/program.cpp
   src/ast/package.cpp
-  
+
   src/ast/stmt.cpp
   src/ast/if_stmt.cpp
   src/ast/import.cpp
-  
+
+  src/ast/operators.cpp
   src/ast/expr.cpp
   src/ast/constexpr.cpp
 
@@ -102,7 +103,7 @@ set(LLVM_LIBS ${LLVM_LIBS}
 foreach(project_name IN ITEMS "logia" "logia_test_suite")
   message(STATUS "Apply common config to: ${project_name}")
   message(STATUS "LLVM_LIBS = ${LLVM_LIBS}")
-  
+
   target_link_libraries(${project_name} PRIVATE antlr4_static)
   target_link_libraries(${project_name} PRIVATE ${LLVM_LIBS})
 

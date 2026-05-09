@@ -9,6 +9,7 @@
 #include "ast/constexpr.h"
 #include "ast/stmt.h"
 #include "ast/program.h"
+#include "ast/operators.h"
 
 #include "gtest/gtest.h"
 #include <Windows.h>
@@ -417,14 +418,14 @@ TEST(ast_create_if3, t1)
     auto fn_add_name = ast_create_identifier("logia_intrinsics_bin_add_i64_i64");
     auto add = ast_create_call_expr(fn_add_name, {ast_create_identifier("tmp"), ast_create_int_lit(program, "1")});
     auto fn_assignament_name = ast_create_string_lit(strdup("logia_operator_assign_i64_i64"));
-    auto assignament = ast_create_binary_expr(ast_create_identifier("tmp"), BinaryOperator::ASSIGN, add);
+    auto assignament = ast_create_binary_expr(ast_create_identifier("tmp"), Operators::BINARY_ASSIGN, add);
     ifstmt->get_then()->push_child(assignament);
   }
   {
     auto fn_add_name = ast_create_identifier("logia_intrinsics_bin_add_i64_i64");
     auto add = ast_create_call_expr(fn_add_name, {ast_create_identifier("tmp"), ast_create_int_lit(program, "2")});
     auto fn_assignament_name = ast_create_string_lit(strdup("logia_operator_assign_i64_i64"));
-    auto assignament = ast_create_binary_expr(ast_create_identifier("tmp"), BinaryOperator::ASSIGN, add);
+    auto assignament = ast_create_binary_expr(ast_create_identifier("tmp"), Operators::BINARY_ASSIGN, add);
     ifstmt->get_else()->push_child(assignament);
   }
 

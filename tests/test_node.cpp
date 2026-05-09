@@ -8,6 +8,7 @@
 #include "ast/expr.h"
 #include "ast/constexpr.h"
 #include "ast/stmt.h"
+#include "ast/operators.h"
 
 #include "gtest/gtest.h"
 #include <Windows.h>
@@ -22,7 +23,7 @@ TEST(test_node, test_1)
 
     int size = program->children.size();
     program->push_child(ast_create_identifier("a"));
-    program->push_child(ast_create_binary_expr(ast_create_identifier("a"), BinaryOperator::ADD, ast_create_identifier("b")));
+    program->push_child(ast_create_binary_expr(ast_create_identifier("a"), Operators::BINARY_ADD, ast_create_identifier("b")));
     program->push_child(ast_create_identifier("c"));
 
     EXPECT_TRUE(program->get_child<Identifier>(size));
