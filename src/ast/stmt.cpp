@@ -1,5 +1,6 @@
 #include "ast/stmt.h"
 #include "ast/traverse.h"
+#include "ast/llvm.h"
 
 namespace logia::AST
 {
@@ -47,10 +48,6 @@ namespace logia::AST
         return (Expression *)this->children[0];
     }
 
-    void ReturnStmt::post_type_inference()
-    {
-    }
-
     llvm::Value *ReturnStmt::post_codegen(logia::Backend *backend)
     {
         DEBUG() << this->to_string() << std::endl;
@@ -61,7 +58,8 @@ namespace logia::AST
         }
         else
         {
-            this->cg_value = backend->builder->CreateRet(expr->codegen(backend));
+            auto value = llvm_load_if_required(expr->codegen(backend), backend);
+            this->cg_value = backend->builder->CreateRet(value);
         }
 
         return Stmt::post_codegen(backend);
@@ -113,42 +111,23 @@ namespace logia::AST
 
         DEBUG() << this->to_string() << std::endl;
         auto init_value = (llvm::Value *)this->get_expr()->codegen(backend);
-        auto type = this->get_type();
-        /*
+        auto type = this->get_final_type();
+        type->codegen(backend);
+        auto name = this->get_name();
+
+        this->cg_value = this->alloca_inst = backend->builder->CreateAlloca(type->ir_type, 0, nullptr, name);
+
         if (type->is<Struct>())
         {
-            auto structTy = (llvm::StructType *)this->get_type()->codegen(codegen, builder);
-            // struct path
-            // 3) Destination stack allocation
-            llvm::Value *dstAlloca = builder->CreateAlloca(structTy, nullptr, "myStruct");
-
-            const llvm::DataLayout &dl = codegen->module->getDataLayout();
-            auto *i8PtrTy = builder->getIntPtrTy(dl);
-
-            llvm::Value *dstI8 = builder->CreateBitCast(dstAlloca, i8PtrTy);
-            llvm::Value *srcI8 = builder->CreateBitCast(init_value, i8PtrTy);
-
-            // 4) memcpy
-            auto abiAlign = llvm::Align(dl.getABITypeAlign(structTy).value());
-            uint64_t size = dl.getTypeAllocSize(structTy);
-            builder->CreateMemCpy(
-                dstI8, llvm::MaybeAlign(abiAlign),
-                srcI8, llvm::MaybeAlign(abiAlign),
-                size);
-
-            return dstAlloca; // pointer to initialized struct
+            auto dl = backend->module->getDataLayout();
+            auto gv = llvm::dyn_cast<llvm::GlobalVariable>(init_value);
+            backend->builder->CreateMemCpy(this->alloca_inst, this->alloca_inst->getAlign(), init_value, init_value->getPointerAlignment(dl), dl.getTypeAllocSize(gv->getValueType()));
         }
-        */
+        else
+        {
+            backend->builder->CreateStore(init_value, this->alloca_inst);
+        }
 
-        // other path
-
-        // TODO Type should be handled before ?
-        // this->ir = builder->CreateAlloca((llvm::Type*) this->type->codegen(codegen, builder), 0, value);
-        // this->ir = builder->CreateAlloca(value->getType(), 0, value);
-        this->alloca_inst = backend->builder->CreateAlloca(init_value->getType(), 0, nullptr);
-        backend->builder->CreateStore(init_value, this->alloca_inst);
-
-        this->cg_value = this->alloca_inst;
         return Stmt::post_codegen(backend);
     }
 

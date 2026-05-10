@@ -16,7 +16,9 @@
 int test_single_file(const char *logia_folder, const char *ir_folder, const char *obj_folder, const char *file)
 {
     std::cout << std::endl
-              << "run: " << logia_folder << file << ".logia" << std::endl;
+              << "logia file      : " << logia_folder << file << ".logia" << std::endl
+              << "current  ll file: " << ir_folder << file << ".ll" << std::endl
+              << "expected ll file: " << ".\\tests\\expected-ir\\" << file << ".ll" << std::endl;
 
     bool debug = true;
 
@@ -58,7 +60,8 @@ TEST(run_from_file, sum_logia)
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "binary-expr-add-constants"), 25);
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "binary-expr-add"), 21);
 
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer"), 21);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer"), 11 + 13);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer2"), 13 + 17);
     //! EXPECT_EQ(test_single_file(".\\tests\\logia\\struct-initializer-named.logia"), 32); // 31 means not ordering!
 
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "function-blocks"), 5);

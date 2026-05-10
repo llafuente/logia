@@ -117,8 +117,6 @@ return true; });
 
         program->foreach_descendant([program](Node *node, int deep)
                                     {
-
-
                                         if (node->is<VarDeclStmt>()) {
                                             type_inference_vardecl(node->as<VarDeclStmt>());
                                         } else if (node->is<Function>()) {

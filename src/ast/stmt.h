@@ -31,8 +31,6 @@ namespace logia::AST
 
         std::string to_string() override;
 
-        void post_type_inference() override;
-
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
         Expression *get_expr();

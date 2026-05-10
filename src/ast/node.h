@@ -32,6 +32,24 @@ namespace logia::AST
         /// @brief codegen pass done
         unsigned char skip_codegen : 1 = false;
 
+        /// @brief marks node as pre_codegen done, used to avoid multiple calls
+        unsigned char is_pre_codegen : 1 = false;
+
+        /// @brief marks node as post_codegen done, used to avoid multiple calls
+        unsigned char is_post_codegen : 1 = false;
+
+        /// @brief skip type_inference pass, it does not mean it does not have type, it means my parent will handle it for me!
+        unsigned char skip_type_inference : 1 = false;
+
+        /// @brief marks node as pre_type_inference done
+        unsigned char is_pre_type_inference : 1 = false;
+
+        /// @brief marks node as pre_type_inference done
+        unsigned char is_post_type_inference : 1 = false;
+
+        /// @brief current node require to be typed
+        unsigned char has_typed : 1 = false;
+
         /// @brief type inference pass done
         unsigned char is_typed : 1 = false;
 
@@ -40,12 +58,6 @@ namespace logia::AST
 
         /// @brief marks node as constant so it can be used as constexpr at comptime
         unsigned char is_constant : 1 = false;
-
-        /// @brief marks node as pre_codegen done, used to avoid multiple calls
-        unsigned char is_pre_codegen : 1 = false;
-
-        /// @brief marks node as post_codegen done, used to avoid multiple calls
-        unsigned char is_post_codegen : 1 = false;
 
         /// @brief antlr rule, used for error reporting and debugging
         antlr4::ParserRuleContext *rule = nullptr;

@@ -1,7 +1,7 @@
 #include "ast/expr.h"
 #include "ast/constexpr.h"
 #include "ast/traverse.h"
-
+#include "ast/llvm.h"
 #include "llvm/IR/Constant.h"
 
 namespace logia::AST
@@ -33,6 +33,7 @@ namespace logia::AST
     {
         this->push_child(left);
         this->push_child(right);
+        right->skip_type_inference = true;
     }
     Expression *MemberAccessExpression::get_left()
     {
@@ -44,33 +45,45 @@ namespace logia::AST
     }
     Type *MemberAccessExpression::get_type()
     {
-        return this->resolve()->get_type();
+        return this->type == nullptr ? new InferType() : this->type;
+    }
+    void MemberAccessExpression::set_type(Type *type)
+    {
+        this->type = type;
     }
     Node *MemberAccessExpression::resolve()
     {
-        auto left = this->get_left()->resolve();
-        auto left_type = left->get_final_type();
+        this->pre_type_inference();
+        return this->get_type();
+    }
 
-        if (!left_type->is<Struct>())
+    void MemberAccessExpression::pre_type_inference()
+    {
+        auto left = this->get_left();
+        left->pre_type_inference();
+        auto left_ty = left->get_type();
+
+        if (!left_ty->is<Struct>())
         {
             throw_compiler_error("TODO! Only structs can be resolved atm.");
         }
 
-        auto left_as_struct = left_type->as<Struct>();
-        return left_as_struct->get_field_type(this->get_right())->get_final_type();
+        auto left_ty_stuct = left_ty->as<Struct>();
+        this->set_type(left_ty_stuct->get_field_type(this->get_right())->get_final_type());
+        Node::pre_type_inference();
     }
 
     std::string MemberAccessExpression::to_string()
     {
-        return std::format("MemberAccessExpression[left {} / right {}]{}", this->get_left()->to_string(), this->get_right()->to_string(), Node::to_string());
+        return std::format("MemberAccessExpression {}", Node::to_string());
     }
 
     llvm::Value *MemberAccessExpression::post_codegen(logia::Backend *backend)
     {
-        DEBUG() << this->to_string() << std::endl;
+        DEBUG() << this->to_string_tree() << std::endl;
         // TODO handle left side to be a pointer to struct or struct itself, for now we assume it's always a pointer
         auto left = this->get_left();
-        auto left_type = left->get_final_type();
+        auto left_type = left->get_type();
         auto left_value = left->codegen(backend);
 
         if (!left_type->is<Struct>())
@@ -81,7 +94,7 @@ namespace logia::AST
         auto struct_ty = left_type->as<Struct>();
 
         auto right = this->get_right();
-        if (right->is<Struct>())
+        if (!right->is<Identifier>())
         {
             LERROR() << left->to_string_tree() << std::endl;
             throw_semantic_error(left, "Expected right to be an identifier");
@@ -94,12 +107,10 @@ namespace logia::AST
             throw_semantic_error(left, std::format("struct '{}' do not contains a property with name '{}'", struct_ty->get_name(), right_ident->identifier));
         }
 
-        auto property_ty = (llvm::Type *)field->get_final_type()->codegen(backend);
-        auto ptr = backend->builder->CreateStructGEP(struct_ty->ir_type, left_value, field->index);
+        // auto property_ty = (llvm::Type *)field->get_final_type()->codegen(backend);
+        // left_value = llvm_load_if_required(left_value, backend);
+        this->cg_value = backend->builder->CreateStructGEP(struct_ty->ir_type, left_value, field->index);
 
-        DEBUG() << "load - " << llvm_type_to_string(property_ty) << std::endl;
-
-        this->cg_value = backend->builder->CreateLoad(property_ty, ptr);
         return Expression::post_codegen(backend);
     }
 
@@ -195,7 +206,7 @@ namespace logia::AST
         // otherwise -> function!
         Function *f = ty->as<Function>();
 
-        return f->get_return_type();
+        return f->get_return_type()->get_final_type();
     }
 
     std::string CallExpression::to_string()
@@ -239,20 +250,23 @@ namespace logia::AST
         std::vector<llvm::Value *> ArgsV;
         for (size_t i = 0, e = arguments.size(); i != e; ++i)
         {
-            auto argument = arguments[i];
-
-            auto callee_parameter = CalleeF->getArg(i);
             DEBUG() << "argument[" << i << "]" << std::endl;
-            auto ir_caller_argument = argument->codegen(backend);
+
+            auto argument = arguments[i];
+            auto ir_argument = llvm_load_if_required(argument->codegen(backend), backend);
+            auto ir_argument_ty = ir_argument->getType();
+
+            auto ir_parameter = CalleeF->getArg(i);
+            auto ir_parameter_ty = ir_parameter->getType();
 
             // check arguments type are compatible one by one
-            if (callee_parameter->getType() != ir_caller_argument->getType())
+            if (ir_parameter_ty != ir_argument_ty)
             {
                 LERROR() << this->to_string_tree();
-                throw_semantic_error(argument, std::format("Invalid argument {} '{}' of type '{}' expected type '{}'", i, name->identifier, llvm_type_to_string(ir_caller_argument->getType()), llvm_type_to_string(callee_parameter->getType())));
+                throw_semantic_error(argument, std::format("Invalid argument {} '{}' of type '{}' expected type '{}'", i + 1, name->identifier, llvm_type_to_string(ir_argument_ty), llvm_type_to_string(ir_parameter_ty)));
             }
 
-            ArgsV.push_back(ir_caller_argument);
+            ArgsV.push_back(ir_argument);
             if (!ArgsV.back())
             {
                 return nullptr;
@@ -290,30 +304,33 @@ namespace logia::AST
         this->op = op;
 
         // NOTE start as null, because we may don't know the types yet
-        auto ident = ast_create_identifier("");
+        auto ident = ast_create_identifier(""); // 0
         ident->skip_codegen = true;
+        ident->skip_type_inference = true; // handled at post_type_inference!
         this->push_child(ident);
 
         switch (op)
         {
         case Operators::BINARY_ASSIGN:
+            this->add_positional_argument(left); // 1-2
+            break;
         case Operators::BINARY_ADD_ASSIGN:
         case Operators::BINARY_SUB_ASSIGN:
         case Operators::BINARY_MUL_ASSIGN:
         case Operators::BINARY_DIV_ASSIGN:
             // 1 NoOp
             // 2 ref
-            this->add_positional_argument(new PrefixUnaryExpression(this->rule, Operators::PREFIX_DEREFERENCE, left));
+            this->add_positional_argument(new PrefixUnaryExpression(this->rule, Operators::PREFIX_DEREFERENCE, left)); // 1-2
             break;
         default:
             // 1 NoOp
             // 2 expr
-            this->add_positional_argument(left);
+            this->add_positional_argument(left); // 1-2
             break;
         }
         // 3 NoOp
         // 4 expr
-        this->add_positional_argument(right);
+        this->add_positional_argument(right); // 3-4
     }
 
     Expression *BinaryExpression::get_left()
@@ -341,6 +358,26 @@ namespace logia::AST
         }
         auto ident = this->get_locator()->as<Identifier>();
         ident->identifier = strdup(ast_binary_operator_to_string(op, left, right));
+        this->is_typed = true;
+        // pre_type_inference
+        ident->set_type(ident->resolve()->get_final_type());
+        CallExpression::post_type_inference();
+    }
+    llvm::Value *BinaryExpression::post_codegen(logia::Backend *backend)
+    {
+        switch (op)
+        {
+        case Operators::BINARY_ASSIGN:
+            auto left = this->get_argument(0)->codegen(backend);
+            auto right = this->get_argument(1)->codegen(backend);
+            right = llvm_load_if_required(right, backend);
+            auto store = backend->builder->CreateStore(right, left, false);
+            backend->set_debug_loc((llvm::Instruction *)store, this->rule);
+
+            return left;
+        }
+
+        return CallExpression::post_codegen(backend);
     }
 
     LOGIA_API LOGIA_LEND BinaryExpression *ast_create_binary_expr(Expression *left, Operators op, Expression *right)
@@ -357,7 +394,7 @@ namespace logia::AST
     std::string PrefixUnaryExpression::to_string()
     {
         auto id = this->get_locator()->as<Identifier>();
-        return std::format("PrefixUnaryExpression [{}]", id->identifier, Node::to_string());
+        return std::format("PrefixUnaryExpression [{}] {}", id->identifier, Node::to_string());
     }
 
     PrefixUnaryExpression::PrefixUnaryExpression(antlr4::ParserRuleContext *rule, Operators op, Expression *operand) : CallExpression(rule)
@@ -372,7 +409,7 @@ namespace logia::AST
         switch (this->op)
         {
         case Operators::PREFIX_DEREFERENCE:
-            node_assert<Identifier>(operand, __FUNCTION__ ":" TOSTRING(__LINE__));
+            // node_assert<Identifier>(operand, __FUNCTION__ ":" TOSTRING(__LINE__));
             break;
         default:
         {
@@ -420,18 +457,19 @@ namespace logia::AST
             auto operand = this->get_operand();
 
             // auto operandValue = operand->codegen(codegen, builder);
-            auto operandValue = this->get_operand()->as<Identifier>()->get_var_decl()->alloca_inst;
+            // auto operandValue = this->get_operand()->as<Identifier>()->get_var_decl()->alloca_inst;
+            auto operandValue = this->get_operand()->codegen(backend);
             auto operandType = operandValue->getType();
             // return builder->CreateIntToPtr(operandValue, llvm::PointerType::get(codegen->context, 0));
             // return builder->CreateLoad(llvm::PointerType::get(codegen->context, 0), operandValue);
             // return builder->CreateLoad(operandType->getPointerTo(), operandValue, false);
-            auto ptr = backend->builder->CreateAlloca(operandType->getPointerTo(), nullptr, "deref");
+            auto ptr = this->cg_value = backend->builder->CreateAlloca(operandType->getPointerTo(), nullptr, "deref");
             backend->set_debug_loc((llvm::Instruction *)ptr, this->rule);
 
             auto store = backend->builder->CreateStore(operandValue, ptr);
             backend->set_debug_loc((llvm::Instruction *)store, this->rule);
 
-            this->cg_value = backend->builder->CreateLoad(operandType->getPointerTo(), ptr);
+            // this->cg_value = backend->builder->CreateLoad(operandType->getPointerTo(), ptr);
             return Expression::post_codegen(backend);
         }
         default:
@@ -507,16 +545,12 @@ namespace logia::AST
         auto decl = this->first_parent<Scope>()->lookup<Node>(this->identifier);
         if (decl->is<VarDeclStmt>())
         {
-            auto vdecl = decl->as<VarDeclStmt>();
-
-            this->cg_value = backend->builder->CreateLoad(vdecl->alloca_inst->getAllocatedType(), vdecl->alloca_inst, this->identifier);
+            this->cg_value = decl->as<VarDeclStmt>()->alloca_inst;
             return Expression::post_codegen(backend);
         }
         if (decl->is<FunctionParameter>())
         {
-            auto fpdecl = decl->as<FunctionParameter>();
-
-            this->cg_value = backend->builder->CreateLoad(fpdecl->alloca_inst->getAllocatedType(), fpdecl->alloca_inst, this->identifier);
+            this->cg_value = decl->as<FunctionParameter>()->alloca_inst;
             return Expression::post_codegen(backend);
         }
         // TODO function? -> function pointer
@@ -536,9 +570,9 @@ namespace logia::AST
         return this->first_parent<Block>()->lookup<VarDeclStmt>(this->identifier);
     }
 
-    Function *get_function_decl()
+    Function *Identifier::get_function_decl()
     {
-        throw std::runtime_error("not implemented");
+        throw_compiler_error("todo");
     }
 
     void Identifier::post_attach()
@@ -549,7 +583,13 @@ namespace logia::AST
 
     Type *Identifier::get_type()
     {
-        return this->resolve()->get_type();
+        return this->type == nullptr ? new InferType() : this->type;
+    }
+
+    void Identifier::set_type(Type *t)
+    {
+        this->type = t;
+        this->is_typed = true;
     }
 
     Node *Identifier::resolve()
@@ -560,6 +600,20 @@ namespace logia::AST
         }
         auto scope = this->first_parent<Scope>();
         return scope->lookup<Node>(this->identifier);
+    }
+
+    void Identifier::pre_type_inference()
+    {
+        // this means my parent will type_inference this node!
+        if (this->skip_type_inference)
+        {
+            return;
+        }
+        if (!this->is_typed)
+        {
+            this->set_type(this->resolve()->get_final_type());
+        }
+        Node::pre_type_inference();
     }
 
     LOGIA_API Identifier *ast_create_identifier(LOGIA_CLONE const char *name)
@@ -666,7 +720,7 @@ namespace logia::AST
             ".struct.init");
 
         auto abiAlign = llvm::Align(dl.getABITypeAlign(ir_struct_ty).value());
-        srcGlobal->setAlignment(abiAlign);
+        srcGlobal->setAlignment(llvm::Align(8));
 
         this->cg_value = srcGlobal;
         // skip to Node -> LLVM crashes

@@ -71,6 +71,8 @@ namespace logia::AST
     /// @brief Member access expression, used for struct field access and method calls
     struct MemberAccessExpression : Expression
     {
+        Type *type;
+
         MemberAccessExpression(antlr4::ParserRuleContext *rule, Node *left, Identifier *right);
         /// @brief Get the left expression of the member access
         /// @return The left expression
@@ -81,9 +83,12 @@ namespace logia::AST
 
         std::string to_string() override;
 
+        void pre_type_inference() override;
+
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
         Type *get_type() override;
+        void set_type(Type *type) override;
 
         Node *resolve() override;
     };
@@ -105,6 +110,7 @@ namespace logia::AST
         std::string to_string() override;
 
         void post_type_inference() override;
+        llvm::Value *post_codegen(logia::Backend *backend) override;
     };
 
     LOGIA_API LOGIA_LEND BinaryExpression *ast_create_binary_expr(Expression *left, Operators op, Expression *right);
@@ -149,6 +155,7 @@ namespace logia::AST
     {
         /// @brief The name of the identifier
         const char *identifier;
+        Type *type = nullptr;
 
         Identifier(antlr4::ParserRuleContext *rule, const char *identifier);
         bool operator==(const char *id);
@@ -163,9 +170,11 @@ namespace logia::AST
 
         std::string to_string() override;
 
+        void pre_type_inference() override;
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
         Type *get_type() override;
+        void set_type(Type *t) override;
 
         void post_attach() override;
 

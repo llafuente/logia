@@ -285,6 +285,8 @@ namespace logia::AST
 
         StructField *get_field_by_index(uint32_t index);
 
+        Type *get_type() override;
+
         std::string to_string() override;
 
         std::string get_repr() override;
@@ -318,6 +320,7 @@ namespace logia::AST
 
         Type *get_type() override;
         std::string to_string() override;
+        std::string get_repr() override;
         llvm::Value *post_codegen(logia::Backend *backend) override;
         Node *resolve() override;
     };

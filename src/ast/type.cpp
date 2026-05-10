@@ -68,7 +68,7 @@ namespace logia::AST
 
     std::string Type::get_repr()
     {
-        return "ty TODO!";
+        return "not-def";
     }
 
     Type *Type::get_type()
@@ -184,6 +184,7 @@ namespace logia::AST
         }
 
         this->cg_value = (llvm::Value *)this->ir_type;
+        Node::pre_codegen(backend);
     }
 
     void Integer::post_attach()
@@ -258,6 +259,7 @@ namespace logia::AST
         }
 
         this->cg_value = (llvm::Value *)this->ir_type;
+        Node::pre_codegen(backend);
     }
 
     void Float::post_attach()
@@ -301,6 +303,7 @@ namespace logia::AST
         }
 
         this->cg_value = (llvm::Value *)this->ir_type;
+        Node::pre_codegen(backend);
     }
 
     void Void::post_attach()
@@ -351,6 +354,7 @@ namespace logia::AST
         }
 
         this->cg_value = (llvm::Value *)this->ir_type;
+        Node::pre_codegen(backend);
     }
 
     void Pointer::post_attach()
@@ -400,16 +404,20 @@ namespace logia::AST
                              const char *docstring) : docstring(docstring), Type(rule, Primitives::NONE), index(index)
     {
         this->is_typed = true;
-        this->push_child(name);
-        this->push_child(type);
+
+        this->push_child(name); // 0
+        name->skip_codegen = true;
+        name->set_type(type);
+
+        this->push_child(type); // 1
         if (default_value == nullptr)
         {
             // TODO type->get_default()
-            this->push_child(new NoOp());
+            this->push_child(new NoOp()); // 2
         }
         else
         {
-            this->push_child(default_value);
+            this->push_child(default_value); // 2
         }
     }
     Identifier *StructField::get_name()
@@ -449,6 +457,7 @@ namespace logia::AST
 
         this->has_name = true;
         id->skip_codegen = true;
+        id->set_type(this);
         this->unshift_child(id);
     }
 
@@ -526,9 +535,14 @@ namespace logia::AST
         throw_compiler_error(std::format("index {} out of bounds", index));
     }
 
+    Type *Struct::get_type()
+    {
+        return this;
+    }
+
     std::string Struct::to_string()
     {
-        return std::format("Type[struct {}]{}", this->get_name(), Node::to_string());
+        return std::format("Type.Struct {}", Node::to_string());
     }
     std::string Struct::get_repr()
     {
@@ -543,12 +557,11 @@ namespace logia::AST
                 {
                     list += ", ";
                 }
-                list += field->get_repr();
+                list += field->get_final_type()->get_repr();
             }
         }
 
-        // return std::format("struct {} {{ {} }}", this->get_name(), fields);
-        return std::format("struct {} {}", this->get_name(), list);
+        return std::format("struct {} {{{}}}", this->get_name(), list);
     }
 
     void Struct::post_attach()
@@ -629,6 +642,15 @@ namespace logia::AST
         return std::format("TypeDef[?]{}", Node::to_string());
     }
 
+    std::string TypeDef::get_repr()
+    {
+        if (is_attached)
+        {
+            return this->get_final_type()->get_repr();
+        }
+        return "not-attached-yet";
+    }
+
     llvm::Value *TypeDef::post_codegen(logia::Backend *backend)
     {
         this->cg_value = this->get_type()->codegen(backend);
@@ -655,6 +677,7 @@ namespace logia::AST
 
         this->is_typed = true;
         name->skip_codegen = true;
+        name->set_type(type);
 
         this->push_child(name);
         this->push_child(type);
@@ -702,6 +725,7 @@ namespace logia::AST
 
         this->is_typed = true;
         name->skip_codegen = true;
+        name->set_type(this);
 
         if (return_type == nullptr)
         {
@@ -729,7 +753,7 @@ namespace logia::AST
 
     std::string Function::to_string()
     {
-        return std::format("Type[{}] {}", this->get_repr(), Node::to_string());
+        return std::format("Type.Function {}", Node::to_string());
     }
 
     std::string Function::get_repr()
@@ -922,6 +946,7 @@ namespace logia::AST
             backend->dscopes.pop_back();
         }
         DEBUG() << "exit!" << std::endl;
+        Node::pre_codegen(backend);
     }
 
     llvm::Value *Function::post_codegen(logia::Backend *backend)

@@ -72,15 +72,52 @@ namespace logia::AST
     std::string Node::to_string_tree(std::string padding, bool last_child)
     {
         std::string out;
+        std::string flags = "";
+        if (this->is_pre_codegen)
+        {
+            flags += (flags.length() ? "," : "");
+            flags += "precg";
+        }
+        if (this->is_post_codegen)
+        {
+            flags += (flags.length() ? "," : "");
+            flags += "poscg";
+        }
+        if (this->is_pre_type_inference)
+        {
+            flags += (flags.length() ? "," : "");
+            flags += "prety";
+        }
+        if (this->is_post_type_inference)
+        {
+            flags += (flags.length() ? "," : "");
+            flags += "postty";
+        }
+        if (this->has_typed)
+        {
+            flags += (flags.length() ? "," : "");
+            flags += "wty";
+        }
+        if (this->is_typed)
+        {
+            flags += (flags.length() ? "," : "");
+            flags += "isty";
+        }
+        if (this->skip_codegen)
+        {
+            flags += (flags.length() ? "," : "");
+            flags += "skipcg";
+        }
+
         if (padding.length() == 0 || last_child)
         {
             // root
-            out += std::format("{}{} [{},{}]\n", padding, this->to_string(), this->is_pre_codegen ? "precg" : "", this->is_post_codegen ? "postcg" : "");
+            out += std::format("{}{} [{}]\n", padding, this->to_string(), flags);
         }
         else
         {
             // children
-            out += std::format("{}{} [{},{}]\n", padding, this->to_string(), this->is_pre_codegen ? "precg" : "", this->is_post_codegen ? "postcg" : "");
+            out += std::format("{}{} [{}]\n", padding, this->to_string(), flags);
         }
 
         // std::string out = std::format("{} {} (parent {:p}){},{}\n", padding, this->to_string(), static_cast<void *>(this->parent_node), this->is_pre_codegen ? "precg" : "", this->is_post_codegen ? "postcg" : "");
@@ -108,12 +145,12 @@ namespace logia::AST
 
     void Node::pre_type_inference()
     {
-        // DEBUG() << this->to_string() << std::endl;
+        this->is_pre_type_inference = true;
     }
 
     void Node::post_type_inference()
     {
-        // DEBUG() << this->to_string() << std::endl;
+        this->is_post_type_inference = true;
     }
 
     Type *Node::get_final_type()
