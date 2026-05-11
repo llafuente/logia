@@ -1,0 +1,13 @@
+type point = struct {
+    i64 x
+    i64 y
+}
+
+function main() i64 {
+    var point p = {11,13}
+
+    var i64 tmp = 17
+    p.x = tmp
+
+    return p.x + p.y
+}

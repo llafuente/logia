@@ -109,7 +109,8 @@ namespace logia::AST
 
         // auto property_ty = (llvm::Type *)field->get_final_type()->codegen(backend);
         // left_value = llvm_load_if_required(left_value, backend);
-        this->cg_value = backend->builder->CreateStructGEP(struct_ty->ir_type, left_value, field->index);
+        auto gep = backend->builder->CreateStructGEP(struct_ty->ir_type, left_value, field->index);
+        this->cg_value = gep;
 
         return Expression::post_codegen(backend);
     }
@@ -373,6 +374,7 @@ namespace logia::AST
             right = llvm_load_if_required(right, backend);
             auto store = backend->builder->CreateStore(right, left, false);
             backend->set_debug_loc((llvm::Instruction *)store, this->rule);
+            this->cg_value = left;
 
             return left;
         }
@@ -639,9 +641,28 @@ namespace logia::AST
         {
             throw_compiler_error("type was already set");
         }
+        if (!type->is<Struct>())
+        {
+            throw_semantic_error(this, std::format("LGER030 incompatible type '{}', expected a struct", type->get_repr()));
+        }
 
         this->is_typed = true;
         this->unshift_child(type);
+        // type children
+
+        // TODO defaults!
+        auto struct_ty = type->as<Struct>();
+        if (struct_ty->field_count != this->values)
+        {
+            throw_semantic_error(this, std::format("LGER031 type '{}' expected '{}' values but found '{}'", struct_ty->get_repr(), struct_ty->field_count, this->values));
+        }
+
+        for (auto i = 0; i < struct_ty->field_count; ++i)
+        {
+            auto field_ty = struct_ty->get_field_by_index(i)->get_final_type();
+            auto value = this->get_value_by_index(i);
+            value->set_type(field_ty);
+        }
     }
 
     void StructInitializer::add_named_property(TypeDef *locator, Expression *value)
@@ -649,14 +670,24 @@ namespace logia::AST
         this->push_child(locator);
         this->push_child(value);
 
-        ++this->length;
+        ++this->values;
     }
     void StructInitializer::add_positional_property(Expression *value)
     {
         this->push_child(new NoOp());
         this->push_child(value);
 
-        ++this->length;
+        ++this->values;
+    }
+
+    Expression *StructInitializer::get_value_by_index(uint32_t index)
+    {
+        return this->get_child<Expression>((index * 2) + 2);
+    }
+
+    Expression *StructInitializer::get_value_by_name(const char *name)
+    {
+        throw_compiler_error("TODO!");
     }
 
     void StructInitializer::pre_type_inference()
@@ -665,7 +696,7 @@ namespace logia::AST
         int count = 0;
         this->foreach_child<ConstExpression>([&count](auto x)
                                              { ++count; });
-        this->is_constant = count == this->length;
+        this->is_constant = count == this->values;
     }
 
     llvm::Value *StructInitializer::post_codegen(logia::Backend *backend)
@@ -681,7 +712,7 @@ namespace logia::AST
         auto struct_ty = this->get_type()->as<Struct>();
 
         auto v = std::vector<llvm::Constant *>();
-        v.reserve(this->length);
+        v.reserve(this->values);
 
         // skip first, it's the type
 
@@ -720,7 +751,8 @@ namespace logia::AST
             ".struct.init");
 
         auto abiAlign = llvm::Align(dl.getABITypeAlign(ir_struct_ty).value());
-        srcGlobal->setAlignment(llvm::Align(8));
+        // srcGlobal->setAlignment(llvm::Align(8));
+        srcGlobal->setAlignment(abiAlign);
 
         this->cg_value = srcGlobal;
         // skip to Node -> LLVM crashes

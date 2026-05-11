@@ -190,7 +190,7 @@ namespace logia::AST
     struct StructInitializer : Expression
     {
     public:
-        uint32_t length = 0;
+        uint32_t values = 0;
 
         StructInitializer(antlr4::ParserRuleContext *rule);
 
@@ -199,6 +199,9 @@ namespace logia::AST
         void set_type(Type *type) override;
         void add_named_property(TypeDef *locator, Expression *value);
         void add_positional_property(Expression *value);
+
+        Expression *get_value_by_index(uint32_t index);
+        Expression *get_value_by_name(const char *name);
 
         void pre_type_inference() override;
 

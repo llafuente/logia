@@ -1,6 +1,7 @@
 #include "ast/llvm.h"
 #include "utils.h"
 #include <iostream>
+#include "logia/compiler_error.h"
 
 #include "llvm/IR/Instructions.h"
 
@@ -46,13 +47,47 @@ namespace logia::AST
         }
         else if (llvm::isa<llvm::GetElementPtrInst>(value))
         {
+            // GEP is used on structs and arrays, each index can be either one
             auto element_ptr = llvm::dyn_cast<llvm::GetElementPtrInst>(value);
-            // source struct <-- element_ptr->getSourceElementType()
-            // getType() -> ptr, not really!
+            auto source_ty = element_ptr->getSourceElementType();
 
-            // TODO how do we know the target type here!!!
-            value = backend->builder->CreateLoad(element_ptr->getSourceElementType()->getStructElementType(0), value);
+            DEBUG() << "GEP has " << element_ptr->getNumIndices() << " indices:\n";
+
+            // auto ty = llvm::dyn_cast<llvm::StructType>(source_ty);
+            llvm::Type *ty = source_ty; // final type, resolve index by index!
+
+            auto IdxIt = element_ptr->idx_begin();
+
+            // ignore the first one, it's the pointer deref
+            unsigned idxNum = 1;
+            ++IdxIt;
+
+            for (; IdxIt != element_ptr->idx_end(); ++IdxIt, ++idxNum)
+            {
+                if (ty->isStructTy())
+                {
+                    if (auto *CI = llvm::dyn_cast<llvm::ConstantInt>(IdxIt->get()))
+                    {
+                        llvm::errs() << "  Index " << idxNum << ": " << CI->getSExtValue() << "\n";
+                        ty = ty->getStructElementType(CI->getSExtValue());
+                    }
+                    else
+                    {
+                        throw_compiler_error("Expected GEP indexes to be constant for struct types");
+                    }
+                }
+                else if (ty->isArrayTy())
+                {
+                    throw_compiler_error("TODO");
+                }
+            }
+
+            DEBUG() << "final type" << llvm_type_to_string(ty);
+
+            value = backend->builder->CreateLoad(ty, value);
         }
+        // the rest don't need it!
+
         return value;
     }
 }
