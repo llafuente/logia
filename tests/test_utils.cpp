@@ -2,6 +2,8 @@
 
 #if _WIN32
 
+#include "logia/run.h"
+
 #define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
 #include <stdio.h>
@@ -9,6 +11,7 @@
 #include <io.h>
 #include <fcntl.h>
 #include <stdlib.h>
+#include <iostream>
 
 static HANDLE g_readPipe = NULL;
 static HANDLE g_writePipe = NULL;
@@ -186,3 +189,39 @@ char *end_stdout_capture()
 void start_stdout_capture() {}
 char *get_captured_stdout() {}
 #endif
+
+int test_single_file(const char *logia_folder, const char *ir_folder, const char *obj_folder, const char *file)
+{
+    std::cout << std::endl
+              << "logia file      : " << logia_folder << file << ".logia" << std::endl
+              << "current  ll file: " << ir_folder << file << ".ll" << std::endl
+              << "expected ll file: " << ".\\tests\\expected-ir\\" << file << ".ll" << std::endl;
+
+    bool debug = true;
+
+    int argc = debug ? 7 : 5;
+    //++argc;
+    const char **argv = (const char **)malloc(sizeof(char *) * argc);
+    int arg = 0;
+    auto logia_file = std::format("{}{}{}", logia_folder, file, ".logia");
+    argv[arg++] = logia_file.c_str();
+
+    argv[arg++] = "--emit-llvm";
+    auto llfile = std::format("{}{}{}", ir_folder, file, ".ll");
+    argv[arg++] = llfile.c_str();
+
+    argv[arg++] = "--emit-obj";
+    auto objfile = std::format("{}{}{}", obj_folder, file, ".o");
+    argv[arg++] = objfile.c_str();
+
+    if (debug)
+    {
+        argv[arg++] = "--debug";
+        argv[arg++] = "--coverage";
+    }
+    // argv[arg++] = "--verbose";
+
+    auto ret = logia::logia_run(argc, argv);
+    free(argv);
+    return ret;
+}

@@ -24,6 +24,7 @@ namespace logia
 
     void type_inference_expression(Expression *expr, Type *enforce_type)
     {
+        // DEBUG() << expr->to_string_tree() << "=" << enforce_type->get_repr() << "|" << expr->rule->getText() << std::endl;
         DEBUG() << expr->to_string_tree() << "=" << enforce_type->get_repr() << std::endl;
 
         StructInitializer *sinit;
@@ -31,7 +32,7 @@ namespace logia
         {
             if (!enforce_type->is<Struct>())
             {
-                throw_semantic_error(expr, std::format("expected a struct type but found {}", enforce_type->get_repr()));
+                throw_semantic_error(expr, std::format("LGER030 incompatible type '{}', expected a struct", enforce_type->get_repr()));
             }
             if (!sinit->is_typed)
             {

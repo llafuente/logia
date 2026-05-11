@@ -84,6 +84,7 @@ add_executable(logia_test_suite
   tests/test_node.cpp
   tests/test_ast.cpp
   tests/test_logia.cpp
+  tests/test_logia_err.cpp
   ${LOGIA_SOURCE_FILES}
   ${ANTLR_LogiaGrammarLexer_CXX_OUTPUTS}
   ${ANTLR_LogiaGrammarParser_CXX_OUTPUTS}
