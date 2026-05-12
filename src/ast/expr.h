@@ -191,6 +191,7 @@ namespace logia::AST
     {
     public:
         uint32_t values = 0;
+        Type *type = nullptr;
 
         StructInitializer(antlr4::ParserRuleContext *rule);
 
@@ -202,8 +203,6 @@ namespace logia::AST
 
         Expression *get_value_by_index(uint32_t index);
         Expression *get_value_by_name(const char *name);
-
-        void pre_type_inference() override;
 
         // Inherited via Expression
         llvm::Value *post_codegen(logia::Backend *backend) override;

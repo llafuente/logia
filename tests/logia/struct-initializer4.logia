@@ -1,0 +1,16 @@
+type address = struct {
+    i32 street
+    i32 number
+}
+
+type person = struct {
+    i32 name
+    address address
+}
+
+function main() i32 {
+    var person p = {1, {2, 3}}
+
+    return p.address.street
+    //return p.name + p.address.street
+}

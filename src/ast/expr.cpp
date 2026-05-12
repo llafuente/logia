@@ -49,6 +49,7 @@ namespace logia::AST
     }
     void MemberAccessExpression::set_type(Type *type)
     {
+        this->is_typed = true;
         this->type = type;
     }
     Node *MemberAccessExpression::resolve()
@@ -69,7 +70,10 @@ namespace logia::AST
         }
 
         auto left_ty_stuct = left_ty->as<Struct>();
-        this->set_type(left_ty_stuct->get_field_type(this->get_right())->get_final_type());
+        auto right = this->get_right();
+        auto ty = left_ty_stuct->get_field_type(right)->get_final_type();
+        right->set_type(ty);
+        this->set_type(ty);
         Node::pre_type_inference();
     }
 
@@ -647,8 +651,7 @@ namespace logia::AST
         }
 
         this->is_typed = true;
-        this->unshift_child(type);
-        // type children
+        this->type = type;
 
         // TODO defaults!
         auto struct_ty = type->as<Struct>();
@@ -656,13 +659,27 @@ namespace logia::AST
         {
             throw_semantic_error(this, std::format("LGER031 type '{}' expected '{}' values but found '{}'", struct_ty->get_repr(), struct_ty->field_count, this->values));
         }
-
+        StructInitializer *si = nullptr;
+        int constant_count = 0;
         for (auto i = 0; i < struct_ty->field_count; ++i)
         {
             auto field_ty = struct_ty->get_field_by_index(i)->get_final_type();
             auto value = this->get_value_by_index(i);
             value->set_type(field_ty);
+
+            if (value->try_cast<StructInitializer>(&si))
+            {
+                if (si->is_constant)
+                {
+                    ++constant_count;
+                }
+            }
+            else if (value->is<ConstExpression>())
+            {
+                ++constant_count;
+            }
         }
+        this->is_constant = constant_count == this->values;
     }
 
     void StructInitializer::add_named_property(TypeDef *locator, Expression *value)
@@ -682,21 +699,12 @@ namespace logia::AST
 
     Expression *StructInitializer::get_value_by_index(uint32_t index)
     {
-        return this->get_child<Expression>((index * 2) + 2);
+        return this->get_child<Expression>((index * 2) + 1);
     }
 
     Expression *StructInitializer::get_value_by_name(const char *name)
     {
         throw_compiler_error("TODO!");
-    }
-
-    void StructInitializer::pre_type_inference()
-    {
-        // if every value is constant -> we are constant!
-        int count = 0;
-        this->foreach_child<ConstExpression>([&count](auto x)
-                                             { ++count; });
-        this->is_constant = count == this->values;
     }
 
     llvm::Value *StructInitializer::post_codegen(logia::Backend *backend)
@@ -716,7 +724,7 @@ namespace logia::AST
 
         // skip first, it's the type
 
-        for (auto field_index = 0, i = 1; i < this->children.size(); i += 2, ++field_index)
+        for (auto field_index = 0, i = 0; i < this->children.size(); i += 2, ++field_index)
         {
             auto field_ty = struct_ty->get_field_by_index(field_index)->get_final_type();
             field_ty->codegen(backend);
@@ -741,7 +749,17 @@ namespace logia::AST
         // 1) Constant initializer (replace with your child constants)
         llvm::Constant *init = llvm::ConstantStruct::get(ir_struct_ty, v);
 
-        // 2) Materialize constant in read-only global memory (memcpy source must be an address)
+        // 2a) If parent is a StructInitializer, means is a nested initialization
+        // do not create the global variable
+        auto p = this->parent_node;
+        if (p->is<StructInitializer>())
+        {
+            this->cg_value = init;
+            return Node::post_codegen(backend);
+        }
+        // if (p->is<Stmt>() || p->is<Block>())
+
+        // 2b) Materialize constant in read-only global memory (memcpy source must be an address)
         auto *srcGlobal = new llvm::GlobalVariable(
             *backend->module,
             ir_struct_ty,
@@ -761,11 +779,7 @@ namespace logia::AST
 
     Type *StructInitializer::get_type()
     {
-        if (is_typed)
-        {
-            // too soon ?!
-        }
-        return this->get_child<Type>(0);
+        return this->type; // TODO InferType
     }
 
     //

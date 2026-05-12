@@ -15,10 +15,10 @@ function Show-FileDiff {
 
         [Parameter(Mandatory = $true)]
         [string]$CandidateFile,
-        
+
         [Parameter()]
         [string]$diffTool = 'diff'
-    )    
+    )
 
     #$arguments = @("--color", "--side-by-side", "--suppress-common-lines", $ReferenceFile, $CandidateFile)
     #$arguments = @("--color", "--word-diff=porcelain", "--word-diff-regex=.", $ReferenceFile, $CandidateFile)
@@ -27,7 +27,7 @@ function Show-FileDiff {
     #$arguments = @("--color", "--suppress-common-lines", $ReferenceFile, $CandidateFile)
     #$arguments = @("--color", "--suppress-common-lines", "--side-by-side", "--width=200",  $ReferenceFile, $CandidateFile)
     #$arguments = @("--color", "--side-by-side", '--unchanged-line-format=""', '--old-line-format=":%dn: %L"','--new-line-format=":%dn: %L"', "--width=200",  $ReferenceFile, $CandidateFile)
-    
+
     if ($diffTool -eq "git") {
         # --word-diff-regex=.
         $arguments = @("diff", "--no-index", "--word-diff=color",  $ReferenceFile, $CandidateFile)
@@ -52,6 +52,8 @@ if (-not (Test-Path -Path $referenceFolder -PathType Container)) {
 }
 
 $logiaFiles = Get-ChildItem -Path $testFolder -Filter '*.ll' -File | Sort-Object Name
+# test single file
+$logiaFiles = Get-ChildItem -Path $testFolder -Filter 'struct-initializer.ll' -File | Sort-Object Name
 
 if (-not $logiaFiles) {
     Write-Host "No .ll files found in $testFolder" -ForegroundColor Yellow

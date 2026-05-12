@@ -22,7 +22,8 @@ TEST(logia_run_file, basic_staff)
 
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer"), 11 + 13);
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer2"), 13 + 17);
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer3"), 1);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer3"), 3);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer4"), 2);
     //! EXPECT_EQ(test_single_file(".\\tests\\logia\\struct-initializer-named.logia"), 32); // 31 means not ordering!
 
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "function-blocks"), 5);
@@ -38,4 +39,6 @@ TEST(logia_run_file, basic_staff)
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "expr-all-operator-i64"), 0);
 
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "numeric-vardecl"), 15);
+
+    // EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-operators"), 64);
 }
