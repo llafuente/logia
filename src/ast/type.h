@@ -394,6 +394,7 @@ namespace logia::AST
         InferType();
         ~InferType();
         void set_type(Type *t) override;
+        std::string get_repr() override;
         std::string to_string() override;
         void pre_codegen(logia::Backend *backend) override;
         llvm::Value *post_codegen(logia::Backend *backend) override;

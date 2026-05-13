@@ -70,17 +70,13 @@ namespace logia::AST
     //
     VarDeclStmt::VarDeclStmt(antlr4::ParserRuleContext *rule, Identifier *id, Type *type, Expression *expr) : Stmt(rule), alloca_inst(nullptr)
     {
-        this->push_child(id);
-        if (type == nullptr)
-        {
-            this->push_child(new InferType());
-        }
-        else
+        this->push_child(id);   // 0
+        this->push_child(expr); // 1
+        if (type != nullptr)
         {
             this->is_typed = true;
             this->push_child(type);
         }
-        this->push_child(expr);
     }
 
     const char *VarDeclStmt::get_name()
@@ -94,7 +90,7 @@ namespace logia::AST
 
     Expression *VarDeclStmt::get_expr()
     {
-        return this->get_child<Expression>(2);
+        return this->get_child<Expression>(1);
     }
 
     std::string VarDeclStmt::to_string()
@@ -214,7 +210,11 @@ namespace logia::AST
     }
     Type *VarDeclStmt::get_type()
     {
-        return this->get_child<Type>(1)->get_final_type();
+        if (children.size() == 3)
+        {
+            return this->get_child<Type>(2)->get_final_type();
+        }
+        return nullptr;
     }
     void VarDeclStmt::set_type(Type *ty)
     {
@@ -223,7 +223,7 @@ namespace logia::AST
             throw_compiler_error("already has a type!");
         }
         // TODO assume [1] is InferType ?
-        this->children[1]->set_type(ty);
+        this->push_child(ty);
         this->is_typed = true;
     }
 }

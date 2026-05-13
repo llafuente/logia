@@ -70,6 +70,9 @@ namespace logia
 
         auto expr = rstmt->get_expr();
         auto expr_ty = expr->get_type(); // TODO get_final_type ?
+        if (expr_ty == nullptr) {
+            return false;
+        }
 
         DEBUG() << "START TYPE = " << expr_ty->to_string() << std::endl;
         if (expr_ty->is<InferType>()) {
@@ -101,8 +104,9 @@ return true; });
         else
         {
             auto ty = expr->get_final_type();
-            if (ty->is<InferType>())
+            if (ty->is<InferType>() || ty == nullptr)
             {
+                LERROR() << vardecl->to_string_tree() << std::endl;
                 throw_semantic_error(vardecl, "TODO");
             }
             vardecl->set_type(ty);
@@ -113,11 +117,21 @@ return true; });
     {
         DEBUG() << program->to_string_tree() << std::endl;
 
-        program->foreach_descendant([](Node *node, int deep)
-                                    { node->pre_type_inference(); return true; });
+        auto default_integer = program->look<Type>("λi64");
+        auto default_float = program->look<Type>("λf64");
 
-        program->foreach_descendant([program](Node *node, int deep)
-                                    {
+        program->foreach_post_descendant([default_integer, default_float](Node *node, int deep)
+                                         {
+                                            node->pre_type_inference();
+if (node->is<IntegerLiteral>()) {
+                                            todo_type_stack.push_back({node, default_integer});
+                                        }
+                                        else if (node->is<FloatLiteral>()) {
+                                            todo_type_stack.push_back({ node, default_float });
+                                        } });
+        DEBUG() << "Found " << todo_type_stack.size() << " literals" << std::endl;
+        program->foreach_post_descendant([program](Node *node, int deep)
+                                         {
                                         if (node->is<VarDeclStmt>()) {
                                             type_inference_vardecl(node->as<VarDeclStmt>());
                                         } else if (node->is<Function>()) {
@@ -130,18 +144,13 @@ return true; });
                                                 type_inference_return_stmt(f->get_body(), return_ty);
                                             }
 
-                                        } else if (node->is<IntegerLiteral>()) {
-                                            todo_type_stack.push_back({node, program->look<Type>("λi64")});
-                                        }
-                                        else if (node->is<FloatLiteral>()) {
-                                            todo_type_stack.push_back({ node, program->look<Type>("λf64") });
-                                        }
-                                    return true; });
+                                        } });
 
         // if at the end, this nodes are not resolved, force them!
         for (const auto &it : todo_type_stack)
         {
-            if (it.first->get_type()->is<InferType>())
+            auto ty = it.first->get_type();
+            if (ty == nullptr || ty->is<InferType>())
             {
                 DEBUG() << "set default type because it's infer" << it.first->to_string() << std::endl;
                 it.first->set_type(it.second);
@@ -151,6 +160,14 @@ return true; });
 
         program->foreach_post_descendant([](Node *node, int deep)
                                          { node->post_type_inference(); });
+
+        // check
+        program->foreach_post_descendant([](Node *node, int deep)
+                                         { if (node->has_type && !node->is_typed) {
+                                            std::cerr << node->to_string_tree() << std::endl;
+                                            std::cerr << node->parent_node->to_string_tree() << std::endl;
+                                            throw_compiler_error("Not able to find type, no error.");
+                                         } });
 
         DEBUG() << program->to_string_tree() << std::endl;
     }

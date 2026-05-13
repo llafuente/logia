@@ -28,6 +28,7 @@ namespace logia::AST
     struct CallExpression : Expression
     {
         uint32_t argument_count = 0;
+        Type *type = nullptr;
         /// @brief Empty constructor for internal usage of CallExpression
         /// @remarks Do not use the constructor to build ASTs
         CallExpression(antlr4::ParserRuleContext *rule);
@@ -60,6 +61,8 @@ namespace logia::AST
         void add_positional_argument(Expression *expr);
 
         std::string to_string() override;
+        void pre_type_inference() override;
+        void post_type_inference() override;
         llvm::Value *post_codegen(logia::Backend *backend) override;
         Type *get_type() override;
     };
@@ -101,14 +104,21 @@ namespace logia::AST
 
     /// @brief Binary expression, used for binary operators
     /// @remarks Implemented as a call expression to be able to resolve operator overloads and use intrinsics for codegen
-    struct BinaryExpression : CallExpression
+    struct BinaryExpression : Expression
     {
-        Operators op;
+        Operators op = Operators::DEFAULT;
+        CallExpression *call_expr = nullptr;
+        Type *type = nullptr;
+
         BinaryExpression(antlr4::ParserRuleContext *rule, Expression *left, Operators op, Expression *right);
+
         bool is_assignament();
         Expression *get_left();
         Expression *get_right();
         std::string to_string() override;
+
+        Type *get_type() override;
+        void set_type(Type *type) override;
 
         void pre_type_inference() override;
         void post_type_inference() override;

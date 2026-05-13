@@ -981,6 +981,11 @@ namespace logia::AST
         return std::format("InferType");
     }
 
+    std::string InferType::get_repr()
+    {
+        return std::format("infer");
+    }
+
     void InferType::pre_codegen(logia::Backend *backend)
     {
         throw std::runtime_error("InferType cannot be codegen!");

@@ -131,6 +131,7 @@ namespace logia::AST
 
         // these two rules are couple atm, but we should handle identifiers in other ways in the future...
         node_assert<Identifier, MemberAccessExpression>(locator, __FUNCTION__ ":" TOSTRING(__LINE__));
+        locator->skip_type_inference = true;
         locator->skip_codegen = true;
 
         this->push_child(locator);
@@ -148,6 +149,7 @@ namespace logia::AST
         node_assert<Expression>(expr, __FUNCTION__ ":" TOSTRING(__LINE__));
 
         name->skip_codegen = true;
+        name->has_type = false; // TODO ?
 
         this->push_child(name);
         this->push_child(expr);
@@ -161,6 +163,7 @@ namespace logia::AST
 
         auto name = ast_create_identifier((char *)"");
         name->skip_codegen = true;
+        name->has_type = false; // TODO ?
 
         this->push_child(name); // TODO maybe empty identifier ?!
         this->push_child(expr);
@@ -200,18 +203,44 @@ namespace logia::AST
 
         return v;
     }
+    void CallExpression::pre_type_inference()
+    {
+        // it's possible to solve at this point if the locator where final
+        // maybe it's a problem with BinaryExpression ??
+        // auto locator = this->get_locator();
+        // locator->pre_type_inference();
+
+        auto locator = this->get_locator();
+        locator->skip_type_inference = false;
+        locator->pre_type_inference();
+        locator->post_type_inference();
+
+        auto locator_ty = locator->get_type();
+        locator->set_type(locator_ty);
+
+        Function *f = nullptr;
+        if (!locator_ty->try_cast<Function>(&f))
+        {
+            LERROR() << this->to_string_tree() << std::endl;
+            LERROR() << locator_ty->to_string_tree() << std::endl;
+            throw_semantic_error(this, std::format("LGERR033 This expression is not callable is: '{}'", locator_ty->get_repr()));
+            // cannot be used as a function
+        }
+
+        this->is_typed = true;
+        this->type = f->get_return_type()->get_final_type();
+
+        Expression::pre_type_inference();
+    }
+
+    void CallExpression::post_type_inference()
+    {
+        Expression::post_type_inference();
+    }
+
     Type *CallExpression::get_type()
     {
-        // a callExpression should point to a function
-        auto ty = this->get_locator()->get_type();
-        if (ty->is<InferType>())
-        {
-            return ty;
-        }
-        // otherwise -> function!
-        Function *f = ty->as<Function>();
-
-        return f->get_return_type()->get_final_type();
+        return this->type;
     }
 
     std::string CallExpression::to_string()
@@ -300,42 +329,29 @@ namespace logia::AST
 
     std::string BinaryExpression::to_string()
     {
-        auto id = this->get_locator()->as<Identifier>();
-        return std::format("BinaryExpression.{}", id->identifier, CallExpression::to_string());
+        return std::format("BinaryExpression [{}]", ast_operator_to_function_name(this->op), Expression::to_string());
     }
 
-    BinaryExpression::BinaryExpression(antlr4::ParserRuleContext *rule, Expression *left, Operators op, Expression *right) : CallExpression(rule)
+    BinaryExpression::BinaryExpression(antlr4::ParserRuleContext *rule, Expression *left, Operators op, Expression *right) : Expression(rule)
     {
         this->op = op;
-
-        // NOTE start as null, because we may don't know the types yet
-        auto ident = ast_create_identifier(""); // 0
-        ident->skip_codegen = true;
-        ident->skip_type_inference = true; // handled at post_type_inference!
-        this->push_child(ident);
 
         switch (op)
         {
         case Operators::BINARY_ASSIGN:
-            this->add_positional_argument(left); // 1-2
+            this->push_child(left);
             break;
         case Operators::BINARY_ADD_ASSIGN:
         case Operators::BINARY_SUB_ASSIGN:
         case Operators::BINARY_MUL_ASSIGN:
         case Operators::BINARY_DIV_ASSIGN:
-            // 1 NoOp
-            // 2 ref
-            this->add_positional_argument(new PrefixUnaryExpression(this->rule, Operators::PREFIX_DEREFERENCE, left)); // 1-2
+            this->push_child(new PrefixUnaryExpression(this->rule, Operators::PREFIX_DEREFERENCE, left));
             break;
         default:
-            // 1 NoOp
-            // 2 expr
-            this->add_positional_argument(left); // 1-2
+            this->push_child(left);
             break;
         }
-        // 3 NoOp
-        // 4 expr
-        this->add_positional_argument(right); // 3-4
+        this->push_child(right);
     }
 
     bool BinaryExpression::is_assignament()
@@ -352,13 +368,22 @@ namespace logia::AST
         return false;
     }
 
+    Type *BinaryExpression::get_type()
+    {
+        return this->type;
+    }
+    void BinaryExpression::set_type(Type *type)
+    {
+        this->type = type;
+    }
+
     Expression *BinaryExpression::get_left()
     {
-        return this->get_argument(0);
+        return this->get_child<Expression>(0);
     }
     Expression *BinaryExpression::get_right()
     {
-        return this->get_argument(1);
+        return this->get_child<Expression>(1);
     }
 
     void BinaryExpression::pre_type_inference()
@@ -366,61 +391,77 @@ namespace logia::AST
         auto left = this->get_left();
         left->pre_type_inference();
         auto left_ty = left->get_final_type();
-        if (left_ty == nullptr) {
-            return;
-        }
         if (this->is_assignament())
         {
             if (left->is<ConstExpression>())
             {
                 throw_semantic_error(this, std::format("LGER032 lhs cannot be a constant expression"));
             }
-            if (!left_ty->is<InferType>())
+            if (left_ty == nullptr || left_ty->is<InferType>())
             {
-                // rhs should have the same type!
-                this->get_right()->set_type(left_ty);
+                return; // TODO we cannot determine type atm! what we do ?
             }
+            // rhs should have the same type!
+            this->get_right()->set_type(left_ty);
         }
-        CallExpression::pre_type_inference();
+        Expression::pre_type_inference();
     }
 
     void BinaryExpression::post_type_inference()
     {
-        auto left = this->get_left()->get_final_type();
-        if (left->is<InferType>())
+        auto left = this->get_left();
+        auto left_ty = left->get_final_type();
+        if (left_ty->is<InferType>())
         {
             LERROR() << this->to_string_tree() << std::endl;
             throw_compiler_error("Unexpected left side infer type");
         }
-        auto right = this->get_right()->get_final_type();
-        if (right->is<InferType>())
+        auto right = this->get_right();
+        auto right_ty = right->get_final_type();
+        if (right_ty->is<InferType>())
         {
             LERROR() << this->to_string_tree() << std::endl;
             throw_compiler_error("Unexpected right side infer type");
         }
-        auto ident = this->get_locator()->as<Identifier>();
-        ident->identifier = strdup(ast_binary_operator_to_string(op, left, right));
-        this->is_typed = true;
-        // pre_type_inference
-        ident->set_type(ident->resolve()->get_final_type());
-        CallExpression::post_type_inference();
-    }
-    llvm::Value *BinaryExpression::post_codegen(logia::Backend *backend)
-    {
         switch (op)
         {
         case Operators::BINARY_ASSIGN:
-            auto left = this->get_argument(0)->codegen(backend);
-            auto right = this->get_argument(1)->codegen(backend);
-            right = llvm_load_if_required(right, backend);
-            auto store = backend->builder->CreateStore(right, left, false);
-            backend->set_debug_loc((llvm::Instruction *)store, this->rule);
-            this->cg_value = left;
+            this->set_type(left_ty);
+            break;
+        default:
+            auto locator = new Identifier(this->rule, ast_binary_operator_to_string(op, left_ty->get_type(), right_ty->get_type()));
+            this->call_expr = new CallExpression(this->rule, locator, {left, right});
+            // makes no sense but need to keep this node attached
+            this->push_child(this->call_expr);
 
-            return left;
+            this->call_expr->pre_type_inference();
+            this->call_expr->post_type_inference();
+            this->set_type(this->call_expr->get_type());
         }
 
-        return CallExpression::post_codegen(backend);
+        this->is_typed = true;
+        Expression::post_type_inference();
+    }
+    llvm::Value *BinaryExpression::post_codegen(logia::Backend *backend)
+    {
+        auto left = this->get_left();
+        auto left_value = left->codegen(backend);
+        auto right = this->get_right();
+        auto right_value = right->codegen(backend);
+        switch (op)
+        {
+        case Operators::BINARY_ASSIGN:
+            right_value = llvm_load_if_required(right_value, backend);
+            auto store = backend->builder->CreateStore(right_value, left_value, false);
+            backend->set_debug_loc((llvm::Instruction *)store, this->rule);
+            this->cg_value = left_value;
+
+            return left_value;
+        }
+
+        this->cg_value = this->call_expr->codegen(backend);
+
+        return Expression::post_codegen(backend);
     }
 
     LOGIA_API LOGIA_LEND BinaryExpression *ast_create_binary_expr(Expression *left, Operators op, Expression *right)

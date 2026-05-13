@@ -8,6 +8,8 @@ namespace logia::AST
     /// @remarks It starts at 128, there shall be no collisions with other operators!
     enum class Operators
     {
+        DEFAULT = 0,
+
         BINARY_ADD = 1,             // +
         BINARY_SUB,                 // -
         BINARY_MUL,                 // *
