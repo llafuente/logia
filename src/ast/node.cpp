@@ -16,7 +16,7 @@ namespace logia::AST
 
     std::string Node::to_string()
     {
-        return std::format("| {} [@{}] ty={}", static_cast<void *>(this), static_cast<void *>(this->parent_node), skip_codegen ? "skip" : (is_typed && is_attached ? this->get_final_type()->get_repr() : "??"));
+        return std::format("| {} [@{}] ty={}", static_cast<void *>(this), static_cast<void *>(this->parent_node), !has_type ? "no" : (skip_codegen ? "skip" : (is_typed && is_attached ? this->get_final_type()->get_repr() : "??")));
     }
 
     void Node::push_child(Node *child)
@@ -93,7 +93,7 @@ namespace logia::AST
             flags += (flags.length() ? "," : "");
             flags += "postty";
         }
-        if (this->has_typed)
+        if (this->has_type)
         {
             flags += (flags.length() ? "," : "");
             flags += "wty";
@@ -146,11 +146,44 @@ namespace logia::AST
     void Node::pre_type_inference()
     {
         this->is_pre_type_inference = true;
+
+#if _DEBUG
+        // all arguments should have is_pre_type_inference!
+        for (size_t i = 1; i < this->children.size(); ++i)
+        {
+            if (this->children[i]->is_typed)
+                continue;
+            if (!this->children[i]->has_type)
+                continue;
+
+            if (!this->children[i]->is_pre_type_inference)
+            {
+                std::cerr << this->to_string_tree() << std::endl;
+                throw_compiler_error(std::format("Invalid children[{}] state, should have is_pre_type_inference", i));
+            }
+        }
+#endif
     }
 
     void Node::post_type_inference()
     {
         this->is_post_type_inference = true;
+#if _DEBUG
+        // all arguments should have is_post_type_inference!
+        for (size_t i = 1; i < this->children.size(); ++i)
+        {
+            if (this->children[i]->is_typed)
+                continue;
+            if (!this->children[i]->has_type)
+                continue;
+
+            if (!this->children[i]->is_post_type_inference)
+            {
+                std::cerr << this->to_string_tree() << std::endl;
+                throw_compiler_error(std::format("Invalid children[{}] state, should have is_post_type_inference", i));
+            }
+        }
+#endif
     }
 
     Type *Node::get_final_type()
@@ -221,7 +254,7 @@ namespace logia::AST
     //
     // NoOp
     //
-    NoOp::NoOp() : Node(nullptr) {}
+    NoOp::NoOp() : Node(nullptr) { this->has_type = false; }
     std::string NoOp::to_string() { return "NoOp"; };
     llvm::Value *NoOp::post_codegen(logia::Backend *backend) { return nullptr; }
     Type *NoOp::get_type() { return nullptr; };

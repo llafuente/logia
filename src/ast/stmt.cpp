@@ -7,7 +7,7 @@ namespace logia::AST
     //
     // Stmt
     //
-    Stmt::Stmt(antlr4::ParserRuleContext *rule) : Node(rule) {}
+    Stmt::Stmt(antlr4::ParserRuleContext *rule) : Node(rule) { this->has_type = false; }
 
     std::string Stmt::to_string()
     {

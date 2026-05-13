@@ -48,7 +48,7 @@ namespace logia::AST
         unsigned char is_post_type_inference : 1 = false;
 
         /// @brief current node require to be typed
-        unsigned char has_typed : 1 = false;
+        unsigned char has_type : 1 = true;
 
         /// @brief type inference pass done
         unsigned char is_typed : 1 = false;
