@@ -31,17 +31,23 @@ namespace logia::AST
     IntegerLiteral::IntegerLiteral(antlr4::ParserRuleContext *rule, const char *number_as_text, Type *type) : ConstExpression(rule)
     {
         LOGIA_ASSERT(number_as_text);
-        LOGIA_ASSERT(type);
         // TODO number literals with dashes need to be cleaned right ?
         // TODO 0x???
         // TODO 0b???
         this->number_str = strdup(number_as_text);
-        this->push_child(type);
+        if (type != nullptr)
+        {
+            this->set_type(type);
+        }
     }
 
     Type *IntegerLiteral::get_type()
     {
-        return this->get_child<Type>(0);
+        if (children.size())
+        {
+            return this->get_child<Type>(0);
+        }
+        return nullptr;
     }
 
     // ?? https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/atoi64-atoi64-l-wtoi64-wtoi64-l?view=msvc-170
@@ -85,17 +91,18 @@ namespace logia::AST
     std::string IntegerLiteral::to_string()
     {
         // TODO review format
-        return std::format("IntegerLiteral[{}] {}/{}{}", this->get_type()->to_string(), this->number_str, this->as_signed(), Node::to_string());
+        return std::format("IntegerLiteral {}/{}{}", this->number_str, this->as_signed(), Node::to_string());
     }
 
     void IntegerLiteral::set_type(Type *t)
     {
-        if (!this->get_type()->is<InferType>() && this->children[0] != t)
+        if (is_typed && this->get_type() != t)
         {
             throw_compiler_error("type already defined!");
         }
         // TODO do we need to handle deletion or "anything" ?
-        this->children[0] = t;
+        this->is_typed = true;
+        this->push_child(t);
     }
 
     llvm::Value *IntegerLiteral::post_codegen(logia::Backend *backend)

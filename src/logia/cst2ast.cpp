@@ -137,7 +137,7 @@ namespace logia
         DEBUG() << context->getText() << std::endl;
 
         auto text = context->getText();
-        return ANY_VOIDP_STORE(new AST::IntegerLiteral(context, text.c_str(), new AST::InferType()));
+        return ANY_VOIDP_STORE(new AST::IntegerLiteral(context, text.c_str()));
     }
 
     // rhsExpr it's just a container not needed

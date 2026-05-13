@@ -55,7 +55,7 @@ namespace logia::AST
         /// @brief The integer value as text, we will parse it at codegen to support different bases and sizes
         char *number_str;
 
-        IntegerLiteral(antlr4::ParserRuleContext *rule, const char *number_as_text, Type *type);
+        IntegerLiteral(antlr4::ParserRuleContext *rule, const char *number_as_text, Type *type = nullptr);
         /// @brief Retrieves the integer value as the biggest unsigned value
         /// @return
         uint64_t as_unsigned();
