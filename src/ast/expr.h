@@ -105,10 +105,12 @@ namespace logia::AST
     {
         Operators op;
         BinaryExpression(antlr4::ParserRuleContext *rule, Expression *left, Operators op, Expression *right);
+        bool is_assignament();
         Expression *get_left();
         Expression *get_right();
         std::string to_string() override;
 
+        void pre_type_inference() override;
         void post_type_inference() override;
         llvm::Value *post_codegen(logia::Backend *backend) override;
     };

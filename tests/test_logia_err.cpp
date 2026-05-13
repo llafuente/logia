@@ -9,7 +9,7 @@ const char *test_file_with_semantic_error(const char *logia_folder, const char *
     try
     {
         test_single_file(logia_folder, ir_folder, obj_folder, file);
-        EXPECT_TRUE(false, "unreachable, file run but no error found!");
+        EXPECT_TRUE(false && "unreachable, file run but no error found!");
     }
     catch (logia::AST::semantic_error const &e)
     {
@@ -41,4 +41,16 @@ TEST(logia_run_error_file, semantic_error_LGER031)
     //  EXPECT_NE(strstr(err.what(), "semantic error"), NULL);
     EXPECT_NE(std::string(msg).find("LGER031 type 'struct point {i64, i64}' expected '2' values but found '1'"), std::string::npos);
     EXPECT_NE(std::string(msg).find("err-LGER031-001.logia:9:18"), std::string::npos);
+}
+TEST(logia_run_error_file, semantic_error_LGER032)
+{
+    auto msg = test_file_with_semantic_error(".\\tests\\logia-errors\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "err-LGER032-001");
+
+    EXPECT_NE(std::string(msg).find("LGER032 lhs cannot be a constant expression"), std::string::npos);
+    EXPECT_NE(std::string(msg).find("err-LGER032-001.logia:3:4"), std::string::npos);
+
+    msg = test_file_with_semantic_error(".\\tests\\logia-errors\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "err-LGER032-002");
+
+    EXPECT_NE(std::string(msg).find("LGER032 lhs cannot be a constant expression"), std::string::npos);
+    EXPECT_NE(std::string(msg).find("err-LGER032-002.logia:3:4"), std::string::npos);
 }

@@ -338,6 +338,20 @@ namespace logia::AST
         this->add_positional_argument(right); // 3-4
     }
 
+    bool BinaryExpression::is_assignament()
+    {
+        switch (this->op)
+        {
+        case Operators::BINARY_ASSIGN:
+        case Operators::BINARY_ADD_ASSIGN:
+        case Operators::BINARY_SUB_ASSIGN:
+        case Operators::BINARY_MUL_ASSIGN:
+        case Operators::BINARY_DIV_ASSIGN:
+            return true;
+        }
+        return false;
+    }
+
     Expression *BinaryExpression::get_left()
     {
         return this->get_argument(0);
@@ -345,6 +359,29 @@ namespace logia::AST
     Expression *BinaryExpression::get_right()
     {
         return this->get_argument(1);
+    }
+
+    void BinaryExpression::pre_type_inference()
+    {
+        auto left = this->get_left();
+        left->pre_type_inference();
+        auto left_ty = left->get_final_type();
+        if (left_ty == nullptr) {
+            return;
+        }
+        if (this->is_assignament())
+        {
+            if (left->is<ConstExpression>())
+            {
+                throw_semantic_error(this, std::format("LGER032 lhs cannot be a constant expression"));
+            }
+            if (!left_ty->is<InferType>())
+            {
+                // rhs should have the same type!
+                this->get_right()->set_type(left_ty);
+            }
+        }
+        CallExpression::pre_type_inference();
     }
 
     void BinaryExpression::post_type_inference()
