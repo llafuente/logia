@@ -22,11 +22,15 @@ namespace logia::AST
     struct StringLiteral : ConstExpression
     {
         /// @brief The string value (utf-8)
-        char *text;
+        char *text = nullptr;
+        /// @brief string type, atm a false type cstring
+        Type *type = nullptr;
 
         StringLiteral(antlr4::ParserRuleContext *rule, char *text);
 
         std::string to_string() override;
+
+        void pre_type_inference() override;
 
         // TODO generate our string data not cstring
         llvm::Value *post_codegen(logia::Backend *backend) override;

@@ -174,13 +174,17 @@ namespace logia::AST
 
     Type *StringLiteral::get_type()
     {
-        // TODO
-        return nullptr;
+        return this->type;
     }
 
     std::string StringLiteral::to_string()
     {
         return std::format("StringLiteral[{}]{}", this->text, Node::to_string());
+    }
+    void StringLiteral::pre_type_inference()
+    {
+        this->type = this->first_parent<Scope>()->lookup<Type>("cstring");
+        this->is_typed = true;
     }
 
     llvm::Value *StringLiteral::post_codegen(logia::Backend *backend)

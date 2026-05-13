@@ -1,0 +1,66 @@
+type i8 = struct {
+    λi8 λ
+}
+
+type i16 = struct {
+    λi16 λ
+}
+
+type i32 = struct {
+    λi32 λ
+}
+
+type i64 = struct {
+    λi64 λ
+
+    //operator + (readonly ref i64 b) i64 {
+    //    return logia_intrinsics_bin_add_i64_i64(this, b)
+    //}
+}
+//operator + (ref i32 a, readonly ref i32 b) i64 {
+//    return logia_intrinsics_bin_add_i64_i64(a, b)
+//}
+
+type i128 = struct {
+    λi128 λ
+}
+
+type u8 = struct {
+    λu8 λ
+}
+
+type u16 = struct {
+    λu16 λ
+}
+
+type u32 = struct {
+    λu32 λ
+}
+
+type u64 = struct {
+    λu64 λ
+}
+
+type u128 = struct {
+    λu128 λ
+}
+
+type f16 = struct {
+    λf16 λ
+}
+
+type f32 = struct {
+    λf32 λ
+}
+
+type f64 = struct {
+    λf64 λ
+}
+
+type f128 = struct {
+    λf128 λ
+}
+
+type cstring = struct {
+  λi8 λ
+}
