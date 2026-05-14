@@ -732,6 +732,59 @@ namespace logia::AST
         this->type = type;
 
         // TODO defaults!
+        // search struct by name, if not found use the next position that should match the type, continue until defaults
+        auto named_values = this->children;
+        this->values = 0;
+        this->children.clear(); // we will reorder children to match struct fields order, so we need to clear them first
+
+        for (auto i = 0; i < struct_ty->field_count; ++i)
+        {
+            auto field = struct_ty->get_field_by_index(i);
+            auto field_ty = field->get_final_type();
+            auto field_name = field->get_name();
+            auto found = false;
+            for (auto j = 0; j < named_values.size(); j += 2)
+            {
+                auto name_node = named_values[j]->as<Identifier>();
+                auto value_node = named_values[j + 1];
+
+                if (name_node->is<NoOp>())
+                {
+                    continue; // positional, will be handled later
+                }
+
+                if (field_name == name_node)
+                {
+                    found = true;
+                    this->add_named_property(field_name, value_node);
+                    // remove from named_values as it's used
+                    named_values.erase(named_values.begin() + j, named_values.begin() + j + 2);
+                    break;
+                }
+            }
+            // not found by name -> by position/default!
+            if (!found)
+            {
+                // no more values ? use default if exists otherwise error
+                if (named_values.size() == 0)
+                {
+                    auto field_default_value = field->get_default_value();
+                    if (field_default_value == nullptr)
+                    {
+                        throw_semantic_error(this, std::format("Missing initializer for field '{}' at position '{}' of type '{}'", field_name->identifier, j, field_ty->get_repr()));
+                    }
+                    this->add_named_property(field_name, field_default_value);
+                }
+                else
+                {
+                    // not found then it's a positional value, type will be handled later!
+                    this->add_named_property(field_name, named_values[1]);
+                    named_values.erase(named_values.begin(), named_values.begin() + 2);
+                }
+            }
+            auto value = this->get_value_by_index(i);
+        }
+
         auto struct_ty = type->as<Struct>();
         if (struct_ty->field_count != this->values)
         {
@@ -743,7 +796,7 @@ namespace logia::AST
         {
             auto field_ty = struct_ty->get_field_by_index(i)->get_final_type();
             auto value = this->get_value_by_index(i);
-            value->set_type(field_ty);
+            value->set_type(field_ty); // TODO check type compatibility ?
 
             if (value->try_cast<StructInitializer>(&si))
             {
