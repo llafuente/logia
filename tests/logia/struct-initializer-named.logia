@@ -1,0 +1,10 @@
+type point = struct {
+    i64 x
+    i64 y
+}
+
+function main() i64 {
+    var point p = {y: 10, x: 11}
+    
+    return p.x * 2 + p.y
+}

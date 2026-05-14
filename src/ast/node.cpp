@@ -144,15 +144,22 @@ namespace logia::AST
 
     void Node::pre_type_inference()
     {
+        DEBUG() << this->to_string() << std::endl;
+
+        if (!this->skip_type_inference)
+        {
+            this->_pre_type_inference();
+        }
+    }
+    void Node::_pre_type_inference()
+    {
         this->is_pre_type_inference = true;
 
 #if _DEBUG
-        // all arguments should have is_pre_type_inference!
+        // my children should have is_pre_type_inference!
         for (size_t i = 1; i < this->children.size(); ++i)
         {
-            if (this->children[i]->is_typed)
-                continue;
-            if (!this->children[i]->has_type)
+            if (this->children[i]->skip_type_inference)
                 continue;
 
             if (!this->children[i]->is_pre_type_inference)
@@ -166,14 +173,22 @@ namespace logia::AST
 
     void Node::post_type_inference()
     {
+        DEBUG() << this->to_string() << std::endl;
+
+        if (!this->skip_type_inference)
+        {
+            this->_post_type_inference();
+        }
+    }
+
+    void Node::_post_type_inference()
+    {
         this->is_post_type_inference = true;
 #if _DEBUG
         // all arguments should have is_post_type_inference!
         for (size_t i = 1; i < this->children.size(); ++i)
         {
-            if (this->children[i]->is_typed)
-                continue;
-            if (!this->children[i]->has_type)
+            if (this->children[i]->skip_type_inference)
                 continue;
 
             if (!this->children[i]->is_post_type_inference)

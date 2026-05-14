@@ -30,8 +30,6 @@ namespace logia::AST
 
         std::string to_string() override;
 
-        void pre_type_inference() override;
-
         // TODO generate our string data not cstring
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
@@ -39,6 +37,9 @@ namespace logia::AST
         /// @brief Retrieves the type of the string literal
         /// @return
         Type *get_type() override;
+
+    protected:
+        void _pre_type_inference() override;
     };
 
     /// @brief A floating point literal constant expression

@@ -181,10 +181,12 @@ namespace logia::AST
     {
         return std::format("StringLiteral[{}]{}", this->text, Node::to_string());
     }
-    void StringLiteral::pre_type_inference()
+    void StringLiteral::_pre_type_inference()
     {
         this->type = this->first_parent<Scope>()->lookup<Type>("cstring");
         this->is_typed = true;
+
+        ConstExpression::_pre_type_inference();
     }
 
     llvm::Value *StringLiteral::post_codegen(logia::Backend *backend)

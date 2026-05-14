@@ -64,10 +64,11 @@ namespace logia::AST
         void add_positional_argument(Expression *expr);
 
         std::string to_string() override;
-        void pre_type_inference() override;
-        void post_type_inference() override;
         llvm::Value *post_codegen(logia::Backend *backend) override;
         Type *get_type() override;
+
+    protected:
+        void _pre_type_inference() override;
     };
     /**
      * Creates a call expression
@@ -89,14 +90,15 @@ namespace logia::AST
 
         std::string to_string() override;
 
-        void pre_type_inference() override;
-
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
         Type *get_type() override;
         void set_type(Type *type) override;
 
         Node *resolve() override;
+
+    protected:
+        void _pre_type_inference() override;
     };
 
     /// @brief Creates a member access expression
@@ -122,10 +124,11 @@ namespace logia::AST
 
         Type *get_type() override;
         void set_type(Type *type) override;
-
-        void pre_type_inference() override;
-        void post_type_inference() override;
         llvm::Value *post_codegen(logia::Backend *backend) override;
+
+    protected:
+        void _pre_type_inference() override;
+        void _post_type_inference() override;
     };
 
     LOGIA_API LOGIA_LEND BinaryExpression *ast_create_binary_expr(Expression *left, Operators op, Expression *right);
@@ -141,7 +144,9 @@ namespace logia::AST
         std::string to_string() override;
         llvm::Value *post_codegen(logia::Backend *backend) override;
         Type *get_type() override;
-        virtual void post_type_inference() override;
+
+    protected:
+        void _post_type_inference() override;
     };
     /// @brief Creates a reference to an expression
     /// @param operand
@@ -162,7 +167,9 @@ namespace logia::AST
         PostfixUnaryExpression(antlr4::ParserRuleContext *rule, Operators op, Expression *operand);
         Expression *get_operand();
         std::string to_string() override;
-        virtual void post_type_inference() override;
+
+    protected:
+        virtual void _post_type_inference() override;
     };
 
     /// @brief Defines an identifier, used for variable names, function names, struct field names, etc.
@@ -185,7 +192,6 @@ namespace logia::AST
 
         std::string to_string() override;
 
-        void pre_type_inference() override;
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
         Type *get_type() override;
@@ -194,6 +200,9 @@ namespace logia::AST
         void post_attach() override;
 
         Node *resolve() override;
+
+    protected:
+        void _pre_type_inference() override;
     };
 
     /// @brief Creates an identifier
@@ -215,7 +224,7 @@ namespace logia::AST
         void set_type(Type *type) override;
         void add_named_property(Identifier *locator, Expression *value);
         void add_positional_property(Expression *value);
-        void set_named_property(Identifier* name, Expression* value, uint32_t index);
+        void set_named_property(Identifier *name, Expression *value, uint32_t index);
 
         Expression *get_value_by_index(uint32_t index);
         Expression *get_value_by_name(const char *name);

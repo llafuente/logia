@@ -58,7 +58,7 @@ namespace logia::AST
         return this->get_type();
     }
 
-    void MemberAccessExpression::pre_type_inference()
+    void MemberAccessExpression::_pre_type_inference()
     {
         auto left = this->get_left();
         left->pre_type_inference();
@@ -74,7 +74,7 @@ namespace logia::AST
         auto ty = left_ty_stuct->get_field_type(right)->get_final_type();
         right->set_type(ty);
         this->set_type(ty);
-        Node::pre_type_inference();
+        Node::_pre_type_inference();
     }
 
     std::string MemberAccessExpression::to_string()
@@ -149,7 +149,8 @@ namespace logia::AST
         node_assert<Expression>(expr, __FUNCTION__ ":" TOSTRING(__LINE__));
 
         name->skip_codegen = true;
-        name->has_type = false; // TODO ?
+        name->skip_type_inference = true;
+        name->has_type = false; // TODO remove me!
 
         this->push_child(name);
         this->push_child(expr);
@@ -163,7 +164,8 @@ namespace logia::AST
 
         auto name = ast_create_identifier((char *)"");
         name->skip_codegen = true;
-        name->has_type = false; // TODO ?
+        name->skip_type_inference = true;
+        name->has_type = false; // TODO remove me!
 
         this->push_child(name); // TODO maybe empty identifier ?!
         this->push_child(expr);
@@ -203,7 +205,7 @@ namespace logia::AST
 
         return v;
     }
-    void CallExpression::pre_type_inference()
+    void CallExpression::_pre_type_inference()
     {
         // it's possible to solve at this point if the locator where final
         // maybe it's a problem with BinaryExpression ??
@@ -230,12 +232,7 @@ namespace logia::AST
         this->is_typed = true;
         this->type = f->get_return_type()->get_final_type();
 
-        Expression::pre_type_inference();
-    }
-
-    void CallExpression::post_type_inference()
-    {
-        Expression::post_type_inference();
+        Expression::_pre_type_inference();
     }
 
     Type *CallExpression::get_type()
@@ -386,7 +383,7 @@ namespace logia::AST
         return this->get_child<Expression>(1);
     }
 
-    void BinaryExpression::pre_type_inference()
+    void BinaryExpression::_pre_type_inference()
     {
         auto left = this->get_left();
         left->pre_type_inference();
@@ -404,10 +401,10 @@ namespace logia::AST
             // rhs should have the same type!
             this->get_right()->set_type(left_ty);
         }
-        Expression::pre_type_inference();
+        Expression::_pre_type_inference();
     }
 
-    void BinaryExpression::post_type_inference()
+    void BinaryExpression::_post_type_inference()
     {
         auto left = this->get_left();
         auto left_ty = left->get_final_type();
@@ -440,7 +437,7 @@ namespace logia::AST
         }
 
         this->is_typed = true;
-        Expression::post_type_inference();
+        Expression::_post_type_inference();
     }
     llvm::Value *BinaryExpression::post_codegen(logia::Backend *backend)
     {
@@ -523,11 +520,13 @@ namespace logia::AST
         */
     }
 
-    void PrefixUnaryExpression::post_type_inference()
+    void PrefixUnaryExpression::_post_type_inference()
     {
         auto operand = this->get_operand()->get_final_type();
         auto ident = this->get_locator()->as<Identifier>();
         ident->identifier = strdup(ast_prefix_unary_operator_to_string(op, operand));
+
+        CallExpression::_post_type_inference();
     }
 
     llvm::Value *PrefixUnaryExpression::post_codegen(logia::Backend *backend)
@@ -601,11 +600,13 @@ namespace logia::AST
         return this->get_argument(0);
     }
 
-    void PostfixUnaryExpression::post_type_inference()
+    void PostfixUnaryExpression::_post_type_inference()
     {
         auto operand = this->get_operand()->get_final_type();
         auto ident = this->get_locator()->as<Identifier>();
         ident->identifier = strdup(ast_postfix_unary_operator_to_string(this->op, operand));
+
+        CallExpression::_post_type_inference();
     }
 
     // TODO create
@@ -686,7 +687,7 @@ namespace logia::AST
         return scope->lookup<Node>(this->identifier);
     }
 
-    void Identifier::pre_type_inference()
+    void Identifier::_pre_type_inference()
     {
         // this means my parent will type_inference this node!
         if (this->skip_type_inference)
@@ -697,7 +698,7 @@ namespace logia::AST
         {
             this->set_type(this->resolve()->get_final_type());
         }
-        Node::pre_type_inference();
+        Node::_pre_type_inference();
     }
 
     LOGIA_API Identifier *ast_create_identifier(LOGIA_CLONE const char *name)

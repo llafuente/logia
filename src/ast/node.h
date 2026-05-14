@@ -123,12 +123,12 @@ namespace logia::AST
         /// @brief called after the node is attached to a program
         virtual void post_attach();
 
-        /// @brief notify node type inferece pass start
+        /// @brief Calls _pre_type_inference if this node required to be typed
         /// @return
-        virtual void pre_type_inference();
+        void pre_type_inference();
 
-        /// @brief notify node type inferece pass ended
-        virtual void post_type_inference();
+        /// @brief Calls _post_type_inference if this node required to be typed
+        void post_type_inference();
 
         virtual Type *get_final_type();
 
@@ -330,6 +330,10 @@ namespace logia::AST
             }
             return false;
         }
+
+    protected:
+        virtual void _pre_type_inference();
+        virtual void _post_type_inference();
     };
 
     /// @brief A node that does nothing
