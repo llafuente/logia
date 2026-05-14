@@ -213,8 +213,9 @@ namespace logia::AST
         std::string to_string() override;
 
         void set_type(Type *type) override;
-        void add_named_property(TypeDef *locator, Expression *value);
+        void add_named_property(Identifier *locator, Expression *value);
         void add_positional_property(Expression *value);
+        void set_named_property(Identifier* name, Expression* value, uint32_t index);
 
         Expression *get_value_by_index(uint32_t index);
         Expression *get_value_by_name(const char *name);

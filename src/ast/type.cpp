@@ -397,25 +397,21 @@ namespace logia::AST
     }
 
     StructField::StructField(antlr4::ParserRuleContext *rule,
+                             uint32_t index,
                              Identifier *name,
                              Type *type,
                              Expression *default_value,
-                             uint32_t index,
                              const char *docstring) : docstring(docstring), Type(rule, Primitives::NONE), index(index)
     {
         this->is_typed = true;
 
         this->push_child(name); // 0
         name->skip_codegen = true;
+        name->skip_type_inference = true;
         name->set_type(type);
 
         this->push_child(type); // 1
-        if (default_value == nullptr)
-        {
-            // TODO type->get_default()
-            this->push_child(new NoOp()); // 2
-        }
-        else
+        if (default_value != nullptr)
         {
             this->push_child(default_value); // 2
         }
@@ -430,7 +426,7 @@ namespace logia::AST
     }
     Expression *StructField::get_default_value()
     {
-        return this->get_child<Expression>(2);
+        return this->children.size() == 2 ? nullptr : this->get_child<Expression>(2);
     }
     std::string StructField::to_string()
     {
@@ -489,6 +485,16 @@ namespace logia::AST
         }
 
         return nullptr;
+    }
+
+    StructField *Struct::get_field(Identifier *id)
+    {
+        auto field = this->get_field(id->identifier);
+        if (field == nullptr)
+        {
+            throw_semantic_error(id, "Field not found: '{}' at '{}'", id->identifier, this->get_repr());
+        }
+        return field;
     }
 
     StructField *Struct::get_field(const char *id)
@@ -557,7 +563,7 @@ namespace logia::AST
                 {
                     list += ", ";
                 }
-                list += field->get_final_type()->get_repr();
+                list += std::format("{} {}", field->get_name()->identifier, field->get_final_type()->get_repr());
             }
         }
 
@@ -1103,7 +1109,7 @@ namespace logia::AST
             throw_compiler_error("name is required for fields");
         }
 
-        this->push_child(new StructField(rule, name, type, default_value, this->field_count++, docstring));
+        this->push_child(new StructField(rule, this->field_count++, name, type, default_value, docstring));
     }
 
     void Struct::add_alias(antlr4::ParserRuleContext *rule, Identifier *from, Identifier *to, const char *docstring)

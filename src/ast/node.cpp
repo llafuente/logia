@@ -254,3 +254,7 @@ namespace logia::AST
     // NoOp
     //
     NoOp::NoOp() : Node(nullptr) { this->has_type = false; }
+    std::string NoOp::to_string() { return "NoOp"; };
+    llvm::Value *NoOp::post_codegen(logia::Backend *backend) { return nullptr; }
+    Type *NoOp::get_type() { return nullptr; };
+}

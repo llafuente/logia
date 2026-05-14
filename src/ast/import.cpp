@@ -51,7 +51,7 @@ namespace logia::AST
             {
                 package_path += "/";
             }
-            package_path += id->to_string();
+            package_path += id->identifier;
         }
         package_path += ".logia";
 

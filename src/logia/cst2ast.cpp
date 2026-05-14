@@ -551,26 +551,30 @@ namespace logia
     }
     std::any CST2AST::visitStructConstantInitializer(LogiaParser::StructConstantInitializerContext *context)
     {
-        auto list = context->structProperyInitializerList();
         auto sinit = new AST::StructInitializer(context);
-        for (int i = 0;; ++i)
+        auto list = context->structProperyInitializerList();
+        if (list != nullptr)
         {
-            auto prop = list->structProperyInitializer(i);
-            if (prop == nullptr)
+            for (int i = 0;; ++i)
             {
-                break;
-            }
+                auto prop = list->structProperyInitializer(i);
+                if (prop == nullptr)
+                {
+                    break;
+                }
 
-            auto value = ANY_VOIDP_CAST(AST::Expression *, this->visitRhsExpr(prop->value));
-            if (prop->locator != nullptr)
-            {
-                auto locator = ANY_VOIDP_CAST(AST::TypeDef *, this->visitTypeLocator(prop->locator));
+                auto value = ANY_VOIDP_CAST(AST::Expression *, this->visitRhsExpr(prop->value));
+                if (prop->locator != nullptr)
+                {
+                    // auto locator = ANY_VOIDP_CAST(AST::TypeDef *, this->visitTypeLocator(prop->locator));
+                    auto locator = ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(prop->locator));
 
-                sinit->add_named_property(locator, value);
-            }
-            else
-            {
-                sinit->add_positional_property(value);
+                    sinit->add_named_property(locator, value);
+                }
+                else
+                {
+                    sinit->add_positional_property(value);
+                }
             }
         }
 

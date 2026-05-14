@@ -972,7 +972,7 @@ structProperyInitializerList
   ;
 
 structProperyInitializer
-  : (locator=typeLocator ('='|':'))? value=rhsExpr
+  : (locator=identifier ('='|':'))? value=rhsExpr
   ;
 
 jsonInitializerList

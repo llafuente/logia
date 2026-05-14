@@ -210,10 +210,10 @@ namespace logia::AST
 
         StructField(
             antlr4::ParserRuleContext *rule,
+            uint32_t index,
             Identifier *name,
             Type *type,
-            Expression *default_value,
-            uint32_t index,
+            Expression *default_value = nullptr,
             const char *docstring = nullptr);
 
         std::string to_string() override;
@@ -272,6 +272,11 @@ namespace logia::AST
         /// @param from The source identifier of the alias
         /// @return The target identifier of the alias
         Identifier *get_alias_to(const char *from);
+
+        /// @brief Retrieves a field by its identifier or throws a semantic_error if not found
+        /// @param id The identifier of the field
+        /// @return The field corresponding to the identifier
+        StructField *get_field(Identifier *id);
 
         /// @brief Retrieves a field by its identifier
         /// @param id The identifier of the field

@@ -39,7 +39,7 @@ TEST(logia_run_error_file, semantic_error_LGER031)
     auto msg = test_file_with_semantic_error(".\\tests\\logia-errors\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "err-LGER031-001");
     // std::cerr << "???" << msg << "????" << std::endl;
     //  EXPECT_NE(strstr(err.what(), "semantic error"), NULL);
-    EXPECT_NE(std::string(msg).find("LGER031 type 'struct point {i64, i64}' expected '2' values but found '1'"), std::string::npos);
+    EXPECT_NE(std::string(msg).find("LGER031 Missing initializer for field 'y' at position '2' of type 'struct point {x i64, y i64}"), std::string::npos);
     EXPECT_NE(std::string(msg).find("err-LGER031-001.logia:9:18"), std::string::npos);
 }
 TEST(logia_run_error_file, semantic_error_LGER032)

@@ -723,7 +723,9 @@ namespace logia::AST
         {
             throw_compiler_error("type was already set");
         }
-        if (!type->is<Struct>())
+
+        Struct *struct_ty;
+        if (!type->try_cast<Struct>(&struct_ty))
         {
             throw_semantic_error(this, std::format("LGER030 incompatible type '{}', expected a struct", type->get_repr()));
         }
@@ -734,62 +736,106 @@ namespace logia::AST
         // TODO defaults!
         // search struct by name, if not found use the next position that should match the type, continue until defaults
         auto named_values = this->children;
+        bool *used = new bool[struct_ty->field_count];
+
+        // reset
         this->values = 0;
         this->children.clear(); // we will reorder children to match struct fields order, so we need to clear them first
+        this->children.reserve(struct_ty->field_count * 2);
 
         for (auto i = 0; i < struct_ty->field_count; ++i)
         {
-            auto field = struct_ty->get_field_by_index(i);
-            auto field_ty = field->get_final_type();
-            auto field_name = field->get_name();
-            auto found = false;
-            for (auto j = 0; j < named_values.size(); j += 2)
+            used[i] = false;
+            this->children.push_back(nullptr);
+            this->children.push_back(nullptr);
+        }
+
+#if _DEBUG
+        {
+            std::string d = "";
+            for (auto i = 0; i < struct_ty->field_count; ++i)
             {
-                auto name_node = named_values[j]->as<Identifier>();
-                auto value_node = named_values[j + 1];
+                d += used[i] ? "X" : "0";
+            }
+            DEBUG() << "fields: " << d << std::endl;
+        }
+#endif
 
-                if (name_node->is<NoOp>())
-                {
-                    continue; // positional, will be handled later
-                }
+        // map first all named values
+        for (auto j = 0; j < named_values.size(); j += 2)
+        {
+            auto name = named_values[j];
+            auto value_node = named_values[j + 1]->as<Expression>();
+            if (name->is<NoOp>())
+            {
+                continue; // positional, will be handled later
+            }
+            auto value_name = name->as<Identifier>();
 
-                if (field_name == name_node)
+            auto field = struct_ty->get_field(value_name);
+            used[field->index] = true;
+
+            this->set_named_property(field->get_name(), value_node, field->index);
+            // remove from named_values as it's used
+            named_values.erase(named_values.begin() + j, named_values.begin() + j + 2);
+            j -= 2;
+        }
+#if _DEBUG
+        {
+            std::string d = "";
+            for (auto i = 0; i < struct_ty->field_count; ++i)
+            {
+                d += used[i] ? "X" : "0";
+            }
+            DEBUG() << "fields: " << d << std::endl;
+        }
+#endif
+
+        // second, map by position!
+        for (auto j = 0; j < named_values.size(); j += 2)
+        {
+            auto value_node = named_values[j + 1]->as<Expression>();
+            auto found = false;
+            // search first field "not-used" and use it
+            for (auto i = 0; i < struct_ty->field_count; ++i)
+            {
+                if (!used[i])
                 {
-                    found = true;
-                    this->add_named_property(field_name, value_node);
-                    // remove from named_values as it's used
+                    used[i] = true;
+
+                    auto field = struct_ty->get_field_by_index(i);
+                    auto field_name = field->get_name();
+                    this->set_named_property(field_name, value_node, field->index);
                     named_values.erase(named_values.begin() + j, named_values.begin() + j + 2);
+                    j -= 2;
+                    found = true;
                     break;
                 }
             }
-            // not found by name -> by position/default!
             if (!found)
             {
-                // no more values ? use default if exists otherwise error
-                if (named_values.size() == 0)
-                {
-                    auto field_default_value = field->get_default_value();
-                    if (field_default_value == nullptr)
-                    {
-                        throw_semantic_error(this, std::format("Missing initializer for field '{}' at position '{}' of type '{}'", field_name->identifier, j, field_ty->get_repr()));
-                    }
-                    this->add_named_property(field_name, field_default_value);
-                }
-                else
-                {
-                    // not found then it's a positional value, type will be handled later!
-                    this->add_named_property(field_name, named_values[1]);
-                    named_values.erase(named_values.begin(), named_values.begin() + 2);
-                }
+                throw_semantic_error(value_node, std::format("Too many initializers. Expected {}", struct_ty->field_count));
             }
-            auto value = this->get_value_by_index(i);
+        }
+        assert(named_values.size() == 0);
+
+        // third fill defaults!
+        for (auto i = 0; i < struct_ty->field_count; ++i)
+        {
+            if (!used[i])
+            {
+                auto field = struct_ty->get_field_by_index(i);
+                auto field_name = field->get_name();
+                auto field_ty = field->get_type();
+                auto field_default_value = field->get_default_value();
+                if (field_default_value == nullptr)
+                {
+                    throw_semantic_error(this, std::format("LGER031 Missing initializer for field '{}' at position '{}' of type '{}'", field_name->identifier, i + 1, struct_ty->get_repr()));
+                }
+                this->set_named_property(field_name, field_default_value, field->index);
+            }
         }
 
-        auto struct_ty = type->as<Struct>();
-        if (struct_ty->field_count != this->values)
-        {
-            throw_semantic_error(this, std::format("LGER031 type '{}' expected '{}' values but found '{}'", struct_ty->get_repr(), struct_ty->field_count, this->values));
-        }
         StructInitializer *si = nullptr;
         int constant_count = 0;
         for (auto i = 0; i < struct_ty->field_count; ++i)
@@ -810,16 +856,26 @@ namespace logia::AST
                 ++constant_count;
             }
         }
-        this->is_constant = constant_count == this->values;
+        this->is_constant = constant_count == struct_ty->field_count;
+        delete used;
     }
 
-    void StructInitializer::add_named_property(TypeDef *locator, Expression *value)
+    void StructInitializer::add_named_property(Identifier *name, Expression *value)
     {
-        this->push_child(locator);
+        this->push_child(name);
+        name->skip_codegen = true;
+        name->skip_type_inference = true;
         this->push_child(value);
 
         ++this->values;
     }
+
+    void StructInitializer::set_named_property(Identifier *name, Expression *value, uint32_t index)
+    {
+        this->children[index * 2] = name;
+        this->children[index * 2 + 1] = value;
+    }
+
     void StructInitializer::add_positional_property(Expression *value)
     {
         this->push_child(new NoOp());

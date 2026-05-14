@@ -1,0 +1,10 @@
+type point = struct {
+    i32 x = 75
+    i32 y = 99
+}
+
+function main() i32 {
+    var point p = {y: 1}
+
+    return p.x + p.y // 76
+}
