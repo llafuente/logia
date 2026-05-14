@@ -2,7 +2,6 @@
 
 #include <vector>
 #include <format>
-#include <stdexcept>
 
 #include "utils.h"
 #include "logia/backend.h"
@@ -80,13 +79,14 @@ namespace logia::AST
         // TODO
         // std::string getText() { return this->rule->getText(); }
 
-        /// @brief Adds child at the end
+        /// @brief Adds child at the end of the list
         void push_child(Node *child);
 
-        /// @brief Adds child at the beginning
+        /// @brief Adds child at the beginning of the list
         void unshift_child(Node *child);
 
         /// @brief Replace current node for the given one
+        /// @remarks Node should be attached
         void replace_self(Node *new_node);
 
         void _has_to_notify_attached(Node *child);
@@ -101,7 +101,7 @@ namespace logia::AST
         /// @brief returns essential information nto debug
         virtual std::string to_string();
 
-        /// @brief traverse the tree and if is_codegen is false, pre_codegen and post_codegen!
+        /// @brief traverse the tree and if skip_codegen is false, pre_codegen and post_codegen!
         llvm::Value *codegen(logia::Backend *backend);
 
         /// @brief prepare node/children to generate LLVM IR

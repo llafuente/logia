@@ -27,8 +27,11 @@ namespace logia::AST
     /// @brief Call expression, can be a function call, method call, operator call, etc.
     struct CallExpression : Expression
     {
+        /// @brief Argument count
         uint32_t argument_count = 0;
+        /// @brief Cached return type
         Type *type = nullptr;
+
         /// @brief Empty constructor for internal usage of CallExpression
         /// @remarks Do not use the constructor to build ASTs
         CallExpression(antlr4::ParserRuleContext *rule);
@@ -74,13 +77,13 @@ namespace logia::AST
     /// @brief Member access expression, used for struct field access and method calls
     struct MemberAccessExpression : Expression
     {
-        Type *type;
+        Type *type = nullptr;
 
         MemberAccessExpression(antlr4::ParserRuleContext *rule, Node *left, Identifier *right);
-        /// @brief Get the left expression of the member access
+        /// @brief Retrieves the left expression of the member access
         /// @return The left expression
         Expression *get_left();
-        /// @brief Get the right identifier of the member access
+        /// @brief Retrieves the right identifier of the member access
         /// @return The right identifier
         Identifier *get_right();
 

@@ -21,13 +21,7 @@ namespace logia::AST
     struct Type;
     struct Identifier;
 
-    // Design
-    // A program do not need Backend information, but a logia Program does!
-    // When creating a program we fill primitives and a bit later intrinsics,
-    // those instrinsics need a llvm type to logia type conversion and that require
-    // backend in the early stage. Not the end of the world, just leave the note to know
-
-    /// @brief Root of the AST, contains all the top level declarations and statements
+    /// @brief Imports a source file
     class Import : public Scope
     {
     public:
@@ -52,7 +46,7 @@ namespace logia::AST
         void set_import_list(std::vector<AST::Identifier *> list);
         void set_scope_target(Scope *target);
 
-        Type *get_type() override;
+        /// @brief Parses file at this stage, once attached we can parse and copy our scope if required
         void post_attach() override;
     };
 }

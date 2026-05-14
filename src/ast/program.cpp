@@ -124,13 +124,14 @@ namespace logia::AST
     {
         DEBUG() << this->to_string() << std::endl;
 
-        this->intrinsics->codegen(backend); // forward, it's hidden from tree
+        this->intrinsics->codegen(backend); // forward codegen
 
-        // NOTE: overwrite - no override!
-        // Block::post_codegen(backend);
         this->codegen_children(backend);
 
         this->cg_value = nullptr; // nobody need program return type!
+
+        // NOTE: overwrite - no override!
+        // Block::post_codegen(backend);
         return Node::post_codegen(backend);
     }
 }

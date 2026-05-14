@@ -34,10 +34,6 @@ namespace logia::AST
         this->import_list = list;
     }
 
-    Type *Import::get_type()
-    {
-        throw std::runtime_error("??");
-    }
     void Import::set_scope_target(Scope *target)
     {
         this->target = target;
@@ -46,10 +42,24 @@ namespace logia::AST
     void Import::post_attach()
     {
         Scope::post_attach();
-        parse_result = logia_parse_package("core/primitives.logia");
-        this->push_child(parse_result->ast_tree); // program attached? :P
+
+        // join package by slash -> file to import
+        std::string package_path;
+        for (auto id : package)
+        {
+            if (!package_path.empty())
+            {
+                package_path += "/";
+            }
+            package_path += id->to_string();
+        }
+        package_path += ".logia";
+
         // parse
-        // append to parent block everything!
+        parse_result = logia_parse_package(package_path.c_str());
+        this->push_child(parse_result->ast_tree); // program attached? :P
+
+        // handle scope target
         if (target == nullptr)
         {
             target = this->first_parent<Scope>();

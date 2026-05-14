@@ -45,7 +45,7 @@ namespace logia::AST
 
     Expression *ReturnStmt::get_expr()
     {
-        return (Expression *)this->children[0];
+        return this->get_child<Expression>(0);
     }
 
     llvm::Value *ReturnStmt::post_codegen(logia::Backend *backend)
@@ -127,42 +127,64 @@ namespace logia::AST
         return Stmt::post_codegen(backend);
     }
 
-    //
-    // GotoStmt
-    //
+    void VarDeclStmt::post_attach()
+    {
+        if (!this->is_attached)
+        {
+            this->is_attached = true;
+            auto block = this->first_parent<Block>();
+            block->scope_set(this->get_name(), this);
+        }
+    }
+
+    Type *VarDeclStmt::get_type()
+    {
+        if (children.size() == 3)
+        {
+            return this->get_child<Type>(2)->get_final_type();
+        }
+        return nullptr;
+    }
+
+    void VarDeclStmt::set_type(Type *ty)
+    {
+        if (this->is_typed)
+        {
+            throw_compiler_error("already has a type!");
+        }
+        // TODO assume [1] is InferType ?
+        this->push_child(ty);
+        this->is_typed = true;
+    }
+
+    ///
+    /// GotoStmt
+    ///
 
     GotoStmt::GotoStmt(antlr4::ParserRuleContext *rule, Identifier *id) : Stmt(rule)
     {
         this->push_child(id);
     }
 
-    //
-    //
-    //
     LOGIA_API LOGIA_LEND GotoStmt *ast_create_goto_stmt(Identifier *id)
     {
         return new GotoStmt(nullptr, id);
     }
 
-    ///
-    /// toString
-    ///
     Identifier *GotoStmt::get_identifier()
     {
         return this->get_child<Identifier>(0);
     }
+
     const char *GotoStmt::get_name()
     {
         return this->get_identifier()->identifier;
     }
+
     std::string GotoStmt::to_string()
     {
         return std::format("GotoStmt[{}]{}", this->get_name(), Node::to_string());
     }
-
-    ///
-    /// codegen
-    ///
 
     llvm::Value *GotoStmt::post_codegen(logia::Backend *backend)
     {
@@ -197,33 +219,5 @@ namespace logia::AST
         VarDeclStmt *variable = new VarDeclStmt(nullptr, id, type, expr);
 
         return variable;
-    }
-
-    void VarDeclStmt::post_attach()
-    {
-        if (!this->is_attached)
-        {
-            this->is_attached = true;
-            auto block = this->first_parent<Block>();
-            block->scope_set(this->get_name(), this);
-        }
-    }
-    Type *VarDeclStmt::get_type()
-    {
-        if (children.size() == 3)
-        {
-            return this->get_child<Type>(2)->get_final_type();
-        }
-        return nullptr;
-    }
-    void VarDeclStmt::set_type(Type *ty)
-    {
-        if (this->is_typed)
-        {
-            throw_compiler_error("already has a type!");
-        }
-        // TODO assume [1] is InferType ?
-        this->push_child(ty);
-        this->is_typed = true;
     }
 }

@@ -6,6 +6,7 @@ namespace logia::AST
 {
     struct Identifier;
 
+    /// @brief Represents a package, which is a collection of functions and variables. It is the top-level scope of a program.
     struct Package : public Scope
     {
         const char *entry_point_file = nullptr;

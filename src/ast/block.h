@@ -7,6 +7,7 @@ namespace logia::AST
 {
     struct Identifier;
 
+    /// @brief A Scope is a Node that contains a symbol table, used for name resolution
     struct Scope : public Node
     {
     public:
@@ -32,6 +33,8 @@ namespace logia::AST
 
         void post_attach() override;
 
+        /// @brief A Scope do not have type, nullptr is returned
+        /// @return nullptr
         Type *get_type() override;
 
         /// @brief lookup a name into the current scope gracefully
@@ -162,6 +165,7 @@ namespace logia::AST
         void post_attach() override;
     };
 
+    /// @brief A block that is directly attached to a function, used for function body
     struct FunctionBlock : public Block
     {
         /// @brief Marks if the block is already inserted into the function
