@@ -146,7 +146,7 @@ namespace logia::AST
     {
         DEBUG() << this->to_string() << std::endl;
 
-        if (!this->skip_type_inference)
+        if (!this->skip_type_inference || this->is_pre_type_inference)
         {
             this->_pre_type_inference();
         }
@@ -175,7 +175,7 @@ namespace logia::AST
     {
         DEBUG() << this->to_string() << std::endl;
 
-        if (!this->skip_type_inference)
+        if (!this->skip_type_inference || this->is_post_type_inference)
         {
             this->_post_type_inference();
         }
