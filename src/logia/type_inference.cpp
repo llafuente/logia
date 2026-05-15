@@ -18,6 +18,7 @@ namespace logia
 
         if (expr_ty->cg_value != enforce_type->cg_value)
         {
+            std::cerr << expr_ty->to_string_tree() << std::endl;
             throw_semantic_error(expr_ty, std::format("expected {} to be {}", expr_ty->get_repr(), enforce_type->get_repr()));
         }
     }
@@ -115,6 +116,14 @@ return true; });
 
     void type_inference(AST::Program *program)
     {
+        // guard!
+        if (program->is_typed)
+        {
+            DEBUG() << "skip type_inference, program is already typed!" << std::endl;
+            return;
+        }
+        program->is_typed = true;
+
         DEBUG() << program->to_string_tree() << std::endl;
 
         auto default_integer = program->look<Type>("λi64");
