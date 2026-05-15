@@ -2,7 +2,6 @@
 
 #include "ast/node.h"
 #include "ast/type.h"
-#include "ast/traverse.h"
 #include "ast/expr.h"
 #include "ast/import.h"
 

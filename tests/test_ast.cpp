@@ -2,7 +2,6 @@
 #include "logia/frontend.h"
 #include "logia/backend.h"
 #include "ast/node.h"
-#include "ast/traverse.h"
 #include "ast/if_stmt.h"
 #include "ast/type.h"
 #include "ast/expr.h"
@@ -18,8 +17,8 @@
 
 void check_all_attached(logia::AST::Program *prg)
 {
-  logia::AST::ast_traverse(prg, [](logia::AST::Node *n) -> bool
-                           {
+  prg->foreach_descendant([](auto n, int deep) -> bool
+                          {
                             DEBUG() << n->to_string() << std::endl;
       if (!n->is<logia::AST::Program>()) {
         EXPECT_TRUE(n->is_attached) << std::format(" not attached {}", n->to_string());
@@ -45,9 +44,9 @@ TEST(AST_Type, ast_create_program)
   EXPECT_EQ(strcmp(program->children[2]->get_type()->get_repr().c_str(), "i16"), 0);
 
   // has value
-  EXPECT_TRUE(logia::AST::ast_get_type_by_name(program, strdup("λi8")));
+  EXPECT_TRUE(program->look<Type>("λi8"));
   // and is the same everytime
-  EXPECT_EQ(logia::AST::ast_get_type_by_name(program, strdup("λi8")), logia::AST::ast_get_type_by_name(program, strdup("λi8")));
+  EXPECT_EQ(program->look<Type>("λi8"), program->look<Type>("λi8"));
 
   check_all_attached(program);
   delete back;
@@ -61,7 +60,7 @@ TEST(AST_Type, ast_create_function_type)
   auto start_program_children = program->children.size();
   back->load_intrinsics();
 
-  auto func = ast_create_function_type(ast_create_identifier("main"), ast_get_type_by_name(program, strdup("λi64")));
+  auto func = ast_create_function_type(ast_create_identifier("main"), program->look<Type>("λi64"));
   EXPECT_TRUE(func);
 
   auto items_before = program->scope.size();
@@ -73,7 +72,7 @@ TEST(AST_Type, ast_create_function_type)
   EXPECT_TRUE(strcmp(func->get_name(), "main") == 0);
 
   // can look for main function as it's declared inside program
-  EXPECT_EQ(func, ast_get_type_by_name(program, strdup("main")));
+  EXPECT_EQ(func, program->look<Type>("main"));
 
   // check parenting
   EXPECT_EQ(func->get_identifier()->parent_node, func);
@@ -82,8 +81,8 @@ TEST(AST_Type, ast_create_function_type)
   EXPECT_EQ(func->get_body()->parentScope, program);
 
   // function body is connected to program, type available
-  EXPECT_TRUE(ast_get_type_by_name(func->get_body(), strdup("λi8")));
-  EXPECT_TRUE(ast_get_type_by_name(func->get_body(), strdup("λi64")));
+  EXPECT_TRUE(func->get_body()->lookup<Type>("λi8"));
+  EXPECT_TRUE(func->get_body()->lookup<Type>("λi64"));
 
   auto firstArg = ast_create_int_lit(func->get_body(), "17");
   auto secondArg = ast_create_int_lit(func->get_body(), "21");
@@ -151,7 +150,7 @@ TEST(AST_Type, ast_create_struct_type)
   // invalid ?
   // program->add_statement(string_t);
 
-  auto func = logia::AST::ast_create_function_type(ast_create_identifier("main"), logia::AST::ast_get_type_by_name(program, strdup("λi32")));
+  auto func = logia::AST::ast_create_function_type(ast_create_identifier("main"), program->look<Type>("λi32"));
   EXPECT_TRUE(func);
 
   func->add_param(new FunctionParameter(ast_create_identifier("first"), string_t, nullptr));
@@ -233,7 +232,7 @@ TEST(AST_Type, ast_create_var_decl)
   // invalid ?
   // program->add_statement(string_t);
 
-  auto func = logia::AST::ast_create_function_type(ast_create_identifier("main"), logia::AST::ast_get_type_by_name(program, strdup("λi32")));
+  auto func = logia::AST::ast_create_function_type(ast_create_identifier("main"), program->look<Type>("λi32"));
   EXPECT_TRUE(func);
 
   program->push_child(func);
@@ -335,7 +334,7 @@ TEST(AST_Type, logia_compiler_to_jit_test)
 
   // this is how you create an intrinsic to use it comptime
   back->add_intrinsic((void *)(&logia_compiler_to_jit_test), strdup("logia_compiler_to_jit_test"));
-  ast_create_instrinsic(program, ast_create_identifier("logia_compiler_to_jit_test"), ast_get_type_by_name(program, strdup("λi32")));
+  ast_create_instrinsic(program, ast_create_identifier("logia_compiler_to_jit_test"), program->look<Type>("λi32"));
 
   {
     auto callFuncName = ast_create_identifier("logia_compiler_to_jit_test");

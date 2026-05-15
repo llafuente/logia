@@ -1,6 +1,7 @@
 #include "ast/block.h"
-#include "ast/traverse.h"
 #include "ast/llvm.h"
+#include "ast/type.h"
+#include "ast/stmt.h"
 #include "ast/semantic_error.h"
 
 namespace logia::AST

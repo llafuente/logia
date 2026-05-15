@@ -1,6 +1,5 @@
 #include "ast/constexpr.h"
 #include "ast/type.h"
-#include "ast/traverse.h"
 #include "utils.h"
 
 namespace logia::AST

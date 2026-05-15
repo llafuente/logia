@@ -3,7 +3,6 @@
 #include "logia/frontend.h"
 #include "logia/backend.h"
 #include "ast/node.h"
-#include "ast/traverse.h"
 #include "ast/if_stmt.h"
 #include "ast/expr.h"
 #include "ast/constexpr.h"

@@ -1,5 +1,4 @@
 #include "ast/stmt.h"
-#include "ast/traverse.h"
 #include "ast/llvm.h"
 
 namespace logia::AST

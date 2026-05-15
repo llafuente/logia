@@ -1,7 +1,6 @@
 // ./build-debug/bin/Debug/logia_test_suite.exe --gtest_break_on_failure
 
 #include "ast/node.h"
-#include "ast/traverse.h"
 #include "ast/if_stmt.h"
 #include "ast/expr.h"
 #include "ast/constexpr.h"

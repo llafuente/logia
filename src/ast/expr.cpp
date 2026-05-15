@@ -1,6 +1,5 @@
 #include "ast/expr.h"
 #include "ast/constexpr.h"
-#include "ast/traverse.h"
 #include "ast/llvm.h"
 #include "llvm/IR/Constant.h"
 

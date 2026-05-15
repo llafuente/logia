@@ -46,7 +46,6 @@ set(LOGIA_SOURCE_FILES
   src/ast/node.cpp
   src/ast/semantic_error.cpp
   src/ast/type.cpp
-  src/ast/traverse.cpp
 
   src/ast/block.cpp
   src/ast/program.cpp

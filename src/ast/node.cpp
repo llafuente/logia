@@ -1,5 +1,5 @@
 #include "ast/node.h"
-#include "ast/traverse.h"
+#include "ast/type.h"
 
 #include <format>
 

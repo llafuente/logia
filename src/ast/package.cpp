@@ -2,7 +2,6 @@
 #include "ast/expr.h"
 
 #include "ast/block.h"
-#include "ast/traverse.h"
 #include "ast/llvm.h"
 #include "ast/semantic_error.h"
 
