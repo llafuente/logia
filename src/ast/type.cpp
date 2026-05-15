@@ -597,12 +597,15 @@ namespace logia::AST
         // once guard
         if (!this->is_attached)
         {
-            this->is_attached = true;
             // if the struct has a name -> attach it to body
             if (this->has_name)
             {
                 this->__register_type(this->get_name());
             }
+
+            this->semantic_validate();
+
+            Type::post_attach();
         }
     }
 
@@ -631,6 +634,11 @@ namespace logia::AST
 
         this->ir_type = st;
         return Type::post_codegen(backend);
+    }
+
+    void Struct::_pre_type_inference()
+    {
+        return Type::_pre_type_inference();
     }
 
     //
@@ -1144,6 +1152,95 @@ namespace logia::AST
 
         this->push_child(new StructAlias(rule, from, to, docstring));
         ++this->alias_count;
+    }
+
+    void Struct::semantic_validate()
+    {
+        // check properties are unique!
+        // check alias point to something!
+        // check ailas do not collide with fields!
+        StructAlias *first_alias, *second_alias;
+        StructField *first_field, *second_field;
+        for (const auto &first : this->children)
+        {
+            if (first->try_cast<StructField>(&first_field))
+            {
+                for (const auto &second : this->children)
+                {
+                    if (first == second)
+                        continue; // skip self!
+
+                    if (second->try_cast<StructField>(&second_field))
+                    {
+                        if (first_field->get_name()->operator==(second_field->get_name()))
+                        {
+                            throw_semantic_error(second_field, std::format("LGERR_ST001 Redeclaration of field name '{}'.\nFirst declaration {}\nSecond declaration {}", first_field->get_name()->identifier, first_field->get_debug_location(), second_field->get_debug_location()));
+                        }
+                    }
+                    else if (second->try_cast<StructAlias>(&second_alias))
+                    {
+                        if (first_field->get_name()->operator==(second_alias->get_from()))
+                        {
+                            throw_semantic_error(second_alias, std::format("LGERR_ST001 Redeclaration of field name '{}'.\nFirst declaration {}\nSecond declaration {}", first_field->get_name()->identifier, first_field->get_debug_location(), second_alias->get_debug_location()));
+                        }
+                    }
+                }
+            }
+            else if (first->try_cast<StructAlias>(&first_alias))
+            {
+                // duplication?
+                for (const auto &second : this->children)
+                {
+                    if (first == second)
+                        continue; // skip self!
+                    if (second->try_cast<StructField>(&second_field))
+                    {
+                        if (first_alias->get_from() == second_field->get_name())
+                        {
+                            throw_semantic_error(second_field, std::format("LGERR_ST001 Redeclaration of field name '{}'.\nFirst declaration {}\nSecond declaration {}", first_alias->get_from()->identifier, first_alias->get_debug_location(), second_field->get_debug_location()));
+                        }
+                    }
+                    else if (second->try_cast<StructAlias>(&second_alias))
+                    {
+                        if (first_alias->get_from() == second_alias->get_from())
+                        {
+                            throw_semantic_error(second_alias, std::format("LGERR_ST001 Redeclaration of field name '{}'.\nFirst declaration {}\nSecond declaration {}", first_alias->get_from()->identifier, first_alias->get_debug_location(), second_alias->get_debug_location()));
+                        }
+                    }
+                }
+                // target is valid
+                auto found = false;
+                for (const auto &second : this->children)
+                {
+                    if (second->try_cast<StructField>(&second_field))
+                    {
+                        if (first_alias->get_from() == second_field->get_name())
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if (!found)
+                {
+                    throw_semantic_error(first_alias, std::format("LGERR_ST002 Alias target '{}' not found.\nDeclared {}", first_alias->get_to()->identifier, first_alias->get_debug_location()));
+                }
+            }
+            else
+            {
+                // std::cerr << first->to_string_tree() << std::endl;
+                // throw_compiler_error("what is this ???");
+            }
+            /*
+                        if (auto alias = dynamic_cast<StructAlias *>(ptr))
+                        {
+                            if (*alias->get_from() == from)
+                            {
+                                return alias->get_to();
+                            }
+                        }
+                        */
+        }
     }
 
     LOGIA_API LOGIA_LEND Type *ast_resolve_type(Node *node)

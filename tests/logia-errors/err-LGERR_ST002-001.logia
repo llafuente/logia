@@ -1,0 +1,10 @@
+type point = struct {
+    i32 x = 1
+    i32 y = 1
+    alias a b
+}
+
+function main() i32 {
+    var point x = {}
+    return 0
+}

@@ -54,3 +54,26 @@ TEST(logia_run_error_file, semantic_error_LGER032)
     EXPECT_NE(std::string(msg).find("LGER032 lhs cannot be a constant expression"), std::string::npos);
     EXPECT_NE(std::string(msg).find("err-LGER032-002.logia:3:4"), std::string::npos);
 }
+TEST(logia_run_error_file, semantic_error_LGERR_ST001)
+{
+    {
+        auto msg = test_file_with_semantic_error(".\\tests\\logia-errors\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "err-LGERR_ST001-001");
+        EXPECT_NE(std::string(msg).find("LGERR_ST001 Redeclaration of field name 'x'"), std::string::npos);
+        EXPECT_NE(std::string(msg).find("err-LGERR_ST001-001.logia:3:4"), std::string::npos);
+        EXPECT_NE(std::string(msg).find("err-LGERR_ST001-001.logia:5:4"), std::string::npos);
+    }
+    {
+        auto msg = test_file_with_semantic_error(".\\tests\\logia-errors\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "err-LGERR_ST001-002");
+        EXPECT_NE(std::string(msg).find("LGERR_ST001 Redeclaration of field name 'x'"), std::string::npos);
+        EXPECT_NE(std::string(msg).find("err-LGERR_ST001-002.logia:3:4"), std::string::npos);
+        EXPECT_NE(std::string(msg).find("err-LGERR_ST001-002.logia:5:4"), std::string::npos);
+    }
+}
+TEST(logia_run_error_file, semantic_error_LGERR_ST002)
+{
+    {
+        auto msg = test_file_with_semantic_error(".\\tests\\logia-errors\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "err-LGERR_ST002-001");
+        EXPECT_NE(std::string(msg).find("LGERR_ST002 Alias target 'b' not found."), std::string::npos);
+        EXPECT_NE(std::string(msg).find("err-LGERR_ST002-001.logia:5:4"), std::string::npos);
+    }
+}

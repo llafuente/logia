@@ -100,7 +100,7 @@ namespace logia::AST
         {
             throw_compiler_error("type already defined!");
         }
-        // TODO do we need to handle deletion or "anything" ?
+
         this->is_typed = true;
         this->push_child(t);
     }

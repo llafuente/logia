@@ -101,6 +101,9 @@ namespace logia::AST
         /// @brief returns essential information nto debug
         virtual std::string to_string();
 
+        /// @brief Retrieves debug information to dump to user so it can locate the (failing) code
+        virtual std::string get_debug_location(uint32_t prev_lines = 2, uint32_t post_lines = 2);
+
         /// @brief traverse the tree and if skip_codegen is false, pre_codegen and post_codegen!
         llvm::Value *codegen(logia::Backend *backend);
 

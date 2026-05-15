@@ -1,5 +1,6 @@
 #include "ast/node.h"
 #include "ast/type.h"
+#include "ast/import.h"
 
 #include <format>
 
@@ -16,6 +17,54 @@ namespace logia::AST
     std::string Node::to_string()
     {
         return std::format("| {} [@{}] ty={}", static_cast<void *>(this), static_cast<void *>(this->parent_node), !has_type ? "no" : (skip_codegen ? "skip" : (is_typed && is_attached ? this->get_final_type()->get_repr() : "??")));
+    }
+    std::string Node::get_debug_location(uint32_t prev_lines, uint32_t post_lines)
+    {
+        if (!is_attached)
+        {
+            throw_compiler_error("Cannot generate debug information of detached nodes");
+        }
+
+        auto program = this->first_parent<Program>();
+
+        auto err_line = this->rule->start->getLine();
+        auto err_start_column = this->rule->start->getCharPositionInLine();
+        auto err_stop_column = std::max<int>(err_start_column + 1, this->rule->stop->getCharPositionInLine());
+
+        auto start_line = std::max<size_t>(0, err_line - prev_lines);
+        auto end_line = err_line + post_lines;
+
+        std::string snippet;
+        const char *text = program->file_contents;
+        size_t src = 0;
+        size_t line = 1;
+        char c;
+        while ((c = text[src++]) != '\0')
+        {
+            if (line >= start_line && line <= end_line)
+            {
+                snippet += c;
+            }
+
+            if (c == '\n')
+            {
+                if (line == err_line)
+                {
+                    for (size_t j = 0; j < err_start_column; ++j)
+                    {
+                        snippet += ' ';
+                    }
+                    for (size_t j = err_start_column; j < err_stop_column; ++j)
+                    {
+                        snippet += '^';
+                    }
+                    snippet += '\n';
+                }
+                ++line;
+            }
+        }
+
+        return std::format("at {}:{}:{}\n----\n{}\n----\n", program->entry_point_file, err_line + 1, err_start_column, snippet);
     }
 
     void Node::push_child(Node *child)

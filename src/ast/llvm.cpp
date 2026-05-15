@@ -68,7 +68,7 @@ namespace logia::AST
                 {
                     if (auto *CI = llvm::dyn_cast<llvm::ConstantInt>(IdxIt->get()))
                     {
-                        llvm::errs() << "  Index " << idxNum << ": " << CI->getSExtValue() << "\n";
+                        DEBUG() << "  Index " << idxNum << ": " << CI->getSExtValue() << "\n";
                         ty = ty->getStructElementType(CI->getSExtValue());
                     }
                     else

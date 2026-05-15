@@ -293,6 +293,9 @@ namespace logia::AST
 
         StructField *get_field_by_index(uint32_t index);
 
+        /// @brief Semantic validation
+        void semantic_validate();
+
         Type *get_type() override;
 
         std::string to_string() override;
@@ -302,6 +305,9 @@ namespace logia::AST
         void post_attach() override;
 
         llvm::Value *post_codegen(logia::Backend *backend) override;
+
+    protected:
+        void _pre_type_inference();
     };
 
     // TODO implement templates
