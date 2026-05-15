@@ -220,6 +220,9 @@ namespace logia::AST
         Type *get_type() override;
         Identifier *get_name();
         Expression *get_default_value();
+
+    protected:
+        void _pre_type_inference() override;
     };
 
     // TODO setter

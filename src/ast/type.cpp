@@ -373,8 +373,16 @@ namespace logia::AST
     StructAlias::StructAlias(antlr4::ParserRuleContext *rule, Identifier *from, Identifier *to, const char *_docstring) : docstring(_docstring), Type(rule, Primitives::NONE)
     {
         this->is_typed = true;
+
         this->push_child(from);
+        from->has_type = false;
+        from->skip_codegen = true;
+        from->skip_type_inference = true;
+
         this->push_child(to);
+        to->has_type = false;
+        to->skip_codegen = true;
+        to->skip_type_inference = true;
     }
 
     Identifier *StructAlias::get_from()
@@ -391,7 +399,7 @@ namespace logia::AST
     }
     Type *StructAlias::get_type()
     {
-        auto owner = (Struct *)this->parent_node;
+        auto owner = this->parent_node->as<Struct>();
         // TODO alias of methods ?
         return owner->get_field_type(this->get_to());
     }
@@ -422,7 +430,7 @@ namespace logia::AST
     }
     Type *StructField::get_type()
     {
-        return ast_resolve_type(this->get_child<Type>(1));
+        return this->get_child<Type>(1)->get_final_type();
     }
     Expression *StructField::get_default_value()
     {
@@ -432,6 +440,21 @@ namespace logia::AST
     {
         return std::format("StructField{}", Node::to_string());
     }
+
+    void StructField::_pre_type_inference()
+    {
+        auto ty = this->get_type();
+        auto default_value = this->get_default_value();
+        if (default_value != nullptr)
+        {
+            default_value->set_type(ty);
+        }
+        Type::_pre_type_inference();
+    }
+
+    //
+    // Struct
+    //
 
     Struct::Struct(antlr4::ParserRuleContext *rule, Identifier *id) : Type(rule, Primitives::STRUCT_TY)
     {

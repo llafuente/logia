@@ -1,0 +1,11 @@
+type point = struct {
+    i32 x
+    i32 y
+    alias z x
+}
+
+function main() i32 {
+    var point p = {1, z: 3}
+
+    return p.x + p.y // 76
+}

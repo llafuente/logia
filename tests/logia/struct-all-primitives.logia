@@ -1,0 +1,23 @@
+type primitives = struct {
+    i8 a = 1
+    i16 b = 2
+    i32 c = 3
+    i64 d = 4
+    i128 e = 5
+    u8 f = 6
+    u16 g = 7
+    u32 h = 8
+    u64 i = 9
+    u128 j = 10
+    f16 k = 11
+    f32 l = 12
+    f64 m = 13
+    f128 n = 14
+    bool o = true
+}
+
+function main() i64 {
+    var primitives x = {}
+
+    return 0
+}
