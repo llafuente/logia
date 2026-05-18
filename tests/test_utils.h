@@ -31,3 +31,4 @@ char *end_stdout_capture();
     } while (false)
 
 int test_single_file(const char *logia_folder, const char *ir_folder, const char *obj_folder, const char *file);
+const char *test_file_with_semantic_error(const char *logia_folder, const char *ir_folder, const char *obj_folder, const char *file);

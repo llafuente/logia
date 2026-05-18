@@ -10,32 +10,10 @@ namespace logia::AST
         {
         case Primitives::VOID_TY:
             return strdup("void");
-        case Primitives::I8_TY:
-            return strdup("i8");
-        case Primitives::I16_TY:
-            return strdup("i16");
-        case Primitives::I32_TY:
-            return strdup("i32");
-        case Primitives::I64_TY:
-            return strdup("i64");
-        case Primitives::U8_TY:
-            return strdup("u8");
-        case Primitives::U16_TY:
-            return strdup("u16");
-        case Primitives::U32_TY:
-            return strdup("u32");
-        case Primitives::U64_TY:
-            return strdup("u64");
-        case Primitives::F16_TY:
-            return strdup("f16");
-        case Primitives::F32_TY:
-            return strdup("f32");
-        case Primitives::F64_TY:
-            return strdup("f64");
-        case Primitives::F128_TY:
-            return strdup("f128");
-        case Primitives::BOOL_TY:
-            return strdup("bool");
+        case Primitives::INTEGER_TY:
+            return strdup("int");
+        case Primitives::FLOATING_POINT_TY:
+            return strdup("float");
         case Primitives::PTR_TY:
             return strdup("ptr");
         case Primitives::STRUCT_TY:
@@ -111,7 +89,7 @@ namespace logia::AST
     // Integer
     //
 
-    Integer::Integer(bool is_signed, int bits) : Type(nullptr, Primitives::I8_TY), is_signed(is_signed), bits(bits)
+    Integer::Integer(bool is_signed, int bits) : Type(nullptr, Primitives::INTEGER_TY), is_signed(is_signed), bits(bits)
     {
         this->is_typed = true;
     }
@@ -200,7 +178,7 @@ namespace logia::AST
     // Float
     //
 
-    Float::Float(int bits) : Type(nullptr, Primitives::F16_TY), bits(bits)
+    Float::Float(int bits) : Type(nullptr, Primitives::FLOATING_POINT_TY), bits(bits)
     {
         this->is_typed = true;
     }
@@ -1195,14 +1173,14 @@ namespace logia::AST
                         continue; // skip self!
                     if (second->try_cast<StructField>(&second_field))
                     {
-                        if (first_alias->get_from() == second_field->get_name())
+                        if (first_alias->get_from()->operator==(second_field->get_name()))
                         {
                             throw_semantic_error(second_field, std::format("LGERR_ST001 Redeclaration of field name '{}'.\nFirst declaration {}\nSecond declaration {}", first_alias->get_from()->identifier, first_alias->get_debug_location(), second_field->get_debug_location()));
                         }
                     }
                     else if (second->try_cast<StructAlias>(&second_alias))
                     {
-                        if (first_alias->get_from() == second_alias->get_from())
+                        if (first_alias->get_from()->operator==(second_alias->get_from()))
                         {
                             throw_semantic_error(second_alias, std::format("LGERR_ST001 Redeclaration of field name '{}'.\nFirst declaration {}\nSecond declaration {}", first_alias->get_from()->identifier, first_alias->get_debug_location(), second_alias->get_debug_location()));
                         }
@@ -1214,7 +1192,7 @@ namespace logia::AST
                 {
                     if (second->try_cast<StructField>(&second_field))
                     {
-                        if (first_alias->get_from() == second_field->get_name())
+                        if (first_alias->get_to()->operator==(second_field->get_name()))
                         {
                             found = true;
                             break;

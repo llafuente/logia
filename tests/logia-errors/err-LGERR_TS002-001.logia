@@ -1,0 +1,9 @@
+function main() i32 {
+    var i64 a = 100;
+    var i32 b = 64;
+
+    a = b;
+    b = a;
+
+    return 0
+}

@@ -2,6 +2,7 @@
 #include "ast/constexpr.h"
 #include "ast/llvm.h"
 #include "llvm/IR/Constant.h"
+#include "logia/type_system.h"
 
 namespace logia::AST
 {
@@ -397,9 +398,18 @@ namespace logia::AST
             {
                 return; // TODO we cannot determine type atm! what we do ?
             }
+            auto right = this->get_right();
+            auto right_ty = right->get_final_type();
+
+            auto err = type_system::type_is_compatible(left_ty, right_ty);
+            if (err.is_error())
+            {
+                err.throw_semantic(this);
+            }
             // rhs should have the same type!
-            this->get_right()->set_type(left_ty);
+            right->set_type(left_ty);
         }
+
         Expression::_pre_type_inference();
     }
 

@@ -18,11 +18,11 @@ namespace logia::AST
         std::string format_message(Node *node, const std::string &message, const std::string &trace, const char *function, const char *file, int line);
     };
 
-#define throw_semantic_error(node, message)                                                                                   \
-    do                                                                                                                        \
-    {                                                                                                                         \
-        auto e = semantic_error(node, message, std::to_string(std::stacktrace::current()), __FUNCTION__, __FILE__, __LINE__); \
-        DEBUG() << e.what();                                                                                                  \
-        throw e;                                                                                                              \
+#define throw_semantic_error(node, message)                                                                                                 \
+    do                                                                                                                                      \
+    {                                                                                                                                       \
+        auto e = ::logia::AST::semantic_error(node, message, std::to_string(std::stacktrace::current()), __FUNCTION__, __FILE__, __LINE__); \
+        DEBUG() << e.what();                                                                                                                \
+        throw e;                                                                                                                            \
     } while (false)
 }

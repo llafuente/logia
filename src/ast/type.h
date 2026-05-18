@@ -20,20 +20,9 @@ namespace logia::AST
 
         VOID_TY,
 
-        BOOL_TY,
+        INTEGER_TY,
 
-        I8_TY,
-        I16_TY,
-        I32_TY,
-        I64_TY,
-        U8_TY,
-        U16_TY,
-        U32_TY,
-        U64_TY,
-        F16_TY,
-        F32_TY,
-        F64_TY,
-        F128_TY,
+        FLOATING_POINT_TY,
 
         // aliases but very special...
         // Int,
@@ -265,8 +254,8 @@ namespace logia::AST
             antlr4::ParserRuleContext *rule,
             Identifier *name,
             Type *type,
-            Expression *default_value,
-            const char *docstring);
+            Expression *default_value = nullptr,
+            const char *docstring = nullptr);
 
         /// @brief Adds an alias to the struct
         void add_alias(antlr4::ParserRuleContext *rule, Identifier *from, Identifier *to, const char *docstring);

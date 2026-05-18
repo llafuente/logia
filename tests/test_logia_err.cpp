@@ -4,27 +4,6 @@
 #include "test_utils.h"
 #include "logia/run.h"
 
-const char *test_file_with_semantic_error(const char *logia_folder, const char *ir_folder, const char *obj_folder, const char *file)
-{
-    try
-    {
-        test_single_file(logia_folder, ir_folder, obj_folder, file);
-        EXPECT_TRUE(false && "unreachable, file run but no error found!");
-    }
-    catch (logia::AST::semantic_error const &e)
-    {
-        std::cerr << "catch logia::AST::semantic_error" << std::endl;
-        return strdup(e.what());
-    }
-    catch (std::exception const &e)
-    {
-        std::cerr << "catch std::exception" << std::endl;
-        throw std::runtime_error(std::format("file: {} throw an unexpected exception:\n{}", file, e.what()));
-    }
-
-    throw std::runtime_error(std::format("file: {} don't throw", file));
-}
-
 TEST(logia_run_error_file, semantic_error_LGER030)
 {
     auto msg = test_file_with_semantic_error(".\\tests\\logia-errors\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "err-LGER030-001");

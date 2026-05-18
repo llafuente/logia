@@ -42,6 +42,8 @@ set(LOGIA_SOURCE_FILES
   src/logia/frontend.cpp
   src/logia/backend.cpp
   src/logia/type_inference.cpp
+  src/logia/type_system.cpp
+  src/logia/maybe_error.cpp
 
   src/ast/node.cpp
   src/ast/semantic_error.cpp
@@ -84,6 +86,7 @@ add_executable(logia_test_suite
   tests/test_ast.cpp
   tests/test_logia.cpp
   tests/test_logia_err.cpp
+  tests/test_type_system.cpp
   ${LOGIA_SOURCE_FILES}
   ${ANTLR_LogiaGrammarLexer_CXX_OUTPUTS}
   ${ANTLR_LogiaGrammarParser_CXX_OUTPUTS}
