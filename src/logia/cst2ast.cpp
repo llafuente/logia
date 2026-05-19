@@ -478,7 +478,7 @@ namespace logia
             {
                 break;
             }
-            callexpr->add_named_argument(
+            callexpr->push_named_argument(
                 ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(namedArg->name)), ANY_VOIDP_CAST(AST::Expression *, this->visitConditionalExpr(namedArg->expr)));
         }
 
@@ -508,7 +508,7 @@ namespace logia
                 CST_UNREACHABLE();
             }
 
-            callexpr->add_positional_argument(expr);
+            callexpr->push_positional_argument(expr);
         }
     }
 

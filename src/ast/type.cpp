@@ -1057,7 +1057,7 @@ namespace logia::AST
                 auto arg_name = cpy[j]->as<Identifier>();
                 if (arg_name == param_name)
                 {
-                    callee->add_named_argument(param_name, cpy[j + 1]->as<Expression>());
+                    callee->push_named_argument(param_name, cpy[j + 1]->as<Expression>());
                     cpy.erase(cpy.begin() + j, cpy.begin() + j + 1);
 
                     found = true;
@@ -1073,7 +1073,7 @@ namespace logia::AST
                     auto arg_name = cpy[j]->as<Identifier>();
                     if (arg_name->operator==(""))
                     {
-                        callee->add_named_argument(param_name, cpy[j + 1]->as<Expression>());
+                        callee->push_named_argument(param_name, cpy[j + 1]->as<Expression>());
                         cpy.erase(cpy.begin() + j, cpy.begin() + j + 1);
 
                         found = true;
@@ -1086,7 +1086,7 @@ namespace logia::AST
             if (!found && param->has_default_value())
             {
                 found = true;
-                callee->add_named_argument(param_name, param->get_default_value());
+                callee->push_named_argument(param_name, param->get_default_value());
             }
 
             if (!found)

@@ -137,14 +137,15 @@ namespace logia::AST
         this->push_child(locator);
         for (size_t i = 0; i < positional_arguments.size(); ++i)
         {
-            this->add_positional_argument(positional_arguments[i]);
+            this->push_positional_argument(positional_arguments[i]);
         }
     }
 
-    void CallExpression::add_named_argument(Identifier *name, Expression *expr)
+    void CallExpression::push_named_argument(Identifier *name, Expression *expr)
     {
         LOGIA_ASSERT(name && "name is mantadory");
         LOGIA_ASSERT(expr && "expr is mantadory");
+
         node_assert<Identifier>(name, __FUNCTION__ ":" TOSTRING(__LINE__));
         node_assert<Expression>(expr, __FUNCTION__ ":" TOSTRING(__LINE__));
 
@@ -152,55 +153,93 @@ namespace logia::AST
         name->skip_type_inference = true;
         name->has_type = false; // TODO remove me!
 
-        this->push_child(name);
-        this->push_child(expr);
-
-        ++argument_count;
+        this->push_child(new CallExpressionArgument(argument_count++, name, expr));
     }
-    void CallExpression::add_positional_argument(Expression *expr)
+    void CallExpression::push_positional_argument(Expression *expr)
     {
-        LOGIA_ASSERT(expr && "expr is mantadory");
-        node_assert<Expression>(expr, __FUNCTION__ ":" TOSTRING(__LINE__));
+        return this->push_named_argument(ast_create_identifier((char *)""), expr);
+    }
 
-        auto name = ast_create_identifier((char *)"");
-        name->skip_codegen = true;
-        name->skip_type_inference = true;
-        name->has_type = false; // TODO remove me!
+    void CallExpression::insert_named_argument(size_t position, Identifier *name, Expression *expr)
+    {
+        this->push_named_argument(name, expr);
+        // now we swap position and length-1 to put the new argument in the right place
+        for (size_t i = this->argument_count - 1; i > position; --i)
+        {
+            std::swap(this->children[i], this->children[i - 1]);
+            this->children[i]->as<CallExpressionArgument>()->index = i;
+        }
+    }
 
-        this->push_child(name); // TODO maybe empty identifier ?!
-        this->push_child(expr);
+    void CallExpression::insert_positional_argument(size_t position, Expression *expr)
+    {
+        return this->insert_named_argument(position, ast_create_identifier((char *)""), expr);
+    }
 
-        ++argument_count;
+    void CallExpression::remove_argument_at(size_t position)
+    {
+        if (position >= this->argument_count)
+        {
+            throw_compiler_error("Argument position out of range");
+        }
+        this->children.erase(this->children.begin() + position + 1); // +1 to skip locator
+        this->argument_count--;
+        // update indices
+        for (size_t i = position; i < this->argument_count; ++i)
+        {
+            this->children[i + 1]->as<CallExpressionArgument>()->index = i; // +1 to skip locator
+        }
+    }
+
+    CallExpressionArgument *CallExpression::get_argument_by_name(const char *name)
+    {
+        for (size_t i = 1; i < this->children.size(); ++i)
+        {
+            auto arg = this->get_child<CallExpressionArgument>(i);
+            auto arg_name = arg->get_name();
+            if (arg_name->operator==(name))
+            {
+                return arg;
+            }
+        }
+        return nullptr;
+    }
+
+    CallExpressionArgument *CallExpression::get_argument_by_index(uint32_t index)
+    {
+        if (index >= this->argument_count)
+        {
+            return nullptr;
+        }
+        return this->get_child<CallExpressionArgument>(index);
     }
 
     Expression *CallExpression::get_locator()
     {
         return this->get_child<Expression>(0);
     }
-    Expression *CallExpression::get_argument(uint32_t pos)
+
+    Expression *CallExpression::get_argument_expr(uint32_t pos)
     {
-        return this->get_child<Expression>(1 + (pos * 2) + 1);
+
+        return this->get_argument_by_index(pos)->get_value();
     }
+
     Identifier *CallExpression::get_argument_name(uint32_t pos)
     {
-        return this->get_child<Identifier>(1 + (pos * 2) + 0);
+        return this->get_argument_by_index(pos)->get_name();
     }
+
     std::vector<Expression *> CallExpression::get_arguments()
     {
         auto v = std::vector<Expression *>();
-        v.reserve((this->children.size() - 1) / 2);
+        v.reserve(this->argument_count);
 
         DEBUG() << v.size() << "/" << v.capacity() << "/" << this->children.size() << std::endl;
 
-        for (size_t i = 1; i < this->children.size();)
+        for (size_t i = 1; i < this->children.size(); ++i)
         {
-            // TODO handle position and named
-            // solve locator because we will need it to check
-            DEBUG() << "name [" << i << "]= " << this->children[i]->to_string() << std::endl;
-            ++i;
-            DEBUG() << "argument[" << i << "] = " << this->children[i]->to_string() << std::endl;
-            v.push_back(children[i]->as<Expression>());
-            ++i;
+            v.push_back(this->children[i]->as<CallExpressionArgument>()->get_value());
         }
 
         return v;
@@ -506,12 +545,12 @@ namespace logia::AST
         }
         }
 
-        this->add_positional_argument(operand);
+        this->push_positional_argument(operand);
     }
 
     Expression *PrefixUnaryExpression::get_operand()
     {
-        return this->get_argument(0);
+        return this->get_argument_expr(0);
     }
 
     Type *PrefixUnaryExpression::get_type()
@@ -601,12 +640,12 @@ namespace logia::AST
         ident->skip_codegen = true;
         this->push_child(ident);
 
-        this->add_positional_argument(operand);
+        this->push_positional_argument(operand);
     }
 
     Expression *PostfixUnaryExpression::get_operand()
     {
-        return this->get_argument(0);
+        return this->get_argument_expr(0);
     }
 
     void PostfixUnaryExpression::_post_type_inference()

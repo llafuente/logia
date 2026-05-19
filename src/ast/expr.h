@@ -65,7 +65,7 @@ namespace logia::AST
         /// @brief Get the argument at the specified position
         /// @param pos The position of the argument
         /// @return The expression of the argument
-        Expression *get_argument(uint32_t pos);
+        Expression *get_argument_expr(uint32_t pos);
 
         /// @brief Get the name of the argument at the specified position
         /// @param pos The position of the argument
@@ -75,16 +75,37 @@ namespace logia::AST
         /// @brief Add a named argument to the call expression
         /// @param name The identifier of the argument
         /// @param expr The expression of the argument
-        void add_named_argument(Identifier *name, Expression *expr);
+        void push_named_argument(Identifier *name, Expression *expr);
 
         /// @brief Add a positional argument to the call expression
         /// @param expr The expression of the argument
-        void add_positional_argument(Expression *expr);
+        void push_positional_argument(Expression *expr);
+
+        /// @brief Insert a named argument at the specified argument position (pushing the others to the right)
+        /// @param position The position to insert the argument at
+        /// @param name The identifier of the argument
+        /// @param expr The expression of the argument
+        void insert_named_argument(size_t position, Identifier *name, Expression *expr);
+
+        /// @brief Insert a positional argument at the specified argument position (pushing the others to the right)
+        /// @param position The position to insert the argument at
+        /// @param name The identifier of the argument
+        /// @param expr The expression of the argument
+        void insert_positional_argument(size_t position, Expression *expr);
+
+        /// @brief Remove the argument at the specified position
+        /// @param position The position of the argument to remove
+        void remove_argument_at(size_t position);
 
         /// @brief Get the argument by its name, nullptr if not found
         /// @param name The name of the argument
         /// @return The call expression argument
         CallExpressionArgument *get_argument_by_name(const char *name);
+
+        /// @brief Get the argument by its index, nullptr if not found
+        /// @param index The index of the argument
+        /// @return The call expression argument
+        CallExpressionArgument *get_argument_by_index(uint32_t index);
 
         std::string to_string() override;
         llvm::Value *post_codegen(logia::Backend *backend) override;
