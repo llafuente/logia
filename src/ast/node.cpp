@@ -34,6 +34,11 @@ namespace logia::AST
         auto start_line = std::max<size_t>(0, err_line - prev_lines);
         auto end_line = err_line + post_lines;
 
+        if (prev_lines == 0 && post_lines == 0)
+        {
+            return std::format("at {}:{}:{}", program->entry_point_file, err_line + 1, err_start_column);
+        }
+
         std::string snippet;
         const char *text = program->file_contents;
         size_t src = 0;

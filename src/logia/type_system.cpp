@@ -6,24 +6,25 @@ namespace logia::type_system
 
     maybe_error<type_compatibility> type_is_compatible(Type *lhs, Type *rhs)
     {
+        // if rhs is infer, it's compatible with everything
         if (rhs->is<InferType>() || rhs == nullptr)
         {
             return maybe_error<type_compatibility>((type_compatibility)((uint32_t)type_compatibility::YES));
         }
-
+        // if both has the same primitive they may be compatible
         if (lhs->primitive == rhs->primitive)
         {
             if (lhs->is<Void>())
             {
                 return maybe_error<type_compatibility>((type_compatibility)((uint32_t)type_compatibility::YES | (uint32_t)type_compatibility::LAYOUT_COMPATIBLE));
             }
-
+            // TODO pointer should check pointee type
             if (lhs->is<Pointer>())
             {
                 return maybe_error<type_compatibility>((type_compatibility)((uint32_t)type_compatibility::YES | (uint32_t)type_compatibility::LAYOUT_COMPATIBLE));
             }
 
-            // integers ?
+            // integers, check signedness and bits
             if (lhs->is<Integer>())
             {
                 auto lhs_int = lhs->as<Integer>();
@@ -45,7 +46,7 @@ namespace logia::type_system
 
                 return maybe_error<type_compatibility>(type_compatibility::AUTOCAST_CAST);
             }
-
+            // floats, check bits
             if (lhs->is<Float>())
             {
                 auto lhs_flt = lhs->as<Float>();
@@ -64,6 +65,9 @@ namespace logia::type_system
                 return maybe_error<type_compatibility>(type_compatibility::AUTOCAST_CAST);
             }
 
+            // structs, check field by field has a 100% compatible type
+            // then check code compatibility, layout + aliases + getter + setters
+            // REVIEW method compatibility is required ?
             if (lhs->is<Struct>())
             {
                 auto lhs_st = lhs->as<Struct>();
@@ -118,7 +122,9 @@ namespace logia::type_system
 
             return maybe_error<type_compatibility>(std::format("LGERR_TS004 Incompatible types '{}' -> '{}'. Unhanlded primitive.", lhs->get_repr(), rhs->get_repr()), type_compatibility::NO);
         }
-
+        // REVIEW
+        // if they don't have the same primitive, they are incompatible
+        // even it's not 100% real, we will be extra safe at the start
         return maybe_error<type_compatibility>(std::format("LGERR_TS002 Incompatible types '{}' -> '{}'. Types should have the same primitive.", lhs->get_repr(), rhs->get_repr()), type_compatibility::NO);
     }
 

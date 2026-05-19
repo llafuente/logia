@@ -17,7 +17,7 @@ namespace logia::type_system
         CODE_COMPATIBLE = 0x200,
     };
 
-    /// @brief Type is compatible at layout level
+    /// @brief Determines if two types are compatible. An error does mean it's not compatible, it may require an explicit cast or an autocast
     /// @param lhs
     /// @param rhs
     /// @return

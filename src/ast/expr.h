@@ -24,6 +24,24 @@ namespace logia::AST
         llvm::Value *post_codegen(logia::Backend *backend) override;
     };
 
+    /// @brief Defines a call expression argument
+    struct CallExpressionArgument : Node
+    {
+        size_t index = 0;
+        FunctionParameter *parameter = nullptr;
+
+        CallExpressionArgument(
+            size_t index = 0,
+            Identifier *name,
+            Expression *value);
+
+        Identifier *get_name();
+        Expression *get_value();
+
+        std::string to_string() override;
+        Type *get_type() override;
+    };
+
     /// @brief Call expression, can be a function call, method call, operator call, etc.
     struct CallExpression : Expression
     {
@@ -55,13 +73,18 @@ namespace logia::AST
         Identifier *get_argument_name(uint32_t pos);
 
         /// @brief Add a named argument to the call expression
-        /// @param id The identifier of the argument
+        /// @param name The identifier of the argument
         /// @param expr The expression of the argument
-        void add_named_argument(Identifier *id, Expression *expr);
+        void add_named_argument(Identifier *name, Expression *expr);
 
         /// @brief Add a positional argument to the call expression
         /// @param expr The expression of the argument
         void add_positional_argument(Expression *expr);
+
+        /// @brief Get the argument by its name, nullptr if not found
+        /// @param name The name of the argument
+        /// @return The call expression argument
+        CallExpressionArgument *get_argument_by_name(const char *name);
 
         std::string to_string() override;
         llvm::Value *post_codegen(logia::Backend *backend) override;
