@@ -120,6 +120,62 @@ namespace logia::AST
     }
 
     //
+    // CallExpressionArgument
+    //
+
+    CallExpressionArgument::CallExpressionArgument(
+        size_t index,
+        Identifier *name,
+        Expression *value) : Node(value->rule)
+    {
+        this->has_type = false;
+        this->skip_type_inference = true;
+
+        this->push_child(name);
+        name->skip_codegen = true;
+        name->skip_type_inference = true;
+        name->has_type = false;
+        this->push_child(value);
+    }
+
+    bool CallExpressionArgument::is_named()
+    {
+        return strlen(this->get_name()->identifier) > 0;
+    }
+
+    Identifier *CallExpressionArgument::get_name()
+    {
+        return this->get_child<Identifier>(0);
+    }
+
+    Expression *CallExpressionArgument::get_value()
+    {
+        return this->get_child<Expression>(1);
+    }
+
+    std::string CallExpressionArgument::to_string()
+    {
+        return std::format("CallExpressionArgument");
+    }
+
+    Type *CallExpressionArgument::get_type()
+    {
+        return this->get_value()->get_type();
+    }
+
+    void CallExpressionArgument::set_type(Type *type)
+    {
+        return this->get_value()->set_type(type);
+        this->is_typed = true;
+    }
+
+    void CallExpressionArgument::_post_type_inference()
+    {
+        this->is_typed = this->get_value()->is_typed;
+        Node::_post_type_inference();
+    }
+
+    //
     // CallExpression
     //
     CallExpression::CallExpression(antlr4::ParserRuleContext *rule) : Expression(rule)
@@ -149,15 +205,11 @@ namespace logia::AST
         node_assert<Identifier>(name, __FUNCTION__ ":" TOSTRING(__LINE__));
         node_assert<Expression>(expr, __FUNCTION__ ":" TOSTRING(__LINE__));
 
-        name->skip_codegen = true;
-        name->skip_type_inference = true;
-        name->has_type = false; // TODO remove me!
-
         this->push_child(new CallExpressionArgument(argument_count++, name, expr));
     }
     void CallExpression::push_positional_argument(Expression *expr)
     {
-        return this->push_named_argument(ast_create_identifier((char *)""), expr);
+        return this->push_named_argument(new Identifier(expr->rule, ""), expr);
     }
 
     void CallExpression::insert_named_argument(size_t position, Identifier *name, Expression *expr)
@@ -211,7 +263,7 @@ namespace logia::AST
         {
             return nullptr;
         }
-        return this->get_child<CallExpressionArgument>(index);
+        return this->get_child<CallExpressionArgument>(index + 1);
     }
 
     Expression *CallExpression::get_locator()

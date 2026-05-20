@@ -44,6 +44,7 @@ set(LOGIA_SOURCE_FILES
   src/logia/type_inference.cpp
   src/logia/type_system.cpp
   src/logia/maybe_error.cpp
+  src/logia/multiple_dispatch.cpp
 
   src/ast/node.cpp
   src/ast/semantic_error.cpp
@@ -87,6 +88,7 @@ add_executable(logia_test_suite
   tests/test_logia.cpp
   tests/test_logia_err.cpp
   tests/test_type_system.cpp
+  tests/test_multiple_dispatch.cpp
   ${LOGIA_SOURCE_FILES}
   ${ANTLR_LogiaGrammarLexer_CXX_OUTPUTS}
   ${ANTLR_LogiaGrammarParser_CXX_OUTPUTS}

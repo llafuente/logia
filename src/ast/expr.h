@@ -11,6 +11,7 @@ namespace logia::AST
     struct Identifier;
     struct TypeDef;
     struct Function;
+    struct FunctionParameter;
     enum class Operators;
 
     /// @brief Base expression
@@ -31,15 +32,19 @@ namespace logia::AST
         FunctionParameter *parameter = nullptr;
 
         CallExpressionArgument(
-            size_t index = 0,
+            size_t index,
             Identifier *name,
             Expression *value);
-
+        bool is_named();
         Identifier *get_name();
         Expression *get_value();
 
         std::string to_string() override;
         Type *get_type() override;
+        void set_type(Type *type) override;
+
+    protected:
+        void _post_type_inference() override;
     };
 
     /// @brief Call expression, can be a function call, method call, operator call, etc.

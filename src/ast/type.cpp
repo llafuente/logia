@@ -781,7 +781,14 @@ namespace logia::AST
             {
                 list += ", ";
             }
-            list += param->get_type()->to_string();
+            list += param->get_type()->get_repr();
+            list += " ";
+            list += param->get_name()->identifier;
+            if (param->has_default_value())
+            {
+                list += " = ?";
+                // TODO list += param->get_default_value()->get_repr();
+            }
         }
         return std::format("function {} ({}) {}", this->get_name(), list, this->get_return_type()->get_repr());
     }
@@ -851,6 +858,19 @@ namespace logia::AST
     Identifier *Function::get_parameter_name(uint32_t i)
     {
         return this->get_parameter(i)->get_name();
+    }
+
+    FunctionParameter *Function::get_parameter_by_name(const char *name)
+    {
+        for (size_t i = 3; i < this->children.size(); ++i)
+        {
+            auto fp = this->children[i]->as<FunctionParameter>();
+            if (fp->get_name()->operator==(name))
+            {
+                return fp;
+            }
+        }
+        return nullptr;
     }
 
     void Function::codegen_parameters(logia::Backend *backend)
@@ -1027,11 +1047,11 @@ namespace logia::AST
         return f;
     }
 
-    void Function::add_param(FunctionParameter *param)
+    void Function::push_parameter(FunctionParameter *param)
     {
 
         LOGIA_ASSERT(!this->is_attached && "Function type should be created before attached");
-
+        param->index = this->get_parameter_count();
         this->push_child(param);
         this->get_body()->scope_set(param->get_name()->identifier, param);
     }

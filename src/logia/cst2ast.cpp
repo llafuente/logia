@@ -823,7 +823,7 @@ namespace logia
 
             // TODO LOGIA_ASSERT(param->functionParametersTypeModifiers().size() > 0);
             // TODO REWIEW accept rhsExpr vs constExpr ???
-            fn->add_param(new AST::FunctionParameter(name, type_def, (AST::ConstExpression *)param_default));
+            fn->push_parameter(new AST::FunctionParameter(name, type_def, (AST::ConstExpression *)param_default));
         }
     }
 

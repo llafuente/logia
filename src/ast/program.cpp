@@ -82,7 +82,7 @@ namespace logia::AST
         auto f = new Function(nullptr, new Identifier(nullptr, name), return_type, true);
         for (auto t : arguments)
         {
-            f->add_param(new FunctionParameter(new Identifier(nullptr, ""), t, nullptr));
+            f->push_parameter(new FunctionParameter(new Identifier(nullptr, ""), t, nullptr));
         }
         intrinsics->push_child(f);
         // expose intrinsic to current "program"

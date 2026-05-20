@@ -48,7 +48,9 @@ namespace logia::AST
     /// @brief Defines a function parameter
     struct FunctionParameter : Node
     {
-        llvm::AllocaInst *alloca_inst;
+        llvm::AllocaInst *alloca_inst = nullptr;
+        size_t index = 0;
+
         FunctionParameter(
             Identifier *name,
             Type *type,
@@ -364,7 +366,10 @@ namespace logia::AST
         FunctionParameter *get_parameter(uint32_t i);
 
         int64_t get_parameter_count();
+
         Identifier *get_parameter_name(uint32_t i);
+
+        FunctionParameter *get_parameter_by_name(const char *name);
 
         /// @brief Retrives the number of mandatory parameters
         /// @return
@@ -375,7 +380,7 @@ namespace logia::AST
         uint32_t get_optional_parameters_size();
 
         /// @brief Adds a parameter to a function
-        void add_param(FunctionParameter *param);
+        void push_parameter(FunctionParameter *param);
 
         /// @brief Checks if given call is valid
         /// @details Checks if the number of arguments and their types are compatible with the function parameters

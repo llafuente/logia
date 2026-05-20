@@ -126,6 +126,30 @@ namespace logia::AST
 
             throw_semantic_error(this, std::format("Identifier '{}' of type '{}' Not found in scope.", name, typeid(T).name()));
         }
+
+        /// @brief lookup a name into the scope chain throws if not found
+        /// @example
+        /// VarDeclStmt* var_decl = block->lookup<VarDeclStmt>("x");
+        std::vector<Node *> lookup_all(const char *name)
+        {
+            DEBUG() << name << std::endl;
+
+            auto out = std::vector<Node *>();
+
+            std::string_view name_view(name);
+            Scope *p = this;
+            do
+            {
+                auto it = p->scope.find(name_view);
+                if (it != p->scope.end())
+                {
+                    out.insert(out.end(), it->second.begin(), it->second.end());
+                }
+                p = p->parentScope;
+            } while (p != nullptr);
+
+            return out;
+        }
     };
 
     /// @brief A block
