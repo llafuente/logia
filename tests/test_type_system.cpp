@@ -30,12 +30,12 @@ TEST(logia_test_type_system, start)
     auto f64 = new logia::AST::Float(64);
 
     {
-        EXPECT_EQ(type_is_compatible(i64, i32).unwrap(), type_compatibility::AUTOCAST_CAST);
-        EXPECT_EQ(type_is_compatible(f64, f32).unwrap(), type_compatibility::AUTOCAST_CAST);
+        EXPECT_EQ(type_is_compatible(i64, i32).unwrap_success(), type_compatibility::AUTOCAST_CAST);
+        EXPECT_EQ(type_is_compatible(f64, f32).unwrap_success(), type_compatibility::AUTOCAST_CAST);
     }
     {
-        EXPECT_EQ(type_is_compatible(i32, i32).unwrap(), (type_compatibility)((uint32_t)type_compatibility::YES | (uint32_t)type_compatibility::LAYOUT_COMPATIBLE));
-        EXPECT_EQ(type_is_compatible(f32, f32).unwrap(), (type_compatibility)((uint32_t)type_compatibility::YES | (uint32_t)type_compatibility::LAYOUT_COMPATIBLE));
+        EXPECT_EQ(type_is_compatible(i32, i32).unwrap_success(), (type_compatibility)((uint32_t)type_compatibility::YES | (uint32_t)type_compatibility::LAYOUT_COMPATIBLE));
+        EXPECT_EQ(type_is_compatible(f32, f32).unwrap_success(), (type_compatibility)((uint32_t)type_compatibility::YES | (uint32_t)type_compatibility::LAYOUT_COMPATIBLE));
     }
     {
         auto err = type_is_compatible(i32, u32);

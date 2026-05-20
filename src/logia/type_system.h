@@ -17,10 +17,12 @@ namespace logia::type_system
         CODE_COMPATIBLE = 0x200,
     };
 
+    typedef utils::maybe_error<type_compatibility, type_compatibility> type_compatibility_result;
+
     /// @brief Determines if two types are compatible. An error does mean it's not compatible, it may require an explicit cast or an autocast
     /// @param lhs
     /// @param rhs
     /// @return
-    maybe_error<type_compatibility> type_is_compatible(::logia::AST::Type *lhs, ::logia::AST::Type *rhs);
+    type_compatibility_result type_is_compatible(::logia::AST::Type *lhs, ::logia::AST::Type *rhs);
 
 }
