@@ -47,6 +47,11 @@ namespace logia::AST
         return this->get_child<Expression>(0);
     }
 
+    void ReturnStmt::_set_type(Type *ty)
+    {
+        this->get_expr()->set_type(ty);
+    }
+
     llvm::Value *ReturnStmt::post_codegen(logia::Backend *backend)
     {
         DEBUG() << this->to_string() << std::endl;
@@ -73,8 +78,7 @@ namespace logia::AST
         this->push_child(expr); // 1
         if (type != nullptr)
         {
-            this->is_typed = true;
-            this->push_child(type);
+            this->set_type(type);
         }
     }
 
@@ -145,15 +149,9 @@ namespace logia::AST
         return nullptr;
     }
 
-    void VarDeclStmt::set_type(Type *ty)
+    void VarDeclStmt::_set_type(Type *ty)
     {
-        if (this->is_typed)
-        {
-            throw_compiler_error("already has a type!");
-        }
-        // TODO assume [1] is InferType ?
         this->push_child(ty);
-        this->is_typed = true;
     }
 
     ///
@@ -201,6 +199,8 @@ namespace logia::AST
 
         throw std::runtime_error(std::string("Expected a block: ") + this->to_string());
     }
+
+    void GotoStmt::_set_type(Type *ty) {}
 
     //
     // ast creation

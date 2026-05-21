@@ -121,7 +121,7 @@ namespace logia::AST
         /// @brief override node type, it's only allowed in a few node. by default throws atm!
         /// @remarks this may be available only after type inference pass
         /// @return
-        virtual void set_type(Type *t);
+        void set_type(Type *ty);
 
         /// @brief called after the node is attached to a program
         virtual void post_attach();
@@ -179,6 +179,26 @@ namespace logia::AST
                 if (cb(ptr, deep))
                 {
                     ptr->foreach_descendant(cb, deep + 1);
+                }
+            }
+        }
+
+        /// @brief traverse tree inorder while lambda returns true
+        /// @tparam T
+        /// @param cb
+        template <typename T>
+        void foreach_descendant(std::function<bool(T *node, int deep)> cb, int deep = 0)
+        {
+            T *node;
+            for (const auto &ptr : this->children)
+            {
+
+                if (ptr->try_cast<T>(node))
+                {
+                    if (cb(node, deep))
+                    {
+                        node->foreach_descendant<T>(cb, deep + 1);
+                    }
                 }
             }
         }
@@ -337,6 +357,7 @@ namespace logia::AST
     protected:
         virtual void _pre_type_inference();
         virtual void _post_type_inference();
+        virtual void _set_type(Type *ty) = 0;
     };
 
     /// @brief A node that does nothing
@@ -347,6 +368,9 @@ namespace logia::AST
         std::string to_string() override;
         llvm::Value *post_codegen(logia::Backend *backend) override;
         Type *get_type() override;
+
+    protected:
+        void _set_type(Type *) override;
     };
 
     /// @brief Throws if node is not of given type

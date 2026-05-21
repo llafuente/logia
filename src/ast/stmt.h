@@ -32,8 +32,13 @@ namespace logia::AST
         std::string to_string() override;
 
         llvm::Value *post_codegen(logia::Backend *backend) override;
-
+        /// @brief Retrieves return expression
+        /// @return return expression
         Expression *get_expr();
+
+    protected:
+        /// @brief Forward type to return expression
+        void _set_type(Type *ty) override;
     };
 
     /// @brief Variable declaration/initialization statement
@@ -69,7 +74,9 @@ namespace logia::AST
         /// @return Type of the variable
         Type *get_type() override;
 
-        void set_type(Type *ty) override;
+    protected:
+        /// @brief Sets type
+        void _set_type(Type *ty) override;
     };
 
     /// @brief Goto statement
@@ -88,6 +95,10 @@ namespace logia::AST
         std::string to_string() override;
 
         llvm::Value *post_codegen(logia::Backend *backend) override;
+
+    protected:
+        /// @brief Do nothing
+        void _set_type(Type *ty) override;
     };
 
     /// @brief Creates a return statement

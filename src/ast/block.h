@@ -150,6 +150,10 @@ namespace logia::AST
 
             return out;
         }
+
+    protected:
+        /// @brief Do nothing
+        void _set_type(Type *ty) override;
     };
 
     /// @brief A block

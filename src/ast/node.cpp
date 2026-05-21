@@ -185,12 +185,31 @@ namespace logia::AST
 
         return out;
     }
-    void Node::set_type(Type *t)
+    void Node::set_type(Type *ty)
     {
-        LERROR() << this->to_string() << std::endl;
-        throw std::runtime_error("set_type not supported for this type node");
-    };
+        if (!this->has_type)
+        {
+            // REVIEW can we do anything ?!
+        }
 
+        auto my_ty = this->get_type();
+        if (my_ty == nullptr)
+        {
+            this->_set_type(ty);
+            this->is_typed = true;
+        }
+        else if (my_ty != ty)
+        {
+            throw_compiler_error("Type already set");
+        }
+    }
+    /*
+        void Node::_set_type(Type *ty)
+        {
+            LERROR() << this->to_string() << std::endl;
+            throw std::runtime_error("set_type not supported for this type node");
+        };
+    */
     void Node::post_attach()
     {
         this->is_attached = true;
@@ -326,4 +345,5 @@ namespace logia::AST
     std::string NoOp::to_string() { return "NoOp"; };
     llvm::Value *NoOp::post_codegen(logia::Backend *backend) { return nullptr; }
     Type *NoOp::get_type() { return nullptr; };
+    void NoOp::_set_type(Type *) {};
 }

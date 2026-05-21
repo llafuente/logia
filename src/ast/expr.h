@@ -41,7 +41,9 @@ namespace logia::AST
 
         std::string to_string() override;
         Type *get_type() override;
-        void set_type(Type *type) override;
+
+    protected:
+        void _set_type(Type *type) override;
 
     protected:
         void _post_type_inference() override;
@@ -117,6 +119,7 @@ namespace logia::AST
         Type *get_type() override;
 
     protected:
+        void _set_type(Type *type) override;
         void _pre_type_inference() override;
     };
     /**
@@ -142,11 +145,11 @@ namespace logia::AST
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
         Type *get_type() override;
-        void set_type(Type *type) override;
 
         Node *resolve() override;
 
     protected:
+        void _set_type(Type *type) override;
         void _pre_type_inference() override;
     };
 
@@ -172,10 +175,10 @@ namespace logia::AST
         std::string to_string() override;
 
         Type *get_type() override;
-        void set_type(Type *type) override;
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
     protected:
+        void _set_type(Type *type) override;
         void _pre_type_inference() override;
         void _post_type_inference() override;
     };
@@ -244,13 +247,13 @@ namespace logia::AST
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
         Type *get_type() override;
-        void set_type(Type *t) override;
 
         void post_attach() override;
 
         Node *resolve() override;
 
     protected:
+        void _set_type(Type *t) override;
         void _pre_type_inference() override;
     };
 
@@ -270,7 +273,6 @@ namespace logia::AST
 
         std::string to_string() override;
 
-        void set_type(Type *type) override;
         void add_named_property(Identifier *locator, Expression *value);
         void add_positional_property(Expression *value);
         void set_named_property(Identifier *name, Expression *value, uint32_t index);
@@ -281,6 +283,9 @@ namespace logia::AST
         // Inherited via Expression
         llvm::Value *post_codegen(logia::Backend *backend) override;
         Type *get_type() override;
+
+    protected:
+        void _set_type(Type *type) override;
     };
 
     //

@@ -64,6 +64,9 @@ namespace logia::AST
         std::string to_string() override;
         llvm::Value *post_codegen(logia::Backend *backend) override;
         Type *get_type() override;
+
+    protected:
+        void _set_type(Type *type) override;
     };
 
     /// @brief Base class for all types
@@ -95,6 +98,7 @@ namespace logia::AST
         void post_attach() override;
 
     protected:
+        void _set_type(Type *type);
         /// @brief registers this type into block
         /// @param name
         void __register_type(const char *name);
@@ -408,11 +412,13 @@ namespace logia::AST
     {
         InferType();
         ~InferType();
-        void set_type(Type *t) override;
         std::string get_repr() override;
         std::string to_string() override;
         void pre_codegen(logia::Backend *backend) override;
         llvm::Value *post_codegen(logia::Backend *backend) override;
+
+    protected:
+        void _set_type(Type *t) override;
     };
 
     /**

@@ -45,11 +45,10 @@ namespace logia::AST
     }
     Type *MemberAccessExpression::get_type()
     {
-        return this->type == nullptr ? new InferType() : this->type;
+        return this->type == nullptr ? nullptr : this->type;
     }
-    void MemberAccessExpression::set_type(Type *type)
+    void MemberAccessExpression::_set_type(Type *type)
     {
-        this->is_typed = true;
         this->type = type;
     }
     Node *MemberAccessExpression::resolve()
@@ -163,10 +162,9 @@ namespace logia::AST
         return this->get_value()->get_type();
     }
 
-    void CallExpressionArgument::set_type(Type *type)
+    void CallExpressionArgument::_set_type(Type *type)
     {
         return this->get_value()->set_type(type);
-        this->is_typed = true;
     }
 
     void CallExpressionArgument::_post_type_inference()
@@ -296,6 +294,12 @@ namespace logia::AST
 
         return v;
     }
+
+    void CallExpression::_set_type(Type *type)
+    {
+        // NOTE side-effect of Node::set_type: this implicity check that our return type is the expecte :P
+    }
+
     void CallExpression::_pre_type_inference()
     {
         // it's possible to solve at this point if the locator where final
@@ -460,7 +464,7 @@ namespace logia::AST
     {
         return this->type;
     }
-    void BinaryExpression::set_type(Type *type)
+    void BinaryExpression::_set_type(Type *type)
     {
         this->type = type;
     }
@@ -768,20 +772,19 @@ namespace logia::AST
 
     Type *Identifier::get_type()
     {
-        return this->type == nullptr ? new InferType() : this->type;
+        return this->type == nullptr ? nullptr : this->type;
     }
 
-    void Identifier::set_type(Type *t)
+    void Identifier::_set_type(Type *t)
     {
         this->type = t;
-        this->is_typed = true;
     }
 
     Node *Identifier::resolve()
     {
         if (this->identifier == nullptr || strlen(this->identifier) == 0)
         {
-            return new InferType(); // TODO new ?
+            return nullptr;
         }
         auto scope = this->first_parent<Scope>();
         return scope->lookup<Node>(this->identifier);
@@ -818,20 +821,14 @@ namespace logia::AST
         return std::format("{}{}", "StructInitializer", Expression::to_string());
     }
 
-    void StructInitializer::set_type(Type *type)
+    void StructInitializer::_set_type(Type *type)
     {
-        if (this->is_typed)
-        {
-            throw_compiler_error("type was already set");
-        }
-
         Struct *struct_ty;
         if (!type->try_cast<Struct>(&struct_ty))
         {
             throw_semantic_error(this, std::format("LGER030 incompatible type '{}', expected a struct", type->get_repr()));
         }
 
-        this->is_typed = true;
         this->type = type;
 
         // TODO defaults!

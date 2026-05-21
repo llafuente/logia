@@ -94,14 +94,8 @@ namespace logia::AST
         return std::format("IntegerLiteral {}/{}{}", this->number_str, this->as_signed(), Node::to_string());
     }
 
-    void IntegerLiteral::set_type(Type *t)
+    void IntegerLiteral::_set_type(Type *t)
     {
-        if (is_typed && this->get_type() != t)
-        {
-            throw_compiler_error("type already defined!");
-        }
-
-        this->is_typed = true;
         this->push_child(t);
     }
 
@@ -139,15 +133,18 @@ namespace logia::AST
     // FloatLiteral
     //
 
-    FloatLiteral::FloatLiteral(antlr4::ParserRuleContext *rule, Type *type, double value) : ConstExpression(rule)
+    FloatLiteral::FloatLiteral(antlr4::ParserRuleContext *rule, double value, Type *type) : ConstExpression(rule)
     {
         this->value = value;
-        this->push_child(type);
+        if (type != nullptr)
+        {
+            this->set_type(type);
+        }
     }
 
     Type *FloatLiteral::get_type()
     {
-        return (Type *)this->children[0];
+        return this->children.size() == 0 ? nullptr : this->get_child<Type>(0);
     }
 
     std::string FloatLiteral::to_string()
@@ -161,6 +158,11 @@ namespace logia::AST
         this->cg_value = nullptr;
         throw_compiler_error("TODO!");
         return ConstExpression::post_codegen(backend);
+    }
+
+    void FloatLiteral::_set_type(Type *t)
+    {
+        this->push_child(t);
     }
 
     //
@@ -181,6 +183,12 @@ namespace logia::AST
     {
         return std::format("StringLiteral[{}]{}", this->text, Node::to_string());
     }
+
+    void StringLiteral::_set_type(Type *t)
+    {
+        this->type = t;
+    }
+
     void StringLiteral::_pre_type_inference()
     {
         this->type = this->first_parent<Scope>()->lookup<Type>("cstring");
@@ -221,7 +229,7 @@ namespace logia::AST
     }
     LOGIA_API LOGIA_LEND FloatLiteral *ast_create_float_lit(Block *body, double value)
     {
-        return new FloatLiteral(nullptr, body->lookup<Type>("λf64"), value);
+        return new FloatLiteral(nullptr, value, body->lookup<Type>("λf64"));
     }
     LOGIA_API LOGIA_LEND IntegerLiteral *ast_create_int_lit(Block *body, const char *numberstr)
     {

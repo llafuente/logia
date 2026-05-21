@@ -103,6 +103,8 @@ namespace logia::AST
         }
     }
 
+    void IfStmt::_set_type(Type *t) {}
+
     LOGIA_API LOGIA_LEND IfStmt *ast_create_if(Expression *condition)
     {
         LOGIA_ASSERT(condition);

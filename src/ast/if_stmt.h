@@ -39,6 +39,9 @@ namespace logia::AST
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
         void post_attach() override;
+
+    protected:
+        void _set_type(Type *t) override;
     };
 
     /// @brief Creates an if statement

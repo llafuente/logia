@@ -39,6 +39,7 @@ namespace logia::AST
         Type *get_type() override;
 
     protected:
+        void _set_type(Type *t) override;
         void _pre_type_inference() override;
     };
 
@@ -48,10 +49,13 @@ namespace logia::AST
     public:
         double value;
 
-        FloatLiteral(antlr4::ParserRuleContext *rule, Type *type, double value);
+        FloatLiteral(antlr4::ParserRuleContext *rule, double value, Type *type = nullptr);
         std::string to_string() override;
         llvm::Value *post_codegen(logia::Backend *backend) override;
         Type *get_type() override;
+
+    protected:
+        void _set_type(Type *t) override;
     };
 
     /// @brief An integer literal constant expression
@@ -70,11 +74,12 @@ namespace logia::AST
 
         std::string to_string() override;
 
-        void set_type(Type *t) override;
-
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
         Type *get_type() override;
+
+    protected:
+        void _set_type(Type *t) override;
     };
 
     /**

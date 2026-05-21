@@ -63,7 +63,11 @@ namespace logia::AST
             // NOTE the rest of types has no name, because primitives are handled at ast_create_program
         }
     }
-
+    void Type::_set_type(Type *type)
+    {
+        // REVIEW we should do something, makes sense to treat Types as "expressions" that should be the identifier right ?
+        throw_compiler_error("set_type of a type ?");
+    }
     void Type::__register_type(const char *name)
     {
         // TODO REVIEW function block scope ? -> or closest block scope!?
@@ -712,6 +716,11 @@ namespace logia::AST
     {
         return this->get_child<Type>(1);
     }
+    void FunctionParameter::_set_type(Type *type)
+    {
+        // this will make sense when templates arrive!
+        throw_compiler_error("makes no sense");
+    }
     Expression *FunctionParameter::get_default_value()
     {
         return this->get_child<Expression>(2);
@@ -1008,7 +1017,7 @@ namespace logia::AST
 
     InferType::~InferType() {}
 
-    void InferType::set_type(Type *t)
+    void InferType::_set_type(Type *t)
     {
         this->replace_self(t);
     }

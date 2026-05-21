@@ -66,6 +66,8 @@ namespace logia::AST
         return nullptr;
     }
 
+    void Scope::_set_type(Type *ty) {}
+
     //
     // Block
     //
