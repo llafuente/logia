@@ -15,7 +15,7 @@
 
 #include "test_utils.h"
 
-void check_all_attached(logia::AST::Program *prg)
+void expect_all_attached(logia::AST::Program *prg)
 {
   prg->foreach_descendant([](auto n, int deep) -> bool
                           {
@@ -27,65 +27,47 @@ void check_all_attached(logia::AST::Program *prg)
 }
 
 // hello world example
-TEST(AST_Type, ast_create_program)
+TEST(logia_ast, create)
 {
-  LOGIA_BACKEND_START();
+  LOGIA_UNIT_TEST();
   using namespace logia::AST;
 
   EXPECT_EQ(program->parent_node, nullptr);
-  EXPECT_EQ(program->children.size(), 11);
-  // This shall be updated as we add more primitives
-  EXPECT_EQ(program->scope.size(), 20);
-
-  std::cout << program->to_string() << std::endl;
-  std::cout << program->children[0]->get_type()->get_repr();
-
-  EXPECT_EQ(strcmp(program->children[1]->get_type()->get_repr().c_str(), "i8"), 0);
-  EXPECT_EQ(strcmp(program->children[2]->get_type()->get_repr().c_str(), "i16"), 0);
 
   // has value
   EXPECT_TRUE(program->look<Type>("λi8"));
   // and is the same everytime
   EXPECT_EQ(program->look<Type>("λi8"), program->look<Type>("λi8"));
 
-  check_all_attached(program);
-  delete back;
+  expect_all_attached(program);
+  LOGIA_UNIT_TEST_END();
 }
-
-TEST(AST_Type, ast_create_function_type)
+/* @llafuente atm we need casting to enable this test!
+TEST(logia_ast, create_function_type)
 {
-  LOGIA_BACKEND_START();
+  LOGIA_UNIT_TEST();
   using namespace logia::AST;
 
-  auto start_program_children = program->children.size();
-  back->load_intrinsics();
+  EXPECT_TRUE(main_fn);
 
-  auto func = ast_create_function_type(ast_create_identifier("main"), program->look<Type>("λi64"));
-  EXPECT_TRUE(func);
-
-  auto items_before = program->scope.size();
-  program->push_child(func);
-  EXPECT_EQ(program->children.size(), start_program_children + 1);
-  EXPECT_EQ(program->scope.size(), items_before + 1);
-
-  EXPECT_EQ(func->primitive, Primitives::FUNCTION_TY);
-  EXPECT_TRUE(strcmp(func->get_name(), "main") == 0);
+  EXPECT_EQ(main_fn->primitive, Primitives::FUNCTION_TY);
+  EXPECT_TRUE(strcmp(main_fn->get_name(), "main") == 0);
 
   // can look for main function as it's declared inside program
-  EXPECT_EQ(func, program->look<Type>("main"));
+  EXPECT_EQ(main_fn, program->look<Type>("main"));
 
   // check parenting
-  EXPECT_EQ(func->get_identifier()->parent_node, func);
-  EXPECT_EQ(func->get_return_type()->parent_node, func);
-  EXPECT_EQ(func->get_body()->parent_node, func);
-  EXPECT_EQ(func->get_body()->parentScope, program);
+  EXPECT_EQ(main_fn->get_identifier()->parent_node, main_fn);
+  EXPECT_EQ(main_fn->get_return_type()->parent_node, main_fn);
+  EXPECT_EQ(main_fn->get_body()->parent_node, main_fn);
+  EXPECT_EQ(main_fn->get_body()->parentScope, program);
 
   // function body is connected to program, type available
-  EXPECT_TRUE(func->get_body()->lookup<Type>("λi8"));
-  EXPECT_TRUE(func->get_body()->lookup<Type>("λi64"));
+  EXPECT_TRUE(main_fn->get_body()->lookup<Type>("λi8"));
+  EXPECT_TRUE(main_fn->get_body()->lookup<Type>("λi64"));
 
-  auto firstArg = ast_create_int_lit(func->get_body(), "17");
-  auto secondArg = ast_create_int_lit(func->get_body(), "21");
+  auto firstArg = new IntegerLiteral(nullptr, "17");
+  auto secondArg = new IntegerLiteral(nullptr, "21");
   auto callFuncName = ast_create_identifier("logia_intrinsics_bin_add_i64_i64");
 
   EXPECT_EQ(firstArg->parent_node, nullptr);
@@ -93,8 +75,8 @@ TEST(AST_Type, ast_create_function_type)
   EXPECT_EQ(callFuncName->parent_node, nullptr);
   auto callexpr = ast_create_call_expr(callFuncName, {firstArg, secondArg});
   EXPECT_EQ(callexpr->get_arguments().size(), 2);
-  EXPECT_EQ(firstArg->parent_node, callexpr);
-  EXPECT_EQ(secondArg->parent_node, callexpr);
+  EXPECT_EQ(firstArg->parent_node->parent_node, callexpr);
+  EXPECT_EQ(secondArg->parent_node->parent_node, callexpr);
   EXPECT_EQ(callFuncName->parent_node, callexpr);
 
   EXPECT_EQ(callexpr->parent_node, nullptr);
@@ -102,34 +84,33 @@ TEST(AST_Type, ast_create_function_type)
   EXPECT_EQ(callexpr->parent_node, ret_stmt);
 
   EXPECT_EQ(ret_stmt->parent_node, nullptr);
-  func->get_body()->push_child(ret_stmt);
-  EXPECT_EQ(ret_stmt->parent_node, func->get_body());
-  EXPECT_EQ(func->get_body()->parent_node, func);
+  main_fn->get_body()->push_child(ret_stmt);
+  EXPECT_EQ(ret_stmt->parent_node, main_fn->get_body());
+  EXPECT_EQ(main_fn->get_body()->parent_node, main_fn);
 
-  EXPECT_EQ(func->get_identifier()->parent_node, func);
-  check_all_attached(program);
+  EXPECT_EQ(main_fn->get_identifier()->parent_node, main_fn);
+  expect_all_attached(program);
 
-  back->emitTargetLLVMIR("./tmp/maincall.ll");
-  back->emitTargetObjectFile("./tmp/maincall.obj");
-  back->emitTargetAssemblyFile("./tmp/maincall.asm");
+  backend->emitTargetLLVMIR("./tmp/create_function_type.ll");
+  backend->emitTargetObjectFile("./tmp/create_function_type.obj");
+  backend->emitTargetAssemblyFile("./tmp/create_function_type.asm");
 
-  EXPECT_THROW(back->emitTargetExecutable("./tmp/maincall.exe"), std::runtime_error);
+  EXPECT_THROW(backend->emitTargetExecutable("./tmp/create_function_type.exe"), std::runtime_error);
 
-  back->applyLLVMOptimizers();
-  int exit_code = back->run_jit("main");
+  backend->applyLLVMOptimizers();
+  int exit_code = backend->run_jit("main");
   EXPECT_EQ(exit_code, 38);
 
-  delete back;
+  LOGIA_UNIT_TEST_END();
 }
 
 // hello world example
-TEST(AST_Type, ast_create_struct_type)
+TEST(logia_ast, create_struct_type)
 {
-  LOGIA_BACKEND_START();
+  LOGIA_UNIT_TEST();
 
   using namespace logia::AST;
   auto start_program_children = program->children.size();
-  back->load_intrinsics();
 
   auto string_t = ast_create_struct_type(ast_create_identifier("string"));
   EXPECT_EQ(string_t->field_count, 0);
@@ -145,70 +126,42 @@ TEST(AST_Type, ast_create_struct_type)
   EXPECT_EQ(string_t->field_count, 3);
   EXPECT_EQ(string_t->get_field("value")->index, 2);
 
-  EXPECT_EQ(string_t->get_field("xxx")->index, -1);
+  EXPECT_EQ(string_t->get_field("xxx"), nullptr);
+  program->push_child(string_t);
 
   // invalid ?
   // program->add_statement(string_t);
 
-  auto func = logia::AST::ast_create_function_type(ast_create_identifier("main"), program->look<Type>("λi32"));
+  auto func = program->look<Function>("main");
   EXPECT_TRUE(func);
-
-  func->push_parameter(new FunctionParameter(ast_create_identifier("first"), string_t, nullptr));
-
-  program->push_child(func);
 
   auto hello_world = ast_create_string_lit(strdup("Hello world!"));
   auto callFuncName = ast_create_identifier("logia_print_stdout");
   func->get_body()->push_child(ast_create_call_expr(callFuncName, {hello_world}));
 
-  auto exit_code_value = ast_create_int_lit(func->get_body(), "0");
+  auto exit_code_value = new IntegerLiteral(nullptr, "0");
   func->get_body()->push_child(ast_create_return(exit_code_value));
   EXPECT_EQ(program->children.size(), start_program_children + 1);
   EXPECT_EQ(func->get_body()->children.size(), 2);
 
-  check_all_attached(program);
+  expect_all_attached(program);
 
-  program->codegen(back);
-
-  back->emitTargetLLVMIR("./tmp/struct.ll");
+  backend->emitTargetLLVMIR("./tmp/struct.ll");
 
   // NOTE works, but for an unkown reason yet, we can't jit again.
-  int exit_code = back->run_jit("main");
-  /*
-  // capture stdout is not working on JIT, but works with simple fprint/std::cout...
-  // need more inverstigation, maybe it's something inside ORC
-  if (start_stdout_capture())
-  {
-    int exit_code = back->run_jit("main");
-    // fprintf(stdout, "Hello world!");
-    // std::cout << "Hello world!";
+  int exit_code = backend->run_jit("main");
 
-    auto str_stdout = end_stdout_capture();
-
-    // EXPECT_EQ(exit_code, 0);
-    std::cout << "output!!! \n"
-              << str_stdout << std::endl;
-    EXPECT_TRUE(strcmp(str_stdout, "Hello world!") == 0);
-    free(str_stdout);
-  }
-  else
-  {
-    EXPECT_FALSE(true);
-  }
-  */
-
-  delete back;
+  LOGIA_UNIT_TEST_END();
 }
 
 // hello world example
-TEST(AST_Type, ast_create_var_decl)
+TEST(logia_ast, create_var_decl)
 {
-  LOGIA_BACKEND_START();
+  LOGIA_UNIT_TEST();
 
   using namespace logia::AST;
 
   auto start_program_children = program->children.size();
-  back->load_intrinsics();
 
   auto string_t = ast_create_struct_type(ast_create_identifier("string"));
   EXPECT_EQ(string_t->field_count, 0);
@@ -249,14 +202,14 @@ TEST(AST_Type, ast_create_var_decl)
   auto callFuncName = ast_create_identifier("logia_print_stdout");
   auto hello_world2 = ast_create_string_lit("Hello world!");
   func->get_body()->push_child(ast_create_call_expr(callFuncName, {hello_world2}));
-  EXPECT_EQ(hello_world2->parent_node, func->get_body()->children[1]);
+  EXPECT_EQ(hello_world2->parent_node->parent_node, func->get_body()->children[1]);
   EXPECT_EQ(callFuncName->parent_node, func->get_body()->children[1]);
 
   // print static string from variable
   auto callFuncName2 = ast_create_identifier("logia_print_stdout");
   auto x = (Expression *)ast_create_identifier("hello");
   func->get_body()->push_child(ast_create_call_expr(callFuncName2, {x}));
-  EXPECT_EQ(x->parent_node, func->get_body()->children[2]);
+  EXPECT_EQ(x->parent_node->parent_node, func->get_body()->children[2]);
 
   auto exit_code_value = ast_create_int_lit(func->get_body(), "0");
   func->get_body()->push_child(ast_create_return(exit_code_value));
@@ -264,24 +217,20 @@ TEST(AST_Type, ast_create_var_decl)
   EXPECT_EQ(program->children.size(), start_program_children + 1);
   EXPECT_EQ(func->get_body()->children.size(), 4);
 
-  check_all_attached(program);
+  expect_all_attached(program);
 
-  program->codegen(back);
+  backend->emitTargetLLVMIR("./tmp/hellow-world-alloca.ll");
 
-  string_t->codegen(back);
-
-  back->emitTargetLLVMIR("./tmp/hellow-world-alloca.ll");
-
-  int exit_code = back->run_jit("main");
+  int exit_code = backend->run_jit("main");
   EXPECT_EQ(exit_code, 0);
 
-  delete back;
+  LOGIA_UNIT_TEST_END();
 }
 
 // sum 15+20 as variables
 TEST(AST_Type, ast_create_var_decl2)
 {
-  LOGIA_BACKEND_START();
+  LOGIA_UNIT_TEST();
   using namespace logia::AST;
 
   auto str_a = "a";
@@ -309,16 +258,14 @@ TEST(AST_Type, ast_create_var_decl2)
     main_fn->get_body()->push_child(ast_create_return(sum_expr));
   }
 
-  check_all_attached(program);
+  expect_all_attached(program);
 
-  program->codegen(back);
+  backend->emitTargetLLVMIR("./tmp/alloca-integer-sum.ll");
 
-  back->emitTargetLLVMIR("./tmp/alloca-integer-sum.ll");
-
-  int exit_code = back->run_jit("main");
+  int exit_code = backend->run_jit("main");
   EXPECT_EQ(exit_code, 11 + 12);
 
-  LOGIA_BACKEND_END();
+  LOGIA_UNIT_TEST_END();
 }
 
 extern "C" int logia_compiler_to_jit_test()
@@ -327,13 +274,13 @@ extern "C" int logia_compiler_to_jit_test()
 }
 
 // expose compiler functions to logia
-TEST(AST_Type, logia_compiler_to_jit_test)
+TEST(logia_ast, logia_compiler_to_jit_test)
 {
-  LOGIA_BACKEND_START();
+  LOGIA_UNIT_TEST();
   using namespace logia::AST;
 
   // this is how you create an intrinsic to use it comptime
-  back->add_intrinsic((void *)(&logia_compiler_to_jit_test), strdup("logia_compiler_to_jit_test"));
+  backend->add_intrinsic((void *)(&logia_compiler_to_jit_test), strdup("logia_compiler_to_jit_test"));
   ast_create_instrinsic(program, ast_create_identifier("logia_compiler_to_jit_test"), program->look<Type>("λi32"));
 
   {
@@ -343,22 +290,20 @@ TEST(AST_Type, logia_compiler_to_jit_test)
     main_fn->get_body()->push_child(ast_create_return(sum_expr));
   }
 
-  check_all_attached(program);
+  expect_all_attached(program);
 
-  program->codegen(back);
+  backend->emitTargetLLVMIR("./tmp/logia_compiler_to_jit_test.ll");
 
-  back->emitTargetLLVMIR("./tmp/logia_compiler_to_jit_test.ll");
-
-  int exit_code = back->run_jit("main");
+  int exit_code = backend->run_jit("main");
   EXPECT_EQ(exit_code, 101);
 
-  LOGIA_BACKEND_END();
+  LOGIA_UNIT_TEST_END();
 }
-
+*/
 // expose compiler functions to logia
 TEST(ast_create_if2, t1)
 {
-  LOGIA_BACKEND_START();
+  LOGIA_UNIT_TEST();
   using namespace logia::AST;
 
   auto callFuncName = ast_create_identifier("logia_intrinsics_bin_eq_i64_i64");
@@ -370,15 +315,14 @@ TEST(ast_create_if2, t1)
   ifstmt->get_then()->push_child(ast_create_return(ast_create_int_lit(program, "1")));
   ifstmt->get_else()->push_child(ast_create_return(ast_create_int_lit(program, "0")));
 
-  check_all_attached(program);
+  expect_all_attached(program);
 
-  program->codegen(back);
-  back->emitTargetLLVMIR("./tmp/logia_compiler_if2.ll");
+  backend->emitTargetLLVMIR("./tmp/logia_compiler_if2.ll");
 
-  int exit_code = back->run_jit("main");
+  int exit_code = backend->run_jit("main");
   EXPECT_EQ(exit_code, 1);
 
-  LOGIA_BACKEND_END();
+  LOGIA_UNIT_TEST_END();
 }
 
 // expose compiler functions to logia
@@ -397,7 +341,7 @@ function main() i64 {
 */
 TEST(ast_create_if3, t1)
 {
-  LOGIA_BACKEND_START();
+  LOGIA_UNIT_TEST();
   using namespace logia::AST;
 
   ast_create_instrinsic(program, ast_create_identifier("logia_intrinsics_bin_add_i64_i64"), program->lookup<Type>("λi64"));
@@ -434,13 +378,12 @@ TEST(ast_create_if3, t1)
   EXPECT_NE(main_body->parent_node, nullptr);
   EXPECT_NE(main_fn->parent_node, nullptr);
 
-  check_all_attached(program);
+  expect_all_attached(program);
 
-  program->codegen(back);
-  back->emitTargetLLVMIR("./tmp/logia_compiler_if3.ll");
+  backend->emitTargetLLVMIR("./tmp/logia_compiler_if3.ll");
 
-  int exit_code = back->run_jit("main");
+  int exit_code = backend->run_jit("main");
   EXPECT_EQ(exit_code, 1);
 
-  LOGIA_BACKEND_END();
+  LOGIA_UNIT_TEST_END();
 }

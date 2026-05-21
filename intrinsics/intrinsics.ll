@@ -632,6 +632,19 @@ define dso_local float @logia_intrinsics_bin_div_assign_f32_f32(ptr noundef %0, 
   ret float %10
 }
 
+; Function Attrs: mustprogress noinline nounwind optnone uwtable
+define dso_local i32 @logia_intrinsics_bin_add_i32_i32(i32 noundef %0, i32 noundef %1) #2 {
+  %3 = alloca i32, align 8
+  %4 = alloca i32, align 8
+  store i32 %1, ptr %3, align 8
+  store i32 %0, ptr %4, align 8
+  %5 = load i32, ptr %4, align 8
+  %6 = load i32, ptr %3, align 8
+  %7 = add nsw i32 %5, %6
+  ret i32 %7
+}
+
+
 attributes #0 = { mustprogress noinline optnone uwtable "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
 attributes #1 = { "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
 attributes #2 = { mustprogress noinline nounwind optnone uwtable "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }

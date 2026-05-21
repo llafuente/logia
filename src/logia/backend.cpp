@@ -108,6 +108,9 @@ namespace logia
     Backend::~Backend()
     {
         llvm::errs() << this->session->endSession();
+        // REVIEW fix "use after free" in unit testing
+        logia_config.llfile = nullptr;
+        logia_config.objfile = nullptr;
     }
 
     void Backend::load_intrinsics(char *filepath)

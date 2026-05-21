@@ -13,7 +13,7 @@ int main(int argc, char **argv)
   // filter test in code, usefull to debug only one test
   // testing::GTEST_FLAG(filter) = "*logia_run_file*";
   // testing::GTEST_FLAG(filter) = "*logia_run_error_file*";
-  testing::GTEST_FLAG(filter) = "*logia_run*";
+  // testing::GTEST_FLAG(filter) = "*logia_run*";
 
   return RUN_ALL_TESTS();
 }

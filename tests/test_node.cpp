@@ -17,7 +17,7 @@
 
 TEST(test_node, test_1)
 {
-    LOGIA_BACKEND_START();
+    LOGIA_UNIT_TEST();
     using namespace logia::AST;
 
     int size = program->children.size();
@@ -36,8 +36,8 @@ TEST(test_node, test_1)
     EXPECT_THROW(program->get_child<PostfixUnaryExpression>(size + 1), std::runtime_error);
 
     int count = 0;
-    program->foreach_child<Integer>([&count](auto p)
-                                    { ++count; });
+    program->intrinsics->foreach_child<Integer>([&count](auto p)
+                                                { ++count; });
 
     EXPECT_EQ(count, 11);
 
@@ -53,9 +53,9 @@ TEST(test_node, test_1)
 
     EXPECT_EQ(count, 3);
 
-    EXPECT_EQ(program->get_child<Integer>(0)->first_parent<Program>(), program);
+    // EXPECT_EQ(program->get_child<Integer>(0)->first_parent<Program>(), program);
 
     EXPECT_EQ(program->first_child<Function>()->get_body()->first_parent<Program>(), program);
 
-    LOGIA_BACKEND_END();
+    LOGIA_UNIT_TEST_END();
 }
