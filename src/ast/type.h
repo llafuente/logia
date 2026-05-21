@@ -5,6 +5,7 @@
 #include "ast/block.h"
 #include "llvm/IR/Type.h"
 #include "ast/program.h"
+#include "ast/operators.h"
 
 namespace logia::AST
 {
@@ -395,6 +396,12 @@ namespace logia::AST
         void codegen_parameters(logia::Backend *backend);
         void pre_codegen(logia::Backend *backend) override;
         llvm::Value *post_codegen(logia::Backend *backend) override;
+    };
+
+    struct LOGIA_EXPORT Operator : public Function
+    {
+        Operator(antlr4::ParserRuleContext *rule, Operators op, Type *return_type = nullptr);
+        ~Operator();
     };
 
     struct InferType : Type

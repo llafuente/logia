@@ -628,6 +628,7 @@ stmt
   | aliasDeclStmt
   | typeDecl
   | functionDecl
+  | operatorFunctionDecl
   | selectionStmts
   // function exclusive
   | returnStmt

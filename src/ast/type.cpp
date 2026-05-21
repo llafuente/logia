@@ -998,6 +998,9 @@ namespace logia::AST
         return Type::post_codegen(backend);
     }
 
+    Operator::Operator(antlr4::ParserRuleContext *rule, Operators op, Type *return_type) : Function(rule, new Identifier(rule, ast_operator_to_function_name(op)), return_type, false) {}
+    Operator::~Operator() {}
+
     //
     // InferType
     //
