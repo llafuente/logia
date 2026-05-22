@@ -189,7 +189,7 @@ namespace logia::AST
         /// @tparam T
         /// @param cb
         template <typename T>
-        void foreach_descendant(std::function<bool(T *node, int deep)> cb, int deep = 0)
+        void foreach_descendant(std::function<void(T *node, int deep)> cb, int deep = 0)
         {
             T *node;
             for (const auto &ptr : this->children)
@@ -197,11 +197,9 @@ namespace logia::AST
 
                 if (ptr->try_cast<T>(&node))
                 {
-                    if (cb(node, deep))
-                    {
-                        node->foreach_descendant<T>(cb, deep + 1);
-                    }
+                    cb(node, deep);
                 }
+                ptr->foreach_descendant<T>(cb, deep + 1);
             }
         }
 
