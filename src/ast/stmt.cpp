@@ -116,11 +116,20 @@ namespace logia::AST
 
         this->cg_value = this->alloca_inst = backend->builder->CreateAlloca(type->ir_type, 0, nullptr, name);
 
+        // TODO this shoul be handled by "binaryExpression"
+        // that said
+        // var x = xxx() <-- function xxx() big_struct
+        // that big_struct has to be "stack allocated" and passed by pointer, a PIA at this stage!
         if (type->is<Struct>())
         {
-            auto dl = backend->module->getDataLayout();
-            auto gv = llvm::dyn_cast<llvm::GlobalVariable>(init_value);
-            backend->builder->CreateMemCpy(this->alloca_inst, this->alloca_inst->getAlign(), init_value, init_value->getPointerAlignment(dl), dl.getTypeAllocSize(gv->getValueType()));
+            if (llvm::isa<llvm::GlobalVariable>(init_value)) {
+                auto dl = backend->module->getDataLayout();
+                auto gv = llvm::dyn_cast<llvm::GlobalVariable>(init_value);
+                backend->builder->CreateMemCpy(this->alloca_inst, this->alloca_inst->getAlign(), init_value, init_value->getPointerAlignment(dl), dl.getTypeAllocSize(gv->getValueType()));
+            }
+            else {
+                backend->builder->CreateStore(init_value, this->alloca_inst);
+            }
         }
         else
         {
