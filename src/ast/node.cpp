@@ -345,9 +345,16 @@ namespace logia::AST
 
     llvm::Value *Node::codegen(logia::Backend *backend)
     {
+        // exist fast, if we have the value we seek, just return!
+        if (this->cg_value)
+        {
+            return this->cg_value;
+        }
+        // pre_codegen, as optimization is pre_codegen can generate the code we need we just return!
         this->pre_codegen(backend);
         if (this->cg_value)
         {
+            // TODO set is_post_codegen ? seems like proper way to handle it not in each children
             return this->cg_value;
         }
 
