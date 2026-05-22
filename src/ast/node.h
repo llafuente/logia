@@ -139,6 +139,8 @@ namespace logia::AST
         /// @return
         virtual Node *resolve();
 
+        std::vector<Node *> get_post_descendant();
+
         /// @brief loops all children with given type (cdel)
         /// @tparam T
         /// @param cb
@@ -193,7 +195,7 @@ namespace logia::AST
             for (const auto &ptr : this->children)
             {
 
-                if (ptr->try_cast<T>(node))
+                if (ptr->try_cast<T>(&node))
                 {
                     if (cb(node, deep))
                     {

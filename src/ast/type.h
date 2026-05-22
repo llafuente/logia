@@ -400,6 +400,9 @@ namespace logia::AST
         void codegen_parameters(logia::Backend *backend);
         void pre_codegen(logia::Backend *backend) override;
         llvm::Value *post_codegen(logia::Backend *backend) override;
+
+    protected:
+        void _pre_type_inference() override;
     };
 
     struct LOGIA_EXPORT Operator : public Function

@@ -61,59 +61,6 @@ namespace logia
         // more rules ?
     }
 
-    void type_inference_return_stmt(Block *block, Type *enforce_type)
-    {
-        block->foreach_descendant([enforce_type](Node *node, int deep)
-                                  {
-    if (node->is<ReturnStmt>()) {
-        auto rstmt = node->as<ReturnStmt>();
-        DEBUG() << rstmt->to_string() << std::endl;
-
-        auto expr = rstmt->get_expr();
-        auto expr_ty = expr->get_type(); // TODO get_final_type ?
-        if (expr_ty == nullptr) {
-            return false;
-        }
-
-        DEBUG() << "START TYPE = " << expr_ty->to_string() << std::endl;
-        if (expr_ty->is<InferType>()) {
-            type_inference_expression(expr, enforce_type);
-            return false;
-        }
-
-        type_inference_assert_not_equals(expr_ty, enforce_type);
-
-        //DEBUG() << rstmt->to_string() << rstmt->get_final_type()->to_string() << std::endl;
-        return false; // dont need to continue further as we just want all returns
-    }
-return true; });
-    }
-
-    void type_inference_vardecl(AST::VarDeclStmt *vardecl)
-    {
-        DEBUG() << vardecl->to_string() << std::endl;
-
-        auto expr = vardecl->get_expr();
-        if (vardecl->is_typed)
-        {
-            // TODO determine type if possible
-            // TODO what we do when we cant ? push somewhere and back later ?
-            auto ty = vardecl->get_final_type();
-
-            type_inference_expression(expr, ty);
-        }
-        else
-        {
-            auto ty = expr->get_final_type();
-            if (ty->is<InferType>() || ty == nullptr)
-            {
-                LERROR() << vardecl->to_string_tree() << std::endl;
-                throw_semantic_error(vardecl, "TODO");
-            }
-            vardecl->set_type(ty);
-        }
-    }
-
     void type_inference(AST::Program *program)
     {
         // guard!
@@ -129,20 +76,71 @@ return true; });
         auto default_integer = program->look<Type>("λi64");
         auto default_float = program->look<Type>("λf64");
 
-        program->foreach_post_descendant([default_integer, default_float](Node *node, int deep)
+        auto all_nodes = program->get_post_descendant();
+        std::vector<Node *> pending;
+        std::reverse(all_nodes.begin(), all_nodes.end());
+        IntegerLiteral *ilit;
+        FloatLiteral *flit;
+        for (auto node : all_nodes)
+        {
+            // DEBUG() << node->to_string() << std::endl;
+            node->pre_type_inference();
+            // pre_type_inference could be imposible to be done for some nodes (like Identifiers)
+            // it' may require that everyone around has pre_type_inference, so we need to introduce a way to delay retry this call again
+            if (!node->skip_type_inference && !node->is_pre_type_inference)
+            {
+                pending.push_back(node);
+            }
+
+            if (node->is<IntegerLiteral>())
+            {
+                todo_type_stack.push_back({node, default_integer});
+            }
+            else if (node->is<FloatLiteral>())
+            {
+                todo_type_stack.push_back({node, default_float});
+            }
+        }
+
+        while (pending.size())
+        {
+            auto before = pending.size();
+
+            pending.erase(std::remove_if(pending.begin(), pending.end(),
+                                         [](auto node)
                                          {
-                                            node->pre_type_inference();
-if (node->is<IntegerLiteral>()) {
-                                            todo_type_stack.push_back({node, default_integer});
-                                        }
-                                        else if (node->is<FloatLiteral>()) {
-                                            todo_type_stack.push_back({ node, default_float });
-                                        } });
+                                             node->pre_type_inference();
+                                             return node->is_pre_type_inference;
+                                         }),
+                          pending.end());
+
+            if (before == pending.size())
+            {
+                for (auto node : pending)
+                {
+                    LERROR() << node->to_string() << std::endl;
+                    LERROR() << node->get_debug_location() << std::endl;
+                }
+                throw_compiler_error("Could not finish pre_type_inference for some nodes!");
+            }
+        }
+
+        /*
+                program->foreach_post_descendant([default_integer, default_float](Node *node, int deep)
+                                                 {
+                                                    node->pre_type_inference();
+        if (node->is<IntegerLiteral>()) {
+                                                    todo_type_stack.push_back({node, default_integer});
+                                                }
+                                                else if (node->is<FloatLiteral>()) {
+                                                    todo_type_stack.push_back({ node, default_float });
+                                                } });
+                                                */
         DEBUG() << "Found " << todo_type_stack.size() << " literals" << std::endl;
         program->foreach_post_descendant([program](Node *node, int deep)
                                          {
                                         if (node->is<VarDeclStmt>()) {
-                                            type_inference_vardecl(node->as<VarDeclStmt>());
+
                                         } else if (node->is<Function>()) {
                                             DEBUG() << node->to_string() << std::endl;
 
@@ -150,7 +148,7 @@ if (node->is<IntegerLiteral>()) {
                                             auto return_ty = f->get_return_type()->get_final_type();
                                             if (!return_ty->is<InferType>()) {
                                                 // we are going to type all return stmt!
-                                                type_inference_return_stmt(f->get_body(), return_ty);
+                                                //type_inference_return_stmt(f->get_body(), return_ty);
                                             }
 
                                         } });

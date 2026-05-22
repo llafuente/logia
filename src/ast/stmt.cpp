@@ -148,10 +148,28 @@ namespace logia::AST
         }
         return nullptr;
     }
+    void VarDeclStmt::_pre_type_inference()
+    {
+        // VarDeclStmt --> expression
+        if (this->is_typed)
+        {
+            this->get_expr()->set_type(this->get_type());
+            return Stmt::_pre_type_inference();
+        }
+        // expression --> VarDeclStmt
+        auto type = this->get_expr()->get_final_type();
+        if (type != nullptr)
+        {
+            this->set_type(type);
+            return Stmt::_pre_type_inference();
+        }
+        // cannot determine type, "try later"
+    }
 
     void VarDeclStmt::_set_type(Type *ty)
     {
         this->push_child(ty);
+        this->get_identifier()->set_type(ty);
     }
 
     ///
@@ -160,7 +178,12 @@ namespace logia::AST
 
     GotoStmt::GotoStmt(antlr4::ParserRuleContext *rule, Identifier *id) : Stmt(rule)
     {
+        this->skip_type_inference = true; // we don't have type and don't need to calc anything!
+
         this->push_child(id);
+        id->has_type = false; // there is no "block" type
+        id->skip_codegen = true;
+        id->skip_type_inference = true;
     }
 
     LOGIA_API LOGIA_LEND GotoStmt *ast_create_goto_stmt(Identifier *id)
@@ -190,14 +213,15 @@ namespace logia::AST
         // label shall be inside the current function
         auto func = this->first_parent<Function>();
         Block *block = nullptr;
-        if (func->get_body()->try_look<Block>(this->get_name(), &block))
+        auto id = this->get_name();
+        if (func->get_body()->try_look<Block>(id, &block))
         {
             block->codegen(backend);
             this->cg_value = backend->builder->CreateBr(block->llvm_basicblock);
             return Stmt::post_codegen(backend);
         }
 
-        throw std::runtime_error(std::string("Expected a block: ") + this->to_string());
+        throw_semantic_error(this, std::format("LGERR_GT001 use of undeclared or unreachable label '{}' ", id));
     }
 
     void GotoStmt::_set_type(Type *ty) {}

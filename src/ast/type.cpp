@@ -31,6 +31,7 @@ namespace logia::AST
 
     Type::Type(antlr4::ParserRuleContext *rule, Primitives prim) : Node(rule)
     {
+        this->skip_type_inference = true; // we are a type ourselves!
         this->primitive = prim;
     }
     Type::~Type()
@@ -1006,6 +1007,18 @@ namespace logia::AST
 
         return Type::post_codegen(backend);
     }
+
+    void Function::_pre_type_inference()
+    {
+        auto return_ty = this->get_final_type();
+        this->foreach_descendant<ReturnStmt>([return_ty](auto rstmt, auto deep)
+                                             { rstmt->set_type(return_ty); return false; });
+        Type::_pre_type_inference();
+    }
+
+    //
+    // Operator
+    //
 
     Operator::Operator(antlr4::ParserRuleContext *rule, Operators op, Type *return_type) : Function(rule, new Identifier(rule, ast_operator_to_function_name(op)), return_type, false) {}
     Operator::~Operator() {}

@@ -298,6 +298,7 @@ namespace logia::AST
     void CallExpression::_set_type(Type *type)
     {
         // NOTE side-effect of Node::set_type: this implicity check that our return type is the expecte :P
+        this->type = type;
     }
 
     void CallExpression::_pre_type_inference()
@@ -324,8 +325,7 @@ namespace logia::AST
             // cannot be used as a function
         }
 
-        this->is_typed = true;
-        this->type = f->get_return_type()->get_final_type();
+        this->set_type(f->get_return_type()->get_final_type());
 
         Expression::_pre_type_inference();
     }
@@ -793,13 +793,15 @@ namespace logia::AST
     void Identifier::_pre_type_inference()
     {
         // this means my parent will type_inference this node!
-        if (this->skip_type_inference)
-        {
-            return;
-        }
         if (!this->is_typed)
         {
-            this->set_type(this->resolve()->get_final_type());
+            auto ty = this->resolve()->get_final_type();
+            if (ty == nullptr)
+            {
+                LWARNING() << "skip._pre_type_inference (target no type)" << this->to_string() << std::endl;
+                return; // skip for later!
+            }
+            this->set_type(ty);
         }
         Node::_pre_type_inference();
     }

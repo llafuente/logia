@@ -75,6 +75,8 @@ namespace logia::AST
         Type *get_type() override;
 
     protected:
+        /// @brief Sets type based on declaration or expression type
+        void _pre_type_inference() override;
         /// @brief Sets type
         void _set_type(Type *ty) override;
     };

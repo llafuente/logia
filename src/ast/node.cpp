@@ -317,6 +317,22 @@ namespace logia::AST
         return nullptr;
     }
 
+    void _get_post_descendant(Node *node, std::vector<Node *> *out)
+    {
+        out->push_back(node);
+        for (auto child : node->children)
+        {
+            _get_post_descendant(child, out);
+        }
+    }
+
+    std::vector<Node *> Node::get_post_descendant()
+    {
+        std::vector<Node *> out;
+        _get_post_descendant(this, &out);
+        return out;
+    }
+
     void Node::pre_codegen(logia::Backend *backend)
     {
         this->is_pre_codegen = true;
@@ -341,7 +357,12 @@ namespace logia::AST
     //
     // NoOp
     //
-    NoOp::NoOp() : Node(nullptr) { this->has_type = false; }
+    NoOp::NoOp() : Node(nullptr)
+    {
+        this->has_type = false;
+        this->skip_codegen = true;
+        this->skip_type_inference = true;
+    }
     std::string NoOp::to_string() { return "NoOp"; };
     llvm::Value *NoOp::post_codegen(logia::Backend *backend) { return nullptr; }
     Type *NoOp::get_type() { return nullptr; };
