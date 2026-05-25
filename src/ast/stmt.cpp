@@ -74,8 +74,9 @@ namespace logia::AST
     //
     VarDeclStmt::VarDeclStmt(antlr4::ParserRuleContext *rule, Identifier *id, Type *type, Expression *expr) : Stmt(rule), alloca_inst(nullptr)
     {
-        this->push_child(id);   // 0
-        this->push_child(expr); // 1
+        this->push_child(id);           // 0
+        id->skip_type_inference = true; // sets the same as vardecl
+        this->push_child(expr);         // 1
         if (type != nullptr)
         {
             this->set_type(type);
@@ -122,12 +123,14 @@ namespace logia::AST
         // that big_struct has to be "stack allocated" and passed by pointer, a PIA at this stage!
         if (type->is<Struct>())
         {
-            if (llvm::isa<llvm::GlobalVariable>(init_value)) {
+            if (llvm::isa<llvm::GlobalVariable>(init_value))
+            {
                 auto dl = backend->module->getDataLayout();
                 auto gv = llvm::dyn_cast<llvm::GlobalVariable>(init_value);
                 backend->builder->CreateMemCpy(this->alloca_inst, this->alloca_inst->getAlign(), init_value, init_value->getPointerAlignment(dl), dl.getTypeAllocSize(gv->getValueType()));
             }
-            else {
+            else
+            {
                 backend->builder->CreateStore(init_value, this->alloca_inst);
             }
         }
@@ -177,7 +180,15 @@ namespace logia::AST
 
     void VarDeclStmt::_set_type(Type *ty)
     {
-        this->push_child(ty);
+        if (children.size() == 3)
+        {
+            this->children[2] = ty;
+        }
+        else
+        {
+            this->push_child(ty);
+        }
+
         this->get_identifier()->set_type(ty);
     }
 

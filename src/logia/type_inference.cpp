@@ -86,15 +86,18 @@ namespace logia
                 pending.push_back(node);
             }
 
-            if (node->is<IntegerLiteral>())
+            if (!node->is_typed)
             {
-                // todo_type_stack.push_back({node, default_integer});
-                node->set_type(default_integer);
-            }
-            else if (node->is<FloatLiteral>())
-            {
-                // todo_type_stack.push_back({node, default_float});
-                node->set_type(default_float);
+                if (node->is<IntegerLiteral>())
+                {
+                    // todo_type_stack.push_back({node, default_integer});
+                    node->set_type(default_integer);
+                }
+                else if (node->is<FloatLiteral>())
+                {
+                    // todo_type_stack.push_back({node, default_float});
+                    node->set_type(default_float);
+                }
             }
         }
 
