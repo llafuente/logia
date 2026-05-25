@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
-#include "ast/node.h"
-#include "ast/semantic_error.h"
+#include "logia/ast/node.h"
+#include "logia/ast/semantic_error.h"
 
 namespace logia
 {

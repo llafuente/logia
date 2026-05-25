@@ -5,8 +5,8 @@
 #include "LogiaLexer.h"
 #include "utils.h"
 
-#include "ast/program.h"
-#include "ast/package.h"
+#include "logia/ast/program.h"
+#include "logia/ast/package.h"
 #include "logia/config.h"
 
 #include <Windows.h>

@@ -1,9 +1,12 @@
 // ./build-debug/bin/Debug/logia_test_suite.exe --gtest_break_on_failure
 
-#include "ast/node.h"
-#include "ast/type.h"
-#include "ast/expr.h"
-#include "ast/constexpr.h"
+#include "logia/ast/node.h"
+#include "logia/ast/type.h"
+#include "logia/ast/expr.h"
+#include "logia/ast/constexpr.h"
+#include "logia/ast/callexpr.h"
+#include "logia/ast/identifier.h"
+
 #include "logia/maybe_error.h"
 #include "logia/type_system.h"
 #include "logia/multiple_dispatch.h"

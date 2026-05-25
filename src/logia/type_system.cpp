@@ -1,5 +1,8 @@
 #include "logia/type_system.h"
 
+#include "logia/ast/struct.h"
+#include "logia/ast/function.h"
+
 namespace logia::type_system
 {
     using namespace logia::AST;

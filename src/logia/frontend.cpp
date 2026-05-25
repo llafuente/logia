@@ -17,7 +17,7 @@
 // TODO On Linux/macOS
 #endif
 
-#include "ast/constexpr.h"
+#include "logia/ast/constexpr.h"
 
 namespace logia
 {

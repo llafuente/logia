@@ -1,11 +1,21 @@
 #include "logia/cst2ast.h"
 
-#include "ast/type.h"
-#include "ast/constexpr.h"
-#include "ast/if_stmt.h"
-#include "ast/import.h"
-#include "ast/operators.h"
-#include "ast/expr.h"
+#include "logia/ast/type.h"
+#include "logia/ast/constexpr.h"
+#include "logia/ast/if_stmt.h"
+#include "logia/ast/import.h"
+#include "logia/ast/operators.h"
+#include "logia/ast/expr.h"
+#include "logia/ast/binaryexpr.h"
+#include "logia/ast/prefixunaryexpr.h"
+#include "logia/ast/postfixunaryexpr.h"
+#include "logia/ast/callexpr.h"
+#include "logia/ast/memberaccessexpr.h"
+#include "logia/ast/structinitexpr.h"
+#include "logia/ast/block.h"
+#include "logia/ast/vardeclstmt.h"
+#include "logia/ast/returnstmt.h"
+#include "logia/ast/identifier.h"
 
 #define CST_THROW(msg)                                         \
     do                                                         \

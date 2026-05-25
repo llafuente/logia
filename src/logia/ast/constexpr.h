@@ -1,0 +1,105 @@
+#pragma once
+
+#include "logia/ast/node.h"
+#include "logia/ast/block.h"
+#include "logia/ast/expr.h"
+#include "utils.h"
+
+namespace logia::AST
+{
+    /// @brief A constant expression that can be evaluated at compile time
+    struct ConstExpression : Expression
+    {
+        // REVIEW strange  why do i need to declare this ?
+        ConstExpression(antlr4::ParserRuleContext *rule);
+
+        std::string to_string() override;
+
+        llvm::Value *post_codegen(logia::Backend *backend) override;
+    };
+
+    /// @brief A string literal constant expression
+    struct StringLiteral : ConstExpression
+    {
+        /// @brief The string value (utf-8)
+        char *text = nullptr;
+        /// @brief string type, atm a false type cstring
+        Type *type = nullptr;
+
+        StringLiteral(antlr4::ParserRuleContext *rule, char *text);
+
+        std::string to_string() override;
+
+        // TODO generate our string data not cstring
+        llvm::Value *post_codegen(logia::Backend *backend) override;
+
+        // TODO return out type!!
+        /// @brief Retrieves the type of the string literal
+        /// @return
+        Type *get_type() override;
+
+    protected:
+        void _set_type(Type *t) override;
+        void _pre_type_inference() override;
+    };
+
+    /// @brief A floating point literal constant expression
+    struct FloatLiteral : ConstExpression
+    {
+    public:
+        double value;
+        /// @brief the type
+        Type *type = nullptr;
+
+        FloatLiteral(antlr4::ParserRuleContext *rule, double value, Type *type = nullptr);
+        std::string to_string() override;
+        llvm::Value *post_codegen(logia::Backend *backend) override;
+        Type *get_type() override;
+
+    protected:
+        void _set_type(Type *t) override;
+    };
+
+    /// @brief An integer literal constant expression
+    struct IntegerLiteral : ConstExpression
+    {
+        /// @brief The integer value as text, we will parse it at codegen to support different bases and sizes
+        char *number_str = nullptr;
+        /// @brief the type
+        Type *type = nullptr;
+
+        IntegerLiteral(antlr4::ParserRuleContext *rule, const char *number_as_text, Type *type = nullptr);
+        /// @brief Retrieves the integer value as the biggest unsigned value
+        /// @return
+        uint64_t as_unsigned();
+        /// @brief Retrieves the integer value as the biggest signed value
+        /// @return
+        int64_t as_signed();
+
+        std::string to_string() override;
+
+        llvm::Value *post_codegen(logia::Backend *backend) override;
+
+        Type *get_type() override;
+
+    protected:
+        void _set_type(Type *t) override;
+    };
+
+    /**
+     * Creates a string literal
+     */
+    LOGIA_API LOGIA_LEND StringLiteral *ast_create_string_lit(LOGIA_CLONE const char *text);
+    /**
+     * Creates a floating point literal
+     */
+    LOGIA_API LOGIA_LEND FloatLiteral *ast_create_float_lit(Block *body, double value);
+    /**
+     * Creates a signed integer literal
+     */
+    LOGIA_API LOGIA_LEND IntegerLiteral *ast_create_int_lit(Block *body, const char *numberstr);
+    /**
+     * Creates an unsigned integer literal
+     */
+    LOGIA_API LOGIA_LEND IntegerLiteral *ast_create_uint_lit(Block *body, const char *numberstr);
+}

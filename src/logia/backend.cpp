@@ -35,7 +35,7 @@
 #include "utils.h"
 #include "logia/frontend.h"
 #include "logia/type_inference.h"
-#include "ast/program.h"
+#include "logia/ast/program.h"
 
 // cross compile support ?
 #define CODEGEN_NATIVE

@@ -1,4 +1,8 @@
 #include "logia/multiple_dispatch.h"
+
+#include "logia/ast/callexpr.h"
+#include "logia/ast/identifier.h"
+
 #include "logia/type_system.h"
 
 namespace logia::multiple_dispatch
@@ -46,7 +50,8 @@ namespace logia::multiple_dispatch
         {
             auto param_name = param->get_name();
             auto param_type = param->get_final_type();
-            if (!param_name->is_empty()) {
+            if (!param_name->is_empty())
+            {
                 auto arg = callexpr->get_argument_by_name(param_name->identifier);
 
                 if (arg != nullptr)
@@ -64,7 +69,7 @@ namespace logia::multiple_dispatch
                     // passing 'struct a' to parameter of incompatible type 'int'
 
                     // return maybe_error<std::tuple<size_t, type_system::type_compatibility>>(std::format("Invalid named argument type: '{}' of type '{}'.\n{}", param_name->identifier, arg_type, compatibility.message), {param_index, compatibility.unsafe_unwrap()});
-                    return make_error(std::format("{}", compatibility.message), { arg, compatibility.unwrap_error() });
+                    return make_error(std::format("{}", compatibility.message), {arg, compatibility.unwrap_error()});
 
                 } // this param should be check in the next round, by position
             }

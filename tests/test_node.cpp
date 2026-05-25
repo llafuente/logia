@@ -2,12 +2,16 @@
 
 #include "logia/frontend.h"
 #include "logia/backend.h"
-#include "ast/node.h"
-#include "ast/if_stmt.h"
-#include "ast/expr.h"
-#include "ast/constexpr.h"
-#include "ast/stmt.h"
-#include "ast/operators.h"
+
+#include "logia/ast/node.h"
+#include "logia/ast/if_stmt.h"
+#include "logia/ast/expr.h"
+#include "logia/ast/constexpr.h"
+#include "logia/ast/stmt.h"
+#include "logia/ast/identifier.h"
+#include "logia/ast/operators.h"
+#include "logia/ast/binaryexpr.h"
+#include "logia/ast/postfixunaryexpr.h"
 
 #include "gtest/gtest.h"
 #include <Windows.h>

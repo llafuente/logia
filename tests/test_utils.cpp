@@ -3,7 +3,7 @@
 #if _WIN32
 
 #include "logia/run.h"
-#include "ast/semantic_error.h"
+#include "logia/ast/semantic_error.h"
 
 #include "gtest/gtest.h"
 

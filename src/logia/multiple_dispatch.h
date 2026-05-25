@@ -2,8 +2,9 @@
 
 #include "logia/maybe_error.h"
 #include "logia/type_system.h"
-#include "ast/type.h"
-#include "ast/expr.h"
+#include "logia/ast/type.h"
+#include "logia/ast/expr.h"
+#include "logia/ast/function.h"
 
 namespace logia::multiple_dispatch
 {

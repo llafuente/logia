@@ -5,6 +5,9 @@
 
 #include "logia/frontend.h"
 #include "logia/backend.h"
+#include "logia/ast/program.h"
+#include "logia/ast/function.h"
+#include "logia/ast/block.h"
 
 bool start_stdout_capture();
 char *end_stdout_capture();

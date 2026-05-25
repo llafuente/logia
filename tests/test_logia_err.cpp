@@ -1,5 +1,5 @@
 // ./build-debug/bin/Debug/logia_test_suite.exe --gtest_break_on_failure
-#include "ast/semantic_error.h"
+#include "logia/ast/semantic_error.h"
 #include "gtest/gtest.h"
 #include "test_utils.h"
 #include "logia/run.h"

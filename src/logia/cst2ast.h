@@ -4,8 +4,10 @@
 #include "LogiaParserVisitor.h"
 #include "LogiaParserBaseVisitor.h"
 
-#include "ast/program.h"
-#include "ast/type.h"
+#include "logia/ast/program.h"
+#include "logia/ast/type.h"
+#include "logia/ast/function.h"
+#include "logia/ast/struct.h"
 
 #include <vector>
 

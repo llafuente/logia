@@ -46,23 +46,36 @@ set(LOGIA_SOURCE_FILES
   src/logia/maybe_error.cpp
   src/logia/multiple_dispatch.cpp
 
-  src/ast/node.cpp
-  src/ast/semantic_error.cpp
-  src/ast/type.cpp
+  src/logia/ast/node.cpp
+  src/logia/ast/semantic_error.cpp
+  src/logia/ast/type.cpp
+  src/logia/ast/struct.cpp
+  src/logia/ast/function.cpp
 
-  src/ast/block.cpp
-  src/ast/program.cpp
-  src/ast/package.cpp
+  src/logia/ast/scope.cpp
+  src/logia/ast/block.cpp
+  src/logia/ast/functionblock.cpp
+  src/logia/ast/program.cpp
+  src/logia/ast/package.cpp
 
-  src/ast/stmt.cpp
-  src/ast/if_stmt.cpp
-  src/ast/import.cpp
+  src/logia/ast/stmt.cpp
+  src/logia/ast/returnstmt.cpp
+  src/logia/ast/vardeclstmt.cpp
+  src/logia/ast/if_stmt.cpp
+  src/logia/ast/import.cpp
 
-  src/ast/operators.cpp
-  src/ast/expr.cpp
-  src/ast/constexpr.cpp
+  src/logia/ast/operators.cpp
+  src/logia/ast/expr.cpp
+  src/logia/ast/callexpr.cpp
+  src/logia/ast/memberaccessexpr.cpp
+  src/logia/ast/prefixunaryexpr.cpp
+  src/logia/ast/postfixunaryexpr.cpp
+  src/logia/ast/structinitexpr.cpp
+  src/logia/ast/identifier.cpp
+  src/logia/ast/binaryexpr.cpp
+  src/logia/ast/constexpr.cpp
 
-  src/ast/llvm.cpp
+  src/logia/ast/llvm.cpp
 
   src/utils.cpp
 )

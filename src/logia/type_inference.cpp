@@ -1,9 +1,12 @@
 #include "logia/type_inference.h"
-#include "ast/semantic_error.h"
-#include "ast/program.h"
-#include "ast/type.h"
-#include "ast/stmt.h"
-#include "ast/constexpr.h"
+#include "logia/ast/semantic_error.h"
+#include "logia/ast/program.h"
+#include "logia/ast/type.h"
+#include "logia/ast/stmt.h"
+#include "logia/ast/constexpr.h"
+#include "logia/ast/callexpr.h"
+#include "logia/ast/struct.h"
+#include "logia/ast/structinitexpr.h"
 
 namespace logia
 {
