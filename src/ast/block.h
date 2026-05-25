@@ -148,6 +148,10 @@ namespace logia::AST
                 p = p->parentScope;
             } while (p != nullptr);
 
+            // TODO this unique enforcement may be caused by other bug!
+            std::sort(out.begin(), out.end());
+            out.erase(std::unique(out.begin(), out.end()), out.end());
+
             return out;
         }
 
