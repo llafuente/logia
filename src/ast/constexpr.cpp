@@ -191,8 +191,8 @@ namespace logia::AST
 
     void StringLiteral::_pre_type_inference()
     {
-        this->type = this->first_parent<Scope>()->lookup<Type>("cstring");
-        this->is_typed = true;
+        // this->set_type(this->first_parent<Scope>()->lookup<Type>("cstring"));
+        this->set_type(this->first_parent<Scope>()->lookup<Type>("ptr"));
 
         ConstExpression::_pre_type_inference();
     }
