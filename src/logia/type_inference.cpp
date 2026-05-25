@@ -61,26 +61,20 @@ namespace logia
         // more rules ?
     }
 
-    void type_inference(AST::Program *program)
+    void type_inference_node(AST::Program *program, AST::Node *node)
     {
-        // guard!
-        if (program->is_typed)
-        {
-            DEBUG() << "skip type_inference, program is already typed!" << std::endl;
-            return;
-        }
-        program->is_typed = true;
-
-        DEBUG() << program->to_string_tree() << std::endl;
-
+        // auto program = node->first_parent<Program>();
         auto default_integer = program->look<Type>("λi64");
         auto default_float = program->look<Type>("λf64");
 
-        auto all_nodes = program->get_post_descendant();
+        auto all_nodes = node->get_post_descendant();
+        all_nodes.push_back(node);
         std::vector<Node *> pending;
-        std::reverse(all_nodes.begin(), all_nodes.end());
         IntegerLiteral *ilit;
         FloatLiteral *flit;
+
+        LINFO() << std::format("start pre_type_inference: found {} nodes", all_nodes.size()) << std::endl;
+
         for (auto node : all_nodes)
         {
             // DEBUG() << node->to_string() << std::endl;
@@ -94,13 +88,17 @@ namespace logia
 
             if (node->is<IntegerLiteral>())
             {
-                todo_type_stack.push_back({node, default_integer});
+                // todo_type_stack.push_back({node, default_integer});
+                node->set_type(default_integer);
             }
             else if (node->is<FloatLiteral>())
             {
-                todo_type_stack.push_back({node, default_float});
+                // todo_type_stack.push_back({node, default_float});
+                node->set_type(default_float);
             }
         }
+
+        LINFO() << std::format("end pre_type_inference: pending {} nodes", pending.size()) << std::endl;
 
         while (pending.size())
         {
@@ -125,33 +123,7 @@ namespace logia
             }
         }
 
-        /*
-                program->foreach_post_descendant([default_integer, default_float](Node *node, int deep)
-                                                 {
-                                                    node->pre_type_inference();
-        if (node->is<IntegerLiteral>()) {
-                                                    todo_type_stack.push_back({node, default_integer});
-                                                }
-                                                else if (node->is<FloatLiteral>()) {
-                                                    todo_type_stack.push_back({ node, default_float });
-                                                } });
-                                                */
         DEBUG() << "Found " << todo_type_stack.size() << " literals" << std::endl;
-        program->foreach_post_descendant([program](Node *node, int deep)
-                                         {
-                                        if (node->is<VarDeclStmt>()) {
-
-                                        } else if (node->is<Function>()) {
-                                            DEBUG() << node->to_string() << std::endl;
-
-                                            auto f = node->as<Function>();
-                                            auto return_ty = f->get_return_type()->get_final_type();
-                                            if (!return_ty->is<InferType>()) {
-                                                // we are going to type all return stmt!
-                                                //type_inference_return_stmt(f->get_body(), return_ty);
-                                            }
-
-                                        } });
 
         // if at the end, this nodes are not resolved, force them!
         for (const auto &it : todo_type_stack)
@@ -165,17 +137,44 @@ namespace logia
         }
         todo_type_stack.clear();
 
-        program->foreach_post_descendant([](Node *node, int deep)
-                                         { node->post_type_inference(); });
+        LINFO() << std::format("start post_type_inference: pending {} nodes", pending.size()) << std::endl;
 
-        // check
-        program->foreach_post_descendant([](Node *node, int deep)
-                                         { if (node->has_type && !node->is_typed) {
-                                            std::cerr << node->to_string_tree() << std::endl;
-                                            std::cerr << node->parent_node->to_string_tree() << std::endl;
+        for (auto node : all_nodes)
+        {
+            // DEBUG() << node->to_string() << std::endl;
+            node->post_type_inference();
+            // TODO queue post ?
+        }
+
+#if _DEBUG
+        // do not use: all_nodes, as many node could create new ones, this is a check of those new nodes too!
+        node->foreach_post_descendant([program](Node *node, int deep)
+                                      { if (node->has_type && !node->is_typed) {
+                                            //std::cerr << program->to_string_tree() << std::endl;
+            std::cerr << node->parent_node->to_string_tree() << std::endl;
+                                            std::cerr << node->get_debug_location() << std::endl;
                                             throw_compiler_error("Not able to find type, no error.");
-                                         } });
+                                            } });
+#endif
+    }
 
-        DEBUG() << program->to_string_tree() << std::endl;
+    void type_inference_program(AST::Program *program)
+    {
+        // guard!
+        if (program->is_typed)
+        {
+            DEBUG() << "skip type_inference, program is already typed!" << std::endl;
+            return;
+        }
+        program->is_typed = true;
+
+        LINFO() << "Tree before type_inference!" << std::endl
+                << program->to_string_tree() << std::endl;
+
+        type_inference_node(program, program->intrinsics);
+        type_inference_node(program, program);
+
+        LINFO() << "Tree after type_inference!" << std::endl
+                << program->to_string_tree() << std::endl;
     }
 }
