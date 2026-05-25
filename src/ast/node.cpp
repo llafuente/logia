@@ -217,7 +217,11 @@ namespace logia::AST
         }
         else if (my_ty != ty)
         {
-            throw_compiler_error("Type already set");
+            // TODO we should check this ? we may not
+            // throw_compiler_error("Type already set");
+            LWARNING("Type already set");
+            this->_set_type(ty);
+            this->is_typed = true;
         }
     }
     /*

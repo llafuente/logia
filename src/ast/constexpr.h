@@ -48,6 +48,8 @@ namespace logia::AST
     {
     public:
         double value;
+        /// @brief the type
+        Type *type = nullptr;
 
         FloatLiteral(antlr4::ParserRuleContext *rule, double value, Type *type = nullptr);
         std::string to_string() override;
@@ -62,7 +64,9 @@ namespace logia::AST
     struct IntegerLiteral : ConstExpression
     {
         /// @brief The integer value as text, we will parse it at codegen to support different bases and sizes
-        char *number_str;
+        char *number_str = nullptr;
+        /// @brief the type
+        Type *type = nullptr;
 
         IntegerLiteral(antlr4::ParserRuleContext *rule, const char *number_as_text, Type *type = nullptr);
         /// @brief Retrieves the integer value as the biggest unsigned value

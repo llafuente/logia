@@ -21,8 +21,10 @@
 #define FILENAME_SKIP_CHARACTER 36
 
 #define DEBUG() logia_log_file << "DBG | " << std::setw(24) << (__FILENAME_LINE__ + FILENAME_SKIP_CHARACTER) << " " << __FUNCTION__ << " "
+#define LINFO() logia_log_file << "INF | " << std::setw(24) << (__FILENAME_LINE__ + FILENAME_SKIP_CHARACTER) << " " << __FUNCTION__ << " "
 #define LWARNING() logia_log_file << "DBG | " << std::setw(24) << (__FILENAME_LINE__ + FILENAME_SKIP_CHARACTER) << " " << __FUNCTION__ << " "
 #define LERROR() logia_log_file << "ERR | " << std::setw(24) << (__FILENAME_LINE__ + FILENAME_SKIP_CHARACTER) << " " << __FUNCTION__ << " "
+
 // #define DEBUG() logia_log_file << __FUNCTION__ << ":" << __LINE__ << " "
 
 #define LOGIA_LEND

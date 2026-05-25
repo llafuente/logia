@@ -43,11 +43,7 @@ namespace logia::AST
 
     Type *IntegerLiteral::get_type()
     {
-        if (children.size())
-        {
-            return this->get_child<Type>(0);
-        }
-        return nullptr;
+        return this->type;
     }
 
     // ?? https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/atoi64-atoi64-l-wtoi64-wtoi64-l?view=msvc-170
@@ -94,9 +90,9 @@ namespace logia::AST
         return std::format("IntegerLiteral {}/{}{}", this->number_str, this->as_signed(), Node::to_string());
     }
 
-    void IntegerLiteral::_set_type(Type *t)
+    void IntegerLiteral::_set_type(Type *type)
     {
-        this->push_child(t);
+        this->type = type;
     }
 
     llvm::Value *IntegerLiteral::post_codegen(logia::Backend *backend)
@@ -144,7 +140,7 @@ namespace logia::AST
 
     Type *FloatLiteral::get_type()
     {
-        return this->children.size() == 0 ? nullptr : this->get_child<Type>(0);
+        return this->type;
     }
 
     std::string FloatLiteral::to_string()
@@ -160,9 +156,9 @@ namespace logia::AST
         return ConstExpression::post_codegen(backend);
     }
 
-    void FloatLiteral::_set_type(Type *t)
+    void FloatLiteral::_set_type(Type *type)
     {
-        this->push_child(t);
+        this->type = type;
     }
 
     //
