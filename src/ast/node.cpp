@@ -246,15 +246,21 @@ namespace logia::AST
         this->is_pre_type_inference = true;
 
 #if _DEBUG
-        // my children should have is_pre_type_inference!
-        for (size_t i = 1; i < this->children.size(); ++i)
+        // everyone should have is_pre_type_inference!
+        for (size_t i = 0; i < this->children.size(); ++i)
         {
+            if (!this->children[i]->has_type)
+                continue;
+
             if (this->children[i]->skip_type_inference)
                 continue;
 
             if (!this->children[i]->is_pre_type_inference)
             {
-                std::cerr << this->to_string_tree() << std::endl;
+                std::cerr << this->to_string_tree() << std::endl
+                          << "-------------------" << std::endl
+                          << this->children[i]->to_string() << std::endl;
+
                 throw_compiler_error(std::format("Invalid children[{}] state, should have is_pre_type_inference", i));
             }
         }
@@ -275,9 +281,12 @@ namespace logia::AST
     {
         this->is_post_type_inference = true;
 #if _DEBUG
-        // all arguments should have is_post_type_inference!
-        for (size_t i = 1; i < this->children.size(); ++i)
+        // everyone should have is_post_type_inference!
+        for (size_t i = 0; i < this->children.size(); ++i)
         {
+            if (!this->children[i]->has_type)
+                continue;
+
             if (this->children[i]->skip_type_inference)
                 continue;
 
@@ -336,11 +345,11 @@ namespace logia::AST
 
     void _get_post_descendant(Node *node, std::vector<Node *> *out)
     {
-        out->push_back(node);
         for (auto child : node->children)
         {
             _get_post_descendant(child, out);
         }
+        out->push_back(node);
     }
 
     std::vector<Node *> Node::get_post_descendant()
