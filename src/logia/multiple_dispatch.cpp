@@ -46,27 +46,28 @@ namespace logia::multiple_dispatch
         {
             auto param_name = param->get_name();
             auto param_type = param->get_final_type();
-            auto arg = callexpr->get_argument_by_name(param_name->identifier);
+            if (!param_name->is_empty()) {
+                auto arg = callexpr->get_argument_by_name(param_name->identifier);
 
-            if (arg != nullptr)
-            {
-                auto arg_type = arg->get_final_type();
-                auto compatibility = type_system::type_is_compatible(arg_type, param_type);
-                if (!compatibility.is_error())
+                if (arg != nullptr)
                 {
-                    used_params[param_index++] = true;
-                    used_args[arg->index] = true;
-                    arguments.push_back(arg->get_value());
-                    goto next_parameter;
-                }
+                    auto arg_type = arg->get_final_type();
+                    auto compatibility = type_system::type_is_compatible(arg_type, param_type);
+                    if (!compatibility.is_error())
+                    {
+                        used_params[param_index++] = true;
+                        used_args[arg->index] = true;
+                        arguments.push_back(arg->get_value());
+                        goto next_parameter;
+                    }
 
-                // passing 'struct a' to parameter of incompatible type 'int'
+                    // passing 'struct a' to parameter of incompatible type 'int'
 
-                // return maybe_error<std::tuple<size_t, type_system::type_compatibility>>(std::format("Invalid named argument type: '{}' of type '{}'.\n{}", param_name->identifier, arg_type, compatibility.message), {param_index, compatibility.unsafe_unwrap()});
-                return make_error(std::format("{}", compatibility.message), {arg, compatibility.unwrap_error()});
+                    // return maybe_error<std::tuple<size_t, type_system::type_compatibility>>(std::format("Invalid named argument type: '{}' of type '{}'.\n{}", param_name->identifier, arg_type, compatibility.message), {param_index, compatibility.unsafe_unwrap()});
+                    return make_error(std::format("{}", compatibility.message), { arg, compatibility.unwrap_error() });
 
-            } // this param should be check in the next round, by position
-
+                } // this param should be check in the next round, by position
+            }
 #ifdef _DEBUG
             {
                 std::string debug = "\nparams = ";
@@ -91,7 +92,7 @@ namespace logia::multiple_dispatch
                 auto arg = callexpr->get_argument_by_index(i);
 
                 auto arg_name = arg->get_name();
-                if (strlen(arg_name->identifier) == 0 && !used_args[i])
+                if (arg_name->is_empty() && !used_args[i])
                 {
                     auto arg_type = arg->get_final_type();
                     auto compatibility = type_system::type_is_compatible(arg_type, param_type);
@@ -153,18 +154,27 @@ namespace logia::multiple_dispatch
     /// @param call_expression The call expression to match against available overloads.
     Function *find(CallExpression *callexpr)
     {
+        DEBUG() << std::format("Call ") << callexpr->to_string_tree() << std::endl;
         auto scope = callexpr->first_parent<Scope>();
+        // TODO multiple dispatch is only available for Identifier and "rhs" (memberaccess) identifiers
         auto list = scope->lookup_all(callexpr->get_locator()->as<Identifier>()->identifier);
+        DEBUG() << std::format("FOUND {} candidates", list.size()) << std::endl;
         std::vector<Function *> candidates;
         for (const auto &node : list)
         {
             Function *func;
             if (node->try_cast<Function>(&func))
             {
+                DEBUG() << std::format("Function: ") << node->to_string() << std::endl;
+
                 if (!match(callexpr, func, false).is_error())
                 {
                     candidates.push_back(func);
                 }
+            }
+            else
+            {
+                DEBUG() << std::format("Candidate is not a function?!") << node->to_string() << std::endl;
             }
         }
         if (candidates.size() == 1)
