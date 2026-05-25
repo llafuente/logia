@@ -344,6 +344,12 @@ namespace logia::AST
         }
 
         auto arguments = this->get_arguments();
+
+        if (locator->is<Identifier>())
+        {
+            return std::format("CallExpression[{}][{} arguments]{}", locator->as<Identifier>()->identifier, arguments.size(), Node::to_string());
+        }
+
         return std::format("CallExpression[{} arguments]{}", arguments.size(), Node::to_string());
     }
 
