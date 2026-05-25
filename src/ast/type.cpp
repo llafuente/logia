@@ -1001,7 +1001,7 @@ namespace logia::AST
         {
 
             backend->dscopes.push_back(this->di_subprogram);
-            this->get_body()->codegen(backend);
+            this->get_body()->post_codegen(backend);
             backend->dscopes.pop_back();
         }
 
