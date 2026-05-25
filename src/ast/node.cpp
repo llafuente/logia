@@ -73,6 +73,11 @@ namespace logia::AST
             throw_compiler_error("Cannot generate debug information of detached nodes");
         }
 
+        if (!this->rule)
+        {
+            return std::format("Cannot determine location of: ", this->to_string());
+        }
+
         auto program = this->first_parent<Program>();
 
         auto err_line = this->rule->start->getLine();
