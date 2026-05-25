@@ -16,8 +16,56 @@ namespace logia::AST
 
     std::string Node::to_string()
     {
-        return std::format("| {} [@{}] ty={}", static_cast<void *>(this), static_cast<void *>(this->parent_node), !has_type ? "no" : (skip_codegen ? "skip" : (is_typed && is_attached ? this->get_final_type()->get_repr() : "??")));
+        std::string flags = "";
+        if (this->is_pre_codegen)
+        {
+            flags += (flags.length() ? "," : "");
+            flags += "precg";
+        }
+        if (this->is_post_codegen)
+        {
+            flags += (flags.length() ? "," : "");
+            flags += "poscg";
+        }
+        if (this->is_pre_type_inference)
+        {
+            flags += (flags.length() ? "," : "");
+            flags += "prety";
+        }
+        if (this->is_post_type_inference)
+        {
+            flags += (flags.length() ? "," : "");
+            flags += "postty";
+        }
+        if (this->has_type)
+        {
+            flags += (flags.length() ? "," : "");
+            flags += "wty";
+        }
+        if (this->is_typed)
+        {
+            flags += (flags.length() ? "," : "");
+            flags += "isty";
+        }
+        if (this->skip_codegen)
+        {
+            flags += (flags.length() ? "," : "");
+            flags += "skipcg";
+        }
+
+        std::string ty = "";
+        if (!has_type)
+        {
+            ty = "no";
+        }
+        else
+        {
+            ty = is_typed && is_attached ? this->get_final_type()->get_repr() : "??";
+        }
+
+        return std::format("| {} [@{}] ty={} [{}]", static_cast<void *>(this), static_cast<void *>(this->parent_node), ty, flags);
     }
+
     std::string Node::get_debug_location(uint32_t prev_lines, uint32_t post_lines)
     {
         if (!is_attached)
@@ -125,52 +173,16 @@ namespace logia::AST
     std::string Node::to_string_tree(std::string padding, bool last_child)
     {
         std::string out;
-        std::string flags = "";
-        if (this->is_pre_codegen)
-        {
-            flags += (flags.length() ? "," : "");
-            flags += "precg";
-        }
-        if (this->is_post_codegen)
-        {
-            flags += (flags.length() ? "," : "");
-            flags += "poscg";
-        }
-        if (this->is_pre_type_inference)
-        {
-            flags += (flags.length() ? "," : "");
-            flags += "prety";
-        }
-        if (this->is_post_type_inference)
-        {
-            flags += (flags.length() ? "," : "");
-            flags += "postty";
-        }
-        if (this->has_type)
-        {
-            flags += (flags.length() ? "," : "");
-            flags += "wty";
-        }
-        if (this->is_typed)
-        {
-            flags += (flags.length() ? "," : "");
-            flags += "isty";
-        }
-        if (this->skip_codegen)
-        {
-            flags += (flags.length() ? "," : "");
-            flags += "skipcg";
-        }
 
         if (padding.length() == 0 || last_child)
         {
             // root
-            out += std::format("{}{} [{}]\n", padding, this->to_string(), flags);
+            out += std::format("{}{}\n", padding, this->to_string());
         }
         else
         {
             // children
-            out += std::format("{}{} [{}]\n", padding, this->to_string(), flags);
+            out += std::format("{}{}\n", padding, this->to_string());
         }
 
         // std::string out = std::format("{} {} (parent {:p}){},{}\n", padding, this->to_string(), static_cast<void *>(this->parent_node), this->is_pre_codegen ? "precg" : "", this->is_post_codegen ? "postcg" : "");
