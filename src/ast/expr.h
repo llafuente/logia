@@ -252,6 +252,8 @@ namespace logia::AST
 
         Node *resolve() override;
 
+        bool is_empty();
+
     protected:
         void _set_type(Type *t) override;
         void _pre_type_inference() override;

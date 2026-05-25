@@ -786,8 +786,14 @@ namespace logia::AST
         {
             return nullptr;
         }
+
         auto scope = this->first_parent<Scope>();
         return scope->lookup<Node>(this->identifier);
+    }
+
+    bool Identifier::is_empty()
+    {
+        return this->identifier == nullptr || strlen(this->identifier) == 0;
     }
 
     void Identifier::_pre_type_inference()
@@ -973,6 +979,8 @@ namespace logia::AST
     void StructInitializer::set_named_property(Identifier *name, Expression *value, uint32_t index)
     {
         this->children[index * 2] = name;
+        name->skip_codegen = true;
+        name->skip_type_inference = true;
         this->children[index * 2 + 1] = value;
     }
 
