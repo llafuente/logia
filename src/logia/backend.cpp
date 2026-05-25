@@ -290,9 +290,12 @@ namespace logia
 
     void Backend::__finalize_module()
     {
-        if (!program->is_codegen)
+        if (!program->is_pre_codegen)
         {
-            type_inference(this->program);
+            type_inference_program(this->program);
+        }
+        if (!program->is_pre_codegen)
+        {
             this->program->codegen(this);
         }
         if (logia_config.debug)

@@ -26,9 +26,6 @@ namespace logia::AST
         unsigned char is_attached : 1 = false;
 
         /// @brief codegen pass done
-        unsigned char is_codegen : 1 = false;
-
-        /// @brief codegen pass done
         unsigned char skip_codegen : 1 = false;
 
         /// @brief marks node as pre_codegen done, used to avoid multiple calls
