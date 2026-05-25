@@ -14,7 +14,7 @@ namespace logia::AST
 
     std::string Import::to_string()
     {
-        return std::format("Import");
+        return std::format("Import{}", Node::to_string());
     }
 
     void Import::set_package(std::vector<AST::Identifier *> package)
