@@ -5,10 +5,12 @@
 #include "logia/ast/prefixunaryexpr.h"
 #include "logia/ast/identifier.h"
 #include "logia/ast/constexpr.h"
+#include "logia/ast/cast.h"
 
 #include "logia/ast/llvm.h"
 
 #include "logia/type_system.h"
+#include "logia/type_inference.h"
 
 #include <format>
 
@@ -100,8 +102,24 @@ namespace logia::AST
             {
                 err.throw_semantic(this);
             }
-            // rhs should have the same type!
-            right->set_type(left_ty);
+            auto result = err.unwrap_success();
+            if (((uint32_t)result & (uint32_t)type_system::type_compatibility::AUTOCAST_CAST) != 0)
+            {
+                this->replace(right, new Cast(right->rule, right, left_ty));
+                type_inference_node(this->first_parent<Program>(), this->get_right());
+                DEBUG() << std::endl
+                        << std::endl
+                        << std::endl
+                        << std::endl
+                        << this->to_string_tree() << std::endl;
+                return Expression::_pre_type_inference();
+            }
+            if (((uint32_t)result & (uint32_t)type_system::type_compatibility::LAYOUT_COMPATIBLE) != 0 || ((uint32_t)result & (uint32_t)type_system::type_compatibility::YES) != 0)
+            {
+                right->set_type(left_ty);
+                return Expression::_pre_type_inference();
+            }
+            throw_compiler_error("unreable");
         }
 
         Expression::_pre_type_inference();
@@ -126,8 +144,10 @@ namespace logia::AST
         switch (op)
         {
         case Operators::BINARY_ASSIGN:
+        {
             this->set_type(left_ty);
-            break;
+        }
+        break;
         default:
             auto locator = new Identifier(this->rule, ast_binary_operator_to_string(op, left_ty->get_type(), right_ty->get_type()));
             this->call_expr = new CallExpression(this->rule, locator, {left, right});
@@ -145,13 +165,16 @@ namespace logia::AST
     llvm::Value *BinaryExpression::post_codegen(logia::Backend *backend)
     {
         auto left = this->get_left();
+        auto left_ty = left->get_final_type();
         auto left_value = left->codegen(backend);
         auto right = this->get_right();
+        auto right_ty = right->get_final_type();
         auto right_value = right->codegen(backend);
         switch (op)
         {
         case Operators::BINARY_ASSIGN:
             right_value = llvm_load_if_required(right_value, backend);
+
             auto store = backend->builder->CreateStore(right_value, left_value, false);
             backend->set_debug_loc((llvm::Instruction *)store, this->rule);
             this->cg_value = left_value;

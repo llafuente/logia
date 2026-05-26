@@ -52,6 +52,8 @@ set(LOGIA_SOURCE_FILES
   src/logia/ast/struct.cpp
   src/logia/ast/function.cpp
 
+  src/logia/ast/cast.cpp
+
   src/logia/ast/scope.cpp
   src/logia/ast/block.cpp
   src/logia/ast/functionblock.cpp

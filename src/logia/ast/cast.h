@@ -13,7 +13,7 @@ namespace logia::AST
         Cast(
             antlr4::ParserRuleContext *rule,
             Expression *expr,
-            TypeDef *to);
+            Type *to);
         Type *get_from_type();
         Expression *get_expr();
         Type *get_to_type();
@@ -21,9 +21,10 @@ namespace logia::AST
         std::string to_string() override;
         Type *get_type() override;
 
-        void post_codegen(logia::Backend *backend) override;
+        llvm::Value *post_codegen(logia::Backend *backend) override;
 
     protected:
+        void _set_type(Type *type);
         void _post_type_inference() override;
     };
 }

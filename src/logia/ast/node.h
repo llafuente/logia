@@ -79,12 +79,19 @@ namespace logia::AST
         /// @brief Adds child at the end of the list
         void push_child(Node *child);
 
+        /// @brief Adds child at the end of the list
+        void set_child(Node *child, size_t position);
+
         /// @brief Adds child at the beginning of the list
         void unshift_child(Node *child);
 
         /// @brief Replace current node for the given one
         /// @remarks Node should be attached
         void replace_self(Node *new_node);
+
+        /// @brief Replace current node for the given one
+        /// @remarks Node should be attached
+        void replace(Node *attached_node, Node *new_node);
 
         void _has_to_notify_attached(Node *child);
 

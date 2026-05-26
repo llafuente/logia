@@ -138,6 +138,18 @@ namespace logia::AST
         this->_has_to_notify_attached(child);
     }
 
+    void Node::set_child(Node *child, size_t position)
+    {
+        if (freezed)
+        {
+            throw std::exception("Node is freezed");
+        }
+        children[position] = child;
+        child->parent_node = this;
+
+        this->_has_to_notify_attached(child);
+    }
+
     void Node::unshift_child(Node *child)
     {
         if (freezed)
@@ -154,6 +166,15 @@ namespace logia::AST
     {
         auto parent = this->parent_node;
         std::replace(parent->children.begin(), parent->children.end(), this, new_node);
+        new_node->parent_node = this;
+        this->_has_to_notify_attached(new_node);
+    }
+
+    void Node::replace(Node *attached_node, Node *new_node)
+    {
+        std::replace(children.begin(), children.end(), attached_node, new_node);
+        new_node->parent_node = this;
+        this->_has_to_notify_attached(new_node);
     }
 
     void Node::_has_to_notify_attached(Node *child)
