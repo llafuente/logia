@@ -1,17 +1,32 @@
-# Intrinsics
+# Intrinsics (UNSTABLE)
 
-List of all logia intrinsics functions.
+Intrinsics in logia are stored in a LLVM IR file. This file is loaded at
+backend, it could be considered as the logia runtime but is thinner.
 
-# IR
+Logia compiler rely heavely in intrinsics and compile time multiple dispatch to
+select the right functionality.
+
+Intrinsics are in `cpp` because `clang` LLVM IR is cleaner than `c` counterpart,
+even with the same code.
+
+`logia` is not freestanding and it's not an reallistic objetive but we should
+focus on having very little libc dependency.
+
+## TODO
+
+- force inline
+- data layout and other considerations to make it portable -> maybe multiple
+  modules!
+
+# Generate cpp files
+
+Some `cpp` intrinsics file are generated.
 
 ```
-node .\intrinsics\generate-floating-operators.js > .\intrinsics\floating-operators.cpp
-node .\intrinsics\generate-integer-operators.js > .\intrinsics\integer-operators.cpp
-node .\intrinsics\generate-pointer-operators.js > .\intrinsics\pointer-operators.cpp
-
-node .\intrinsics\intrinsics.js > .\intrinsics\intrinsics.cpp
-& 'C:\Program Files\LLVM\bin\clang++.exe' -S -emit-llvm .\intrinsics\intrinsics.cpp -o .\intrinsics\intrinsics.ll
+& .\intrinsics.ps1
 ```
+
+This will generate [`./intrinsics.ll`](./intrinsics.ll) that it's the module.
 
 ## libc
 
@@ -33,6 +48,10 @@ int fputs(const char *string, FILE *stream);
 ```
 
 fwrite is used to write to stdout/stderr
+
+# Literature
+
+Here some notes to continue learning about what other languages do.
 
 ## optimizations
 

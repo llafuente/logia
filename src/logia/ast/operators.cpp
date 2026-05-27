@@ -7,32 +7,41 @@ namespace logia::AST
     {
         const char fn_name[36];
         uint32_t op_value;
+        const char op_str[4];
     };
-    uint32_t f2op_length = 23 + 6 + 2;
-    FunctionToOperator f2op[23 + 6 + 2] = {
-        {"__logia_bin_assign", (uint32_t)Operators::BINARY_ASSIGN},
-        {"__logia_bin_add_assign", (uint32_t)Operators::BINARY_ADD_ASSIGN},
-        {"__logia_bin_sub_assign", (uint32_t)Operators::BINARY_SUB_ASSIGN},
-        {"__logia_bin_div_assign", (uint32_t)Operators::BINARY_DIV_ASSIGN},
-        {"__logia_bin_mul_assign", (uint32_t)Operators::BINARY_MUL_ASSIGN},
-        {"__logia_bin_add", (uint32_t)Operators::BINARY_ADD},
-        {"__logia_bin_sub", (uint32_t)Operators::BINARY_SUB},
-        {"__logia_bin_mul", (uint32_t)Operators::BINARY_MUL},
-        {"__logia_bin_div", (uint32_t)Operators::BINARY_DIV},
-        {"__logia_bin_mod", (uint32_t)Operators::BINARY_MOD},
-        {"__logia_bin_eq", (uint32_t)Operators::BINARY_LOGIAL_EQ},
-        {"__logia_bin_neq", (uint32_t)Operators::BINARY_LOGIAL_NEQ},
-        {"__logia_bin_lt", (uint32_t)Operators::BINARY_LOGIAL_LT},
-        {"__logia_bin_gt", (uint32_t)Operators::BINARY_LOGIAL_GT},
-        {"__logia_bin_lte", (uint32_t)Operators::BINARY_LOGIAL_LTE},
-        {"__logia_bin_gte", (uint32_t)Operators::BINARY_LOGIAL_GTE},
+    uint32_t f2op_length = 29 + 6 + 2;
+    FunctionToOperator f2op[29 + 6 + 2] = {
+        {"__logia_bin_assign", (uint32_t)Operators::BINARY_ASSIGN, "="},
+        {"__logia_bin_add_assign", (uint32_t)Operators::BINARY_ADD_ASSIGN, "+="},
+        {"__logia_bin_sub_assign", (uint32_t)Operators::BINARY_SUB_ASSIGN, "-="},
+        {"__logia_bin_mul_assign", (uint32_t)Operators::BINARY_MUL_ASSIGN, "*="},
+        {"__logia_bin_div_assign", (uint32_t)Operators::BINARY_DIV_ASSIGN, "/="},
+        {"__logia_bin_mod_assign", (uint32_t)Operators::BINARY_MOD_ASSIGN, "%="},
+        {"__logia_bin_bitwise_and_assign", (uint32_t)Operators::BINARY_BITWISE_AND_ASSIGN, "&="},
+        {"__logia_bin_bitwise_or_assign", (uint32_t)Operators::BINARY_BITWISE_OR_ASSIGN, "|="},
+        {"__logia_bin_bitwise_xor_assign", (uint32_t)Operators::BINARY_BITWISE_XOR_ASSIGN, "^="},
+        {"__logia_bin_bitwise_shr_assign", (uint32_t)Operators::BINARY_BITWISE_RIGHT_SHIFT_ASSIGN, ">>="},
+        {"__logia_bin_bitwise_shl_assign", (uint32_t)Operators::BINARY_BITWISE_LEFT_SHIFT_ASSIGN, "<<="},
+
+        {"__logia_bin_add", (uint32_t)Operators::BINARY_ADD, "+"},
+        {"__logia_bin_sub", (uint32_t)Operators::BINARY_SUB, "-"},
+        {"__logia_bin_mul", (uint32_t)Operators::BINARY_MUL, "*"},
+        {"__logia_bin_div", (uint32_t)Operators::BINARY_DIV, "/"},
+        {"__logia_bin_mod", (uint32_t)Operators::BINARY_MOD, "%"},
+        {"__logia_bin_eq", (uint32_t)Operators::BINARY_LOGIAL_EQ, "=="},
+        {"__logia_bin_neq", (uint32_t)Operators::BINARY_LOGIAL_NEQ, "!="},
+        {"__logia_bin_lt", (uint32_t)Operators::BINARY_LOGIAL_LT, "<"},
+        {"__logia_bin_gt", (uint32_t)Operators::BINARY_LOGIAL_GT, ">"},
+        {"__logia_bin_lte", (uint32_t)Operators::BINARY_LOGIAL_LTE, "<="},
+        {"__logia_bin_gte", (uint32_t)Operators::BINARY_LOGIAL_GTE, ">="},
+
         {"__logia_bin_logical_and", (uint32_t)Operators::BINARY_LOGICAL_AND},
         {"__logia_bin_logical_or", (uint32_t)Operators::BINARY_LOGICAL_OR},
-        {"__logia_bin_bitwise_or", (uint32_t)Operators::BINARY_BITWISE_OR},
-        {"__logia_bin_bitwise_and", (uint32_t)Operators::BINARY_BITWISE_AND},
-        {"__logia_bin_bitwise_xor", (uint32_t)Operators::BINARY_BITWISE_XOR},
-        {"__logia_bin_bitwise_shl", (uint32_t)Operators::BINARY_BITWISE_LEFT_SHIFT},
-        {"__logia_bin_bitwise_shr", (uint32_t)Operators::BINARY_BITWISE_RIGHT_SHIFT},
+        {"__logia_bin_bitwise_and", (uint32_t)Operators::BINARY_BITWISE_AND, "&"},
+        {"__logia_bin_bitwise_or", (uint32_t)Operators::BINARY_BITWISE_OR, "|"},
+        {"__logia_bin_bitwise_xor", (uint32_t)Operators::BINARY_BITWISE_XOR, "^"},
+        {"__logia_bin_bitwise_shl", (uint32_t)Operators::BINARY_BITWISE_LEFT_SHIFT, "<<"},
+        {"__logia_bin_bitwise_shr", (uint32_t)Operators::BINARY_BITWISE_RIGHT_SHIFT, ">>"},
 
         {"__logia_deref", (uint32_t)Operators::PREFIX_DEREFERENCE},
         {"__logia_prefix_inc", (uint32_t)Operators::PREFIX_INCREMENT},

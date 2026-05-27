@@ -13,7 +13,8 @@ bool ${o.func}_${type}_${type}(${type} a, ${type} b){
         } else if (o.category === 'bitwise' || o.category === 'arithmetic') {
             console.log(`
 extern "C"
-${type} ${o.func}_${type}_${type}(${type} a, ${type} b){
+[[clang::annotate("logia=${o.logia_fn}")]]
+${type} ${o.func}_${type}_${type}([[clang::annotate("logia=${type}")]] ${type} a, [[clang::annotate("logia=${type}")]] ${type} b){
     return a ${o.operator} b;
 }`);
         } else if (o.category === 'assignment') {

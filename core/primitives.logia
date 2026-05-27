@@ -12,13 +12,6 @@ type i32 = struct {
 
 type i64 = struct {
     λi64 λ
-
-    //operator + (readonly ref i64 b) i64 {
-    //    return logia_intrinsics_bin_add_i64_i64(this, b)
-    //}
-}
-operator + (i64 a, readonly i64 b) i64 {
-    return logia_intrinsics_bin_add_i64_i64(a, b)
 }
 
 type i128 = struct {
