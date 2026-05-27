@@ -36,6 +36,11 @@ namespace logia
                 return message.size() > 0;
             }
 
+            bool is_success()
+            {
+                return message.size() == 0;
+            }
+
             /// @brief Unwrap value, should be no error
             success_t unwrap_success()
             {

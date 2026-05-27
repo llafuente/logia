@@ -5,6 +5,9 @@
 #include "logia/ast/identifier.h"
 #include "logia/ast/function.h"
 
+#include "logia/multiple_dispatch.h"
+#include "logia/type_inference.h"
+
 namespace logia::AST
 {
     //
@@ -198,23 +201,28 @@ namespace logia::AST
         // locator->pre_type_inference();
 
         auto locator = this->get_locator();
-        locator->skip_type_inference = false;
-        locator->pre_type_inference();
-        locator->post_type_inference();
 
-        auto locator_ty = locator->get_type();
-        locator->set_type(locator_ty);
+        // find a proper target or throws!
+        Function *target = multiple_dispatch::find(this);
+        locator->set_type(target);
+        // fill the gaps, order arguments, etc.
+        multiple_dispatch::match(this, target, true);
 
-        Function *f = nullptr;
-        if (!locator_ty->try_cast<Function>(&f))
         {
-            LERROR() << this->to_string_tree() << std::endl;
-            LERROR() << locator_ty->to_string_tree() << std::endl;
-            throw_semantic_error(this, std::format("LGERR033 This expression is not callable is: '{}'", locator_ty->get_repr()));
-            // cannot be used as a function
+            // this should not be necessary anymore, the error should raise in multiple_dispatch::find
+            auto locator_ty = locator->get_type();
+
+            Function *f = nullptr;
+            if (!locator_ty->try_cast<Function>(&f))
+            {
+                LERROR() << this->to_string_tree() << std::endl;
+                LERROR() << locator_ty->to_string_tree() << std::endl;
+                throw_semantic_error(this, std::format("LGERR033 This expression is not callable is: '{}'", locator_ty->get_repr()));
+                // cannot be used as a function
+            }
         }
 
-        this->set_type(f->get_return_type()->get_final_type());
+        this->set_type(target->get_return_type()->get_final_type());
 
         Expression::_pre_type_inference();
     }
@@ -252,9 +260,8 @@ namespace logia::AST
         }
 
         // Look up the name in the global module table.
-        auto name = this->get_locator()->as<Identifier>();
-
-        llvm::Function *CalleeF = backend->getFunction(name->identifier);
+        auto name = this->get_locator()->as<Identifier>(); // TODO remove Identifier, could be anything! we just want the type!
+        llvm::Function *CalleeF = name->get_type()->as<Function>()->ir_func;
         if (!CalleeF)
         {
             throw std::runtime_error(std::string("Unknown function referenced: ") + name->identifier);

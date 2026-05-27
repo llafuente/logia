@@ -20,6 +20,7 @@ namespace logia::AST
 
         this->is_typed = true;
         name->skip_codegen = true;
+        name->skip_type_inference = true;
         name->set_type(type);
 
         this->push_child(name);
@@ -346,7 +347,14 @@ namespace logia::AST
         LOGIA_ASSERT(!this->is_attached && "Function type should be created before attached");
         param->index = this->get_parameter_count();
         this->push_child(param);
-        this->get_body()->scope_set(param->get_name()->identifier, param);
+        if (!this->is_intrinsic)
+        {
+            this->get_body()->scope_set(param->get_name()->identifier, param);
+        }
+        else
+        {
+            param->get_name()->skip_type_inference;
+        }
     }
 
     void Function::validate_and_fill_call(CallExpression *callee)

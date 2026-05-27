@@ -149,7 +149,9 @@ namespace logia::AST
         }
         break;
         default:
-            auto locator = new Identifier(this->rule, ast_binary_operator_to_string(op, left_ty->get_type(), right_ty->get_type()));
+            // auto locator = new Identifier(this->rule, ast_binary_operator_to_string(op, left_ty->get_type(), right_ty->get_type()));
+            auto locator = new Identifier(this->rule, ast_operator_to_function_name(op));
+
             this->call_expr = new CallExpression(this->rule, locator, {left, right});
             // makes no sense but need to keep this node attached
             this->push_child(this->call_expr);

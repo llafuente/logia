@@ -16,7 +16,7 @@ namespace logia::multiple_dispatch
         type_system::type_compatibility reason;
     };
     // success -> points
-    typedef utils::maybe_error<size_t, md_type_error> multiple_dispatch_result;
+    typedef utils::maybe_error<float, md_type_error> multiple_dispatch_result;
 
     multiple_dispatch_result match(CallExpression *callexpr, Function *func, bool change = false);
     /// @brief Searches for the most specific function overload that matches the given call expression.

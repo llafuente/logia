@@ -32,14 +32,14 @@ namespace logia::AST
     struct LOGIA_EXPORT Function : public Type
     {
     public:
-        char *docstring;
+        char *docstring = nullptr;
         /// @brief is an intrinsic function, intrinsics don't have body and are defined outside user program.
-        bool is_intrinsic;
+        bool is_intrinsic = false;
 
-        std::vector<llvm::Type *> ir_parameters;
-        llvm::FunctionType *ir_functy;
-        llvm::Function *ir_func;
-        llvm::DISubprogram *di_subprogram;
+        std::vector<llvm::Type *> ir_parameters = {};
+        llvm::FunctionType *ir_functy = nullptr;
+        llvm::Function *ir_func = nullptr;
+        llvm::DISubprogram *di_subprogram = nullptr;
 
         Function(antlr4::ParserRuleContext *rule, Identifier *name, Type *return_type = nullptr, bool is_intrinsic = false);
         ~Function();

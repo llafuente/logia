@@ -1,6 +1,7 @@
 #include "logia/multiple_dispatch.h"
 
 #include "logia/ast/callexpr.h"
+#include "logia/ast/cast.h"
 #include "logia/ast/identifier.h"
 
 #include "logia/type_system.h"
@@ -9,12 +10,13 @@ namespace logia::multiple_dispatch
 {
     using namespace logia::AST;
 
-    constexpr auto make_error = logia::utils::make_error<size_t, md_type_error>;
-    constexpr auto make_success = logia::utils::make_success<size_t, md_type_error>;
-    constexpr auto make_chained_error = logia::utils::make_chained_error<size_t, md_type_error>;
+    constexpr auto make_error = logia::utils::make_error<float, md_type_error>;
+    constexpr auto make_success = logia::utils::make_success<float, md_type_error>;
+    constexpr auto make_chained_error = logia::utils::make_chained_error<float, md_type_error>;
 
     multiple_dispatch_result match(CallExpression *callexpr, Function *func, bool change)
     {
+        float points = 1;
         auto params = func->get_parameters();
         auto used_params = std::vector<bool>(params.size(), false);
         auto used_args = std::vector<bool>(callexpr->argument_count, false);
@@ -58,11 +60,24 @@ namespace logia::multiple_dispatch
                 {
                     auto arg_type = arg->get_final_type();
                     auto compatibility = type_system::type_is_compatible(arg_type, param_type);
-                    if (!compatibility.is_error())
+                    if (compatibility.is_success())
                     {
+                        auto c = (uint32_t)compatibility.unwrap_success();
+                        DEBUG() << std::format("paramter/argument by name[{}] of type [{}] compatibility = {}", param_name->identifier, param_type->get_repr(), c);
+
                         used_params[param_index++] = true;
                         used_args[arg->index] = true;
-                        arguments.push_back(arg->get_value());
+
+                        if ((c & (uint32_t)type_system::type_compatibility::AUTOCAST_CAST) != 0)
+                        {
+                            arguments.push_back(new Cast(arg->rule, arg->get_value(), param_type));
+                            points *= 0.5;
+                        }
+                        else
+                        {
+                            arguments.push_back(arg->get_value());
+                        }
+
                         goto next_parameter;
                     }
 
@@ -101,11 +116,24 @@ namespace logia::multiple_dispatch
                 {
                     auto arg_type = arg->get_final_type();
                     auto compatibility = type_system::type_is_compatible(arg_type, param_type);
-                    if (!compatibility.is_error())
+                    if (compatibility.is_success())
                     {
+                        auto c = (uint32_t)compatibility.unwrap_success();
+                        DEBUG() << std::format("parameter/argument by position[{}] of type [{}] compatibility = {}", param_name->identifier, param_type->get_repr(), c);
+
                         used_params[param_index++] = true;
                         used_args[arg->index] = true;
-                        arguments.push_back(arg->get_value());
+
+                        if ((c & (uint32_t)type_system::type_compatibility::AUTOCAST_CAST) != 0)
+                        {
+                            arguments.push_back(new Cast(arg->rule, arg->get_value(), param_type));
+                            points *= 0.5;
+                        }
+                        else
+                        {
+                            arguments.push_back(arg->get_value());
+                        }
+
                         goto next_parameter;
                     }
                     else
@@ -113,6 +141,8 @@ namespace logia::multiple_dispatch
                         // if param has default, we may have another oportunity later!
                         if (param->has_default_value())
                         {
+                            DEBUG() << std::format("parameter default value[{}] of type [{}]", param_name->identifier, param_type->get_repr());
+
                             used_params[param_index++] = true;
                             arguments.push_back(param->get_default_value());
                             goto next_parameter;
@@ -129,6 +159,7 @@ namespace logia::multiple_dispatch
             // if param has default our last change!
             if (param->has_default_value())
             {
+                DEBUG() << std::format("parameter default value[{}] of type [{}]", param_name->identifier, param_type->get_repr());
                 used_params[param_index++] = true;
                 arguments.push_back(param->get_default_value());
                 goto next_parameter;
@@ -152,7 +183,7 @@ namespace logia::multiple_dispatch
             }
         }
 
-        return make_success(0);
+        return make_success(points);
     }
 
     /// @brief Searches for the most specific function overload that matches the given call expression.
@@ -164,17 +195,17 @@ namespace logia::multiple_dispatch
         // TODO multiple dispatch is only available for Identifier and "rhs" (memberaccess) identifiers
         auto list = scope->lookup_all(callexpr->get_locator()->as<Identifier>()->identifier);
         DEBUG() << std::format("FOUND {} candidates", list.size()) << std::endl;
-        std::vector<Function *> candidates;
+        std::vector<std::tuple<float, Function *>> candidates;
         for (const auto &node : list)
         {
             Function *func;
             if (node->try_cast<Function>(&func))
             {
                 DEBUG() << std::format("Function: ") << node->to_string() << std::endl;
-
-                if (!match(callexpr, func, false).is_error())
+                auto m = match(callexpr, func, false);
+                if (m.is_success())
                 {
-                    candidates.push_back(func);
+                    candidates.push_back({m.unwrap_success(), func});
                 }
             }
             else
@@ -182,25 +213,50 @@ namespace logia::multiple_dispatch
                 DEBUG() << std::format("Candidate is not a function?!") << node->to_string() << std::endl;
             }
         }
-        if (candidates.size() == 1)
-        {
-            return candidates[0];
-        }
-        else if (candidates.size() > 1)
-        {
-            std::string debug_candidates = "";
-            int i = 1;
-            for (const auto &candidate : candidates)
-            {
-                debug_candidates += std::format("Candidate {}: \n{}Declared {}\n", i++, candidate->get_repr(), candidate->get_debug_location(0, 0));
-            }
 
-            // TODO find the most specific overload
-            throw_semantic_error(callexpr, "LGERR_MD002 Ambiguous call expression, multiple candidates found: " + callexpr->get_debug_location() + "\n" + debug_candidates);
-        }
-        else
+        if (candidates.size() == 0)
         {
             throw std::runtime_error(std::format("LGERR_MD001 No matching function found for call expression.\n{}", callexpr->get_debug_location()));
         }
+
+        if (candidates.size() == 1)
+        {
+            return std::get<1>(candidates[0]);
+        }
+
+        // from all valid candidates, we should have only one with "1"
+        Function *candidate1 = nullptr;
+        for (const auto &candidate : candidates)
+        {
+            if (std::get<0>(candidate) == 1)
+            {
+                if (candidate1 == nullptr)
+                {
+                    candidate1 = std::get<1>(candidate);
+                }
+                else
+                {
+                    // two with 1 ? OMG! -> show the error!
+                    candidate1 = nullptr;
+                    break;
+                }
+            }
+        }
+        if (candidate1 != nullptr)
+        {
+            return candidate1;
+        }
+
+        std::string debug_candidates = "";
+        int i = 1;
+        for (const auto &candidate : candidates)
+        {
+            auto points = std::get<0>(candidate);
+            auto f = std::get<1>(candidate);
+            debug_candidates += std::format("Candidate {} with {} points: \n{}Declared {}\n", i++, points, f->get_repr(), f->get_debug_location(0, 0));
+        }
+
+        // TODO find the most specific overload
+        throw_semantic_error(callexpr, "LGERR_MD002 Ambiguous call expression, multiple candidates found: " + callexpr->get_debug_location() + "\n" + debug_candidates);
     }
 }

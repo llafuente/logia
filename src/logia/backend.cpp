@@ -36,6 +36,7 @@
 #include "logia/frontend.h"
 #include "logia/type_inference.h"
 #include "logia/ast/program.h"
+#include "logia/ast/type.h"
 
 // cross compile support ?
 #define CODEGEN_NATIVE
@@ -113,6 +114,194 @@ namespace logia
         logia_config.objfile = nullptr;
     }
 
+    // Utility: strip bitcasts to get to the underlying value
+    const llvm::Value *llvm_strip_cast_inst(const llvm::Value *V)
+    {
+        while (llvm::isa<llvm::BitCastInst>(V) || llvm::isa<llvm::AddrSpaceCastInst>(V))
+        {
+            V = llvm::cast<llvm::User>(V)->getOperand(0);
+        }
+        return V;
+    }
+
+    std::string llvm_get_var_annotation_string(const llvm::CallInst *CI)
+    {
+        // example
+        // call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str, ptr @.str.1, i32 71, ptr null)
+        if (CI->arg_size() < 2)
+            return "";
+
+        // arg1 is the annotation string pointer
+        const llvm::Value *v = CI->getArgOperand(1);
+
+        // Step 2: Expect a GlobalVariable
+        auto gv = llvm::dyn_cast<llvm::GlobalVariable>(v);
+        if (!gv)
+            return "";
+
+        // Step 3: Ensure it has an initializer
+        const llvm::Constant *init = gv->getInitializer();
+        if (!init)
+            return "";
+
+        // Step 4: Expect the initializer to be ConstantDataArray
+        auto *cda = llvm::dyn_cast<llvm::ConstantDataArray>(init);
+        if (!cda)
+            return "";
+
+        // Step 5: Extract C string
+        // Validated via StackOverflow: ConstantDataArray::getAsCString() [InlineCitation-1-c++ - LLVM String Value objects: How can I retrieve the String from a Value? - Stack Overflow](https://stackoverflow.com/questions/8377735/llvm-string-value-objects-how-can-i-retrieve-the-string-from-a-value) [InlineCitation-3-c++ - Get global string value in LLVM - Stack Overflow](https://stackoverflow.com/questions/50818343/get-global-string-value-in-llvm)
+        return cda->getAsCString().str();
+    }
+
+    std::vector<const char *> llvm_get_logia_parameters_names(llvm::Function *F)
+    {
+        auto output = std::vector<const char *>(F->arg_size(), nullptr);
+        // Map each parameter to its associated alloca if debug-info is present
+
+        // auto allocas = std::vector<const llvm::AllocaInst *>();
+        // allocas.reserve(F->arg_size());
+
+        llvm::SmallVector<const llvm::AllocaInst *, 8> ParamAllocas;
+
+        for (auto &I : F->getEntryBlock())
+        {
+            if (auto *AI = llvm::dyn_cast<llvm::AllocaInst>(&I))
+            {
+                ParamAllocas.push_back(AI);
+            }
+        }
+
+        DEBUG() << "Found " << ParamAllocas.size() << "parameters" << std::endl;
+
+        // Now scan for annotation intrinsics
+        for (auto &BB : *F)
+        {
+            for (auto &I : BB)
+            {
+                auto *CI = llvm::dyn_cast<llvm::CallInst>(&I);
+                if (!CI)
+                {
+                    continue;
+                }
+
+                llvm::Function *Callee = CI->getCalledFunction();
+                if (!Callee)
+                {
+                    continue;
+                }
+
+                // Check if it's llvm.var.annotation
+                DEBUG() << "processing function " << std::string(Callee->getName()) << std::endl;
+                if (Callee->getName() != "llvm.var.annotation.p0.p0")
+                {
+                    continue;
+                }
+
+                // llvm.var.annotation first argument is the alloca
+                const llvm::Value *AnnotatedPtr = llvm_strip_cast_inst(CI->getArgOperand(0));
+                // Match annotation target to parameter-related allocas
+                for (size_t idx = 0; idx < ParamAllocas.size(); ++idx)
+                {
+                    if (AnnotatedPtr == ParamAllocas[idx])
+                    {
+                        std::string annotation = llvm_get_var_annotation_string(CI);
+                        if (!annotation.empty())
+                        {
+                            DEBUG() << "Parameter " << idx
+                                    << " annotated with: " << annotation << "\n";
+                            if (annotation.starts_with("logia="))
+                            {
+                                // skip "logia="
+                                output[idx] = strdup(annotation.c_str() + 6);
+                            }
+                            else
+                            {
+                                LWARNING() << "unexpected annotation" << annotation << std::endl;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return output;
+    }
+
+    std::unordered_map<llvm::Function *, std::string> llvm_get_module_function_annotations(llvm::Module *module)
+    {
+        llvm::GlobalVariable *GA = module->getGlobalVariable("llvm.global.annotations");
+
+        // Operand 0 always contains the annotation array
+        llvm::Constant *Op = llvm::dyn_cast<llvm::Constant>(GA->getOperand(0));
+        if (!Op)
+        {
+            throw std::runtime_error("Invalid llvm.global.annotations format\n");
+        }
+
+        // Must be a ConstantArray
+        llvm::ConstantArray *CA = dyn_cast<llvm::ConstantArray>(Op);
+        if (!CA)
+        {
+            throw std::runtime_error("Expected ConstantArray inside llvm.global.annotations\n");
+        }
+
+        std::unordered_map<llvm::Function *, std::string> output;
+
+        // Iterate over array elements
+        for (llvm::Value *element : CA->operands())
+        {
+            // type
+            // [? x { ptr, ptr, ptr, i32, ptr }]
+            // [? x { function, annotation, file, line, ? }]
+
+            llvm::ConstantStruct *CS = dyn_cast<llvm::ConstantStruct>(element);
+            if (!CS || CS->getNumOperands() != 5)
+            {
+                throw std::runtime_error("llvm.global.annotations expected to have 5 fields");
+                // continue;
+            }
+
+            // Operand 0 → pointer to annotated item (function or global)
+            llvm::Value *Annotated = CS->getOperand(0)->stripPointerCasts();
+            if (llvm::isa<llvm::Function>(Annotated))
+            {
+                llvm::Function *F = llvm::dyn_cast<llvm::Function>(Annotated);
+
+                // Operand 1 → pointer to a global array holding the annotation string
+                llvm::Value *AnnPtr = CS->getOperand(1)->stripPointerCasts();
+                llvm::GlobalVariable *AnnGV = llvm::dyn_cast<llvm::GlobalVariable>(AnnPtr);
+                if (!AnnGV || !AnnGV->hasInitializer())
+                {
+                    continue;
+                }
+
+                llvm::ConstantDataArray *CDA =
+                    llvm::dyn_cast<llvm::ConstantDataArray>(AnnGV->getInitializer());
+                if (!CDA || !CDA->isString())
+                {
+                    continue;
+                }
+
+                llvm::StringRef annotation = CDA->getAsCString();
+
+                // Print the result
+                if (F)
+                {
+                    auto name = annotation.slice(6, annotation.size());
+                    output[F] = name;
+                    DEBUG() << "Function: " << std::string(F->getName()) << " → annotation: "
+                            << std::string(name) << "\n";
+                }
+                else
+                {
+                    DEBUG() << "Global/Other annotated → " << std::string(annotation) << "\n";
+                }
+            }
+        }
+
+        return output;
+    }
+
     void Backend::load_intrinsics(char *filepath)
     {
         // to found LLVM Type to logia type we need to codegen types first!
@@ -126,22 +315,50 @@ namespace logia
             throw std::exception("could not parse or read intrinsics.ll");
         }
 
+        // std::unordered_map<llvm::Function *, std::string>
+        auto override_names = llvm_get_module_function_annotations(this->intrinsics_module.get());
+
         // Iterate over all functions in the module
-        for (const llvm::Function &F : *this->intrinsics_module)
+        for (auto &F : this->intrinsics_module->getFunctionList())
         {
+            DEBUG() << std::string(F.getName()) << std::endl;
             // REVIEW Skip functions without a body ? that imply libc or compiler libs ?
             if (!F.isDeclaration())
             {
-                auto f_args = std::vector<AST::Type *>();
-                f_args.reserve(F.arg_size());
+                auto F2 = &F; // stupid trick
 
-                for (const llvm::Argument &argument : F.args())
+                auto f_args = std::vector<AST::Type *>();
+                if (F.arg_size() > 0)
                 {
-                    f_args.push_back(this->program->get_ast_type(argument.getType()));
+                    auto parameter_names = std::move(llvm_get_logia_parameters_names(F2));
+                    f_args.reserve(F.arg_size());
+
+                    size_t i = 0;
+                    for (const llvm::Argument &argument : F.args())
+                    {
+                        if (parameter_names[i] != nullptr)
+                        {
+                            f_args.push_back(this->program->look<AST::Type>(parameter_names[i])->get_final_type());
+                        }
+                        else
+                        {
+                            f_args.push_back(this->program->get_ast_type(argument.getType()));
+                        }
+                        ++i;
+                    }
                 }
 
                 auto f_ret_type = this->program->get_ast_type(F.getReturnType());
-                this->program->add_intrinsic(F.getName().str().c_str(), f_ret_type, f_args);
+
+                auto it = override_names.find(F2);
+                if (it != override_names.end())
+                {
+                    this->program->add_intrinsic(F2, (*it).second.c_str(), f_ret_type, f_args);
+                }
+                else
+                {
+                    this->program->add_intrinsic(F2, F.getName().str().c_str(), f_ret_type, f_args);
+                }
             }
         }
     }

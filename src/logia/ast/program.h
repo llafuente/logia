@@ -56,7 +56,7 @@ namespace logia::AST
         /// @param name The name of the intrinsic function
         /// @param return_type The return type of the intrinsic function
         /// @param arguments The argument types of the intrinsic function
-        void add_intrinsic(const char *name, Type *return_type, std::vector<Type *> arguments);
+        void add_intrinsic(llvm::Function *ir, const char *name, Type *return_type, std::vector<Type *> arguments);
 
         /// @brief Codegen core module (primitives) to be able to add intrinsics later
         /// @param backend

@@ -85,6 +85,9 @@ namespace logia::AST
 
     void Identifier::_pre_type_inference()
     {
+        if (is_empty()) {
+            throw_compiler_error("try to type an empty identifier!");
+        }
         // this means my parent will type_inference this node!
         if (!this->is_typed)
         {
