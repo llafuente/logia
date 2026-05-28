@@ -322,13 +322,9 @@ namespace logia::AST
     {
         // Create a basic block and insert a return
 
-        if (!this->is_intrinsic)
-        {
-
-            backend->dscopes.push_back(this->di_subprogram);
-            this->get_body()->post_codegen(backend);
-            backend->dscopes.pop_back();
-        }
+        backend->dscopes.push_back(this->di_subprogram);
+        this->get_body()->post_codegen(backend);
+        backend->dscopes.pop_back();
 
         return Type::post_codegen(backend);
     }
@@ -423,6 +419,36 @@ namespace logia::AST
 
     Operator::Operator(antlr4::ParserRuleContext *rule, Operators op, Type *return_type) : Function(rule, new Identifier(rule, ast_operator_to_function_name(op)), return_type, false) {}
     Operator::~Operator() {}
+
+    //
+    // Intrinsics
+    //
+    Intrinsic::Intrinsic(llvm::Function *ir, const char *real_name, const char *scope_name, Type *return_type, std::vector<Type *> arguments) : Function(nullptr, new Identifier(nullptr, scope_name), return_type, true)
+    {
+        this->real_name = strdup(real_name);
+
+        for (auto t : arguments)
+        {
+            this->push_parameter(new FunctionParameter(new Identifier(nullptr, ""), t, nullptr));
+        }
+        // configure/hack the function!
+        this->is_post_type_inference = this->is_pre_type_inference = true; // ignore type inference, but no skip
+        this->is_post_codegen = this->is_pre_codegen = true;               // ignore codegen, but no skip
+        // set codegen result
+        this->cg_value = this->ir_func = ir;
+        this->ir_functy = (llvm::FunctionType *)ir->getType();
+    }
+
+    std::string Intrinsic::to_string()
+    {
+        return std::format("Type.Function.Intrinsic[{}] {}", this->real_name, Node::to_string());
+    }
+
+    llvm::Value *Intrinsic::post_codegen(logia::Backend *backend)
+    {
+        // skip Function::post_codegen, because we dont have a body block!
+        return Type::post_codegen(backend);
+    }
 
     LOGIA_API LOGIA_LEND Function *ast_create_function_type(Identifier *id, Type *return_type)
     {

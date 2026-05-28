@@ -204,7 +204,7 @@ namespace logia::AST
 
         // find a proper target or throws!
         Function *target = multiple_dispatch::find(this);
-        locator->set_type(target);
+        locator->set_type((Type *)target);
         // fill the gaps, order arguments, etc.
         multiple_dispatch::match(this, target, true);
 

@@ -10,15 +10,12 @@
 #include "antlr4-runtime.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Value.h"
-namespace logia
-{
-    struct Backend;
-}
 
 namespace logia::AST
 {
     struct Type;
     struct Identifier;
+    struct Intrinsic;
 
     // Design
     // A program do not need Backend information, but a logia Program does!
@@ -53,10 +50,7 @@ namespace logia::AST
         Type *get_ast_type(llvm::Type *type);
 
         /// @brief Adds an intrinsic function to the program
-        /// @param name The name of the intrinsic function
-        /// @param return_type The return type of the intrinsic function
-        /// @param arguments The argument types of the intrinsic function
-        void add_intrinsic(llvm::Function *ir, const char *name, Type *return_type, std::vector<Type *> arguments);
+        void add_intrinsic(Intrinsic *fn);
 
         /// @brief Codegen core module (primitives) to be able to add intrinsics later
         /// @param backend

@@ -37,6 +37,7 @@
 #include "logia/type_inference.h"
 #include "logia/ast/program.h"
 #include "logia/ast/type.h"
+#include "logia/ast/function.h"
 
 // cross compile support ?
 #define CODEGEN_NATIVE
@@ -156,6 +157,7 @@ namespace logia
 
     std::vector<const char *> llvm_get_logia_parameters_names(llvm::Function *F)
     {
+        // initialize to nullptr, if we found something, it will return the string!
         auto output = std::vector<const char *>(F->arg_size(), nullptr);
         // Map each parameter to its associated alloca if debug-info is present
 
@@ -353,11 +355,11 @@ namespace logia
                 auto it = override_names.find(F2);
                 if (it != override_names.end())
                 {
-                    this->program->add_intrinsic(F2, (*it).second.c_str(), f_ret_type, f_args);
+                    this->program->add_intrinsic(new AST::Intrinsic(F2, F.getName().str().c_str(), (*it).second.c_str(), f_ret_type, f_args));
                 }
                 else
                 {
-                    this->program->add_intrinsic(F2, F.getName().str().c_str(), f_ret_type, f_args);
+                    this->program->add_intrinsic(new AST::Intrinsic(F2, F.getName().str().c_str(), F.getName().str().c_str(), f_ret_type, f_args));
                 }
             }
         }

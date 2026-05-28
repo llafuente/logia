@@ -1,9 +1,12 @@
 #pragma once
+
 #include "logia/ast/node.h"
 #include "logia/ast/type.h"
 
 namespace logia::AST
 {
+    struct Expression;
+    struct Identifier;
 
     /// @brief Defines a function parameter
     struct FunctionParameter : Node
@@ -102,6 +105,17 @@ namespace logia::AST
     {
         Operator(antlr4::ParserRuleContext *rule, Operators op, Type *return_type = nullptr);
         ~Operator();
+    };
+
+    struct LOGIA_EXPORT Intrinsic : public Function
+    {
+        const char *real_name = nullptr;
+
+        Intrinsic(llvm::Function *ir, const char *real_name, const char *scope_name, Type *return_type, std::vector<Type *> arguments);
+        ~Intrinsic();
+
+        std::string to_string() override;
+        llvm::Value *post_codegen(logia::Backend *backend) override;
     };
 
     /**

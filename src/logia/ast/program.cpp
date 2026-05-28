@@ -79,24 +79,11 @@ namespace logia::AST
         return std::format("Program.{}", Block::to_string());
     }
 
-    void Program::add_intrinsic(llvm::Function *ir, const char *name, Type *return_type, std::vector<Type *> arguments)
+    void Program::add_intrinsic(Intrinsic *fn)
     {
-        auto f = new Function(nullptr, new Identifier(nullptr, name), return_type, true);
-        for (auto t : arguments)
-        {
-            f->push_parameter(new FunctionParameter(new Identifier(nullptr, ""), t, nullptr));
-        }
-        // configure/hack the function!
-        f->is_post_type_inference = f->is_pre_type_inference = true; // ignore type inference, but no skip
-        f->is_post_codegen = f->is_pre_codegen = true;               // ignore codegen, but no skip
-        // set codegen result
-        f->cg_value = f->ir_func = ir;
-        f->ir_functy = (llvm::FunctionType *)ir->getType();
-
-        intrinsics->push_child(f);
-        // expose intrinsic to current "program"
-        scope_set(name, f);
-        DEBUG() << f->to_string() << std::endl;
+        intrinsics->push_child(fn);
+        // REVIEW should not be necessary
+        scope_set(fn->get_name(), fn);
     }
 
     Type *Program::get_ast_type(llvm::Type *type)
