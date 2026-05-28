@@ -83,7 +83,7 @@ namespace logia::AST
 
         auto err_line = this->rule->start->getLine();
         auto err_start_column = this->rule->start->getCharPositionInLine();
-        auto err_stop_column = std::max<int>(err_start_column + 1, this->rule->stop->getCharPositionInLine());
+        auto err_stop_column = std::max<size_t>(err_start_column + 1, this->rule->stop->getCharPositionInLine());
 
         auto start_line = std::max<size_t>(0, err_line - prev_lines);
         auto end_line = err_line + post_lines;
@@ -241,7 +241,7 @@ namespace logia::AST
         {
             // TODO we should check this ? we may not
             // throw_compiler_error("Type already set");
-            LWARNING("Type already set");
+            LOG(WRN, "Type already set");
             this->_set_type(ty);
             this->is_typed = true;
         }
@@ -260,7 +260,7 @@ namespace logia::AST
 
     void Node::pre_type_inference()
     {
-        DEBUG() << this->to_string() << std::endl;
+        LOG(DBG, "{}", this->to_string());
 
         if (!this->skip_type_inference || this->is_pre_type_inference)
         {
@@ -295,7 +295,7 @@ namespace logia::AST
 
     void Node::post_type_inference()
     {
-        DEBUG() << this->to_string() << std::endl;
+        LOG(DBG, "{}", this->to_string());
 
         if (!this->skip_type_inference || this->is_post_type_inference)
         {

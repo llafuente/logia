@@ -67,7 +67,7 @@ namespace logia::AST
 
     llvm::Value *PrefixUnaryExpression::post_codegen(logia::Backend *backend)
     {
-        DEBUG() << this->to_string() << std::endl;
+        LOG(DBG, "{}", this->to_string());
 
         switch (this->op)
         {

@@ -13,7 +13,7 @@ namespace logia::AST
     semantic_error::semantic_error(Node *node, const std::string &message, const std::string &trace, const char *function, const char *file, int line) : std::runtime_error(format_message(node, message, trace, function, file, line)) {}
     // semantic_error::semantic_error(const char *message, const char *function, const char *file, int line): std::runtime_error(format_message(message, function, file, line)) {}
 
-    std::string semantic_error::format_message(Node *node, const std::string &message, const std::string &trace, const char *function, const char *file, int line)
+    std::string semantic_error::format_message(Node *node, const std::string &message, const std::string &trace, const char *function, const char *file, int file_line)
     {
         std::string code_location;
         if (node->rule == nullptr)
@@ -28,7 +28,7 @@ namespace logia::AST
 
             auto err_line = node->rule->start->getLine();
             auto err_start_column = node->rule->start->getCharPositionInLine();
-            auto err_stop_column = std::max<int>(err_start_column + 1, node->rule->stop->getCharPositionInLine());
+            auto err_stop_column = std::max<size_t>(err_start_column + 1, node->rule->stop->getCharPositionInLine());
 
             auto start_line = std::max<size_t>(0, err_line - 2);
             auto end_line = err_line + 2;
@@ -68,7 +68,7 @@ namespace logia::AST
             code_location = std::format("at {}:{}:{}\n{}", program->entry_point_file, err_line + 1, err_start_column, snippet);
         }
 
-        return std::format("semantic error:\n    \033[31m{}\033[0m\nat: {}\nExpcetion thrown at {} {}:{}\n\nstacktrace:\n{}", message, code_location, function, file, line, trace);
+        return std::format("semantic error:\n    \033[31m{}\033[0m\nat: {}\nExpcetion thrown at {} {}:{}\n\nstacktrace:\n{}", message, code_location, function, file, file_line, trace);
     }
 }
 /*

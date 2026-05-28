@@ -25,9 +25,9 @@ namespace logia::AST
     {
         return this->type == nullptr ? nullptr : this->type;
     }
-    void MemberAccessExpression::_set_type(Type *type)
+    void MemberAccessExpression::_set_type(Type *ty)
     {
-        this->type = type;
+        this->type = ty;
     }
     Node *MemberAccessExpression::resolve()
     {
@@ -61,7 +61,7 @@ namespace logia::AST
 
     llvm::Value *MemberAccessExpression::post_codegen(logia::Backend *backend)
     {
-        DEBUG() << this->to_string_tree() << std::endl;
+        LOG(DBG, "{}", this->to_string_tree());
         // TODO handle left side to be a pointer to struct or struct itself, for now we assume it's always a pointer
         auto left = this->get_left();
         auto left_type = left->get_type();
@@ -69,7 +69,7 @@ namespace logia::AST
 
         if (!left_type->is<Struct>())
         {
-            LERROR() << left->to_string_tree() << std::endl;
+            LOG(ERR, "{}", left->to_string_tree());
             throw_semantic_error(left, "Expected left to be a struct");
         }
         auto struct_ty = left_type->as<Struct>();
@@ -77,7 +77,7 @@ namespace logia::AST
         auto right = this->get_right();
         if (!right->is<Identifier>())
         {
-            LERROR() << left->to_string_tree() << std::endl;
+            LOG(ERR, "{}", left->to_string_tree());
             throw_semantic_error(left, "Expected right to be an identifier");
         }
         auto right_ident = right->as<Identifier>();

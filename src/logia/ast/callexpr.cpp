@@ -73,7 +73,7 @@ namespace logia::AST
     }
     CallExpression::CallExpression(antlr4::ParserRuleContext *rule, Expression *locator, std::vector<Expression *> positional_arguments) : Expression(rule)
     {
-        LOGIA_ASSERT(locator && "locator is mantadory");
+        LOGIA_ASSERT(locator == nullptr, "locator is mantadory");
 
         // these two rules are couple atm, but we should handle identifiers in other ways in the future...
         node_assert<Identifier, MemberAccessExpression>(locator, __FUNCTION__ ":" TOSTRING(__LINE__));
@@ -89,8 +89,8 @@ namespace logia::AST
 
     void CallExpression::push_named_argument(Identifier *name, Expression *expr)
     {
-        LOGIA_ASSERT(name && "name is mantadory");
-        LOGIA_ASSERT(expr && "expr is mantadory");
+        LOGIA_ASSERT(name == nullptr, "name is mantadory");
+        LOGIA_ASSERT(expr == nullptr, "expr is mantadory");
 
         node_assert<Identifier>(name, __FUNCTION__ ":" TOSTRING(__LINE__));
         node_assert<Expression>(expr, __FUNCTION__ ":" TOSTRING(__LINE__));
@@ -177,7 +177,7 @@ namespace logia::AST
         auto v = std::vector<Expression *>();
         v.reserve(this->argument_count);
 
-        DEBUG() << v.size() << "/" << v.capacity() << "/" << this->children.size() << std::endl;
+        LOG(ERR, "{}/{}/{}", v.size(), v.capacity(), this->children.size());
 
         for (size_t i = 1; i < this->children.size(); ++i)
         {
@@ -215,8 +215,8 @@ namespace logia::AST
             Function *f = nullptr;
             if (!locator_ty->try_cast<Function>(&f))
             {
-                LERROR() << this->to_string_tree() << std::endl;
-                LERROR() << locator_ty->to_string_tree() << std::endl;
+                LOG(ERR, "{}", this->to_string_tree());
+                LOG(ERR, "{}", locator_ty->to_string_tree());
                 throw_semantic_error(this, std::format("LGERR033 This expression is not callable is: '{}'", locator_ty->get_repr()));
                 // cannot be used as a function
             }
@@ -252,7 +252,7 @@ namespace logia::AST
 
     llvm::Value *CallExpression::post_codegen(logia::Backend *backend)
     {
-        DEBUG() << this->to_string() << std::endl;
+        LOG(DBG, "{}", this->to_string());
 
         if (this->children.size() == 0)
         {
@@ -278,7 +278,7 @@ namespace logia::AST
         std::vector<llvm::Value *> ArgsV;
         for (size_t i = 0, e = arguments.size(); i != e; ++i)
         {
-            DEBUG() << "argument[" << i << "]" << std::endl;
+            LOG(DBG, "argument[{}]", i);
 
             auto argument = arguments[i];
             auto ir_argument = llvm_load_if_required(argument->codegen(backend), backend);
@@ -290,7 +290,7 @@ namespace logia::AST
             // check arguments type are compatible one by one
             if (ir_parameter_ty != ir_argument_ty)
             {
-                LERROR() << this->to_string_tree();
+                LOG(ERR, "{}", this->to_string_tree());
                 throw_semantic_error(argument, std::format("Invalid argument {} '{}' of type '{}' expected type '{}'", i + 1, name->identifier, llvm_type_to_string(ir_argument_ty), llvm_type_to_string(ir_parameter_ty)));
             }
 

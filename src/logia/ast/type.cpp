@@ -83,7 +83,7 @@ namespace logia::AST
 
     llvm::Value *Type::post_codegen(logia::Backend *backend)
     {
-        DEBUG() << this->to_string() << std::endl;
+        LOG(DBG, "{}", this->to_string());
         // cache, because type are unique and we will be visiting this a lot
         if (this->ir_type)
         {
@@ -164,10 +164,10 @@ namespace logia::AST
             throw std::runtime_error("Not supported number of bits");
         }
 
-        LOGIA_ASSERT(this->ir_type);
+        LOGIA_ASSERT(this->ir_type == nullptr);
         if (backend->debug)
         {
-            LOGIA_ASSERT(this->di_type);
+            LOGIA_ASSERT(this->di_type == nullptr);
         }
 
         this->cg_value = (llvm::Value *)this->ir_type;
@@ -239,10 +239,10 @@ namespace logia::AST
             throw std::runtime_error("Not supported number of bits");
         }
 
-        LOGIA_ASSERT(this->ir_type);
+        LOGIA_ASSERT(this->ir_type == nullptr);
         if (backend->debug)
         {
-            LOGIA_ASSERT(this->di_type);
+            LOGIA_ASSERT(this->di_type == nullptr);
         }
 
         this->cg_value = (llvm::Value *)this->ir_type;
@@ -281,12 +281,12 @@ namespace logia::AST
     void Void::pre_codegen(logia::Backend *backend)
     {
         this->ir_type = llvm::Type::getVoidTy(backend->context);
-        LOGIA_ASSERT(this->ir_type);
+        LOGIA_ASSERT(this->ir_type == nullptr);
 
         if (backend->debug)
         {
             this->di_type = backend->dbuilder->createUnspecifiedType("void");
-            LOGIA_ASSERT(this->di_type);
+            LOGIA_ASSERT(this->di_type == nullptr);
         }
 
         this->cg_value = (llvm::Value *)this->ir_type;
@@ -325,7 +325,7 @@ namespace logia::AST
     void Pointer::pre_codegen(logia::Backend *backend)
     {
         this->ir_type = llvm::PointerType::get(backend->context, 0);
-        LOGIA_ASSERT(this->ir_type);
+        LOGIA_ASSERT(this->ir_type == nullptr);
 
         if (backend->debug)
         {
@@ -337,7 +337,7 @@ namespace logia::AST
                 std::nullopt, // std::optional<unsigned> DWARFAddressSpace
                 "void*"       // StringRef Name, Optional name
             );
-            LOGIA_ASSERT(this->di_type);
+            LOGIA_ASSERT(this->di_type == nullptr);
         }
 
         this->cg_value = (llvm::Value *)this->ir_type;
@@ -373,7 +373,7 @@ namespace logia::AST
     Type *TypeDef::get_type()
     {
         // TODO support more than one!?
-        LOGIA_ASSERT(this->children.size() != 1, "TODO: single resolve atm");
+        LOGIA_ASSERT(this->children.size() != 1, "TO-DO: single resolve atm");
         // search children!
         auto id = this->get_child<Identifier>(0);
         auto scope = this->first_parent<Scope>();
@@ -408,7 +408,7 @@ namespace logia::AST
 
     Node *TypeDef::resolve()
     {
-        LOGIA_ASSERT(this->children.size() != 1, "TODO: single resolve atm");
+        LOGIA_ASSERT(this->children.size() != 1, "TO-DO: single resolve atm");
         return this->children[0]->resolve();
     }
 

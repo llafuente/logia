@@ -1,4 +1,7 @@
 #include "logia/ast/llvm.h"
+
+#include "logia/log.h"
+
 #include "utils.h"
 #include <iostream>
 #include "logia/compiler_error.h"
@@ -20,17 +23,17 @@ namespace logia::AST
         {
             if (llvm::isa<llvm::ReturnInst>(terminator))
             {
-                DEBUG() << "then_block has terminator return" << std::endl;
+                LOG(DBG, "then_block has terminator return");
                 return true;
             }
             else if (llvm::isa<llvm::BranchInst>(terminator))
             {
-                DEBUG() << "then_block has inconditional branch" << std::endl;
+                LOG(DBG, "then_block has inconditional branch");
                 return true;
             }
             else if (llvm::isa<llvm::UnreachableInst>(terminator))
             {
-                DEBUG() << "then_block has terminator unreachable" << std::endl;
+                LOG(DBG, "then_block has terminator unreachable");
                 return true;
             }
         }
@@ -51,7 +54,7 @@ namespace logia::AST
             auto element_ptr = llvm::dyn_cast<llvm::GetElementPtrInst>(value);
             auto source_ty = element_ptr->getSourceElementType();
 
-            DEBUG() << "GEP has " << element_ptr->getNumIndices() << " indices:\n";
+            LOG(DBG, "GEP has {} indices", element_ptr->getNumIndices());
 
             // auto ty = llvm::dyn_cast<llvm::StructType>(source_ty);
             llvm::Type *ty = source_ty; // final type, resolve index by index!
@@ -68,7 +71,7 @@ namespace logia::AST
                 {
                     if (auto *CI = llvm::dyn_cast<llvm::ConstantInt>(IdxIt->get()))
                     {
-                        DEBUG() << "  Index " << idxNum << ": " << CI->getSExtValue() << "\n";
+                        LOG(DBG, "Index {}:{}", idxNum, CI->getSExtValue());
                         ty = ty->getStructElementType(CI->getSExtValue());
                     }
                     else
@@ -82,7 +85,7 @@ namespace logia::AST
                 }
             }
 
-            DEBUG() << "final type" << llvm_type_to_string(ty);
+            LOG(DBG, "final type {}", llvm_type_to_string(ty));
 
             value = backend->builder->CreateLoad(ty, value);
         }

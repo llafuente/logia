@@ -1,5 +1,6 @@
 #include "logia/ast/program.h"
 
+#include "logia/log.h"
 #include "logia/ast/node.h"
 #include "logia/ast/type.h"
 #include "logia/ast/expr.h"
@@ -51,7 +52,7 @@ namespace logia::AST
 
         this->children.pop_back(); // safe to remove now
 
-        DEBUG() << intrinsics->to_string_tree() << std::endl;
+        LOG(DBG, "{}", intrinsics->to_string_tree());
 
         // alias
         this->scope[(char *)"int"] = this->scope[(char *)"λi64"];
@@ -117,7 +118,7 @@ namespace logia::AST
 
     llvm::Value *Program::post_codegen(logia::Backend *backend)
     {
-        DEBUG() << this->to_string() << std::endl;
+        LOG(DBG, "{}", this->to_string());
 
         this->intrinsics->codegen(backend); // forward codegen
 

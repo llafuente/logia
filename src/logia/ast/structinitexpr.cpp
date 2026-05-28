@@ -49,7 +49,7 @@ namespace logia::AST
             {
                 d += used[i] ? "X" : "0";
             }
-            DEBUG() << "fields: " << d << std::endl;
+            LOG(DBG, "fields = {}", d);
         }
 #endif
 
@@ -79,7 +79,7 @@ namespace logia::AST
             {
                 d += used[i] ? "X" : "0";
             }
-            DEBUG() << "fields: " << d << std::endl;
+            LOG(DBG, "fields = {}", d);
         }
 #endif
 
@@ -112,7 +112,7 @@ namespace logia::AST
         assert(named_values.size() == 0);
 
         // third fill defaults!
-        for (auto i = 0; i < struct_ty->field_count; ++i)
+        for (uint32_t i = 0; i < struct_ty->field_count; ++i)
         {
             if (!used[i])
             {

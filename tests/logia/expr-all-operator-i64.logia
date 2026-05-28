@@ -27,7 +27,7 @@ function main() i64 {
     c = ~a;
     c = a << 1;
     c = a >> 2;
-    
+
     c = -a;
     //!a;
 

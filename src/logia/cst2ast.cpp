@@ -60,10 +60,10 @@
         }                                               \
     } while (false)
 
-#define CST_DEBUG_FUNCTION()                        \
-    do                                              \
-    {                                               \
-        DEBUG() << context->getText() << std::endl; \
+#define CST_DEBUG_FUNCTION()                \
+    do                                      \
+    {                                       \
+        LOG(VRB, "{}", context->getText()); \
     } while (false)
 
 #define ANY_VOIDP_STORE(expr) (void *)(expr)
@@ -183,8 +183,8 @@ namespace logia
     {
         CST_DEBUG_FUNCTION();
 
-        LOGIA_ASSERT(context->true_expr != nullptr, "not supported");
-        LOGIA_ASSERT(context->false_expr != nullptr, "not supported");
+        LOGIA_ASSERT(context->true_expr != nullptr, "TO-DO: not supported");
+        LOGIA_ASSERT(context->false_expr != nullptr, "TO-DO: not supported");
 
         return this->visitLogicalOrExpr(context->condition);
     }
@@ -427,7 +427,7 @@ namespace logia
         {
             // postfixDotMemberAccessExpr
             auto left = ANY_VOIDP_CAST(AST::Expression *, this->visitPostfixExpr(context->expr2));
-            LOGIA_ASSERT(context->identifierName()->keywords() != nullptr, "TODO");
+            LOGIA_ASSERT(context->identifierName()->keywords() != nullptr, "TO-DO");
             auto right = ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(context->identifierName()->identifier()));
             return ANY_VOIDP_STORE(new AST::MemberAccessExpression(context, left, right));
         }
@@ -470,7 +470,7 @@ namespace logia
         auto locator_expr = ANY_VOIDP_CAST(AST::Expression *, this->visitPostfixExpr(locator));
         auto callexpr = new AST::CallExpression(locator, locator_expr, {});
 
-        DEBUG() << "locator" << locator_expr->to_string() << std::endl;
+        LOG(VRB, "locator {}", locator_expr->to_string());
         if (arguments != nullptr)
         {
             parseArguments(callexpr, arguments);
@@ -510,7 +510,7 @@ namespace logia
             if (cond != nullptr)
             {
                 expr = ANY_VOIDP_CAST(AST::Expression *, this->visitConditionalExpr(cond));
-                DEBUG() << "arg " << i << expr->to_string() << std::endl;
+                LOG(VRB, "arg[{}] = {}", i, expr->to_string());
             }
             else if (anomfn != nullptr)
             {
@@ -629,7 +629,7 @@ namespace logia
         CST_DEBUG_FUNCTION();
 
         auto rhs = context->rhsExpr();
-        LOGIA_ASSERT(rhs && "not supportted yet: empty return");
+        LOGIA_ASSERT(rhs == nullptr, "not supportted yet: empty return");
         auto ret_expr = ANY_VOIDP_CAST(AST::Expression *, this->visitRhsExpr(rhs));
         return ANY_VOIDP_STORE(new AST::ReturnStmt(context, ret_expr));
     }
@@ -669,7 +669,7 @@ namespace logia
         // (else if)*
         for (int i = 1;; ++i)
         {
-            DEBUG() << i << std::endl;
+            LOG(VRB, "{}", i);
             auto stmt = context->ifSelectionStmt(i);
             if (stmt == nullptr)
             {
@@ -696,8 +696,8 @@ namespace logia
             // else is optional but the basicblock not, set location
             ifstmt->get_else()->rule = dynamic_cast<antlr4::ParserRuleContext *>(last);
         }
-        LOGIA_ASSERT(ifstmt->get_then()->rule);
-        LOGIA_ASSERT(ifstmt->get_else()->rule);
+        LOGIA_ASSERT(ifstmt->get_then()->rule == nullptr);
+        LOGIA_ASSERT(ifstmt->get_else()->rule == nullptr);
         // REVIEW token ?
         // continue block should be at last "context"
         ifstmt->get_continue_block()->rule = dynamic_cast<antlr4::ParserRuleContext *>(last);
@@ -877,7 +877,7 @@ namespace logia
 
         if (context == nullptr)
         {
-            DEBUG() << "empty block" << std::endl;
+            LOG(VRB, "{}", "empty block");
             return;
         }
 
@@ -885,19 +885,18 @@ namespace logia
 
         for (int i = 0;; ++i)
         {
-            DEBUG() << "stmt" << i << std::endl;
             auto stmt = context->stmt(i);
             if (stmt == nullptr)
             {
                 break;
             }
-            DEBUG() << "stmt" << i << "=" << stmt->getText() << std::endl;
+            LOG(VRB, "stmt[{}] = {}", i, stmt->getText());
 
             auto any_node = visitStmt(stmt);
             try
             {
                 auto node = ANY_VOIDP_CAST(AST::Node *, any_node);
-                DEBUG() << "stmt" << i << "=[" << node << "]" << (node != nullptr ? node->to_string() : "") << std::endl;
+                LOG(VRB, "stmt[{}] = {} = {}", i, (void *)node, (node != nullptr ? node->to_string() : ""));
                 if (node != nullptr)
                 {
                     block->push_child(node);
@@ -905,8 +904,7 @@ namespace logia
             }
             catch (std::exception e)
             {
-                LERROR() << stmt->toStringTree() << std::endl;
-                LERROR() << e.what() << std::endl;
+                LOG(ERR, "{}\n{}", stmt->toStringTree(), e.what());
                 throw e;
             }
         }
@@ -946,7 +944,6 @@ namespace logia
 
     std::any CST2AST::visitEndOfStmt(LogiaParser::EndOfStmtContext *context)
     {
-        DEBUG() << std::endl;
         return ANY_VOIDP_STORE(new AST::NoOp());
     }
 
@@ -1081,7 +1078,7 @@ namespace logia
         if (context->identifierName() != nullptr)
         {
             auto type = ANY_VOIDP_CAST(AST::Type *, this->visitTypeDefinition(context->typeDefinition()));
-            LOGIA_ASSERT(context->identifierName()->identifier() != nullptr, "TODO");
+            LOGIA_ASSERT(context->identifierName()->identifier() == nullptr, "TO-DO");
             auto name = ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(context->identifierName()->identifier()));
 
             auto rhs = context->rhsExpr();

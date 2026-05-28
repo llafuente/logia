@@ -15,8 +15,16 @@ namespace logia
         bool debug = false;
         bool coverage = false;
         bool print = false;
+
+        int cst_log_level = 6;
         bool print_cst = false;
+
+        int ast_log_level = 6;
         bool print_ast = false;
+
+        int type_system_log_level = 6;
+
+        int codegen_log_level = 6;
         bool emit_llvm = false;
         const char *llfile = nullptr;
         const char *objfile = nullptr;

@@ -1,6 +1,8 @@
 #include "logia/compiler_error.h"
 #include "logia/ast/constexpr.h"
 #include "logia/ast/type.h"
+
+#include "logia/log.h"
 #include "utils.h"
 
 namespace logia::AST
@@ -30,7 +32,7 @@ namespace logia::AST
 
     IntegerLiteral::IntegerLiteral(antlr4::ParserRuleContext *rule, const char *number_as_text, Type *type) : ConstExpression(rule)
     {
-        LOGIA_ASSERT(number_as_text);
+        LOGIA_ASSERT(number_as_text == nullptr);
         // TODO number literals with dashes need to be cleaned right ?
         // TODO 0x???
         // TODO 0b???
@@ -97,7 +99,7 @@ namespace logia::AST
 
     llvm::Value *IntegerLiteral::post_codegen(logia::Backend *backend)
     {
-        DEBUG() << this->to_string() << std::endl;
+        LOG(DBG, "{}", this->to_string());
         auto type = this->get_final_type();
         auto llvm_type = (llvm::Type *)this->get_final_type()->codegen(backend);
 
@@ -150,7 +152,7 @@ namespace logia::AST
 
     llvm::Value *FloatLiteral::post_codegen(logia::Backend *backend)
     {
-        DEBUG() << this->to_string() << std::endl;
+        LOG(DBG, "{}", this->to_string());
         this->cg_value = nullptr;
         throw_compiler_error("TODO!");
         return ConstExpression::post_codegen(backend);
@@ -195,7 +197,7 @@ namespace logia::AST
 
     llvm::Value *StringLiteral::post_codegen(logia::Backend *backend)
     {
-        DEBUG() << this->to_string() << std::endl;
+        LOG(DBG, "{}", this->to_string());
         // NOTE module is required or 0xc0000005
         // !getType()->isVoidTy() && "Cannot assign a name to void values!"??
         this->cg_value = backend->builder->CreateGlobalString(this->text, ".str", 0, backend->module.get(), true);

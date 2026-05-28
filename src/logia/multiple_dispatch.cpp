@@ -63,7 +63,7 @@ namespace logia::multiple_dispatch
                     if (compatibility.is_success())
                     {
                         auto c = (uint32_t)compatibility.unwrap_success();
-                        DEBUG() << std::format("paramter/argument by name[{}] of type [{}] compatibility = {}", param_name->identifier, param_type->get_repr(), c);
+                        LOG(DBG, "paramter/argument by name[{}] of type [{}] compatibility = {}", param_name->identifier, param_type->get_repr(), c);
 
                         used_params[param_index++] = true;
                         used_args[arg->index] = true;
@@ -101,7 +101,7 @@ namespace logia::multiple_dispatch
                     debug += used_args[i] ? "1" : "0";
                 }
 
-                DEBUG() << debug << std::endl;
+                LOG(DBG, "{}", debug);
             }
 #endif
             // now we match by position, the first with no-name!
@@ -119,7 +119,7 @@ namespace logia::multiple_dispatch
                     if (compatibility.is_success())
                     {
                         auto c = (uint32_t)compatibility.unwrap_success();
-                        DEBUG() << std::format("parameter/argument by position[{}] of type [{}] compatibility = {}", param_name->identifier, param_type->get_repr(), c);
+                        LOG(DBG, "parameter/argument by position[{}] of type [{}] compatibility = {}", param_name->identifier, param_type->get_repr(), c);
 
                         used_params[param_index++] = true;
                         used_args[arg->index] = true;
@@ -141,7 +141,7 @@ namespace logia::multiple_dispatch
                         // if param has default, we may have another oportunity later!
                         if (param->has_default_value())
                         {
-                            DEBUG() << std::format("parameter default value[{}] of type [{}]", param_name->identifier, param_type->get_repr());
+                            LOG(DBG, "parameter default value[{}] of type [{}]", param_name->identifier, param_type->get_repr());
 
                             used_params[param_index++] = true;
                             arguments.push_back(param->get_default_value());
@@ -159,7 +159,7 @@ namespace logia::multiple_dispatch
             // if param has default our last change!
             if (param->has_default_value())
             {
-                DEBUG() << std::format("parameter default value[{}] of type [{}]", param_name->identifier, param_type->get_repr());
+                LOG(DBG, "parameter default value[{}] of type [{}]", param_name->identifier, param_type->get_repr());
                 used_params[param_index++] = true;
                 arguments.push_back(param->get_default_value());
                 goto next_parameter;
@@ -190,18 +190,19 @@ namespace logia::multiple_dispatch
     /// @param call_expression The call expression to match against available overloads.
     Function *find(CallExpression *callexpr)
     {
-        DEBUG() << std::format("Call ") << callexpr->to_string_tree() << std::endl;
+        LOG(DBG, "Call {}", callexpr->to_string_tree());
+
         auto scope = callexpr->first_parent<Scope>();
         // TODO multiple dispatch is only available for Identifier and "rhs" (memberaccess) identifiers
         auto list = scope->lookup_all(callexpr->get_locator()->as<Identifier>()->identifier);
-        DEBUG() << std::format("FOUND {} candidates", list.size()) << std::endl;
+        LOG(DBG, "FOUND {} candidates", list.size());
         std::vector<std::tuple<float, Function *>> candidates;
         for (const auto &node : list)
         {
             Function *func;
             if (node->try_cast<Function>(&func))
             {
-                DEBUG() << std::format("Function: ") << node->to_string() << std::endl;
+                LOG(DBG, "Function: {}", node->to_string());
                 auto m = match(callexpr, func, false);
                 if (m.is_success())
                 {
@@ -210,7 +211,7 @@ namespace logia::multiple_dispatch
             }
             else
             {
-                DEBUG() << std::format("Candidate is not a function?!") << node->to_string() << std::endl;
+                LOG(DBG, "Candidate is not a function?! {}", node->to_string());
             }
         }
 

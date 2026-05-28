@@ -27,7 +27,7 @@ namespace logia::AST
 
     llvm::Value *ReturnStmt::post_codegen(logia::Backend *backend)
     {
-        DEBUG() << this->to_string() << std::endl;
+        LOG(DBG, "{}", this->to_string());
         auto expr = this->get_expr();
         if (!expr)
         {

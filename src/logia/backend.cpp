@@ -33,6 +33,7 @@
 #include <memory>
 
 #include "utils.h"
+#include "logia/log.h"
 #include "logia/frontend.h"
 #include "logia/type_inference.h"
 #include "logia/ast/program.h"
@@ -57,11 +58,11 @@ namespace logia
         llvm::InitializeAllAsmParsers();
         llvm::InitializeAllAsmPrinters();
 #endif
-        DEBUG() << "()" << std::endl;
-        DEBUG() << "List available targets: " << std::endl;
+        LOG(DBG, "()");
+        LOG(DBG, "List available targets:");
         for (auto &T : llvm::TargetRegistry::targets())
         {
-            DEBUG() << "target: " << T.getBackendName() << " | " << T.getName() << std::endl;
+            LOG(DBG, "target: {} | {}", T.getBackendName(), T.getName());
         }
 
         // default empty module!
@@ -174,7 +175,7 @@ namespace logia
             }
         }
 
-        DEBUG() << "Found " << ParamAllocas.size() << "parameters" << std::endl;
+        LOG(VRB, "Found {} parameters", ParamAllocas.size());
 
         // Now scan for annotation intrinsics
         for (auto &BB : *F)
@@ -194,7 +195,7 @@ namespace logia
                 }
 
                 // Check if it's llvm.var.annotation
-                DEBUG() << "processing function " << std::string(Callee->getName()) << std::endl;
+                // DEBUG() << "processing function " << std::string(Callee->getName()) << std::endl;
                 if (Callee->getName() != "llvm.var.annotation.p0.p0")
                 {
                     continue;
@@ -210,16 +211,16 @@ namespace logia
                         std::string annotation = llvm_get_var_annotation_string(CI);
                         if (!annotation.empty())
                         {
-                            DEBUG() << "Parameter " << idx
-                                    << " annotated with: " << annotation << "\n";
+
                             if (annotation.starts_with("logia="))
                             {
+                                LOG(VRB, "Parameter {} annotated = '{}'", idx, annotation);
                                 // skip "logia="
                                 output[idx] = strdup(annotation.c_str() + 6);
                             }
                             else
                             {
-                                LWARNING() << "unexpected annotation" << annotation << std::endl;
+                                LOG(WRN, "unexpected annotation format = '{}'", annotation);
                             }
                         }
                     }
@@ -289,14 +290,13 @@ namespace logia
                 // Print the result
                 if (F)
                 {
-                    auto name = annotation.slice(6, annotation.size());
+                    auto name = std::string(annotation.slice(6, annotation.size()));
                     output[F] = name;
-                    DEBUG() << "Function: " << std::string(F->getName()) << " → annotation: "
-                            << std::string(name) << "\n";
+                    LOG(VRB, "Function annotation {} → {}", std::string(F->getName()), name);
                 }
                 else
                 {
-                    DEBUG() << "Global/Other annotated → " << std::string(annotation) << "\n";
+                    LOG(WRN, "NON-FUNCTION annotation → {}", std::string(annotation));
                 }
             }
         }
@@ -306,27 +306,33 @@ namespace logia
 
     void Backend::load_intrinsics(char *filepath)
     {
-        // to found LLVM Type to logia type we need to codegen types first!
+        LOG(INF, "({})", filepath);
+        // to find logia type from LLVM Type we need to codegen our types first!
         this->program->codegen_primitives(this);
 
         llvm::SMDiagnostic diag;
         this->intrinsics_module = llvm::parseIRFile(filepath, diag, context);
         if (!this->intrinsics_module)
         {
-            diag.print("intrinsics.ll", llvm::errs());
-            throw std::exception("could not parse or read intrinsics.ll");
+            diag.print(filepath, llvm::errs());
+            throw_compiler_error("could not parse or read intrinsics file");
         }
 
-        // std::unordered_map<llvm::Function *, std::string>
         auto override_names = llvm_get_module_function_annotations(this->intrinsics_module.get());
+        LOG(INF, "found {} function annotations", override_names.size());
 
         // Iterate over all functions in the module
         for (auto &F : this->intrinsics_module->getFunctionList())
         {
-            DEBUG() << std::string(F.getName()) << std::endl;
             // REVIEW Skip functions without a body ? that imply libc or compiler libs ?
-            if (!F.isDeclaration())
+            if (F.isDeclaration())
             {
+                // this functions are just declarations so the "compiler" now what to expose form the current process to the jit
+                LOG(VRB, "skip {} declaration", std::string(F.getName()));
+            }
+            else
+            {
+                LOG(VRB, "found {} intrinsic", std::string(F.getName()));
                 auto F2 = &F; // stupid trick
 
                 auto f_args = std::vector<AST::Type *>();
@@ -443,8 +449,8 @@ namespace logia
 
     llvm::Expected<llvm::TargetMachine *> Backend::createHostTargetMachine(llvm::Triple triple)
     {
-        DEBUG() << "createHostTargetMachine(" << triple.str() << ")" << std::endl;
-        DEBUG() << "getDefaultExceptionHandling(" << (int)triple.getDefaultExceptionHandling() << ")" << std::endl;
+        LOG(DBG, "createHostTargetMachine({})", triple.str());
+        LOG(DBG, "getDefaultExceptionHandling({})", (int)triple.getDefaultExceptionHandling());
 
         std::string err;
         auto target = llvm::TargetRegistry::lookupTarget(triple, err);
@@ -469,8 +475,8 @@ namespace logia
         // auto CPU = "generic";
         auto CPU = llvm::sys::getHostCPUName();
 
-        DEBUG() << "CPU = " << CPU.begin() << std::endl;
-        DEBUG() << "Features = " << Features << std::endl;
+        LOG(DBG, "CPU = {}", CPU.begin());
+        LOG(DBG, "Features = {}", Features);
 
         // defaults: https://reviews.llvm.org/D36241
         llvm::TargetOptions opt;
@@ -482,7 +488,7 @@ namespace logia
 
     bool generateFile(std::string fileName, llvm::CodeGenFileType FileType, llvm::Module *module, llvm::TargetMachine *TheTargetMachine)
     {
-        DEBUG() << "(" << fileName << ")" << std::endl;
+        LOG(DBG, "({})", fileName);
 
         std::error_code EC;
         llvm::raw_fd_ostream dest(fileName, EC, llvm::sys::fs::FileAccess::FA_Write);
@@ -526,7 +532,7 @@ namespace logia
 
     bool Backend::emitTargetLLVMIR(std::string fileName = "main.ll")
     {
-        DEBUG() << "(" << fileName << ")" << std::endl;
+        LOG(DBG, "({})", fileName);
 
         this->__finalize_module();
 
@@ -547,7 +553,7 @@ namespace logia
 
     bool Backend::emitTargetObjectFile(std::string fileName = "main.o")
     {
-        DEBUG() << "(" << fileName << ")" << std::endl;
+        LOG(DBG, "({})", fileName);
 
         this->__finalize_module();
 
@@ -570,7 +576,7 @@ namespace logia
 
     bool Backend::emitTargetAssemblyFile(std::string fileName = "main.asm")
     {
-        DEBUG() << "(" << fileName << ")" << std::endl;
+        LOG(DBG, "({})", fileName);
 
         this->__finalize_module();
 
@@ -603,9 +609,7 @@ namespace logia
 
     int Backend::run_jit(const char *fn_name)
     {
-        DEBUG() << "()" << std::endl;
-        DEBUG() << std::endl
-                << this->program->to_string_tree() << std::endl;
+        LOG(DBG, "()\n{}", this->program->to_string_tree());
 
         this->__finalize_module();
 
@@ -735,7 +739,7 @@ namespace logia
         int result = main_fn();
         if (result != 0)
         {
-            LERROR() << "Main function run error:" << result << std::endl;
+            LOG(ERR, "Main function run error: {}", result);
         }
 
         if (auto Err = session->endSession())
@@ -752,11 +756,11 @@ namespace logia
         {
             return;
         }
-        LOGIA_ASSERT(context);
+        LOGIA_ASSERT(context == nullptr);
 
         if (scope == nullptr)
         {
-            LOGIA_ASSERT(this->dscopes.size());
+            LOGIA_ASSERT(this->dscopes.size() > 0);
             scope = this->dscopes[this->dscopes.size() - 1];
         }
 

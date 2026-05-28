@@ -1,4 +1,7 @@
 #include "logia/type_inference.h"
+
+#include "logia/log.h"
+
 #include "logia/ast/semantic_error.h"
 #include "logia/ast/program.h"
 #include "logia/ast/type.h"
@@ -29,7 +32,7 @@ namespace logia
     void type_inference_expression(Expression *expr, Type *enforce_type)
     {
         // DEBUG() << expr->to_string_tree() << "=" << enforce_type->get_repr() << "|" << expr->rule->getText() << std::endl;
-        DEBUG() << expr->to_string_tree() << "=" << enforce_type->get_repr() << std::endl;
+        LOG(DBG, "{}={}", expr->to_string_tree(), enforce_type->get_repr());
 
         StructInitializer *sinit;
         if (expr->try_cast<StructInitializer>(&sinit))
@@ -75,8 +78,7 @@ namespace logia
         std::vector<Node *> pending;
         IntegerLiteral *ilit;
         FloatLiteral *flit;
-
-        LINFO() << std::format("start pre_type_inference: found {} nodes", all_nodes.size()) << std::endl;
+        LOG(INF, "start pre_type_inference: found {} nodes", all_nodes.size());
 
         for (auto node : all_nodes)
         {
@@ -103,8 +105,7 @@ namespace logia
                 }
             }
         }
-
-        LINFO() << std::format("end pre_type_inference: pending {} nodes", pending.size()) << std::endl;
+        LOG(INF, "end pre_type_inference: pending {} nodes", pending.size());
 
         while (pending.size())
         {
@@ -122,14 +123,13 @@ namespace logia
             {
                 for (auto node : pending)
                 {
-                    LERROR() << node->to_string() << std::endl;
-                    LERROR() << node->get_debug_location() << std::endl;
+                    LOG(ERR, "{}\n{}", node->to_string(), node->get_debug_location());
                 }
                 throw_compiler_error("Could not finish pre_type_inference for some nodes!");
             }
         }
 
-        DEBUG() << "Found " << todo_type_stack.size() << " literals" << std::endl;
+        LOG(DBG, "Found {}  literals", todo_type_stack.size());
 
         // if at the end, this nodes are not resolved, force them!
         for (const auto &it : todo_type_stack)
@@ -137,13 +137,13 @@ namespace logia
             auto ty = it.first->get_type();
             if (ty == nullptr || ty->is<InferType>())
             {
-                DEBUG() << "set default type because it's infer" << it.first->to_string() << std::endl;
+                LOG(DBG, "set default type because it's infer {}", it.first->to_string());
                 it.first->set_type(it.second);
             }
         }
         todo_type_stack.clear();
 
-        LINFO() << std::format("start post_type_inference: pending {} nodes", pending.size()) << std::endl;
+        LOG(DBG, "start post_type_inference: pending {} nodes", pending.size());
 
         for (auto node : all_nodes)
         {
@@ -169,18 +169,16 @@ namespace logia
         // guard!
         if (program->is_typed)
         {
-            DEBUG() << "skip type_inference, program is already typed!" << std::endl;
+            LOG(DBG, "skip type_inference, program is already typed!");
             return;
         }
         program->is_typed = true;
 
-        LINFO() << "Tree before type_inference!" << std::endl
-                << program->to_string_tree() << std::endl;
+        LOG(INF, "Tree before type_inference!\n{}", program->to_string_tree());
 
         type_inference_node(program, program->intrinsics);
         type_inference_node(program, program);
 
-        LINFO() << "Tree after type_inference!" << std::endl
-                << program->to_string_tree() << std::endl;
+        LOG(INF, "Tree after type_inference!\n{}", program->to_string_tree());
     }
 }

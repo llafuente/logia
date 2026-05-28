@@ -1,4 +1,7 @@
 #include "logia/ast/block.h"
+
+#include "logia/log.h"
+
 #include "logia/ast/llvm.h"
 #include "logia/ast/type.h"
 #include "logia/ast/stmt.h"
@@ -74,22 +77,22 @@ namespace logia::AST
 
         this->llvm_basicblock = llvm::BasicBlock::Create(backend->context, this->get_name(), nullptr);
 
-        DEBUG() << this->to_string() << " name=" << this->get_name() << " llvm_basicblock = " << this->llvm_basicblock << std::endl;
+        LOG(DBG, "{} name = {} llvm_basicblock = {}", this->to_string(), this->get_name(), (void *)this->llvm_basicblock);
     }
 
     llvm::Value *Block::post_codegen(logia::Backend *backend)
     {
         if (this->cg_value)
         {
-            LWARNING() << "why ??" << std::endl;
+            LOG(WRN, "Why??");
             return this->cg_value;
         }
 
-        DEBUG() << this->to_string() << std::endl;
+        LOG(DBG, "{}", this->to_string());
 
         // unhandled block inside a function block
         auto previous_block = backend->builder->GetInsertBlock();
-        DEBUG() << "previous_block = " << previous_block << std::endl;
+        LOG(DBG, "previous_block = {}", (void *)previous_block);
 
         if (!ast_llvm_block_has_terminator(previous_block))
         {
@@ -124,7 +127,8 @@ namespace logia::AST
         {
         process_child:
             Node *n = this->children[i];
-            DEBUG() << "codegen.statement[" << i << "] " << n->to_string() << std::endl;
+            LOG(DBG, "codegen.statement[{}] = {}", i, n->to_string());
+
             auto inst = n->codegen(backend);
 
             // if the current block has a terminator and we continue we run into multiple problems like:
@@ -135,7 +139,7 @@ namespace logia::AST
             // we need a way to detect this "dead code" and raise a semantic_errror -> the coder to remove it!
             if (this->llvm_basicblock && i != last && ast_llvm_block_has_terminator(backend->builder->GetInsertBlock()))
             {
-                LWARNING() << "skip until next block, current block has terminator" << std::endl;
+                LOG(WRN, "skip until next block, current block has terminator");
                 ++i;
                 do
                 {
@@ -145,7 +149,7 @@ namespace logia::AST
                         goto process_child;
                     }
 
-                    LWARNING() << "skip [" << i << "] " << n->to_string() << std::endl;
+                    LOG(WRN, "skip [{}] = {}", i, n->to_string());
                     ++i;
                 } while (i < max);
                 --i;

@@ -25,7 +25,7 @@ namespace logia::AST
     {
         if (this->cg_value != nullptr)
         {
-            DEBUG() << this->to_string() << std::endl;
+            LOG(DBG, "{}", this->to_string());
             backend->set_debug_loc((llvm::Instruction *)this->cg_value, this->rule);
         }
         return Node::post_codegen(backend);
@@ -67,7 +67,7 @@ namespace logia::AST
 
     llvm::Value *GotoStmt::post_codegen(logia::Backend *backend)
     {
-        DEBUG() << this->to_string() << std::endl;
+        LOG(DBG, "{}", this->to_string());
         // find label and jump to it
         // label shall be inside the current function
         auto func = this->first_parent<Function>();

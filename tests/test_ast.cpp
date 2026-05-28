@@ -1,4 +1,6 @@
 // ./build-debug/bin/Debug/logia_test_suite.exe --gtest_break_on_failure
+
+#include "logia/log.h"
 #include "logia/frontend.h"
 #include "logia/backend.h"
 #include "logia/ast/node.h"
@@ -24,7 +26,7 @@ void expect_all_attached(logia::AST::Program *prg)
 {
   prg->foreach_descendant([](auto n, int deep) -> bool
                           {
-                            DEBUG() << n->to_string() << std::endl;
+                            LOG(DBG, "{}", n->to_string());
       if (!n->is<logia::AST::Program>()) {
         EXPECT_TRUE(n->is_attached) << std::format(" not attached {}", n->to_string());
     }

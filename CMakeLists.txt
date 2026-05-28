@@ -34,6 +34,8 @@ message(STATUS "ANTLR_LogiaGrammarLexer_CXX_OUTPUTS ${ANTLR_LogiaGrammarLexer_CX
 message(STATUS "ANTLR_LogiaGrammarParser_CXX_OUTPUTS ${ANTLR_LogiaGrammarParser_CXX_OUTPUTS}")
 
 set(LOGIA_SOURCE_FILES
+  src/logia/log.cpp
+
   src/logia/help.cpp
   src/logia/run.cpp
   src/logia/cst2ast.cpp
@@ -129,6 +131,34 @@ foreach(project_name IN ITEMS "logia" "logia_test_suite")
 
   #target_compile_features(${project_name} PRIVATE cxx_std_20)
   target_compile_features(${project_name} PRIVATE cxx_std_23)
+  set_target_properties(${project_name} PROPERTIES
+      CXX_STANDARD 23
+      CXX_STANDARD_REQUIRED ON
+      CXX_EXTENSIONS OFF
+  )
+
+
+  # needed for __VA_OPT__
+  if (MSVC)
+    target_compile_options(${project_name} PRIVATE /Zc:preprocessor)
+  endif()
+
+  if (MSVC)
+      target_compile_options(${project_name} PRIVATE
+          /W4            # High warning level
+          /permissive-   # Stricter C++
+      )
+  elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+      target_compile_options(${project_name} PRIVATE
+          -Wall -Wextra -Wpedantic
+      )
+  elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+      target_compile_options(${project_name} PRIVATE
+          -Wall -Wextra -Wpedantic
+      )
+  endif()
+
+
 
   if (ASAN_ENABLED)
     message(STATUS "Enable ASAN")

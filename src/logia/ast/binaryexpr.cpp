@@ -9,6 +9,7 @@
 
 #include "logia/ast/llvm.h"
 
+#include "logia/log.h"
 #include "logia/type_system.h"
 #include "logia/type_inference.h"
 
@@ -65,9 +66,9 @@ namespace logia::AST
     {
         return this->type;
     }
-    void BinaryExpression::_set_type(Type *type)
+    void BinaryExpression::_set_type(Type *ty)
     {
-        this->type = type;
+        this->type = ty;
     }
 
     Expression *BinaryExpression::get_left()
@@ -88,7 +89,7 @@ namespace logia::AST
         {
             if (left->is<ConstExpression>())
             {
-                throw_semantic_error(this, std::format("LGER032 lhs cannot be a constant expression"));
+                throw_semantic_error(this, "LGER032 lhs cannot be a constant expression");
             }
             if (left_ty == nullptr || left_ty->is<InferType>())
             {
@@ -107,11 +108,7 @@ namespace logia::AST
             {
                 this->replace(right, new Cast(right->rule, right, left_ty));
                 type_inference_node(this->first_parent<Program>(), this->get_right());
-                DEBUG() << std::endl
-                        << std::endl
-                        << std::endl
-                        << std::endl
-                        << this->to_string_tree() << std::endl;
+                LOG(DBG, "\n\n\n\n\n{}", this->to_string_tree());
                 return Expression::_pre_type_inference();
             }
             if (((uint32_t)result & (uint32_t)type_system::type_compatibility::LAYOUT_COMPATIBLE) != 0 || ((uint32_t)result & (uint32_t)type_system::type_compatibility::YES) != 0)
@@ -131,14 +128,14 @@ namespace logia::AST
         auto left_ty = left->get_final_type();
         if (left_ty->is<InferType>())
         {
-            LERROR() << this->to_string_tree() << std::endl;
+            LOG(ERR, "{}", this->to_string_tree());
             throw_compiler_error("Unexpected left side infer type");
         }
         auto right = this->get_right();
         auto right_ty = right->get_final_type();
         if (right_ty->is<InferType>())
         {
-            LERROR() << this->to_string_tree() << std::endl;
+            LOG(ERR, "{}", this->to_string_tree());
             throw_compiler_error("Unexpected right side infer type");
         }
         switch (op)
@@ -167,10 +164,10 @@ namespace logia::AST
     llvm::Value *BinaryExpression::post_codegen(logia::Backend *backend)
     {
         auto left = this->get_left();
-        auto left_ty = left->get_final_type();
+        // auto left_ty = left->get_final_type();
         auto left_value = left->codegen(backend);
         auto right = this->get_right();
-        auto right_ty = right->get_final_type();
+        // auto right_ty = right->get_final_type();
         auto right_value = right->codegen(backend);
         switch (op)
         {

@@ -16,7 +16,7 @@ namespace logia::AST
 
     llvm::Value *Identifier::post_codegen(logia::Backend *backend)
     {
-        DEBUG() << this->to_string() << std::endl;
+        LOG(DBG, "{}", this->to_string());
 
         auto decl = this->first_parent<Scope>()->lookup<Node>(this->identifier);
         if (decl->is<VarDeclStmt>())
@@ -85,7 +85,8 @@ namespace logia::AST
 
     void Identifier::_pre_type_inference()
     {
-        if (is_empty()) {
+        if (is_empty())
+        {
             throw_compiler_error("try to type an empty identifier!");
         }
         // this means my parent will type_inference this node!
@@ -94,7 +95,7 @@ namespace logia::AST
             auto ty = this->resolve()->get_final_type();
             if (ty == nullptr)
             {
-                LWARNING() << "skip._pre_type_inference (target no type)" << this->to_string() << std::endl;
+                LOG(WRN, "skip._pre_type_inference (target no type) {}", this->to_string());
                 return; // skip for later!
             }
             this->set_type(ty);
@@ -104,7 +105,7 @@ namespace logia::AST
 
     LOGIA_API Identifier *ast_create_identifier(LOGIA_CLONE const char *name)
     {
-        LOGIA_ASSERT(name);
+        LOGIA_VERIFY(name != nullptr);
 
         return new Identifier(nullptr, strdup(name));
     }

@@ -3,6 +3,8 @@
 #include "logia/ast/callexpr.h"
 #include "logia/ast/llvm.h"
 
+#include "logia/log.h"
+
 #include "llvm/IR/Constant.h"
 
 #include "logia/type_system.h"
@@ -23,7 +25,7 @@ namespace logia::AST
     {
         if (this->cg_value != nullptr)
         {
-            DEBUG() << this->to_string() << std::endl;
+            LOG(DBG, "{}", this->to_string());
             backend->set_debug_loc((llvm::Instruction *)this->cg_value, this->rule);
         }
         return Node::post_codegen(backend);

@@ -42,7 +42,7 @@ namespace logia::AST
             return this->alloca_inst;
         }
 
-        DEBUG() << this->to_string() << std::endl;
+        LOG(DBG, "{}", this->to_string());
         auto init_value = (llvm::Value *)this->get_expr()->codegen(backend);
         auto type = this->get_final_type();
         type->codegen(backend);
@@ -127,7 +127,7 @@ namespace logia::AST
 
     LOGIA_API LOGIA_LEND VarDeclStmt *ast_create_var_decl(Identifier *id, Type *type, Expression *expr)
     {
-        LOGIA_ASSERT(id);
+        LOGIA_ASSERT(id == nullptr);
 
         VarDeclStmt *variable = new VarDeclStmt(nullptr, id, type, expr);
 

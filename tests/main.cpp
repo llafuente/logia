@@ -1,12 +1,13 @@
 #include "gtest/gtest.h"
 #include <Windows.h>
 #include "utils.h"
+#include "logia/log.h"
 
 int main(int argc, char **argv)
 {
   SetConsoleOutputCP(65001); // CP_UTF8
 
-  logia_init_log((char *)"./logia-tests.log");
+  logia::logia_init_log((char *)"./logia-tests.log");
 
   testing::InitGoogleTest(&argc, argv);
 

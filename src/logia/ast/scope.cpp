@@ -61,7 +61,7 @@ namespace logia::AST
     {
         // keep parent body in sync regardless being already attached, allow blocks to be moved.
         auto parentBody = this->first_parent<Scope>();
-        LOGIA_ASSERT(parentBody);
+        LOGIA_ASSERT(parentBody == nullptr);
         this->parentScope = parentBody;
     }
 

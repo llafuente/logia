@@ -1,4 +1,6 @@
 #include "logia/ast/if_stmt.h"
+
+#include "logia/log.h"
 #include "logia/ast/llvm.h"
 #include "logia/ast/identifier.h"
 
@@ -47,7 +49,7 @@ namespace logia::AST
 
     llvm::Value *IfStmt::post_codegen(logia::Backend *backend)
     {
-        DEBUG() << this->to_string() << std::endl;
+        LOG(DBG, "{}", this->to_string());
 
         auto condition = this->get_condition()->codegen(backend);
         auto then_body = this->get_then();
@@ -70,7 +72,7 @@ namespace logia::AST
 
         if (!ast_llvm_block_has_terminator(then_body->llvm_basicblock))
         {
-            DEBUG() << "then_block has no terminator -> br";
+            LOG(DBG, "then_block has no terminator -> br");
             continue_block_required = true;
             backend->builder->CreateBr(continue_block);
         }
@@ -78,7 +80,7 @@ namespace logia::AST
         else_body->codegen(backend);
         if (!ast_llvm_block_has_terminator(then_body->llvm_basicblock))
         {
-            DEBUG() << "else_block has no terminator -> br";
+            LOG(DBG, "else_block has no terminator -> br");
             continue_block_required = true;
             backend->builder->CreateBr(continue_block);
         }
@@ -108,7 +110,7 @@ namespace logia::AST
 
     LOGIA_API LOGIA_LEND IfStmt *ast_create_if(Expression *condition)
     {
-        LOGIA_ASSERT(condition);
+        LOGIA_ASSERT(condition == nullptr);
 
         return new IfStmt(nullptr, condition);
     }

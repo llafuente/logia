@@ -1,5 +1,6 @@
 #pragma once
 
+#include "logia/log.h"
 #include "logia/ast/node.h"
 #include "logia/ast/semantic_error.h"
 
@@ -46,7 +47,7 @@ namespace logia::AST
         template <class T>
         bool try_look(const char *name, T **out)
         {
-            DEBUG() << name << std::endl;
+            LOG(DBG, "{}", name);
 
             std::string_view name_view(name);
             auto it = this->scope.find(name_view);
@@ -64,7 +65,7 @@ namespace logia::AST
         template <class T>
         T *look(const char *name)
         {
-            DEBUG() << name << std::endl;
+            LOG(DBG, "{}", name);
 
             std::string_view name_view(name);
             auto it = this->scope.find(name_view);
@@ -86,7 +87,7 @@ namespace logia::AST
         template <class T>
         bool try_lookup(const char *name, T **out)
         {
-            DEBUG() << name << std::endl;
+            LOG(DBG, "{}", name);
 
             std::string_view name_view(name);
             Scope *p = this;
@@ -109,7 +110,7 @@ namespace logia::AST
         template <class T>
         T *lookup(const char *name)
         {
-            DEBUG() << name << std::endl;
+            LOG(DBG, "{}", name);
 
             std::string_view name_view(name);
             Scope *p = this;
@@ -132,7 +133,7 @@ namespace logia::AST
         /// VarDeclStmt* var_decl = block->lookup<VarDeclStmt>("x");
         std::vector<Node *> lookup_all(const char *name)
         {
-            DEBUG() << name << std::endl;
+            LOG(DBG, "{}", name);
 
             auto out = std::vector<Node *>();
 

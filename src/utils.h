@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream>
 #include <cstdlib>
 #include <csignal>
 #include <format>
@@ -14,29 +13,8 @@
 // Step 2: Ensure macro arguments are expanded before stringizing
 #define TOSTRING(x) STRINGIFY(x)
 
-#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__))
-
-#define __FILENAME_LINE__ (__FILE__ ":" TOSTRING(__LINE__))
-
-// this variable is "computer-instalation" dependant
-#define FILENAME_SKIP_CHARACTER 36
-
-#define DEBUG() logia_log_file << "DBG | " << std::setw(24) << (__FILENAME_LINE__ + FILENAME_SKIP_CHARACTER) << " " << __FUNCTION__ << " "
-#define LINFO() logia_log_file << "INF | " << std::setw(24) << (__FILENAME_LINE__ + FILENAME_SKIP_CHARACTER) << " " << __FUNCTION__ << " "
-#define LWARNING() logia_log_file << "DBG | " << std::setw(24) << (__FILENAME_LINE__ + FILENAME_SKIP_CHARACTER) << " " << __FUNCTION__ << " "
-#define LERROR() logia_log_file << "ERR | " << std::setw(24) << (__FILENAME_LINE__ + FILENAME_SKIP_CHARACTER) << " " << __FUNCTION__ << " "
-
-// #define DEBUG() logia_log_file << __FUNCTION__ << ":" << __LINE__ << " "
-
 #define LOGIA_LEND
 #define LOGIA_CLONE
-
-extern std::ofstream logia_log_file;
-/**
- * Initialize log
- */
-bool logia_init_log(char *file_name, bool append = false);
-void logia_deinit_log();
 
 // Define export/import macros for Windows
 #ifdef _WIN32
@@ -58,22 +36,34 @@ void print_stack_trace();
 // Main macro that chooses the correct version based on arg count
 #define LOGIA_ASSERT(...) SELECT_MACRO(__VA_ARGS__, LOGIA_ASSERT2, LOGIA_ASSERT1)(__VA_ARGS__)
 
-#define LOGIA_ASSERT1(expr)                                                 \
-    do                                                                      \
-    {                                                                       \
-        if (!(expr))                                                        \
-        {                                                                   \
-            std::cerr << "Assertion failed: " << #expr                      \
-                      << "\nFile: " << __FILE__ << ":" << __LINE__ << "\n"; \
-            print_stack_trace();                                            \
-            std::abort();                                                   \
-        }                                                                   \
+#define LOGIA_VERIFY(expr)                                                     \
+    do                                                                         \
+    {                                                                          \
+        if (!!(expr))                                                           \
+        {                                                                      \
+            std::cerr << "Verify failed: " << #expr                            \
+                      << "\nAt file: " << __FILE__ << ":" << __LINE__ << "\n"; \
+            print_stack_trace();                                               \
+            std::abort();                                                      \
+        }                                                                      \
+    } while (0)
+
+#define LOGIA_ASSERT1(expr)                                                    \
+    do                                                                         \
+    {                                                                          \
+        if (!!(expr))                                                          \
+        {                                                                      \
+            std::cerr << "Assertion failed: " << #expr                         \
+                      << "\nAt file: " << __FILE__ << ":" << __LINE__ << "\n"; \
+            print_stack_trace();                                               \
+            std::abort();                                                      \
+        }                                                                      \
     } while (0)
 
 #define LOGIA_ASSERT2(expr, message)                                        \
     do                                                                      \
     {                                                                       \
-        if (!(expr))                                                        \
+        if (!!(expr))                                                       \
         {                                                                   \
             std::cerr << "Assertion failed: " << #expr                      \
                       << message                                            \

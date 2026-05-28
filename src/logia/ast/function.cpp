@@ -15,8 +15,8 @@ namespace logia::AST
         Type *type,
         Node *defaultValue) : alloca_inst(nullptr), Node(name->rule)
     {
-        LOGIA_ASSERT(name);
-        LOGIA_ASSERT(type);
+        LOGIA_ASSERT(name == nullptr);
+        LOGIA_ASSERT(type == nullptr);
 
         this->is_typed = true;
         name->skip_codegen = true;
@@ -70,7 +70,7 @@ namespace logia::AST
 
     Function::Function(antlr4::ParserRuleContext *rule, Identifier *name, Type *return_type, bool is_intrinsic) : Type(rule, Primitives::FUNCTION_TY)
     {
-        LOGIA_ASSERT(name && "name parameter is required");
+        LOGIA_ASSERT(name == nullptr, "name parameter is required");
 
         this->is_typed = true;
         name->skip_codegen = true;
@@ -249,7 +249,7 @@ namespace logia::AST
 
     void Function::pre_codegen(logia::Backend *backend)
     {
-        DEBUG() << this->to_string() << std::endl;
+        LOG(DBG, "{}", this->to_string());
         // generate return type, as it's the first in metada
         auto rtype = this->get_return_type()->get_final_type();
         rtype->codegen(backend);
@@ -276,7 +276,7 @@ namespace logia::AST
             // md_types.push_back(TypeNode);
             md_types.push_back(param_type->di_type);
 
-            DEBUG() << "parameter[" << i << "] is " << RSO << std::endl;
+            LOG(DBG, "parameter[{}] is {}", i, RSO);
         }
 
         auto func = llvm::FunctionType::get(rtype->ir_type,
@@ -314,7 +314,7 @@ namespace logia::AST
             this->get_body()->pre_codegen(backend);
             backend->dscopes.pop_back();
         }
-        DEBUG() << "exit!" << std::endl;
+        LOG(DBG, "exit!");
         Node::pre_codegen(backend);
     }
 
@@ -340,7 +340,7 @@ namespace logia::AST
     void Function::push_parameter(FunctionParameter *param)
     {
 
-        LOGIA_ASSERT(!this->is_attached && "Function type should be created before attached");
+        LOGIA_ASSERT(this->is_attached, "Function type should be created before attached");
         param->index = this->get_parameter_count();
         this->push_child(param);
         if (!this->is_intrinsic)
@@ -408,7 +408,7 @@ namespace logia::AST
 
             if (!found)
             {
-                throw_semantic_error(callee, "parameter '{}' not sent", param_name->identifier);
+                throw_semantic_error(callee, std::format("parameter '{}' not sent", param_name->identifier));
             }
         }
     }
@@ -457,7 +457,7 @@ namespace logia::AST
 
     LOGIA_API LOGIA_LEND Type *ast_create_instrinsic(Program *program, Identifier *id, Type *return_type)
     {
-        LOGIA_ASSERT(program);
+        LOGIA_ASSERT(program == nullptr);
 
         auto f = new Function(nullptr, id, return_type, true);
 

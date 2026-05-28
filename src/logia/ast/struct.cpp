@@ -105,7 +105,7 @@ namespace logia::AST
 
     void Struct::set_identifier(Identifier *id)
     {
-        LOGIA_ASSERT(id && "id parameters is required");
+        LOGIA_ASSERT(id == nullptr, "id parameters is required");
 
         if (this->has_name)
         {
@@ -153,7 +153,7 @@ namespace logia::AST
         auto field = this->get_field(id->identifier);
         if (field == nullptr)
         {
-            throw_semantic_error(id, "Field not found: '{}' at '{}'", id->identifier, this->get_repr());
+            throw_semantic_error(id, std::format("Field not found: '{}' at '{}'", id->identifier, this->get_repr()));
         }
         return field;
     }
@@ -250,7 +250,7 @@ namespace logia::AST
 
     llvm::Value *Struct::post_codegen(logia::Backend *backend)
     {
-        DEBUG() << this->to_string() << std::endl;
+        LOG(DBG, "{}", this->to_string());
         // cache, because type are unique and we will be visiting this a lot
         if (this->ir_type)
         {
@@ -301,8 +301,8 @@ namespace logia::AST
 
     void Struct::add_alias(antlr4::ParserRuleContext *rule, Identifier *from, Identifier *to, const char *docstring)
     {
-        LOGIA_ASSERT(from);
-        LOGIA_ASSERT(to);
+        LOGIA_ASSERT(from == nullptr);
+        LOGIA_ASSERT(to == nullptr);
 
         // TODO exists to ?
         // TODO exists from ?

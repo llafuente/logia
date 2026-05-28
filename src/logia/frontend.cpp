@@ -6,6 +6,7 @@
 #include "LogiaParser.h"
 #include "LogiaLexer.h"
 
+#include "logia/log.h"
 #include "logia/cst2ast.h"
 #include "logia/compiler_error.h"
 
@@ -80,7 +81,7 @@ namespace logia
 
     ParseResult::ParseResult(const char *file_path)
     {
-        DEBUG() << logia_config.to_string() << std::endl;
+        LOG(DBG, "{}", logia_config.to_string());
 
         CHAR **lppPart = {NULL};
         GetCurrentDirectoryA(MAX_PATH, this->cwd);
@@ -117,10 +118,7 @@ namespace logia
             throw_compiler_error(std::format("PathRelativePathToA failed: {}. Error: {}", file_path, GetLastError()));
         }
 
-        DEBUG() << "entry_point_fullpath = " << entry_point_fullpath << std::endl
-                << "entry_point_absdir = " << entry_point_absdir << std::endl
-                << "entry_point_reldir = " << entry_point_reldir << std::endl
-                << "entry_point_filename = " << entry_point_filename << std::endl;
+        LOG(DBG, "entry_point_fullpath = '{}'\nentry_point_absdir = '{}'\nentry_point_reldir = '{}'\nentry_point_filename = '{}'", entry_point_fullpath, entry_point_absdir, entry_point_reldir, entry_point_filename);
     }
 
     ParseResult::~ParseResult()
@@ -198,6 +196,7 @@ namespace logia
 
         this->cst_tree = this->parser->program();
 
+        logia_log_level = logia_config.cst_log_level;
         this->print_cst(logia_config.print_cst ? std::cerr : logia_log_file);
 
         if (is_program)
@@ -212,7 +211,7 @@ namespace logia
 
         CST2AST *llvmVisitor = new CST2AST(this->ast_tree);
         llvmVisitor->visit(this->cst_tree);
-
+        logia_log_level = logia_config.ast_log_level;
         this->print_ast(logia_config.print_ast ? std::cerr : logia_log_file);
 
         return this->ast_tree;
