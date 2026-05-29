@@ -1,23 +1,23 @@
 # logia
 
-Compiler for logia language
+Compiler for `logia` language, you can also check
 [logia language spec](https://github.com/llafuente/language-spec)
 
 Due to the nature of the language, most of the compiler is in fact inside the
 language core so the compiler could be used to develop other languages. Another
-objective for the compiler is to target only latest hardware and target that
-hardware having intrinsics written in LLVM IR rather than inside the compiler.
+objective for the compiler is to target only the latest hardware and do it using
+intrinsics written in LLVM IR rather than inside the compiler.
 
-The compiler has 4 very different stages.
+The compiler has 4 very different stages (atm).
 
-- Frontend
+- Frontend (TEXT -> CST -> AST)
   - CST (antlr4, tied to logia grammar)
   - AST
-- Backend
-  - type-system (AST)
-  - codegen (LLVM)
+- Backend (AST -> JIT/Binary)
+  - type-system/type-inference/type-enforcement (AST transformations)
+  - codegen (AST -> LLVM)
 
-The compiler is not ready for public usage yet. It still run very basic
+The compiler is not ready for public usage yet. It still runs very basic
 programs.
 
 ## install/build/develop
@@ -111,8 +111,10 @@ optimizations are good.
 - build logia_test_suite in debug mode
 
 ```ps1
-# run test suite
+# run test suite complete
 ./build-debug/bin/Debug/logia_test_suite.exe
+# run test suite filtered
+# ./build-debug/bin/Debug/logia_test_suite.exe --gtest_filter='*logia_run*' --gtest_fail_fast
 
 # now check that not only the tests are OK, the produced IR is valid
 & .\check-expected-ir.ps1 -testFolder ".\tests\tmp\" -referenceFolder ".\tests\expected-ir\" -diffTool git

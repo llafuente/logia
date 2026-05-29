@@ -17,12 +17,28 @@ target triple = "x86_64-pc-windows-msvc19.44.35221"
 @.str.11 = private unnamed_addr constant [22 x i8] c"logia=__logia_bin_mul\00", section "llvm.metadata"
 @.str.12 = private unnamed_addr constant [22 x i8] c"logia=__logia_bin_div\00", section "llvm.metadata"
 @.str.13 = private unnamed_addr constant [22 x i8] c"logia=__logia_bin_mod\00", section "llvm.metadata"
-@.str.14 = private unnamed_addr constant [30 x i8] c"logia=__logia_bin_bitwise_and\00", section "llvm.metadata"
-@.str.15 = private unnamed_addr constant [29 x i8] c"logia=__logia_bin_bitwise_or\00", section "llvm.metadata"
-@.str.16 = private unnamed_addr constant [30 x i8] c"logia=__logia_bin_bitwise_xor\00", section "llvm.metadata"
-@.str.17 = private unnamed_addr constant [30 x i8] c"logia=__logia_bin_bitwise_shl\00", section "llvm.metadata"
-@.str.18 = private unnamed_addr constant [30 x i8] c"logia=__logia_bin_bitwise_shr\00", section "llvm.metadata"
-@llvm.global.annotations = appending global [80 x { ptr, ptr, ptr, i32, ptr }] [{ ptr, ptr, ptr, i32, ptr } { ptr @logia__intrinsics_bin_add_i8_i8, ptr @.str.9, ptr @.str.1, i32 71, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_sub_i8_i8, ptr @.str.10, ptr @.str.1, i32 77, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mul_i8_i8, ptr @.str.11, ptr @.str.1, i32 83, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_div_i8_i8, ptr @.str.12, ptr @.str.1, i32 89, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mod_i8_i8, ptr @.str.13, ptr @.str.1, i32 95, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_and_i8_i8, ptr @.str.14, ptr @.str.1, i32 197, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_or_i8_i8, ptr @.str.15, ptr @.str.1, i32 203, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_xor_i8_i8, ptr @.str.16, ptr @.str.1, i32 209, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shl_i8_i8, ptr @.str.17, ptr @.str.1, i32 215, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shr_i8_i8, ptr @.str.18, ptr @.str.1, i32 221, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia__intrinsics_bin_add_i16_i16, ptr @.str.9, ptr @.str.1, i32 227, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_sub_i16_i16, ptr @.str.10, ptr @.str.1, i32 233, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mul_i16_i16, ptr @.str.11, ptr @.str.1, i32 239, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_div_i16_i16, ptr @.str.12, ptr @.str.1, i32 245, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mod_i16_i16, ptr @.str.13, ptr @.str.1, i32 251, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_and_i16_i16, ptr @.str.14, ptr @.str.1, i32 353, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_or_i16_i16, ptr @.str.15, ptr @.str.1, i32 359, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_xor_i16_i16, ptr @.str.16, ptr @.str.1, i32 365, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shl_i16_i16, ptr @.str.17, ptr @.str.1, i32 371, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shr_i16_i16, ptr @.str.18, ptr @.str.1, i32 377, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia__intrinsics_bin_add_i32_i32, ptr @.str.9, ptr @.str.1, i32 383, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_sub_i32_i32, ptr @.str.10, ptr @.str.1, i32 389, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mul_i32_i32, ptr @.str.11, ptr @.str.1, i32 395, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_div_i32_i32, ptr @.str.12, ptr @.str.1, i32 401, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mod_i32_i32, ptr @.str.13, ptr @.str.1, i32 407, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_and_i32_i32, ptr @.str.14, ptr @.str.1, i32 509, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_or_i32_i32, ptr @.str.15, ptr @.str.1, i32 515, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_xor_i32_i32, ptr @.str.16, ptr @.str.1, i32 521, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shl_i32_i32, ptr @.str.17, ptr @.str.1, i32 527, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shr_i32_i32, ptr @.str.18, ptr @.str.1, i32 533, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia__intrinsics_bin_add_i64_i64, ptr @.str.9, ptr @.str.1, i32 539, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_sub_i64_i64, ptr @.str.10, ptr @.str.1, i32 545, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mul_i64_i64, ptr @.str.11, ptr @.str.1, i32 551, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_div_i64_i64, ptr @.str.12, ptr @.str.1, i32 557, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mod_i64_i64, ptr @.str.13, ptr @.str.1, i32 563, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_and_i64_i64, ptr @.str.14, ptr @.str.1, i32 665, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_or_i64_i64, ptr @.str.15, ptr @.str.1, i32 671, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_xor_i64_i64, ptr @.str.16, ptr @.str.1, i32 677, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shl_i64_i64, ptr @.str.17, ptr @.str.1, i32 683, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shr_i64_i64, ptr @.str.18, ptr @.str.1, i32 689, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia__intrinsics_bin_add_u8_u8, ptr @.str.9, ptr @.str.1, i32 695, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_sub_u8_u8, ptr @.str.10, ptr @.str.1, i32 701, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mul_u8_u8, ptr @.str.11, ptr @.str.1, i32 707, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_div_u8_u8, ptr @.str.12, ptr @.str.1, i32 713, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mod_u8_u8, ptr @.str.13, ptr @.str.1, i32 719, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_and_u8_u8, ptr @.str.14, ptr @.str.1, i32 821, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_or_u8_u8, ptr @.str.15, ptr @.str.1, i32 827, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_xor_u8_u8, ptr @.str.16, ptr @.str.1, i32 833, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shl_u8_u8, ptr @.str.17, ptr @.str.1, i32 839, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shr_u8_u8, ptr @.str.18, ptr @.str.1, i32 845, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia__intrinsics_bin_add_u16_u16, ptr @.str.9, ptr @.str.1, i32 851, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_sub_u16_u16, ptr @.str.10, ptr @.str.1, i32 857, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mul_u16_u16, ptr @.str.11, ptr @.str.1, i32 863, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_div_u16_u16, ptr @.str.12, ptr @.str.1, i32 869, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mod_u16_u16, ptr @.str.13, ptr @.str.1, i32 875, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_and_u16_u16, ptr @.str.14, ptr @.str.1, i32 977, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_or_u16_u16, ptr @.str.15, ptr @.str.1, i32 983, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_xor_u16_u16, ptr @.str.16, ptr @.str.1, i32 989, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shl_u16_u16, ptr @.str.17, ptr @.str.1, i32 995, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shr_u16_u16, ptr @.str.18, ptr @.str.1, i32 1001, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia__intrinsics_bin_add_u32_u32, ptr @.str.9, ptr @.str.1, i32 1007, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_sub_u32_u32, ptr @.str.10, ptr @.str.1, i32 1013, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mul_u32_u32, ptr @.str.11, ptr @.str.1, i32 1019, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_div_u32_u32, ptr @.str.12, ptr @.str.1, i32 1025, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mod_u32_u32, ptr @.str.13, ptr @.str.1, i32 1031, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_and_u32_u32, ptr @.str.14, ptr @.str.1, i32 1133, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_or_u32_u32, ptr @.str.15, ptr @.str.1, i32 1139, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_xor_u32_u32, ptr @.str.16, ptr @.str.1, i32 1145, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shl_u32_u32, ptr @.str.17, ptr @.str.1, i32 1151, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shr_u32_u32, ptr @.str.18, ptr @.str.1, i32 1157, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia__intrinsics_bin_add_u64_u64, ptr @.str.9, ptr @.str.1, i32 1163, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_sub_u64_u64, ptr @.str.10, ptr @.str.1, i32 1169, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mul_u64_u64, ptr @.str.11, ptr @.str.1, i32 1175, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_div_u64_u64, ptr @.str.12, ptr @.str.1, i32 1181, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mod_u64_u64, ptr @.str.13, ptr @.str.1, i32 1187, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_and_u64_u64, ptr @.str.14, ptr @.str.1, i32 1289, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_or_u64_u64, ptr @.str.15, ptr @.str.1, i32 1295, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_xor_u64_u64, ptr @.str.16, ptr @.str.1, i32 1301, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shl_u64_u64, ptr @.str.17, ptr @.str.1, i32 1307, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shr_u64_u64, ptr @.str.18, ptr @.str.1, i32 1313, ptr null }], section "llvm.metadata"
+@.str.14 = private unnamed_addr constant [21 x i8] c"logia=__logia_bin_eq\00", section "llvm.metadata"
+@.str.15 = private unnamed_addr constant [22 x i8] c"logia=__logia_bin_neq\00", section "llvm.metadata"
+@.str.16 = private unnamed_addr constant [21 x i8] c"logia=__logia_bin_lt\00", section "llvm.metadata"
+@.str.17 = private unnamed_addr constant [22 x i8] c"logia=__logia_bin_lte\00", section "llvm.metadata"
+@.str.18 = private unnamed_addr constant [22 x i8] c"logia=__logia_bin_gte\00", section "llvm.metadata"
+@.str.19 = private unnamed_addr constant [25 x i8] c"logia=__logia_bin_assign\00", section "llvm.metadata"
+@.str.20 = private unnamed_addr constant [29 x i8] c"logia=__logia_bin_add_assign\00", section "llvm.metadata"
+@.str.21 = private unnamed_addr constant [29 x i8] c"logia=__logia_bin_sub_assign\00", section "llvm.metadata"
+@.str.22 = private unnamed_addr constant [29 x i8] c"logia=__logia_bin_mul_assign\00", section "llvm.metadata"
+@.str.23 = private unnamed_addr constant [29 x i8] c"logia=__logia_bin_div_assign\00", section "llvm.metadata"
+@.str.24 = private unnamed_addr constant [29 x i8] c"logia=__logia_bin_mod_assign\00", section "llvm.metadata"
+@.str.25 = private unnamed_addr constant [37 x i8] c"logia=__logia_bin_bitwise_and_assign\00", section "llvm.metadata"
+@.str.26 = private unnamed_addr constant [36 x i8] c"logia=__logia_bin_bitwise_or_assign\00", section "llvm.metadata"
+@.str.27 = private unnamed_addr constant [37 x i8] c"logia=__logia_bin_bitwise_xor_assign\00", section "llvm.metadata"
+@.str.28 = private unnamed_addr constant [37 x i8] c"logia=__logia_bin_bitwise_shr_assign\00", section "llvm.metadata"
+@.str.29 = private unnamed_addr constant [37 x i8] c"logia=__logia_bin_bitwise_shl_assign\00", section "llvm.metadata"
+@.str.30 = private unnamed_addr constant [30 x i8] c"logia=__logia_bin_bitwise_and\00", section "llvm.metadata"
+@.str.31 = private unnamed_addr constant [29 x i8] c"logia=__logia_bin_bitwise_or\00", section "llvm.metadata"
+@.str.32 = private unnamed_addr constant [30 x i8] c"logia=__logia_bin_bitwise_xor\00", section "llvm.metadata"
+@.str.33 = private unnamed_addr constant [30 x i8] c"logia=__logia_bin_bitwise_shl\00", section "llvm.metadata"
+@.str.34 = private unnamed_addr constant [30 x i8] c"logia=__logia_bin_bitwise_shr\00", section "llvm.metadata"
+@llvm.global.annotations = appending global [216 x { ptr, ptr, ptr, i32, ptr }] [{ ptr, ptr, ptr, i32, ptr } { ptr @logia__intrinsics_bin_add_i8_i8, ptr @.str.9, ptr @.str.1, i32 71, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_sub_i8_i8, ptr @.str.10, ptr @.str.1, i32 77, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mul_i8_i8, ptr @.str.11, ptr @.str.1, i32 83, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_div_i8_i8, ptr @.str.12, ptr @.str.1, i32 89, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mod_i8_i8, ptr @.str.13, ptr @.str.1, i32 95, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_eq_i8_i8, ptr @.str.14, ptr @.str.1, i32 101, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_neq_i8_i8, ptr @.str.15, ptr @.str.1, i32 107, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_lt_i8_i8, ptr @.str.16, ptr @.str.1, i32 113, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_gt_i8_i8, ptr @.str.16, ptr @.str.1, i32 119, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_lte_i8_i8, ptr @.str.17, ptr @.str.1, i32 125, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_gte_i8_i8, ptr @.str.18, ptr @.str.1, i32 131, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_assign_i8_i8, ptr @.str.19, ptr @.str.1, i32 137, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_add_assign_i8_i8, ptr @.str.20, ptr @.str.1, i32 144, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_sub_assign_i8_i8, ptr @.str.21, ptr @.str.1, i32 151, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mul_assign_i8_i8, ptr @.str.22, ptr @.str.1, i32 158, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_div_assign_i8_i8, ptr @.str.23, ptr @.str.1, i32 165, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mod_assign_i8_i8, ptr @.str.24, ptr @.str.1, i32 172, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_and_assign_i8_i8, ptr @.str.25, ptr @.str.1, i32 179, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_or_assign_i8_i8, ptr @.str.26, ptr @.str.1, i32 186, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_xor_assign_i8_i8, ptr @.str.27, ptr @.str.1, i32 193, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shr_assign_i8_i8, ptr @.str.28, ptr @.str.1, i32 200, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shl_assign_i8_i8, ptr @.str.29, ptr @.str.1, i32 207, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_and_i8_i8, ptr @.str.30, ptr @.str.1, i32 214, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_or_i8_i8, ptr @.str.31, ptr @.str.1, i32 220, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_xor_i8_i8, ptr @.str.32, ptr @.str.1, i32 226, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shl_i8_i8, ptr @.str.33, ptr @.str.1, i32 232, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shr_i8_i8, ptr @.str.34, ptr @.str.1, i32 238, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia__intrinsics_bin_add_i16_i16, ptr @.str.9, ptr @.str.1, i32 244, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_sub_i16_i16, ptr @.str.10, ptr @.str.1, i32 250, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mul_i16_i16, ptr @.str.11, ptr @.str.1, i32 256, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_div_i16_i16, ptr @.str.12, ptr @.str.1, i32 262, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mod_i16_i16, ptr @.str.13, ptr @.str.1, i32 268, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_eq_i16_i16, ptr @.str.14, ptr @.str.1, i32 274, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_neq_i16_i16, ptr @.str.15, ptr @.str.1, i32 280, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_lt_i16_i16, ptr @.str.16, ptr @.str.1, i32 286, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_gt_i16_i16, ptr @.str.16, ptr @.str.1, i32 292, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_lte_i16_i16, ptr @.str.17, ptr @.str.1, i32 298, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_gte_i16_i16, ptr @.str.18, ptr @.str.1, i32 304, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_assign_i16_i16, ptr @.str.19, ptr @.str.1, i32 310, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_add_assign_i16_i16, ptr @.str.20, ptr @.str.1, i32 317, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_sub_assign_i16_i16, ptr @.str.21, ptr @.str.1, i32 324, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mul_assign_i16_i16, ptr @.str.22, ptr @.str.1, i32 331, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_div_assign_i16_i16, ptr @.str.23, ptr @.str.1, i32 338, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mod_assign_i16_i16, ptr @.str.24, ptr @.str.1, i32 345, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_and_assign_i16_i16, ptr @.str.25, ptr @.str.1, i32 352, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_or_assign_i16_i16, ptr @.str.26, ptr @.str.1, i32 359, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_xor_assign_i16_i16, ptr @.str.27, ptr @.str.1, i32 366, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shr_assign_i16_i16, ptr @.str.28, ptr @.str.1, i32 373, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shl_assign_i16_i16, ptr @.str.29, ptr @.str.1, i32 380, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_and_i16_i16, ptr @.str.30, ptr @.str.1, i32 387, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_or_i16_i16, ptr @.str.31, ptr @.str.1, i32 393, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_xor_i16_i16, ptr @.str.32, ptr @.str.1, i32 399, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shl_i16_i16, ptr @.str.33, ptr @.str.1, i32 405, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shr_i16_i16, ptr @.str.34, ptr @.str.1, i32 411, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia__intrinsics_bin_add_i32_i32, ptr @.str.9, ptr @.str.1, i32 417, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_sub_i32_i32, ptr @.str.10, ptr @.str.1, i32 423, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mul_i32_i32, ptr @.str.11, ptr @.str.1, i32 429, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_div_i32_i32, ptr @.str.12, ptr @.str.1, i32 435, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mod_i32_i32, ptr @.str.13, ptr @.str.1, i32 441, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_eq_i32_i32, ptr @.str.14, ptr @.str.1, i32 447, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_neq_i32_i32, ptr @.str.15, ptr @.str.1, i32 453, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_lt_i32_i32, ptr @.str.16, ptr @.str.1, i32 459, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_gt_i32_i32, ptr @.str.16, ptr @.str.1, i32 465, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_lte_i32_i32, ptr @.str.17, ptr @.str.1, i32 471, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_gte_i32_i32, ptr @.str.18, ptr @.str.1, i32 477, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_assign_i32_i32, ptr @.str.19, ptr @.str.1, i32 483, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_add_assign_i32_i32, ptr @.str.20, ptr @.str.1, i32 490, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_sub_assign_i32_i32, ptr @.str.21, ptr @.str.1, i32 497, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mul_assign_i32_i32, ptr @.str.22, ptr @.str.1, i32 504, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_div_assign_i32_i32, ptr @.str.23, ptr @.str.1, i32 511, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mod_assign_i32_i32, ptr @.str.24, ptr @.str.1, i32 518, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_and_assign_i32_i32, ptr @.str.25, ptr @.str.1, i32 525, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_or_assign_i32_i32, ptr @.str.26, ptr @.str.1, i32 532, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_xor_assign_i32_i32, ptr @.str.27, ptr @.str.1, i32 539, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shr_assign_i32_i32, ptr @.str.28, ptr @.str.1, i32 546, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shl_assign_i32_i32, ptr @.str.29, ptr @.str.1, i32 553, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_and_i32_i32, ptr @.str.30, ptr @.str.1, i32 560, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_or_i32_i32, ptr @.str.31, ptr @.str.1, i32 566, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_xor_i32_i32, ptr @.str.32, ptr @.str.1, i32 572, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shl_i32_i32, ptr @.str.33, ptr @.str.1, i32 578, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shr_i32_i32, ptr @.str.34, ptr @.str.1, i32 584, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia__intrinsics_bin_add_i64_i64, ptr @.str.9, ptr @.str.1, i32 590, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_sub_i64_i64, ptr @.str.10, ptr @.str.1, i32 596, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mul_i64_i64, ptr @.str.11, ptr @.str.1, i32 602, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_div_i64_i64, ptr @.str.12, ptr @.str.1, i32 608, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mod_i64_i64, ptr @.str.13, ptr @.str.1, i32 614, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_eq_i64_i64, ptr @.str.14, ptr @.str.1, i32 620, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_neq_i64_i64, ptr @.str.15, ptr @.str.1, i32 626, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_lt_i64_i64, ptr @.str.16, ptr @.str.1, i32 632, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_gt_i64_i64, ptr @.str.16, ptr @.str.1, i32 638, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_lte_i64_i64, ptr @.str.17, ptr @.str.1, i32 644, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_gte_i64_i64, ptr @.str.18, ptr @.str.1, i32 650, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_assign_i64_i64, ptr @.str.19, ptr @.str.1, i32 656, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_add_assign_i64_i64, ptr @.str.20, ptr @.str.1, i32 663, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_sub_assign_i64_i64, ptr @.str.21, ptr @.str.1, i32 670, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mul_assign_i64_i64, ptr @.str.22, ptr @.str.1, i32 677, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_div_assign_i64_i64, ptr @.str.23, ptr @.str.1, i32 684, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mod_assign_i64_i64, ptr @.str.24, ptr @.str.1, i32 691, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_and_assign_i64_i64, ptr @.str.25, ptr @.str.1, i32 698, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_or_assign_i64_i64, ptr @.str.26, ptr @.str.1, i32 705, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_xor_assign_i64_i64, ptr @.str.27, ptr @.str.1, i32 712, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shr_assign_i64_i64, ptr @.str.28, ptr @.str.1, i32 719, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shl_assign_i64_i64, ptr @.str.29, ptr @.str.1, i32 726, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_and_i64_i64, ptr @.str.30, ptr @.str.1, i32 733, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_or_i64_i64, ptr @.str.31, ptr @.str.1, i32 739, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_xor_i64_i64, ptr @.str.32, ptr @.str.1, i32 745, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shl_i64_i64, ptr @.str.33, ptr @.str.1, i32 751, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shr_i64_i64, ptr @.str.34, ptr @.str.1, i32 757, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia__intrinsics_bin_add_u8_u8, ptr @.str.9, ptr @.str.1, i32 763, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_sub_u8_u8, ptr @.str.10, ptr @.str.1, i32 769, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mul_u8_u8, ptr @.str.11, ptr @.str.1, i32 775, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_div_u8_u8, ptr @.str.12, ptr @.str.1, i32 781, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mod_u8_u8, ptr @.str.13, ptr @.str.1, i32 787, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_eq_u8_u8, ptr @.str.14, ptr @.str.1, i32 793, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_neq_u8_u8, ptr @.str.15, ptr @.str.1, i32 799, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_lt_u8_u8, ptr @.str.16, ptr @.str.1, i32 805, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_gt_u8_u8, ptr @.str.16, ptr @.str.1, i32 811, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_lte_u8_u8, ptr @.str.17, ptr @.str.1, i32 817, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_gte_u8_u8, ptr @.str.18, ptr @.str.1, i32 823, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_assign_u8_u8, ptr @.str.19, ptr @.str.1, i32 829, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_add_assign_u8_u8, ptr @.str.20, ptr @.str.1, i32 836, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_sub_assign_u8_u8, ptr @.str.21, ptr @.str.1, i32 843, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mul_assign_u8_u8, ptr @.str.22, ptr @.str.1, i32 850, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_div_assign_u8_u8, ptr @.str.23, ptr @.str.1, i32 857, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mod_assign_u8_u8, ptr @.str.24, ptr @.str.1, i32 864, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_and_assign_u8_u8, ptr @.str.25, ptr @.str.1, i32 871, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_or_assign_u8_u8, ptr @.str.26, ptr @.str.1, i32 878, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_xor_assign_u8_u8, ptr @.str.27, ptr @.str.1, i32 885, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shr_assign_u8_u8, ptr @.str.28, ptr @.str.1, i32 892, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shl_assign_u8_u8, ptr @.str.29, ptr @.str.1, i32 899, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_and_u8_u8, ptr @.str.30, ptr @.str.1, i32 906, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_or_u8_u8, ptr @.str.31, ptr @.str.1, i32 912, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_xor_u8_u8, ptr @.str.32, ptr @.str.1, i32 918, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shl_u8_u8, ptr @.str.33, ptr @.str.1, i32 924, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shr_u8_u8, ptr @.str.34, ptr @.str.1, i32 930, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia__intrinsics_bin_add_u16_u16, ptr @.str.9, ptr @.str.1, i32 936, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_sub_u16_u16, ptr @.str.10, ptr @.str.1, i32 942, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mul_u16_u16, ptr @.str.11, ptr @.str.1, i32 948, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_div_u16_u16, ptr @.str.12, ptr @.str.1, i32 954, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mod_u16_u16, ptr @.str.13, ptr @.str.1, i32 960, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_eq_u16_u16, ptr @.str.14, ptr @.str.1, i32 966, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_neq_u16_u16, ptr @.str.15, ptr @.str.1, i32 972, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_lt_u16_u16, ptr @.str.16, ptr @.str.1, i32 978, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_gt_u16_u16, ptr @.str.16, ptr @.str.1, i32 984, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_lte_u16_u16, ptr @.str.17, ptr @.str.1, i32 990, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_gte_u16_u16, ptr @.str.18, ptr @.str.1, i32 996, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_assign_u16_u16, ptr @.str.19, ptr @.str.1, i32 1002, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_add_assign_u16_u16, ptr @.str.20, ptr @.str.1, i32 1009, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_sub_assign_u16_u16, ptr @.str.21, ptr @.str.1, i32 1016, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mul_assign_u16_u16, ptr @.str.22, ptr @.str.1, i32 1023, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_div_assign_u16_u16, ptr @.str.23, ptr @.str.1, i32 1030, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mod_assign_u16_u16, ptr @.str.24, ptr @.str.1, i32 1037, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_and_assign_u16_u16, ptr @.str.25, ptr @.str.1, i32 1044, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_or_assign_u16_u16, ptr @.str.26, ptr @.str.1, i32 1051, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_xor_assign_u16_u16, ptr @.str.27, ptr @.str.1, i32 1058, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shr_assign_u16_u16, ptr @.str.28, ptr @.str.1, i32 1065, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shl_assign_u16_u16, ptr @.str.29, ptr @.str.1, i32 1072, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_and_u16_u16, ptr @.str.30, ptr @.str.1, i32 1079, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_or_u16_u16, ptr @.str.31, ptr @.str.1, i32 1085, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_xor_u16_u16, ptr @.str.32, ptr @.str.1, i32 1091, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shl_u16_u16, ptr @.str.33, ptr @.str.1, i32 1097, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shr_u16_u16, ptr @.str.34, ptr @.str.1, i32 1103, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia__intrinsics_bin_add_u32_u32, ptr @.str.9, ptr @.str.1, i32 1109, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_sub_u32_u32, ptr @.str.10, ptr @.str.1, i32 1115, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mul_u32_u32, ptr @.str.11, ptr @.str.1, i32 1121, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_div_u32_u32, ptr @.str.12, ptr @.str.1, i32 1127, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mod_u32_u32, ptr @.str.13, ptr @.str.1, i32 1133, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_eq_u32_u32, ptr @.str.14, ptr @.str.1, i32 1139, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_neq_u32_u32, ptr @.str.15, ptr @.str.1, i32 1145, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_lt_u32_u32, ptr @.str.16, ptr @.str.1, i32 1151, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_gt_u32_u32, ptr @.str.16, ptr @.str.1, i32 1157, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_lte_u32_u32, ptr @.str.17, ptr @.str.1, i32 1163, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_gte_u32_u32, ptr @.str.18, ptr @.str.1, i32 1169, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_assign_u32_u32, ptr @.str.19, ptr @.str.1, i32 1175, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_add_assign_u32_u32, ptr @.str.20, ptr @.str.1, i32 1182, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_sub_assign_u32_u32, ptr @.str.21, ptr @.str.1, i32 1189, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mul_assign_u32_u32, ptr @.str.22, ptr @.str.1, i32 1196, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_div_assign_u32_u32, ptr @.str.23, ptr @.str.1, i32 1203, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mod_assign_u32_u32, ptr @.str.24, ptr @.str.1, i32 1210, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_and_assign_u32_u32, ptr @.str.25, ptr @.str.1, i32 1217, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_or_assign_u32_u32, ptr @.str.26, ptr @.str.1, i32 1224, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_xor_assign_u32_u32, ptr @.str.27, ptr @.str.1, i32 1231, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shr_assign_u32_u32, ptr @.str.28, ptr @.str.1, i32 1238, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shl_assign_u32_u32, ptr @.str.29, ptr @.str.1, i32 1245, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_and_u32_u32, ptr @.str.30, ptr @.str.1, i32 1252, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_or_u32_u32, ptr @.str.31, ptr @.str.1, i32 1258, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_xor_u32_u32, ptr @.str.32, ptr @.str.1, i32 1264, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shl_u32_u32, ptr @.str.33, ptr @.str.1, i32 1270, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shr_u32_u32, ptr @.str.34, ptr @.str.1, i32 1276, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia__intrinsics_bin_add_u64_u64, ptr @.str.9, ptr @.str.1, i32 1282, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_sub_u64_u64, ptr @.str.10, ptr @.str.1, i32 1288, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mul_u64_u64, ptr @.str.11, ptr @.str.1, i32 1294, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_div_u64_u64, ptr @.str.12, ptr @.str.1, i32 1300, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mod_u64_u64, ptr @.str.13, ptr @.str.1, i32 1306, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_eq_u64_u64, ptr @.str.14, ptr @.str.1, i32 1312, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_neq_u64_u64, ptr @.str.15, ptr @.str.1, i32 1318, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_lt_u64_u64, ptr @.str.16, ptr @.str.1, i32 1324, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_gt_u64_u64, ptr @.str.16, ptr @.str.1, i32 1330, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_lte_u64_u64, ptr @.str.17, ptr @.str.1, i32 1336, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_gte_u64_u64, ptr @.str.18, ptr @.str.1, i32 1342, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_assign_u64_u64, ptr @.str.19, ptr @.str.1, i32 1348, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_add_assign_u64_u64, ptr @.str.20, ptr @.str.1, i32 1355, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_sub_assign_u64_u64, ptr @.str.21, ptr @.str.1, i32 1362, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mul_assign_u64_u64, ptr @.str.22, ptr @.str.1, i32 1369, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_div_assign_u64_u64, ptr @.str.23, ptr @.str.1, i32 1376, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_mod_assign_u64_u64, ptr @.str.24, ptr @.str.1, i32 1383, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_and_assign_u64_u64, ptr @.str.25, ptr @.str.1, i32 1390, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_or_assign_u64_u64, ptr @.str.26, ptr @.str.1, i32 1397, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_xor_assign_u64_u64, ptr @.str.27, ptr @.str.1, i32 1404, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shr_assign_u64_u64, ptr @.str.28, ptr @.str.1, i32 1411, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shl_assign_u64_u64, ptr @.str.29, ptr @.str.1, i32 1418, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_and_u64_u64, ptr @.str.30, ptr @.str.1, i32 1425, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_or_u64_u64, ptr @.str.31, ptr @.str.1, i32 1431, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_xor_u64_u64, ptr @.str.32, ptr @.str.1, i32 1437, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shl_u64_u64, ptr @.str.33, ptr @.str.1, i32 1443, ptr null }, { ptr, ptr, ptr, i32, ptr } { ptr @logia_intrinsics_bin_bitwise_shr_u64_u64, ptr @.str.34, ptr @.str.1, i32 1449, ptr null }], section "llvm.metadata"
 
 ; Function Attrs: mustprogress noinline optnone uwtable
 define dso_local ptr @logia_get_stdout() #0 {
@@ -194,7 +210,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_eq_i8_i8(i8 noundef %0, i8 nou
   %3 = alloca i8, align 1
   %4 = alloca i8, align 1
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str, ptr @.str.1, i32 101, ptr null)
   store i8 %0, ptr %4, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str, ptr @.str.1, i32 101, ptr null)
   %5 = load i8, ptr %4, align 1
   %6 = sext i8 %5 to i32
   %7 = load i8, ptr %3, align 1
@@ -208,7 +226,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_neq_i8_i8(i8 noundef %0, i8 no
   %3 = alloca i8, align 1
   %4 = alloca i8, align 1
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str, ptr @.str.1, i32 107, ptr null)
   store i8 %0, ptr %4, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str, ptr @.str.1, i32 107, ptr null)
   %5 = load i8, ptr %4, align 1
   %6 = sext i8 %5 to i32
   %7 = load i8, ptr %3, align 1
@@ -222,7 +242,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_lt_i8_i8(i8 noundef %0, i8 nou
   %3 = alloca i8, align 1
   %4 = alloca i8, align 1
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str, ptr @.str.1, i32 113, ptr null)
   store i8 %0, ptr %4, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str, ptr @.str.1, i32 113, ptr null)
   %5 = load i8, ptr %4, align 1
   %6 = sext i8 %5 to i32
   %7 = load i8, ptr %3, align 1
@@ -236,7 +258,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_gt_i8_i8(i8 noundef %0, i8 nou
   %3 = alloca i8, align 1
   %4 = alloca i8, align 1
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str, ptr @.str.1, i32 119, ptr null)
   store i8 %0, ptr %4, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str, ptr @.str.1, i32 119, ptr null)
   %5 = load i8, ptr %4, align 1
   %6 = sext i8 %5 to i32
   %7 = load i8, ptr %3, align 1
@@ -250,7 +274,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_lte_i8_i8(i8 noundef %0, i8 no
   %3 = alloca i8, align 1
   %4 = alloca i8, align 1
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str, ptr @.str.1, i32 125, ptr null)
   store i8 %0, ptr %4, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str, ptr @.str.1, i32 125, ptr null)
   %5 = load i8, ptr %4, align 1
   %6 = sext i8 %5 to i32
   %7 = load i8, ptr %3, align 1
@@ -264,7 +290,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_gte_i8_i8(i8 noundef %0, i8 no
   %3 = alloca i8, align 1
   %4 = alloca i8, align 1
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str, ptr @.str.1, i32 131, ptr null)
   store i8 %0, ptr %4, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str, ptr @.str.1, i32 131, ptr null)
   %5 = load i8, ptr %4, align 1
   %6 = sext i8 %5 to i32
   %7 = load i8, ptr %3, align 1
@@ -278,7 +306,9 @@ define dso_local i8 @logia_intrinsics_bin_assign_i8_i8(ptr noundef %0, i8 nounde
   %3 = alloca i8, align 1
   %4 = alloca ptr, align 8
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str, ptr @.str.1, i32 137, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str, ptr @.str.1, i32 137, ptr null)
   %5 = load i8, ptr %3, align 1
   %6 = load ptr, ptr %4, align 8
   store i8 %5, ptr %6, align 1
@@ -292,7 +322,9 @@ define dso_local i8 @logia_intrinsics_bin_add_assign_i8_i8(ptr noundef %0, i8 no
   %3 = alloca i8, align 1
   %4 = alloca ptr, align 8
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str, ptr @.str.1, i32 144, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str, ptr @.str.1, i32 144, ptr null)
   %5 = load i8, ptr %3, align 1
   %6 = sext i8 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -311,7 +343,9 @@ define dso_local i8 @logia_intrinsics_bin_sub_assign_i8_i8(ptr noundef %0, i8 no
   %3 = alloca i8, align 1
   %4 = alloca ptr, align 8
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str, ptr @.str.1, i32 151, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str, ptr @.str.1, i32 151, ptr null)
   %5 = load i8, ptr %3, align 1
   %6 = sext i8 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -330,7 +364,9 @@ define dso_local i8 @logia_intrinsics_bin_mul_assign_i8_i8(ptr noundef %0, i8 no
   %3 = alloca i8, align 1
   %4 = alloca ptr, align 8
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str, ptr @.str.1, i32 158, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str, ptr @.str.1, i32 158, ptr null)
   %5 = load i8, ptr %3, align 1
   %6 = sext i8 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -349,7 +385,9 @@ define dso_local i8 @logia_intrinsics_bin_div_assign_i8_i8(ptr noundef %0, i8 no
   %3 = alloca i8, align 1
   %4 = alloca ptr, align 8
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str, ptr @.str.1, i32 165, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str, ptr @.str.1, i32 165, ptr null)
   %5 = load i8, ptr %3, align 1
   %6 = sext i8 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -368,7 +406,9 @@ define dso_local i8 @logia_intrinsics_bin_mod_assign_i8_i8(ptr noundef %0, i8 no
   %3 = alloca i8, align 1
   %4 = alloca ptr, align 8
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str, ptr @.str.1, i32 172, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str, ptr @.str.1, i32 172, ptr null)
   %5 = load i8, ptr %3, align 1
   %6 = sext i8 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -387,7 +427,9 @@ define dso_local i8 @logia_intrinsics_bin_bitwise_and_assign_i8_i8(ptr noundef %
   %3 = alloca i8, align 1
   %4 = alloca ptr, align 8
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str, ptr @.str.1, i32 179, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str, ptr @.str.1, i32 179, ptr null)
   %5 = load i8, ptr %3, align 1
   %6 = sext i8 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -406,7 +448,9 @@ define dso_local i8 @logia_intrinsics_bin_bitwise_or_assign_i8_i8(ptr noundef %0
   %3 = alloca i8, align 1
   %4 = alloca ptr, align 8
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str, ptr @.str.1, i32 186, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str, ptr @.str.1, i32 186, ptr null)
   %5 = load i8, ptr %3, align 1
   %6 = sext i8 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -425,7 +469,9 @@ define dso_local i8 @logia_intrinsics_bin_bitwise_xor_assign_i8_i8(ptr noundef %
   %3 = alloca i8, align 1
   %4 = alloca ptr, align 8
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str, ptr @.str.1, i32 193, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str, ptr @.str.1, i32 193, ptr null)
   %5 = load i8, ptr %3, align 1
   %6 = sext i8 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -444,7 +490,9 @@ define dso_local i8 @logia_intrinsics_bin_bitwise_shr_assign_i8_i8(ptr noundef %
   %3 = alloca i8, align 1
   %4 = alloca ptr, align 8
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str, ptr @.str.1, i32 200, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str, ptr @.str.1, i32 200, ptr null)
   %5 = load i8, ptr %3, align 1
   %6 = sext i8 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -463,7 +511,9 @@ define dso_local i8 @logia_intrinsics_bin_bitwise_shl_assign_i8_i8(ptr noundef %
   %3 = alloca i8, align 1
   %4 = alloca ptr, align 8
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str, ptr @.str.1, i32 207, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str, ptr @.str.1, i32 207, ptr null)
   %5 = load i8, ptr %3, align 1
   %6 = sext i8 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -482,9 +532,9 @@ define dso_local i8 @logia_intrinsics_bin_bitwise_and_i8_i8(i8 noundef %0, i8 no
   %3 = alloca i8, align 1
   %4 = alloca i8, align 1
   store i8 %1, ptr %3, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str, ptr @.str.1, i32 197, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str, ptr @.str.1, i32 214, ptr null)
   store i8 %0, ptr %4, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str, ptr @.str.1, i32 197, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str, ptr @.str.1, i32 214, ptr null)
   %5 = load i8, ptr %4, align 1
   %6 = sext i8 %5 to i32
   %7 = load i8, ptr %3, align 1
@@ -499,9 +549,9 @@ define dso_local i8 @logia_intrinsics_bin_bitwise_or_i8_i8(i8 noundef %0, i8 nou
   %3 = alloca i8, align 1
   %4 = alloca i8, align 1
   store i8 %1, ptr %3, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str, ptr @.str.1, i32 203, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str, ptr @.str.1, i32 220, ptr null)
   store i8 %0, ptr %4, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str, ptr @.str.1, i32 203, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str, ptr @.str.1, i32 220, ptr null)
   %5 = load i8, ptr %4, align 1
   %6 = sext i8 %5 to i32
   %7 = load i8, ptr %3, align 1
@@ -516,9 +566,9 @@ define dso_local i8 @logia_intrinsics_bin_bitwise_xor_i8_i8(i8 noundef %0, i8 no
   %3 = alloca i8, align 1
   %4 = alloca i8, align 1
   store i8 %1, ptr %3, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str, ptr @.str.1, i32 209, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str, ptr @.str.1, i32 226, ptr null)
   store i8 %0, ptr %4, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str, ptr @.str.1, i32 209, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str, ptr @.str.1, i32 226, ptr null)
   %5 = load i8, ptr %4, align 1
   %6 = sext i8 %5 to i32
   %7 = load i8, ptr %3, align 1
@@ -533,9 +583,9 @@ define dso_local i8 @logia_intrinsics_bin_bitwise_shl_i8_i8(i8 noundef %0, i8 no
   %3 = alloca i8, align 1
   %4 = alloca i8, align 1
   store i8 %1, ptr %3, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str, ptr @.str.1, i32 215, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str, ptr @.str.1, i32 232, ptr null)
   store i8 %0, ptr %4, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str, ptr @.str.1, i32 215, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str, ptr @.str.1, i32 232, ptr null)
   %5 = load i8, ptr %4, align 1
   %6 = sext i8 %5 to i32
   %7 = load i8, ptr %3, align 1
@@ -550,9 +600,9 @@ define dso_local i8 @logia_intrinsics_bin_bitwise_shr_i8_i8(i8 noundef %0, i8 no
   %3 = alloca i8, align 1
   %4 = alloca i8, align 1
   store i8 %1, ptr %3, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str, ptr @.str.1, i32 221, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str, ptr @.str.1, i32 238, ptr null)
   store i8 %0, ptr %4, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str, ptr @.str.1, i32 221, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str, ptr @.str.1, i32 238, ptr null)
   %5 = load i8, ptr %4, align 1
   %6 = sext i8 %5 to i32
   %7 = load i8, ptr %3, align 1
@@ -567,9 +617,9 @@ define dso_local i16 @logia__intrinsics_bin_add_i16_i16(i16 noundef %0, i16 noun
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 227, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 244, ptr null)
   store i16 %0, ptr %4, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 227, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 244, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = sext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -584,9 +634,9 @@ define dso_local i16 @logia_intrinsics_bin_sub_i16_i16(i16 noundef %0, i16 nound
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 233, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 250, ptr null)
   store i16 %0, ptr %4, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 233, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 250, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = sext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -601,9 +651,9 @@ define dso_local i16 @logia_intrinsics_bin_mul_i16_i16(i16 noundef %0, i16 nound
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 239, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 256, ptr null)
   store i16 %0, ptr %4, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 239, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 256, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = sext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -618,9 +668,9 @@ define dso_local i16 @logia_intrinsics_bin_div_i16_i16(i16 noundef %0, i16 nound
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 245, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 262, ptr null)
   store i16 %0, ptr %4, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 245, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 262, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = sext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -635,9 +685,9 @@ define dso_local i16 @logia_intrinsics_bin_mod_i16_i16(i16 noundef %0, i16 nound
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 251, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 268, ptr null)
   store i16 %0, ptr %4, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 251, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 268, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = sext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -652,7 +702,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_eq_i16_i16(i16 noundef %0, i16
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 274, ptr null)
   store i16 %0, ptr %4, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 274, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = sext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -666,7 +718,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_neq_i16_i16(i16 noundef %0, i1
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 280, ptr null)
   store i16 %0, ptr %4, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 280, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = sext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -680,7 +734,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_lt_i16_i16(i16 noundef %0, i16
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 286, ptr null)
   store i16 %0, ptr %4, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 286, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = sext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -694,7 +750,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_gt_i16_i16(i16 noundef %0, i16
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 292, ptr null)
   store i16 %0, ptr %4, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 292, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = sext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -708,7 +766,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_lte_i16_i16(i16 noundef %0, i1
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 298, ptr null)
   store i16 %0, ptr %4, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 298, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = sext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -722,7 +782,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_gte_i16_i16(i16 noundef %0, i1
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 304, ptr null)
   store i16 %0, ptr %4, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 304, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = sext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -736,7 +798,9 @@ define dso_local i16 @logia_intrinsics_bin_assign_i16_i16(ptr noundef %0, i16 no
   %3 = alloca i16, align 2
   %4 = alloca ptr, align 8
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 310, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 310, ptr null)
   %5 = load i16, ptr %3, align 2
   %6 = load ptr, ptr %4, align 8
   store i16 %5, ptr %6, align 2
@@ -750,7 +814,9 @@ define dso_local i16 @logia_intrinsics_bin_add_assign_i16_i16(ptr noundef %0, i1
   %3 = alloca i16, align 2
   %4 = alloca ptr, align 8
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 317, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 317, ptr null)
   %5 = load i16, ptr %3, align 2
   %6 = sext i16 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -769,7 +835,9 @@ define dso_local i16 @logia_intrinsics_bin_sub_assign_i16_i16(ptr noundef %0, i1
   %3 = alloca i16, align 2
   %4 = alloca ptr, align 8
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 324, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 324, ptr null)
   %5 = load i16, ptr %3, align 2
   %6 = sext i16 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -788,7 +856,9 @@ define dso_local i16 @logia_intrinsics_bin_mul_assign_i16_i16(ptr noundef %0, i1
   %3 = alloca i16, align 2
   %4 = alloca ptr, align 8
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 331, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 331, ptr null)
   %5 = load i16, ptr %3, align 2
   %6 = sext i16 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -807,7 +877,9 @@ define dso_local i16 @logia_intrinsics_bin_div_assign_i16_i16(ptr noundef %0, i1
   %3 = alloca i16, align 2
   %4 = alloca ptr, align 8
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 338, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 338, ptr null)
   %5 = load i16, ptr %3, align 2
   %6 = sext i16 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -826,7 +898,9 @@ define dso_local i16 @logia_intrinsics_bin_mod_assign_i16_i16(ptr noundef %0, i1
   %3 = alloca i16, align 2
   %4 = alloca ptr, align 8
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 345, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 345, ptr null)
   %5 = load i16, ptr %3, align 2
   %6 = sext i16 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -845,7 +919,9 @@ define dso_local i16 @logia_intrinsics_bin_bitwise_and_assign_i16_i16(ptr nounde
   %3 = alloca i16, align 2
   %4 = alloca ptr, align 8
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 352, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 352, ptr null)
   %5 = load i16, ptr %3, align 2
   %6 = sext i16 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -864,7 +940,9 @@ define dso_local i16 @logia_intrinsics_bin_bitwise_or_assign_i16_i16(ptr noundef
   %3 = alloca i16, align 2
   %4 = alloca ptr, align 8
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 359, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 359, ptr null)
   %5 = load i16, ptr %3, align 2
   %6 = sext i16 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -883,7 +961,9 @@ define dso_local i16 @logia_intrinsics_bin_bitwise_xor_assign_i16_i16(ptr nounde
   %3 = alloca i16, align 2
   %4 = alloca ptr, align 8
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 366, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 366, ptr null)
   %5 = load i16, ptr %3, align 2
   %6 = sext i16 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -902,7 +982,9 @@ define dso_local i16 @logia_intrinsics_bin_bitwise_shr_assign_i16_i16(ptr nounde
   %3 = alloca i16, align 2
   %4 = alloca ptr, align 8
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 373, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 373, ptr null)
   %5 = load i16, ptr %3, align 2
   %6 = sext i16 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -921,7 +1003,9 @@ define dso_local i16 @logia_intrinsics_bin_bitwise_shl_assign_i16_i16(ptr nounde
   %3 = alloca i16, align 2
   %4 = alloca ptr, align 8
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 380, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 380, ptr null)
   %5 = load i16, ptr %3, align 2
   %6 = sext i16 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -940,9 +1024,9 @@ define dso_local i16 @logia_intrinsics_bin_bitwise_and_i16_i16(i16 noundef %0, i
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 353, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 387, ptr null)
   store i16 %0, ptr %4, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 353, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 387, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = sext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -957,9 +1041,9 @@ define dso_local i16 @logia_intrinsics_bin_bitwise_or_i16_i16(i16 noundef %0, i1
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 359, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 393, ptr null)
   store i16 %0, ptr %4, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 359, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 393, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = sext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -974,9 +1058,9 @@ define dso_local i16 @logia_intrinsics_bin_bitwise_xor_i16_i16(i16 noundef %0, i
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 365, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 399, ptr null)
   store i16 %0, ptr %4, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 365, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 399, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = sext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -991,9 +1075,9 @@ define dso_local i16 @logia_intrinsics_bin_bitwise_shl_i16_i16(i16 noundef %0, i
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 371, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 405, ptr null)
   store i16 %0, ptr %4, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 371, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 405, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = sext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -1008,9 +1092,9 @@ define dso_local i16 @logia_intrinsics_bin_bitwise_shr_i16_i16(i16 noundef %0, i
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 377, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.2, ptr @.str.1, i32 411, ptr null)
   store i16 %0, ptr %4, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 377, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.2, ptr @.str.1, i32 411, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = sext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -1025,9 +1109,9 @@ define dso_local i32 @logia__intrinsics_bin_add_i32_i32(i32 noundef %0, i32 noun
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 383, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 417, ptr null)
   store i32 %0, ptr %4, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 383, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 417, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = add nsw i32 %5, %6
@@ -1039,9 +1123,9 @@ define dso_local i32 @logia_intrinsics_bin_sub_i32_i32(i32 noundef %0, i32 nound
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 389, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 423, ptr null)
   store i32 %0, ptr %4, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 389, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 423, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = sub nsw i32 %5, %6
@@ -1053,9 +1137,9 @@ define dso_local i32 @logia_intrinsics_bin_mul_i32_i32(i32 noundef %0, i32 nound
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 395, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 429, ptr null)
   store i32 %0, ptr %4, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 395, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 429, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = mul nsw i32 %5, %6
@@ -1067,9 +1151,9 @@ define dso_local i32 @logia_intrinsics_bin_div_i32_i32(i32 noundef %0, i32 nound
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 401, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 435, ptr null)
   store i32 %0, ptr %4, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 401, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 435, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = sdiv i32 %5, %6
@@ -1081,9 +1165,9 @@ define dso_local i32 @logia_intrinsics_bin_mod_i32_i32(i32 noundef %0, i32 nound
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 407, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 441, ptr null)
   store i32 %0, ptr %4, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 407, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 441, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = srem i32 %5, %6
@@ -1095,7 +1179,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_eq_i32_i32(i32 noundef %0, i32
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 447, ptr null)
   store i32 %0, ptr %4, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 447, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = icmp eq i32 %5, %6
@@ -1107,7 +1193,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_neq_i32_i32(i32 noundef %0, i3
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 453, ptr null)
   store i32 %0, ptr %4, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 453, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = icmp ne i32 %5, %6
@@ -1119,7 +1207,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_lt_i32_i32(i32 noundef %0, i32
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 459, ptr null)
   store i32 %0, ptr %4, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 459, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = icmp slt i32 %5, %6
@@ -1131,7 +1221,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_gt_i32_i32(i32 noundef %0, i32
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 465, ptr null)
   store i32 %0, ptr %4, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 465, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = icmp sgt i32 %5, %6
@@ -1143,7 +1235,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_lte_i32_i32(i32 noundef %0, i3
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 471, ptr null)
   store i32 %0, ptr %4, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 471, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = icmp sle i32 %5, %6
@@ -1155,7 +1249,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_gte_i32_i32(i32 noundef %0, i3
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 477, ptr null)
   store i32 %0, ptr %4, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 477, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = icmp sge i32 %5, %6
@@ -1167,7 +1263,9 @@ define dso_local i32 @logia_intrinsics_bin_assign_i32_i32(ptr noundef %0, i32 no
   %3 = alloca i32, align 4
   %4 = alloca ptr, align 8
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 483, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 483, ptr null)
   %5 = load i32, ptr %3, align 4
   %6 = load ptr, ptr %4, align 8
   store i32 %5, ptr %6, align 4
@@ -1181,7 +1279,9 @@ define dso_local i32 @logia_intrinsics_bin_add_assign_i32_i32(ptr noundef %0, i3
   %3 = alloca i32, align 4
   %4 = alloca ptr, align 8
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 490, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 490, ptr null)
   %5 = load i32, ptr %3, align 4
   %6 = load ptr, ptr %4, align 8
   %7 = load i32, ptr %6, align 4
@@ -1197,7 +1297,9 @@ define dso_local i32 @logia_intrinsics_bin_sub_assign_i32_i32(ptr noundef %0, i3
   %3 = alloca i32, align 4
   %4 = alloca ptr, align 8
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 497, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 497, ptr null)
   %5 = load i32, ptr %3, align 4
   %6 = load ptr, ptr %4, align 8
   %7 = load i32, ptr %6, align 4
@@ -1213,7 +1315,9 @@ define dso_local i32 @logia_intrinsics_bin_mul_assign_i32_i32(ptr noundef %0, i3
   %3 = alloca i32, align 4
   %4 = alloca ptr, align 8
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 504, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 504, ptr null)
   %5 = load i32, ptr %3, align 4
   %6 = load ptr, ptr %4, align 8
   %7 = load i32, ptr %6, align 4
@@ -1229,7 +1333,9 @@ define dso_local i32 @logia_intrinsics_bin_div_assign_i32_i32(ptr noundef %0, i3
   %3 = alloca i32, align 4
   %4 = alloca ptr, align 8
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 511, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 511, ptr null)
   %5 = load i32, ptr %3, align 4
   %6 = load ptr, ptr %4, align 8
   %7 = load i32, ptr %6, align 4
@@ -1245,7 +1351,9 @@ define dso_local i32 @logia_intrinsics_bin_mod_assign_i32_i32(ptr noundef %0, i3
   %3 = alloca i32, align 4
   %4 = alloca ptr, align 8
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 518, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 518, ptr null)
   %5 = load i32, ptr %3, align 4
   %6 = load ptr, ptr %4, align 8
   %7 = load i32, ptr %6, align 4
@@ -1261,7 +1369,9 @@ define dso_local i32 @logia_intrinsics_bin_bitwise_and_assign_i32_i32(ptr nounde
   %3 = alloca i32, align 4
   %4 = alloca ptr, align 8
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 525, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 525, ptr null)
   %5 = load i32, ptr %3, align 4
   %6 = load ptr, ptr %4, align 8
   %7 = load i32, ptr %6, align 4
@@ -1277,7 +1387,9 @@ define dso_local i32 @logia_intrinsics_bin_bitwise_or_assign_i32_i32(ptr noundef
   %3 = alloca i32, align 4
   %4 = alloca ptr, align 8
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 532, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 532, ptr null)
   %5 = load i32, ptr %3, align 4
   %6 = load ptr, ptr %4, align 8
   %7 = load i32, ptr %6, align 4
@@ -1293,7 +1405,9 @@ define dso_local i32 @logia_intrinsics_bin_bitwise_xor_assign_i32_i32(ptr nounde
   %3 = alloca i32, align 4
   %4 = alloca ptr, align 8
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 539, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 539, ptr null)
   %5 = load i32, ptr %3, align 4
   %6 = load ptr, ptr %4, align 8
   %7 = load i32, ptr %6, align 4
@@ -1309,7 +1423,9 @@ define dso_local i32 @logia_intrinsics_bin_bitwise_shr_assign_i32_i32(ptr nounde
   %3 = alloca i32, align 4
   %4 = alloca ptr, align 8
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 546, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 546, ptr null)
   %5 = load i32, ptr %3, align 4
   %6 = load ptr, ptr %4, align 8
   %7 = load i32, ptr %6, align 4
@@ -1325,7 +1441,9 @@ define dso_local i32 @logia_intrinsics_bin_bitwise_shl_assign_i32_i32(ptr nounde
   %3 = alloca i32, align 4
   %4 = alloca ptr, align 8
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 553, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 553, ptr null)
   %5 = load i32, ptr %3, align 4
   %6 = load ptr, ptr %4, align 8
   %7 = load i32, ptr %6, align 4
@@ -1341,9 +1459,9 @@ define dso_local i32 @logia_intrinsics_bin_bitwise_and_i32_i32(i32 noundef %0, i
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 509, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 560, ptr null)
   store i32 %0, ptr %4, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 509, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 560, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = and i32 %5, %6
@@ -1355,9 +1473,9 @@ define dso_local i32 @logia_intrinsics_bin_bitwise_or_i32_i32(i32 noundef %0, i3
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 515, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 566, ptr null)
   store i32 %0, ptr %4, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 515, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 566, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = or i32 %5, %6
@@ -1369,9 +1487,9 @@ define dso_local i32 @logia_intrinsics_bin_bitwise_xor_i32_i32(i32 noundef %0, i
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 521, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 572, ptr null)
   store i32 %0, ptr %4, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 521, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 572, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = xor i32 %5, %6
@@ -1383,9 +1501,9 @@ define dso_local i32 @logia_intrinsics_bin_bitwise_shl_i32_i32(i32 noundef %0, i
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 527, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 578, ptr null)
   store i32 %0, ptr %4, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 527, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 578, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = shl i32 %5, %6
@@ -1397,9 +1515,9 @@ define dso_local i32 @logia_intrinsics_bin_bitwise_shr_i32_i32(i32 noundef %0, i
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 533, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.3, ptr @.str.1, i32 584, ptr null)
   store i32 %0, ptr %4, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 533, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.3, ptr @.str.1, i32 584, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = ashr i32 %5, %6
@@ -1411,9 +1529,9 @@ define dso_local i64 @logia__intrinsics_bin_add_i64_i64(i64 noundef %0, i64 noun
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 539, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 590, ptr null)
   store i64 %0, ptr %4, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 539, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 590, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = add nsw i64 %5, %6
@@ -1425,9 +1543,9 @@ define dso_local i64 @logia_intrinsics_bin_sub_i64_i64(i64 noundef %0, i64 nound
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 545, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 596, ptr null)
   store i64 %0, ptr %4, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 545, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 596, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = sub nsw i64 %5, %6
@@ -1439,9 +1557,9 @@ define dso_local i64 @logia_intrinsics_bin_mul_i64_i64(i64 noundef %0, i64 nound
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 551, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 602, ptr null)
   store i64 %0, ptr %4, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 551, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 602, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = mul nsw i64 %5, %6
@@ -1453,9 +1571,9 @@ define dso_local i64 @logia_intrinsics_bin_div_i64_i64(i64 noundef %0, i64 nound
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 557, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 608, ptr null)
   store i64 %0, ptr %4, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 557, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 608, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = sdiv i64 %5, %6
@@ -1467,9 +1585,9 @@ define dso_local i64 @logia_intrinsics_bin_mod_i64_i64(i64 noundef %0, i64 nound
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 563, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 614, ptr null)
   store i64 %0, ptr %4, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 563, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 614, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = srem i64 %5, %6
@@ -1481,7 +1599,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_eq_i64_i64(i64 noundef %0, i64
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 620, ptr null)
   store i64 %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 620, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = icmp eq i64 %5, %6
@@ -1493,7 +1613,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_neq_i64_i64(i64 noundef %0, i6
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 626, ptr null)
   store i64 %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 626, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = icmp ne i64 %5, %6
@@ -1505,7 +1627,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_lt_i64_i64(i64 noundef %0, i64
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 632, ptr null)
   store i64 %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 632, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = icmp slt i64 %5, %6
@@ -1517,7 +1641,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_gt_i64_i64(i64 noundef %0, i64
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 638, ptr null)
   store i64 %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 638, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = icmp sgt i64 %5, %6
@@ -1529,7 +1655,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_lte_i64_i64(i64 noundef %0, i6
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 644, ptr null)
   store i64 %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 644, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = icmp sle i64 %5, %6
@@ -1541,7 +1669,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_gte_i64_i64(i64 noundef %0, i6
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 650, ptr null)
   store i64 %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 650, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = icmp sge i64 %5, %6
@@ -1553,7 +1683,9 @@ define dso_local i64 @logia_intrinsics_bin_assign_i64_i64(ptr noundef %0, i64 no
   %3 = alloca i64, align 8
   %4 = alloca ptr, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 656, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 656, ptr null)
   %5 = load i64, ptr %3, align 8
   %6 = load ptr, ptr %4, align 8
   store i64 %5, ptr %6, align 8
@@ -1567,7 +1699,9 @@ define dso_local i64 @logia_intrinsics_bin_add_assign_i64_i64(ptr noundef %0, i6
   %3 = alloca i64, align 8
   %4 = alloca ptr, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 663, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 663, ptr null)
   %5 = load i64, ptr %3, align 8
   %6 = load ptr, ptr %4, align 8
   %7 = load i64, ptr %6, align 8
@@ -1583,7 +1717,9 @@ define dso_local i64 @logia_intrinsics_bin_sub_assign_i64_i64(ptr noundef %0, i6
   %3 = alloca i64, align 8
   %4 = alloca ptr, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 670, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 670, ptr null)
   %5 = load i64, ptr %3, align 8
   %6 = load ptr, ptr %4, align 8
   %7 = load i64, ptr %6, align 8
@@ -1599,7 +1735,9 @@ define dso_local i64 @logia_intrinsics_bin_mul_assign_i64_i64(ptr noundef %0, i6
   %3 = alloca i64, align 8
   %4 = alloca ptr, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 677, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 677, ptr null)
   %5 = load i64, ptr %3, align 8
   %6 = load ptr, ptr %4, align 8
   %7 = load i64, ptr %6, align 8
@@ -1615,7 +1753,9 @@ define dso_local i64 @logia_intrinsics_bin_div_assign_i64_i64(ptr noundef %0, i6
   %3 = alloca i64, align 8
   %4 = alloca ptr, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 684, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 684, ptr null)
   %5 = load i64, ptr %3, align 8
   %6 = load ptr, ptr %4, align 8
   %7 = load i64, ptr %6, align 8
@@ -1631,7 +1771,9 @@ define dso_local i64 @logia_intrinsics_bin_mod_assign_i64_i64(ptr noundef %0, i6
   %3 = alloca i64, align 8
   %4 = alloca ptr, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 691, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 691, ptr null)
   %5 = load i64, ptr %3, align 8
   %6 = load ptr, ptr %4, align 8
   %7 = load i64, ptr %6, align 8
@@ -1647,7 +1789,9 @@ define dso_local i64 @logia_intrinsics_bin_bitwise_and_assign_i64_i64(ptr nounde
   %3 = alloca i64, align 8
   %4 = alloca ptr, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 698, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 698, ptr null)
   %5 = load i64, ptr %3, align 8
   %6 = load ptr, ptr %4, align 8
   %7 = load i64, ptr %6, align 8
@@ -1663,7 +1807,9 @@ define dso_local i64 @logia_intrinsics_bin_bitwise_or_assign_i64_i64(ptr noundef
   %3 = alloca i64, align 8
   %4 = alloca ptr, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 705, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 705, ptr null)
   %5 = load i64, ptr %3, align 8
   %6 = load ptr, ptr %4, align 8
   %7 = load i64, ptr %6, align 8
@@ -1679,7 +1825,9 @@ define dso_local i64 @logia_intrinsics_bin_bitwise_xor_assign_i64_i64(ptr nounde
   %3 = alloca i64, align 8
   %4 = alloca ptr, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 712, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 712, ptr null)
   %5 = load i64, ptr %3, align 8
   %6 = load ptr, ptr %4, align 8
   %7 = load i64, ptr %6, align 8
@@ -1695,7 +1843,9 @@ define dso_local i64 @logia_intrinsics_bin_bitwise_shr_assign_i64_i64(ptr nounde
   %3 = alloca i64, align 8
   %4 = alloca ptr, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 719, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 719, ptr null)
   %5 = load i64, ptr %3, align 8
   %6 = load ptr, ptr %4, align 8
   %7 = load i64, ptr %6, align 8
@@ -1711,7 +1861,9 @@ define dso_local i64 @logia_intrinsics_bin_bitwise_shl_assign_i64_i64(ptr nounde
   %3 = alloca i64, align 8
   %4 = alloca ptr, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 726, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 726, ptr null)
   %5 = load i64, ptr %3, align 8
   %6 = load ptr, ptr %4, align 8
   %7 = load i64, ptr %6, align 8
@@ -1727,9 +1879,9 @@ define dso_local i64 @logia_intrinsics_bin_bitwise_and_i64_i64(i64 noundef %0, i
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 665, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 733, ptr null)
   store i64 %0, ptr %4, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 665, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 733, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = and i64 %5, %6
@@ -1741,9 +1893,9 @@ define dso_local i64 @logia_intrinsics_bin_bitwise_or_i64_i64(i64 noundef %0, i6
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 671, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 739, ptr null)
   store i64 %0, ptr %4, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 671, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 739, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = or i64 %5, %6
@@ -1755,9 +1907,9 @@ define dso_local i64 @logia_intrinsics_bin_bitwise_xor_i64_i64(i64 noundef %0, i
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 677, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 745, ptr null)
   store i64 %0, ptr %4, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 677, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 745, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = xor i64 %5, %6
@@ -1769,9 +1921,9 @@ define dso_local i64 @logia_intrinsics_bin_bitwise_shl_i64_i64(i64 noundef %0, i
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 683, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 751, ptr null)
   store i64 %0, ptr %4, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 683, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 751, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = shl i64 %5, %6
@@ -1783,9 +1935,9 @@ define dso_local i64 @logia_intrinsics_bin_bitwise_shr_i64_i64(i64 noundef %0, i
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 689, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.4, ptr @.str.1, i32 757, ptr null)
   store i64 %0, ptr %4, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 689, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.4, ptr @.str.1, i32 757, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = ashr i64 %5, %6
@@ -1797,9 +1949,9 @@ define dso_local i8 @logia__intrinsics_bin_add_u8_u8(i8 noundef %0, i8 noundef %
   %3 = alloca i8, align 1
   %4 = alloca i8, align 1
   store i8 %1, ptr %3, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 695, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 763, ptr null)
   store i8 %0, ptr %4, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 695, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 763, ptr null)
   %5 = load i8, ptr %4, align 1
   %6 = zext i8 %5 to i32
   %7 = load i8, ptr %3, align 1
@@ -1814,9 +1966,9 @@ define dso_local i8 @logia_intrinsics_bin_sub_u8_u8(i8 noundef %0, i8 noundef %1
   %3 = alloca i8, align 1
   %4 = alloca i8, align 1
   store i8 %1, ptr %3, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 701, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 769, ptr null)
   store i8 %0, ptr %4, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 701, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 769, ptr null)
   %5 = load i8, ptr %4, align 1
   %6 = zext i8 %5 to i32
   %7 = load i8, ptr %3, align 1
@@ -1831,9 +1983,9 @@ define dso_local i8 @logia_intrinsics_bin_mul_u8_u8(i8 noundef %0, i8 noundef %1
   %3 = alloca i8, align 1
   %4 = alloca i8, align 1
   store i8 %1, ptr %3, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 707, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 775, ptr null)
   store i8 %0, ptr %4, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 707, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 775, ptr null)
   %5 = load i8, ptr %4, align 1
   %6 = zext i8 %5 to i32
   %7 = load i8, ptr %3, align 1
@@ -1848,9 +2000,9 @@ define dso_local i8 @logia_intrinsics_bin_div_u8_u8(i8 noundef %0, i8 noundef %1
   %3 = alloca i8, align 1
   %4 = alloca i8, align 1
   store i8 %1, ptr %3, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 713, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 781, ptr null)
   store i8 %0, ptr %4, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 713, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 781, ptr null)
   %5 = load i8, ptr %4, align 1
   %6 = zext i8 %5 to i32
   %7 = load i8, ptr %3, align 1
@@ -1865,9 +2017,9 @@ define dso_local i8 @logia_intrinsics_bin_mod_u8_u8(i8 noundef %0, i8 noundef %1
   %3 = alloca i8, align 1
   %4 = alloca i8, align 1
   store i8 %1, ptr %3, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 719, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 787, ptr null)
   store i8 %0, ptr %4, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 719, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 787, ptr null)
   %5 = load i8, ptr %4, align 1
   %6 = zext i8 %5 to i32
   %7 = load i8, ptr %3, align 1
@@ -1882,7 +2034,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_eq_u8_u8(i8 noundef %0, i8 nou
   %3 = alloca i8, align 1
   %4 = alloca i8, align 1
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 793, ptr null)
   store i8 %0, ptr %4, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 793, ptr null)
   %5 = load i8, ptr %4, align 1
   %6 = zext i8 %5 to i32
   %7 = load i8, ptr %3, align 1
@@ -1896,7 +2050,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_neq_u8_u8(i8 noundef %0, i8 no
   %3 = alloca i8, align 1
   %4 = alloca i8, align 1
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 799, ptr null)
   store i8 %0, ptr %4, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 799, ptr null)
   %5 = load i8, ptr %4, align 1
   %6 = zext i8 %5 to i32
   %7 = load i8, ptr %3, align 1
@@ -1910,7 +2066,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_lt_u8_u8(i8 noundef %0, i8 nou
   %3 = alloca i8, align 1
   %4 = alloca i8, align 1
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 805, ptr null)
   store i8 %0, ptr %4, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 805, ptr null)
   %5 = load i8, ptr %4, align 1
   %6 = zext i8 %5 to i32
   %7 = load i8, ptr %3, align 1
@@ -1924,7 +2082,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_gt_u8_u8(i8 noundef %0, i8 nou
   %3 = alloca i8, align 1
   %4 = alloca i8, align 1
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 811, ptr null)
   store i8 %0, ptr %4, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 811, ptr null)
   %5 = load i8, ptr %4, align 1
   %6 = zext i8 %5 to i32
   %7 = load i8, ptr %3, align 1
@@ -1938,7 +2098,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_lte_u8_u8(i8 noundef %0, i8 no
   %3 = alloca i8, align 1
   %4 = alloca i8, align 1
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 817, ptr null)
   store i8 %0, ptr %4, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 817, ptr null)
   %5 = load i8, ptr %4, align 1
   %6 = zext i8 %5 to i32
   %7 = load i8, ptr %3, align 1
@@ -1952,7 +2114,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_gte_u8_u8(i8 noundef %0, i8 no
   %3 = alloca i8, align 1
   %4 = alloca i8, align 1
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 823, ptr null)
   store i8 %0, ptr %4, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 823, ptr null)
   %5 = load i8, ptr %4, align 1
   %6 = zext i8 %5 to i32
   %7 = load i8, ptr %3, align 1
@@ -1966,7 +2130,9 @@ define dso_local i8 @logia_intrinsics_bin_assign_u8_u8(ptr noundef %0, i8 nounde
   %3 = alloca i8, align 1
   %4 = alloca ptr, align 8
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 829, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 829, ptr null)
   %5 = load i8, ptr %3, align 1
   %6 = load ptr, ptr %4, align 8
   store i8 %5, ptr %6, align 1
@@ -1980,7 +2146,9 @@ define dso_local i8 @logia_intrinsics_bin_add_assign_u8_u8(ptr noundef %0, i8 no
   %3 = alloca i8, align 1
   %4 = alloca ptr, align 8
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 836, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 836, ptr null)
   %5 = load i8, ptr %3, align 1
   %6 = zext i8 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -1999,7 +2167,9 @@ define dso_local i8 @logia_intrinsics_bin_sub_assign_u8_u8(ptr noundef %0, i8 no
   %3 = alloca i8, align 1
   %4 = alloca ptr, align 8
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 843, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 843, ptr null)
   %5 = load i8, ptr %3, align 1
   %6 = zext i8 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -2018,7 +2188,9 @@ define dso_local i8 @logia_intrinsics_bin_mul_assign_u8_u8(ptr noundef %0, i8 no
   %3 = alloca i8, align 1
   %4 = alloca ptr, align 8
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 850, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 850, ptr null)
   %5 = load i8, ptr %3, align 1
   %6 = zext i8 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -2037,7 +2209,9 @@ define dso_local i8 @logia_intrinsics_bin_div_assign_u8_u8(ptr noundef %0, i8 no
   %3 = alloca i8, align 1
   %4 = alloca ptr, align 8
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 857, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 857, ptr null)
   %5 = load i8, ptr %3, align 1
   %6 = zext i8 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -2056,7 +2230,9 @@ define dso_local i8 @logia_intrinsics_bin_mod_assign_u8_u8(ptr noundef %0, i8 no
   %3 = alloca i8, align 1
   %4 = alloca ptr, align 8
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 864, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 864, ptr null)
   %5 = load i8, ptr %3, align 1
   %6 = zext i8 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -2075,7 +2251,9 @@ define dso_local i8 @logia_intrinsics_bin_bitwise_and_assign_u8_u8(ptr noundef %
   %3 = alloca i8, align 1
   %4 = alloca ptr, align 8
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 871, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 871, ptr null)
   %5 = load i8, ptr %3, align 1
   %6 = zext i8 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -2094,7 +2272,9 @@ define dso_local i8 @logia_intrinsics_bin_bitwise_or_assign_u8_u8(ptr noundef %0
   %3 = alloca i8, align 1
   %4 = alloca ptr, align 8
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 878, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 878, ptr null)
   %5 = load i8, ptr %3, align 1
   %6 = zext i8 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -2113,7 +2293,9 @@ define dso_local i8 @logia_intrinsics_bin_bitwise_xor_assign_u8_u8(ptr noundef %
   %3 = alloca i8, align 1
   %4 = alloca ptr, align 8
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 885, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 885, ptr null)
   %5 = load i8, ptr %3, align 1
   %6 = zext i8 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -2132,7 +2314,9 @@ define dso_local i8 @logia_intrinsics_bin_bitwise_shr_assign_u8_u8(ptr noundef %
   %3 = alloca i8, align 1
   %4 = alloca ptr, align 8
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 892, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 892, ptr null)
   %5 = load i8, ptr %3, align 1
   %6 = zext i8 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -2151,7 +2335,9 @@ define dso_local i8 @logia_intrinsics_bin_bitwise_shl_assign_u8_u8(ptr noundef %
   %3 = alloca i8, align 1
   %4 = alloca ptr, align 8
   store i8 %1, ptr %3, align 1
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 899, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 899, ptr null)
   %5 = load i8, ptr %3, align 1
   %6 = zext i8 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -2170,9 +2356,9 @@ define dso_local i8 @logia_intrinsics_bin_bitwise_and_u8_u8(i8 noundef %0, i8 no
   %3 = alloca i8, align 1
   %4 = alloca i8, align 1
   store i8 %1, ptr %3, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 821, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 906, ptr null)
   store i8 %0, ptr %4, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 821, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 906, ptr null)
   %5 = load i8, ptr %4, align 1
   %6 = zext i8 %5 to i32
   %7 = load i8, ptr %3, align 1
@@ -2187,9 +2373,9 @@ define dso_local i8 @logia_intrinsics_bin_bitwise_or_u8_u8(i8 noundef %0, i8 nou
   %3 = alloca i8, align 1
   %4 = alloca i8, align 1
   store i8 %1, ptr %3, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 827, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 912, ptr null)
   store i8 %0, ptr %4, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 827, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 912, ptr null)
   %5 = load i8, ptr %4, align 1
   %6 = zext i8 %5 to i32
   %7 = load i8, ptr %3, align 1
@@ -2204,9 +2390,9 @@ define dso_local i8 @logia_intrinsics_bin_bitwise_xor_u8_u8(i8 noundef %0, i8 no
   %3 = alloca i8, align 1
   %4 = alloca i8, align 1
   store i8 %1, ptr %3, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 833, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 918, ptr null)
   store i8 %0, ptr %4, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 833, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 918, ptr null)
   %5 = load i8, ptr %4, align 1
   %6 = zext i8 %5 to i32
   %7 = load i8, ptr %3, align 1
@@ -2221,9 +2407,9 @@ define dso_local i8 @logia_intrinsics_bin_bitwise_shl_u8_u8(i8 noundef %0, i8 no
   %3 = alloca i8, align 1
   %4 = alloca i8, align 1
   store i8 %1, ptr %3, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 839, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 924, ptr null)
   store i8 %0, ptr %4, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 839, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 924, ptr null)
   %5 = load i8, ptr %4, align 1
   %6 = zext i8 %5 to i32
   %7 = load i8, ptr %3, align 1
@@ -2238,9 +2424,9 @@ define dso_local i8 @logia_intrinsics_bin_bitwise_shr_u8_u8(i8 noundef %0, i8 no
   %3 = alloca i8, align 1
   %4 = alloca i8, align 1
   store i8 %1, ptr %3, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 845, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.5, ptr @.str.1, i32 930, ptr null)
   store i8 %0, ptr %4, align 1
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 845, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.5, ptr @.str.1, i32 930, ptr null)
   %5 = load i8, ptr %4, align 1
   %6 = zext i8 %5 to i32
   %7 = load i8, ptr %3, align 1
@@ -2255,9 +2441,9 @@ define dso_local i16 @logia__intrinsics_bin_add_u16_u16(i16 noundef %0, i16 noun
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 851, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 936, ptr null)
   store i16 %0, ptr %4, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 851, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 936, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = zext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -2272,9 +2458,9 @@ define dso_local i16 @logia_intrinsics_bin_sub_u16_u16(i16 noundef %0, i16 nound
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 857, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 942, ptr null)
   store i16 %0, ptr %4, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 857, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 942, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = zext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -2289,9 +2475,9 @@ define dso_local i16 @logia_intrinsics_bin_mul_u16_u16(i16 noundef %0, i16 nound
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 863, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 948, ptr null)
   store i16 %0, ptr %4, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 863, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 948, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = zext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -2306,9 +2492,9 @@ define dso_local i16 @logia_intrinsics_bin_div_u16_u16(i16 noundef %0, i16 nound
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 869, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 954, ptr null)
   store i16 %0, ptr %4, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 869, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 954, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = zext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -2323,9 +2509,9 @@ define dso_local i16 @logia_intrinsics_bin_mod_u16_u16(i16 noundef %0, i16 nound
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 875, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 960, ptr null)
   store i16 %0, ptr %4, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 875, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 960, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = zext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -2340,7 +2526,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_eq_u16_u16(i16 noundef %0, i16
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 966, ptr null)
   store i16 %0, ptr %4, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 966, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = zext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -2354,7 +2542,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_neq_u16_u16(i16 noundef %0, i1
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 972, ptr null)
   store i16 %0, ptr %4, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 972, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = zext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -2368,7 +2558,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_lt_u16_u16(i16 noundef %0, i16
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 978, ptr null)
   store i16 %0, ptr %4, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 978, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = zext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -2382,7 +2574,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_gt_u16_u16(i16 noundef %0, i16
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 984, ptr null)
   store i16 %0, ptr %4, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 984, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = zext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -2396,7 +2590,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_lte_u16_u16(i16 noundef %0, i1
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 990, ptr null)
   store i16 %0, ptr %4, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 990, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = zext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -2410,7 +2606,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_gte_u16_u16(i16 noundef %0, i1
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 996, ptr null)
   store i16 %0, ptr %4, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 996, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = zext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -2424,7 +2622,9 @@ define dso_local i16 @logia_intrinsics_bin_assign_u16_u16(ptr noundef %0, i16 no
   %3 = alloca i16, align 2
   %4 = alloca ptr, align 8
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 1002, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 1002, ptr null)
   %5 = load i16, ptr %3, align 2
   %6 = load ptr, ptr %4, align 8
   store i16 %5, ptr %6, align 2
@@ -2438,7 +2638,9 @@ define dso_local i16 @logia_intrinsics_bin_add_assign_u16_u16(ptr noundef %0, i1
   %3 = alloca i16, align 2
   %4 = alloca ptr, align 8
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 1009, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 1009, ptr null)
   %5 = load i16, ptr %3, align 2
   %6 = zext i16 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -2457,7 +2659,9 @@ define dso_local i16 @logia_intrinsics_bin_sub_assign_u16_u16(ptr noundef %0, i1
   %3 = alloca i16, align 2
   %4 = alloca ptr, align 8
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 1016, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 1016, ptr null)
   %5 = load i16, ptr %3, align 2
   %6 = zext i16 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -2476,7 +2680,9 @@ define dso_local i16 @logia_intrinsics_bin_mul_assign_u16_u16(ptr noundef %0, i1
   %3 = alloca i16, align 2
   %4 = alloca ptr, align 8
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 1023, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 1023, ptr null)
   %5 = load i16, ptr %3, align 2
   %6 = zext i16 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -2495,7 +2701,9 @@ define dso_local i16 @logia_intrinsics_bin_div_assign_u16_u16(ptr noundef %0, i1
   %3 = alloca i16, align 2
   %4 = alloca ptr, align 8
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 1030, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 1030, ptr null)
   %5 = load i16, ptr %3, align 2
   %6 = zext i16 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -2514,7 +2722,9 @@ define dso_local i16 @logia_intrinsics_bin_mod_assign_u16_u16(ptr noundef %0, i1
   %3 = alloca i16, align 2
   %4 = alloca ptr, align 8
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 1037, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 1037, ptr null)
   %5 = load i16, ptr %3, align 2
   %6 = zext i16 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -2533,7 +2743,9 @@ define dso_local i16 @logia_intrinsics_bin_bitwise_and_assign_u16_u16(ptr nounde
   %3 = alloca i16, align 2
   %4 = alloca ptr, align 8
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 1044, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 1044, ptr null)
   %5 = load i16, ptr %3, align 2
   %6 = zext i16 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -2552,7 +2764,9 @@ define dso_local i16 @logia_intrinsics_bin_bitwise_or_assign_u16_u16(ptr noundef
   %3 = alloca i16, align 2
   %4 = alloca ptr, align 8
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 1051, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 1051, ptr null)
   %5 = load i16, ptr %3, align 2
   %6 = zext i16 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -2571,7 +2785,9 @@ define dso_local i16 @logia_intrinsics_bin_bitwise_xor_assign_u16_u16(ptr nounde
   %3 = alloca i16, align 2
   %4 = alloca ptr, align 8
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 1058, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 1058, ptr null)
   %5 = load i16, ptr %3, align 2
   %6 = zext i16 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -2590,7 +2806,9 @@ define dso_local i16 @logia_intrinsics_bin_bitwise_shr_assign_u16_u16(ptr nounde
   %3 = alloca i16, align 2
   %4 = alloca ptr, align 8
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 1065, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 1065, ptr null)
   %5 = load i16, ptr %3, align 2
   %6 = zext i16 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -2609,7 +2827,9 @@ define dso_local i16 @logia_intrinsics_bin_bitwise_shl_assign_u16_u16(ptr nounde
   %3 = alloca i16, align 2
   %4 = alloca ptr, align 8
   store i16 %1, ptr %3, align 2
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 1072, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 1072, ptr null)
   %5 = load i16, ptr %3, align 2
   %6 = zext i16 %5 to i32
   %7 = load ptr, ptr %4, align 8
@@ -2628,9 +2848,9 @@ define dso_local i16 @logia_intrinsics_bin_bitwise_and_u16_u16(i16 noundef %0, i
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 977, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 1079, ptr null)
   store i16 %0, ptr %4, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 977, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 1079, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = zext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -2645,9 +2865,9 @@ define dso_local i16 @logia_intrinsics_bin_bitwise_or_u16_u16(i16 noundef %0, i1
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 983, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 1085, ptr null)
   store i16 %0, ptr %4, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 983, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 1085, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = zext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -2662,9 +2882,9 @@ define dso_local i16 @logia_intrinsics_bin_bitwise_xor_u16_u16(i16 noundef %0, i
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 989, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 1091, ptr null)
   store i16 %0, ptr %4, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 989, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 1091, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = zext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -2679,9 +2899,9 @@ define dso_local i16 @logia_intrinsics_bin_bitwise_shl_u16_u16(i16 noundef %0, i
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 995, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 1097, ptr null)
   store i16 %0, ptr %4, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 995, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 1097, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = zext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -2696,9 +2916,9 @@ define dso_local i16 @logia_intrinsics_bin_bitwise_shr_u16_u16(i16 noundef %0, i
   %3 = alloca i16, align 2
   %4 = alloca i16, align 2
   store i16 %1, ptr %3, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 1001, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.6, ptr @.str.1, i32 1103, ptr null)
   store i16 %0, ptr %4, align 2
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 1001, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.6, ptr @.str.1, i32 1103, ptr null)
   %5 = load i16, ptr %4, align 2
   %6 = zext i16 %5 to i32
   %7 = load i16, ptr %3, align 2
@@ -2713,9 +2933,9 @@ define dso_local i32 @logia__intrinsics_bin_add_u32_u32(i32 noundef %0, i32 noun
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1007, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1109, ptr null)
   store i32 %0, ptr %4, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1007, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1109, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = add i32 %5, %6
@@ -2727,9 +2947,9 @@ define dso_local i32 @logia_intrinsics_bin_sub_u32_u32(i32 noundef %0, i32 nound
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1013, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1115, ptr null)
   store i32 %0, ptr %4, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1013, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1115, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = sub i32 %5, %6
@@ -2741,9 +2961,9 @@ define dso_local i32 @logia_intrinsics_bin_mul_u32_u32(i32 noundef %0, i32 nound
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1019, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1121, ptr null)
   store i32 %0, ptr %4, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1019, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1121, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = mul i32 %5, %6
@@ -2755,9 +2975,9 @@ define dso_local i32 @logia_intrinsics_bin_div_u32_u32(i32 noundef %0, i32 nound
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1025, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1127, ptr null)
   store i32 %0, ptr %4, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1025, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1127, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = udiv i32 %5, %6
@@ -2769,9 +2989,9 @@ define dso_local i32 @logia_intrinsics_bin_mod_u32_u32(i32 noundef %0, i32 nound
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1031, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1133, ptr null)
   store i32 %0, ptr %4, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1031, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1133, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = urem i32 %5, %6
@@ -2783,7 +3003,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_eq_u32_u32(i32 noundef %0, i32
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1139, ptr null)
   store i32 %0, ptr %4, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1139, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = icmp eq i32 %5, %6
@@ -2795,7 +3017,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_neq_u32_u32(i32 noundef %0, i3
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1145, ptr null)
   store i32 %0, ptr %4, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1145, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = icmp ne i32 %5, %6
@@ -2807,7 +3031,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_lt_u32_u32(i32 noundef %0, i32
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1151, ptr null)
   store i32 %0, ptr %4, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1151, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = icmp ult i32 %5, %6
@@ -2819,7 +3045,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_gt_u32_u32(i32 noundef %0, i32
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1157, ptr null)
   store i32 %0, ptr %4, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1157, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = icmp ugt i32 %5, %6
@@ -2831,7 +3059,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_lte_u32_u32(i32 noundef %0, i3
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1163, ptr null)
   store i32 %0, ptr %4, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1163, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = icmp ule i32 %5, %6
@@ -2843,7 +3073,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_gte_u32_u32(i32 noundef %0, i3
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1169, ptr null)
   store i32 %0, ptr %4, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1169, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = icmp uge i32 %5, %6
@@ -2855,7 +3087,9 @@ define dso_local i32 @logia_intrinsics_bin_assign_u32_u32(ptr noundef %0, i32 no
   %3 = alloca i32, align 4
   %4 = alloca ptr, align 8
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1175, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1175, ptr null)
   %5 = load i32, ptr %3, align 4
   %6 = load ptr, ptr %4, align 8
   store i32 %5, ptr %6, align 4
@@ -2869,7 +3103,9 @@ define dso_local i32 @logia_intrinsics_bin_add_assign_u32_u32(ptr noundef %0, i3
   %3 = alloca i32, align 4
   %4 = alloca ptr, align 8
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1182, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1182, ptr null)
   %5 = load i32, ptr %3, align 4
   %6 = load ptr, ptr %4, align 8
   %7 = load i32, ptr %6, align 4
@@ -2885,7 +3121,9 @@ define dso_local i32 @logia_intrinsics_bin_sub_assign_u32_u32(ptr noundef %0, i3
   %3 = alloca i32, align 4
   %4 = alloca ptr, align 8
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1189, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1189, ptr null)
   %5 = load i32, ptr %3, align 4
   %6 = load ptr, ptr %4, align 8
   %7 = load i32, ptr %6, align 4
@@ -2901,7 +3139,9 @@ define dso_local i32 @logia_intrinsics_bin_mul_assign_u32_u32(ptr noundef %0, i3
   %3 = alloca i32, align 4
   %4 = alloca ptr, align 8
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1196, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1196, ptr null)
   %5 = load i32, ptr %3, align 4
   %6 = load ptr, ptr %4, align 8
   %7 = load i32, ptr %6, align 4
@@ -2917,7 +3157,9 @@ define dso_local i32 @logia_intrinsics_bin_div_assign_u32_u32(ptr noundef %0, i3
   %3 = alloca i32, align 4
   %4 = alloca ptr, align 8
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1203, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1203, ptr null)
   %5 = load i32, ptr %3, align 4
   %6 = load ptr, ptr %4, align 8
   %7 = load i32, ptr %6, align 4
@@ -2933,7 +3175,9 @@ define dso_local i32 @logia_intrinsics_bin_mod_assign_u32_u32(ptr noundef %0, i3
   %3 = alloca i32, align 4
   %4 = alloca ptr, align 8
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1210, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1210, ptr null)
   %5 = load i32, ptr %3, align 4
   %6 = load ptr, ptr %4, align 8
   %7 = load i32, ptr %6, align 4
@@ -2949,7 +3193,9 @@ define dso_local i32 @logia_intrinsics_bin_bitwise_and_assign_u32_u32(ptr nounde
   %3 = alloca i32, align 4
   %4 = alloca ptr, align 8
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1217, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1217, ptr null)
   %5 = load i32, ptr %3, align 4
   %6 = load ptr, ptr %4, align 8
   %7 = load i32, ptr %6, align 4
@@ -2965,7 +3211,9 @@ define dso_local i32 @logia_intrinsics_bin_bitwise_or_assign_u32_u32(ptr noundef
   %3 = alloca i32, align 4
   %4 = alloca ptr, align 8
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1224, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1224, ptr null)
   %5 = load i32, ptr %3, align 4
   %6 = load ptr, ptr %4, align 8
   %7 = load i32, ptr %6, align 4
@@ -2981,7 +3229,9 @@ define dso_local i32 @logia_intrinsics_bin_bitwise_xor_assign_u32_u32(ptr nounde
   %3 = alloca i32, align 4
   %4 = alloca ptr, align 8
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1231, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1231, ptr null)
   %5 = load i32, ptr %3, align 4
   %6 = load ptr, ptr %4, align 8
   %7 = load i32, ptr %6, align 4
@@ -2997,7 +3247,9 @@ define dso_local i32 @logia_intrinsics_bin_bitwise_shr_assign_u32_u32(ptr nounde
   %3 = alloca i32, align 4
   %4 = alloca ptr, align 8
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1238, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1238, ptr null)
   %5 = load i32, ptr %3, align 4
   %6 = load ptr, ptr %4, align 8
   %7 = load i32, ptr %6, align 4
@@ -3013,7 +3265,9 @@ define dso_local i32 @logia_intrinsics_bin_bitwise_shl_assign_u32_u32(ptr nounde
   %3 = alloca i32, align 4
   %4 = alloca ptr, align 8
   store i32 %1, ptr %3, align 4
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1245, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1245, ptr null)
   %5 = load i32, ptr %3, align 4
   %6 = load ptr, ptr %4, align 8
   %7 = load i32, ptr %6, align 4
@@ -3029,9 +3283,9 @@ define dso_local i32 @logia_intrinsics_bin_bitwise_and_u32_u32(i32 noundef %0, i
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1133, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1252, ptr null)
   store i32 %0, ptr %4, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1133, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1252, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = and i32 %5, %6
@@ -3043,9 +3297,9 @@ define dso_local i32 @logia_intrinsics_bin_bitwise_or_u32_u32(i32 noundef %0, i3
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1139, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1258, ptr null)
   store i32 %0, ptr %4, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1139, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1258, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = or i32 %5, %6
@@ -3057,9 +3311,9 @@ define dso_local i32 @logia_intrinsics_bin_bitwise_xor_u32_u32(i32 noundef %0, i
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1145, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1264, ptr null)
   store i32 %0, ptr %4, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1145, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1264, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = xor i32 %5, %6
@@ -3071,9 +3325,9 @@ define dso_local i32 @logia_intrinsics_bin_bitwise_shl_u32_u32(i32 noundef %0, i
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1151, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1270, ptr null)
   store i32 %0, ptr %4, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1151, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1270, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = shl i32 %5, %6
@@ -3085,9 +3339,9 @@ define dso_local i32 @logia_intrinsics_bin_bitwise_shr_u32_u32(i32 noundef %0, i
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   store i32 %1, ptr %3, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1157, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.7, ptr @.str.1, i32 1276, ptr null)
   store i32 %0, ptr %4, align 4
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1157, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.7, ptr @.str.1, i32 1276, ptr null)
   %5 = load i32, ptr %4, align 4
   %6 = load i32, ptr %3, align 4
   %7 = lshr i32 %5, %6
@@ -3099,9 +3353,9 @@ define dso_local i64 @logia__intrinsics_bin_add_u64_u64(i64 noundef %0, i64 noun
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1163, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1282, ptr null)
   store i64 %0, ptr %4, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1163, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1282, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = add i64 %5, %6
@@ -3113,9 +3367,9 @@ define dso_local i64 @logia_intrinsics_bin_sub_u64_u64(i64 noundef %0, i64 nound
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1169, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1288, ptr null)
   store i64 %0, ptr %4, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1169, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1288, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = sub i64 %5, %6
@@ -3127,9 +3381,9 @@ define dso_local i64 @logia_intrinsics_bin_mul_u64_u64(i64 noundef %0, i64 nound
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1175, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1294, ptr null)
   store i64 %0, ptr %4, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1175, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1294, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = mul i64 %5, %6
@@ -3141,9 +3395,9 @@ define dso_local i64 @logia_intrinsics_bin_div_u64_u64(i64 noundef %0, i64 nound
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1181, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1300, ptr null)
   store i64 %0, ptr %4, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1181, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1300, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = udiv i64 %5, %6
@@ -3155,9 +3409,9 @@ define dso_local i64 @logia_intrinsics_bin_mod_u64_u64(i64 noundef %0, i64 nound
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1187, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1306, ptr null)
   store i64 %0, ptr %4, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1187, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1306, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = urem i64 %5, %6
@@ -3169,7 +3423,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_eq_u64_u64(i64 noundef %0, i64
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1312, ptr null)
   store i64 %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1312, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = icmp eq i64 %5, %6
@@ -3181,7 +3437,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_neq_u64_u64(i64 noundef %0, i6
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1318, ptr null)
   store i64 %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1318, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = icmp ne i64 %5, %6
@@ -3193,7 +3451,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_lt_u64_u64(i64 noundef %0, i64
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1324, ptr null)
   store i64 %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1324, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = icmp ult i64 %5, %6
@@ -3205,7 +3465,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_gt_u64_u64(i64 noundef %0, i64
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1330, ptr null)
   store i64 %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1330, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = icmp ugt i64 %5, %6
@@ -3217,7 +3479,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_lte_u64_u64(i64 noundef %0, i6
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1336, ptr null)
   store i64 %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1336, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = icmp ule i64 %5, %6
@@ -3229,7 +3493,9 @@ define dso_local zeroext i1 @logia_intrinsics_bin_gte_u64_u64(i64 noundef %0, i6
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1342, ptr null)
   store i64 %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1342, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = icmp uge i64 %5, %6
@@ -3241,7 +3507,9 @@ define dso_local i64 @logia_intrinsics_bin_assign_u64_u64(ptr noundef %0, i64 no
   %3 = alloca i64, align 8
   %4 = alloca ptr, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1348, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1348, ptr null)
   %5 = load i64, ptr %3, align 8
   %6 = load ptr, ptr %4, align 8
   store i64 %5, ptr %6, align 8
@@ -3255,7 +3523,9 @@ define dso_local i64 @logia_intrinsics_bin_add_assign_u64_u64(ptr noundef %0, i6
   %3 = alloca i64, align 8
   %4 = alloca ptr, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1355, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1355, ptr null)
   %5 = load i64, ptr %3, align 8
   %6 = load ptr, ptr %4, align 8
   %7 = load i64, ptr %6, align 8
@@ -3271,7 +3541,9 @@ define dso_local i64 @logia_intrinsics_bin_sub_assign_u64_u64(ptr noundef %0, i6
   %3 = alloca i64, align 8
   %4 = alloca ptr, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1362, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1362, ptr null)
   %5 = load i64, ptr %3, align 8
   %6 = load ptr, ptr %4, align 8
   %7 = load i64, ptr %6, align 8
@@ -3287,7 +3559,9 @@ define dso_local i64 @logia_intrinsics_bin_mul_assign_u64_u64(ptr noundef %0, i6
   %3 = alloca i64, align 8
   %4 = alloca ptr, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1369, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1369, ptr null)
   %5 = load i64, ptr %3, align 8
   %6 = load ptr, ptr %4, align 8
   %7 = load i64, ptr %6, align 8
@@ -3303,7 +3577,9 @@ define dso_local i64 @logia_intrinsics_bin_div_assign_u64_u64(ptr noundef %0, i6
   %3 = alloca i64, align 8
   %4 = alloca ptr, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1376, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1376, ptr null)
   %5 = load i64, ptr %3, align 8
   %6 = load ptr, ptr %4, align 8
   %7 = load i64, ptr %6, align 8
@@ -3319,7 +3595,9 @@ define dso_local i64 @logia_intrinsics_bin_mod_assign_u64_u64(ptr noundef %0, i6
   %3 = alloca i64, align 8
   %4 = alloca ptr, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1383, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1383, ptr null)
   %5 = load i64, ptr %3, align 8
   %6 = load ptr, ptr %4, align 8
   %7 = load i64, ptr %6, align 8
@@ -3335,7 +3613,9 @@ define dso_local i64 @logia_intrinsics_bin_bitwise_and_assign_u64_u64(ptr nounde
   %3 = alloca i64, align 8
   %4 = alloca ptr, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1390, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1390, ptr null)
   %5 = load i64, ptr %3, align 8
   %6 = load ptr, ptr %4, align 8
   %7 = load i64, ptr %6, align 8
@@ -3351,7 +3631,9 @@ define dso_local i64 @logia_intrinsics_bin_bitwise_or_assign_u64_u64(ptr noundef
   %3 = alloca i64, align 8
   %4 = alloca ptr, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1397, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1397, ptr null)
   %5 = load i64, ptr %3, align 8
   %6 = load ptr, ptr %4, align 8
   %7 = load i64, ptr %6, align 8
@@ -3367,7 +3649,9 @@ define dso_local i64 @logia_intrinsics_bin_bitwise_xor_assign_u64_u64(ptr nounde
   %3 = alloca i64, align 8
   %4 = alloca ptr, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1404, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1404, ptr null)
   %5 = load i64, ptr %3, align 8
   %6 = load ptr, ptr %4, align 8
   %7 = load i64, ptr %6, align 8
@@ -3383,7 +3667,9 @@ define dso_local i64 @logia_intrinsics_bin_bitwise_shr_assign_u64_u64(ptr nounde
   %3 = alloca i64, align 8
   %4 = alloca ptr, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1411, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1411, ptr null)
   %5 = load i64, ptr %3, align 8
   %6 = load ptr, ptr %4, align 8
   %7 = load i64, ptr %6, align 8
@@ -3399,7 +3685,9 @@ define dso_local i64 @logia_intrinsics_bin_bitwise_shl_assign_u64_u64(ptr nounde
   %3 = alloca i64, align 8
   %4 = alloca ptr, align 8
   store i64 %1, ptr %3, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1418, ptr null)
   store ptr %0, ptr %4, align 8
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1418, ptr null)
   %5 = load i64, ptr %3, align 8
   %6 = load ptr, ptr %4, align 8
   %7 = load i64, ptr %6, align 8
@@ -3415,9 +3703,9 @@ define dso_local i64 @logia_intrinsics_bin_bitwise_and_u64_u64(i64 noundef %0, i
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1289, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1425, ptr null)
   store i64 %0, ptr %4, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1289, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1425, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = and i64 %5, %6
@@ -3429,9 +3717,9 @@ define dso_local i64 @logia_intrinsics_bin_bitwise_or_u64_u64(i64 noundef %0, i6
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1295, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1431, ptr null)
   store i64 %0, ptr %4, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1295, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1431, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = or i64 %5, %6
@@ -3443,9 +3731,9 @@ define dso_local i64 @logia_intrinsics_bin_bitwise_xor_u64_u64(i64 noundef %0, i
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1301, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1437, ptr null)
   store i64 %0, ptr %4, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1301, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1437, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = xor i64 %5, %6
@@ -3457,9 +3745,9 @@ define dso_local i64 @logia_intrinsics_bin_bitwise_shl_u64_u64(i64 noundef %0, i
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1307, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1443, ptr null)
   store i64 %0, ptr %4, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1307, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1443, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = shl i64 %5, %6
@@ -3471,9 +3759,9 @@ define dso_local i64 @logia_intrinsics_bin_bitwise_shr_u64_u64(i64 noundef %0, i
   %3 = alloca i64, align 8
   %4 = alloca i64, align 8
   store i64 %1, ptr %3, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1313, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %3, ptr @.str.8, ptr @.str.1, i32 1449, ptr null)
   store i64 %0, ptr %4, align 8
-  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1313, ptr null)
+  call void @llvm.var.annotation.p0.p0(ptr %4, ptr @.str.8, ptr @.str.1, i32 1449, ptr null)
   %5 = load i64, ptr %4, align 8
   %6 = load i64, ptr %3, align 8
   %7 = lshr i64 %5, %6
