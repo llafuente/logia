@@ -41,6 +41,7 @@ namespace logia::AST
         void post_attach() override;
 
     protected:
+        void _post_type_inference() override;
         void _set_type(Type *t) override;
     };
 

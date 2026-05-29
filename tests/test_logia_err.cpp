@@ -56,3 +56,12 @@ TEST(logia_run_error_file, semantic_error_LGERR_ST002)
         EXPECT_NE(std::string(msg).find("err-LGERR_ST002-001.logia:5:4"), std::string::npos);
     }
 }
+
+TEST(logia_run_error_file, semantic_error_LGERR_IF001)
+{
+    {
+        auto msg = test_file_with_semantic_error(".\\tests\\logia-errors\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "err-LGERR_IF001-001");
+        EXPECT_NE(std::string(msg).find("LGERR_IF001 Expected contition type to be 'bool' but found: 'f64'"), std::string::npos);
+        EXPECT_NE(std::string(msg).find("err-LGERR_IF001-001.logia:10:8"), std::string::npos);
+    }
+}

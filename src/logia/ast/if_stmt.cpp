@@ -106,6 +106,24 @@ namespace logia::AST
         }
     }
 
+    void IfStmt::_post_type_inference()
+    {
+        // condition should have bool type!
+        auto condition = this->get_condition();
+        auto ty = condition->get_final_type();
+        Integer *int_ty;
+        if (ty->try_cast<Integer>(&int_ty))
+        {
+            if (int_ty->bits == 1)
+            {
+                // ok !
+                return Stmt::_post_type_inference();
+            }
+        }
+
+        throw_semantic_error(condition, std::format("LGERR_IF001 Expected contition type to be 'bool' but found: '{}'", ty->get_repr()));
+    }
+
     void IfStmt::_set_type(Type *t) {}
 
     LOGIA_API LOGIA_LEND IfStmt *ast_create_if(Expression *condition)
