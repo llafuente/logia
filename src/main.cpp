@@ -13,6 +13,7 @@
 
 #pragma execution_character_set("utf-8")
 
+#include "logia/log.h"
 #include "logia/help.h"
 #include "logia/run.h"
 #include "logia/compiler_error.h"
@@ -27,7 +28,7 @@ int main(int argc, const char *argv[])
 {
 	SetConsoleOutputCP(65001); // CP_UTF8
 
-	logia_init_log((char *)"./logia.log");
+	logia::logia_init_log((char *)"./logia.log");
 
 	try
 	{
