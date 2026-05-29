@@ -12,9 +12,9 @@
 
 namespace logia::AST
 {
-    Program::Program(antlr4::ParserRuleContext *rule, const char *entry_point_file, const char *file_contents) : Block(rule, ast_create_identifier("program")), entry_point_file(entry_point_file), file_contents(file_contents)
+    Program::Program(antlr4::ParserRuleContext *rule, const char *entry_point_file, const char *file_contents) : Block(rule, new Identifier(rule, "program")), entry_point_file(entry_point_file), file_contents(file_contents)
     {
-        intrinsics = new Scope(nullptr);
+        intrinsics = new Scope(rule);
         this->push_child(intrinsics);
         // we know declare all primitives
         // any type in the language should use those

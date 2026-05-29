@@ -194,19 +194,20 @@ namespace logia
         this->errorListener = (antlr4::ANTLRErrorListener *)new ErrorListener(this->entry_point_fullpath, text);
         this->parser->addErrorListener(this->errorListener);
 
-        this->cst_tree = this->parser->program();
+        auto rule = this->parser->program();
+        this->cst_tree = rule;
 
         logia_log_level = logia_config.cst_log_level;
         this->print_cst(logia_config.print_cst ? std::cerr : logia_log_file);
 
         if (is_program)
         {
-            this->ast_tree = new AST::Program(nullptr, this->entry_point_fullpath, this->text);
+            this->ast_tree = new AST::Program(rule, this->entry_point_fullpath, this->text);
         }
         else
         {
             // TODO @llafuente invalid cast
-            this->ast_tree = (AST::Program *)new AST::Package(nullptr, this->entry_point_fullpath, this->text);
+            this->ast_tree = (AST::Program *)new AST::Package(rule, this->entry_point_fullpath, this->text);
         }
 
         CST2AST *llvmVisitor = new CST2AST(this->ast_tree);
