@@ -72,8 +72,7 @@ set(LOGIA_SOURCE_FILES
   src/logia/ast/expr.cpp
   src/logia/ast/callexpr.cpp
   src/logia/ast/memberaccessexpr.cpp
-  src/logia/ast/prefixunaryexpr.cpp
-  src/logia/ast/postfixunaryexpr.cpp
+  src/logia/ast/unaryexpr.cpp
   src/logia/ast/structinitexpr.cpp
   src/logia/ast/identifier.cpp
   src/logia/ast/binaryexpr.cpp

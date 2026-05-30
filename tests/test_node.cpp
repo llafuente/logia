@@ -11,7 +11,7 @@
 #include "logia/ast/identifier.h"
 #include "logia/ast/operators.h"
 #include "logia/ast/binaryexpr.h"
-#include "logia/ast/postfixunaryexpr.h"
+#include "logia/ast/unaryexpr.h"
 
 #include "gtest/gtest.h"
 #include <Windows.h>

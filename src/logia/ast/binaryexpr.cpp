@@ -2,7 +2,7 @@
 
 #include "logia/ast/callexpr.h"
 #include "logia/ast/operators.h"
-#include "logia/ast/prefixunaryexpr.h"
+#include "logia/ast/unaryexpr.h"
 #include "logia/ast/identifier.h"
 #include "logia/ast/constexpr.h"
 #include "logia/ast/cast.h"
@@ -39,7 +39,7 @@ namespace logia::AST
         case Operators::BINARY_SUB_ASSIGN:
         case Operators::BINARY_MUL_ASSIGN:
         case Operators::BINARY_DIV_ASSIGN:
-            this->push_child(new PrefixUnaryExpression(this->rule, Operators::PREFIX_DEREFERENCE, left));
+            this->push_child(new UnaryExpression(this->rule, Operators::PREFIX_DEREFERENCE, left));
             break;
         default:
             this->push_child(left);

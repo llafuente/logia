@@ -7,8 +7,7 @@
 #include "logia/ast/operators.h"
 #include "logia/ast/expr.h"
 #include "logia/ast/binaryexpr.h"
-#include "logia/ast/prefixunaryexpr.h"
-#include "logia/ast/postfixunaryexpr.h"
+#include "logia/ast/unaryexpr.h"
 #include "logia/ast/callexpr.h"
 #include "logia/ast/memberaccessexpr.h"
 #include "logia/ast/structinitexpr.h"
@@ -391,22 +390,22 @@ namespace logia
             // UNDER REVIEW
             case LogiaParser::AT_TK:
             case LogiaParser::AND_TK:
-                return ANY_VOIDP_STORE(new AST::PrefixUnaryExpression(context, AST::Operators::PREFIX_DEREFERENCE, operand));
+                return ANY_VOIDP_STORE(new AST::UnaryExpression(context, AST::Operators::PREFIX_DEREFERENCE, operand));
 
             case LogiaParser::PLUS_TK:
                 // for syntactic completeness, do nothing
                 return operand;
             case LogiaParser::MINUS_TK:
-                return ANY_VOIDP_STORE(new AST::PrefixUnaryExpression(context, AST::Operators::PREFIX_NEGATION, operand));
+                return ANY_VOIDP_STORE(new AST::UnaryExpression(context, AST::Operators::PREFIX_NEGATION, operand));
             case LogiaParser::TILDE_TK:
-                return ANY_VOIDP_STORE(new AST::PrefixUnaryExpression(context, AST::Operators::PREFIX_BITWISE_NOT, operand));
+                return ANY_VOIDP_STORE(new AST::UnaryExpression(context, AST::Operators::PREFIX_BITWISE_NOT, operand));
             case LogiaParser::NOT_TK:
             case LogiaParser::NOT2_TK:
-                return ANY_VOIDP_STORE(new AST::PrefixUnaryExpression(context, AST::Operators::PREFIX_LOGICAL_NOT, operand));
+                return ANY_VOIDP_STORE(new AST::UnaryExpression(context, AST::Operators::PREFIX_LOGICAL_NOT, operand));
             case LogiaParser::PLUSPLUS_TK:
-                return ANY_VOIDP_STORE(new AST::PrefixUnaryExpression(context, AST::Operators::PREFIX_INCREMENT, operand));
+                return ANY_VOIDP_STORE(new AST::UnaryExpression(context, AST::Operators::PREFIX_INCREMENT, operand));
             case LogiaParser::MINUSMINUS_TK:
-                return ANY_VOIDP_STORE(new AST::PrefixUnaryExpression(context, AST::Operators::PREFIX_DECREMENT, operand));
+                return ANY_VOIDP_STORE(new AST::UnaryExpression(context, AST::Operators::PREFIX_DECREMENT, operand));
             }
             throw std::runtime_error(__FUNCTION__ "unreachable");
         }
