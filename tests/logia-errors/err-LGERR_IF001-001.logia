@@ -1,0 +1,14 @@
+type point = struct {
+    float x
+    float y
+}
+
+function main() i32 {
+    var point p = {10, 11}
+
+    if (p.x) {
+        return 1
+    }
+
+    return 0
+}

@@ -70,7 +70,7 @@ module.exports = [
         "type": "binary",
         "category": "comparison",
         "func": "logia_intrinsics_bin_gt",
-        "logia_fn": "__logia_bin_lt"
+        "logia_fn": "__logia_bin_gt"
     },
     {
         "operator": "<=",

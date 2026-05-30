@@ -1,0 +1,29 @@
+function main() i32 {
+    var i32 counter = 0
+    var i32 one = 1
+    var i32 hundred = 100
+    var i32 mill = 1000
+
+    var i8 v1_i8 = 0
+    var i8 v2_i8 = 0
+
+    if v1_i8 == v2_i8 {
+        counter += one
+    }
+
+    var i32 v1_i32 = 2
+    var i32 v2_i32 = 3
+
+    if v1_i32 < v2_i32 {
+        counter += hundred
+    }
+
+    var i64 v1_i64 = 5
+    var i64 v2_i64 = 5
+
+    if v1_i64 >= v2_i64 {
+        counter += mill
+    }
+
+    return counter
+}
