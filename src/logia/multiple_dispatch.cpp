@@ -3,6 +3,7 @@
 #include "logia/ast/callexpr.h"
 #include "logia/ast/cast.h"
 #include "logia/ast/identifier.h"
+#include "logia/ast/constexpr.h"
 
 #include "logia/type_system.h"
 
@@ -67,15 +68,34 @@ namespace logia::multiple_dispatch
 
                         used_params[param_index++] = true;
                         used_args[arg->index] = true;
+                        auto value = arg->get_value();
 
                         if ((c & (uint32_t)type_system::type_compatibility::AUTOCAST_CAST) != 0)
                         {
-                            arguments.push_back(new Cast(arg->rule, arg->get_value(), param_type));
-                            points *= 0.5;
+                            // allow ConstExpression to be casted!
+                            if (value->is<ConstExpression>())
+                            {
+                                if (change)
+                                {
+                                    value->set_type(param_type);
+                                    arguments.push_back(value);
+                                }
+                            }
+                            else
+                            {
+                                if (change)
+                                {
+                                    arguments.push_back(new Cast(arg->rule, value, param_type));
+                                }
+                                points *= 0.5;
+                            }
                         }
                         else
                         {
-                            arguments.push_back(arg->get_value());
+                            if (change)
+                            {
+                                arguments.push_back(value);
+                            }
                         }
 
                         goto next_parameter;
@@ -123,15 +143,33 @@ namespace logia::multiple_dispatch
 
                         used_params[param_index++] = true;
                         used_args[arg->index] = true;
+                        auto value = arg->get_value();
 
                         if ((c & (uint32_t)type_system::type_compatibility::AUTOCAST_CAST) != 0)
                         {
-                            arguments.push_back(new Cast(arg->rule, arg->get_value(), param_type));
-                            points *= 0.5;
+                            if (!value->is<ConstExpression>())
+                            {
+                                if (change)
+                                {
+                                    arguments.push_back(new Cast(arg->rule, value, param_type));
+                                }
+                                points *= 0.5;
+                            }
+                            else
+                            {
+                                if (change)
+                                {
+                                    value->set_type(param_type);
+                                    arguments.push_back(value);
+                                }
+                            }
                         }
                         else
                         {
-                            arguments.push_back(arg->get_value());
+                            if (change)
+                            {
+                                arguments.push_back(value);
+                            }
                         }
 
                         goto next_parameter;
@@ -144,7 +182,10 @@ namespace logia::multiple_dispatch
                             LOG(DBG, "parameter default value[{}] of type [{}]", param_name->identifier, param_type->get_repr());
 
                             used_params[param_index++] = true;
-                            arguments.push_back(param->get_default_value());
+                            if (change)
+                            {
+                                arguments.push_back(param->get_default_value());
+                            }
                             goto next_parameter;
                         }
 
@@ -161,7 +202,10 @@ namespace logia::multiple_dispatch
             {
                 LOG(DBG, "parameter default value[{}] of type [{}]", param_name->identifier, param_type->get_repr());
                 used_params[param_index++] = true;
-                arguments.push_back(param->get_default_value());
+                if (change)
+                {
+                    arguments.push_back(param->get_default_value());
+                }
                 goto next_parameter;
             }
             return make_error(std::format("LGERR_MD004 Missing required argument '{}'. Calling '{}'", param_name->identifier, func->get_repr()), {param, type_system::type_compatibility::NO});
