@@ -24,7 +24,7 @@ namespace logia::AST
         {
             // TODO handle error at import
             // TODO extract code snippet!!
-            auto program = node->first_parent<Program>();
+            auto program = node->is<Program>() ? node->as<Program>() : node->first_parent<Program>();
 
             auto err_line = node->rule->start->getLine();
             auto err_start_column = node->rule->start->getCharPositionInLine();
@@ -34,7 +34,7 @@ namespace logia::AST
             auto end_line = err_line + 2;
 
             char snippet[1024];
-            const char *text = node->first_parent<Program>()->file_contents;
+            const char *text = program->file_contents;
             size_t src = 0;
             size_t dst = 0;
             size_t line = 0;
