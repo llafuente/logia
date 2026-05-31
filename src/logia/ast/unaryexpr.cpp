@@ -100,15 +100,4 @@ namespace logia::AST
             return Expression::post_codegen(backend);
         }
     }
-
-    LOGIA_API LOGIA_LEND UnaryExpression *ast_create_ref(Expression *operand)
-    {
-        UnaryExpression *expr = new UnaryExpression(nullptr, Operators::PREFIX_DEREFERENCE, operand);
-        return expr;
-    }
-
-    LOGIA_API LOGIA_LEND UnaryExpression *ast_create_preunary_expr(Operators op, Expression *operand)
-    {
-        return new UnaryExpression(nullptr, op, operand);
-    }
 }

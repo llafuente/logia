@@ -308,7 +308,7 @@ postfixExpr
     | expr5=postfixExpr '(' arguments=argumentExprList? ')'
     //| postfixExpr '.' '#' identifier '(' preprocessorMacroCallArgumentList? ')'
     | expr6='#' // reserved this inthe for later use!
-    | expr7=postfixExpr ( '++' | '--' )+
+    | expr7=postfixExpr ( '++' | '--' )
     | primaryExpr
     ;
 

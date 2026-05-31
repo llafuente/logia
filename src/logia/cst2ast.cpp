@@ -453,7 +453,20 @@ namespace logia
         else if (context->expr7 != nullptr)
         {
             // postfixIndecrementExpr
-            CST_THROW("todo");
+            for (int i = 0;; ++i)
+            {
+                if (context->PLUSPLUS_TK() != nullptr)
+                {
+                    auto operand = ANY_VOIDP_CAST(AST::Expression *, this->visitPostfixExpr(context->expr7));
+                    return ANY_VOIDP_STORE(new AST::UnaryExpression(context, AST::Operators::POSTFIX_INCREMENT, operand));
+                }
+                if (context->MINUSMINUS_TK() != nullptr)
+                {
+                    auto operand = ANY_VOIDP_CAST(AST::Expression *, this->visitPostfixExpr(context->expr7));
+                    return ANY_VOIDP_STORE(new AST::UnaryExpression(context, AST::Operators::POSTFIX_DECREMENT, operand));
+                }
+                CST_UNREACHABLE();
+            }
         }
         else
         {
