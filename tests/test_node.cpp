@@ -37,7 +37,7 @@ TEST(test_node, test_1)
     EXPECT_TRUE(program->get_child<Expression>(size + 1));
     EXPECT_TRUE(program->get_child<Node>(size + 1));
 
-    EXPECT_THROW(program->get_child<PostfixUnaryExpression>(size + 1), std::runtime_error);
+    EXPECT_THROW(program->get_child<UnaryExpression>(size + 1), std::runtime_error);
 
     int count = 0;
     program->intrinsics->foreach_child<Integer>([&count](auto p)

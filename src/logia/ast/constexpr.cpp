@@ -5,6 +5,9 @@
 #include "logia/log.h"
 #include "utils.h"
 
+#include "llvm/ADT/APInt.h"
+#include "llvm/ADT/APSInt.h"
+
 namespace logia::AST
 {
     //
@@ -34,12 +37,44 @@ namespace logia::AST
     {
         LOGIA_ASSERT(number_as_text == nullptr);
         // TODO number literals with dashes need to be cleaned right ?
-        // TODO 0x???
-        // TODO 0b???
-        this->number_str = strdup(number_as_text);
+
+        // alloc one more space for sign and negate without any allocation
+        auto length = strlen(number_as_text);
+        this->value_str = (char *)malloc(length + 2); // 1 for sign, 1 for null
+        strncpy(this->value_str, number_as_text, length);
+        this->value_str[length] = '\0'; // Ensure null termination
+
         if (type != nullptr)
         {
             this->set_type(type);
+        }
+
+        // parse
+        // NOTE: here value_str should be well-formed, or llvm will abort the process :S
+        auto canBeNonDec = strlen(this->value_str) > 2;
+        if (canBeNonDec && this->value_str[0] == '0' && this->value_str[1] == 'b')
+        {
+            // binary
+            LOG(DBG, "{} as binary", value_str);
+            this->value = llvm::APSInt(llvm::APInt(64, value_str + 2, 2), true);
+        }
+        else if (canBeNonDec && this->value_str[0] == '0' && this->value_str[1] == 'o')
+        {
+            // octal
+            LOG(DBG, "{} as octal", value_str);
+            this->value = llvm::APSInt(llvm::APInt(64, value_str + 2, 8), true);
+        }
+        else if (canBeNonDec && this->value_str[0] == '0' && this->value_str[1] == 'x')
+        {
+            // hexadecimal
+            LOG(DBG, "{} as hexadecimal", value_str);
+            this->value = llvm::APSInt(llvm::APInt(64, value_str + 2, 16), true);
+            // this->value = llvm::APInt(64, "1F", 16);
+        }
+        else
+        {
+            LOG(DBG, "{} as decimal", value_str);
+            this->value = llvm::APSInt(llvm::APInt(64, value_str, 10), true);
         }
     }
 
@@ -48,48 +83,23 @@ namespace logia::AST
         return this->type;
     }
 
-    // ?? https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/atoi64-atoi64-l-wtoi64-wtoi64-l?view=msvc-170
-
-    uint64_t IntegerLiteral::as_unsigned()
+    void IntegerLiteral::negate()
     {
-        char *end = nullptr;
-        uint64_t result = strtoull(this->number_str, &end, 10);
-
-        // Check for conversion errors
-        if (errno == ERANGE)
+        if (this->value_str[0] == '-')
         {
-            throw std::runtime_error("Error: number out of 64-bit range.");
-            return 1;
+            memmove(this->value_str, this->value_str + 1, strlen(this->value_str) + 1);
         }
-        if (end == this->number_str)
+        else
         {
-            throw std::runtime_error("Error: no digits found.");
+            memmove(this->value_str + 1, this->value_str, strlen(this->value_str) + 1);
+            this->value_str[0] = '-';
         }
-        return result;
-    }
-
-    int64_t IntegerLiteral::as_signed()
-    {
-        char *end = nullptr;
-        int64_t result = strtoll(this->number_str, &end, 10);
-
-        // Check for conversion errors
-        if (errno == ERANGE)
-        {
-            throw std::runtime_error("Error: number out of 64-bit range.");
-            return 1;
-        }
-        if (end == this->number_str)
-        {
-            throw std::runtime_error("Error: no digits found.");
-        }
-        return result;
     }
 
     std::string IntegerLiteral::to_string()
     {
         // TODO review format
-        return std::format("IntegerLiteral {}/{}{}", this->number_str, this->as_signed(), Node::to_string());
+        return std::format("IntegerLiteral [{}]{}", this->value_str, Node::to_string());
     }
 
     void IntegerLiteral::_set_type(Type *type)
@@ -107,69 +117,35 @@ namespace logia::AST
         {
             auto itype = type->as<Integer>();
 
-            // Create the biggest APSInt possible, check if it fits into the target width, then truncate
-            // TODO REVIEW 128 is possible ?!
-            auto value = new llvm::APInt(64, 0);
-            // llvm::APSInt *svalue = llvm::APSInt(64, itype->is_signed);
-            auto canBeNonDec = strlen(this->number_str) > 2;
-            if (canBeNonDec && this->number_str[0] == '0' && this->number_str[1] == 'b')
+            LOG(DBG, "signed? {}", itype->is_signed);
+
+            // check first as unsigned, limit should not be reached
+            auto required_bits = value.getActiveBits();
+            LOG(DBG, "{} activebits = {} expected = {}", this->value_str, required_bits, itype->bits);
+
+            if (required_bits > itype->bits)
             {
-                // binary
-                llvm::StringRef binStr = this->number_str + 2; // Skip the "0b" prefix
-                if (!binStr.getAsInteger(2, value))
-                {
-                    throw_semantic_error(this, std::format("LGERR_CEXPR000 Invalid binary literal '{}'", this->number_str));
-                }
-            }
-            if (canBeNonDec && this->number_str[0] == '0' && this->number_str[1] == 'o')
-            {
-                // octal
-                llvm::StringRef octStr = this->number_str + 2; // Skip the "0o" prefix
-                if (!octStr.getAsInteger(8, value))
-                {
-                    throw_semantic_error(this, std::format("LGERR_CEXPR000 Invalid octal literal '{}'", this->number_str));
-                }
-            }
-            else if (canBeNonDec && this->number_str[0] == '0' && this->number_str[1] == 'x')
-            {
-                // hexadecimal
-                llvm::StringRef hexStr = this->number_str + 2; // Skip the "0x" prefix
-                if (!hexStr.getAsInteger(16, value))
-                {
-                    throw_semantic_error(this, std::format("LGERR_CEXPR000 Invalid hexadecimal literal '{}'", this->number_str));
-                }
-            }
-            else
-            {
-                // decimal
-                llvm::StringRef decStr = this->number_str; // No prefix to skip
-                if (!decStr.getAsInteger(10, value))
-                {
-                    throw_semantic_error(this, std::format("LGERR_CEXPR000 Invalid decimal literal '{}'", this->number_str));
-                }
+                throw_semantic_error(this, std::format("LGERR_CEXPR002a Integer literal '{}' is too big for type '{}' required at least {} bits", this->value_str, type->get_repr(), required_bits));
             }
 
-            if (!value->isRepresentableByInt64())
+            // now apply signdness, negate, and truncate in this ORDER!
+            value.setIsSigned(itype->is_signed);
+            if (this->value_str[0] == '-')
             {
-                throw_semantic_error(this, std::format("LGERR_CEXPR001 Integer literal '{}' is too big for 64-bit integers", this->number_str));
+                // negate!
+                value.negate();
+                // value = -value; // signed negation
             }
-            // handle error if the number is too big for the type
-            if (value->getActiveBits() > itype->bits)
+            value = itype->is_signed ? value.truncSSat(itype->bits) : value.trunc(itype->bits);
+
+            required_bits = value.getActiveBits();
+            LOG(DBG, "{} activebits = {} expected = {}", this->value_str, required_bits, itype->bits);
+
+            if (required_bits > itype->bits)
             {
-                throw_semantic_error(this, std::format("LGERR_CEXPR002 Integer literal '{}' is too big for type '{}'", this->number_str, type->get_repr()));
+                throw_semantic_error(this, std::format("LGERR_CEXPR002b Integer literal '{}' is too big for type '{}' required at least {} bits", this->value_str, type->get_repr(), required_bits));
             }
 
-            if (itype->is_signed)
-            {
-                // "cast" to SInt
-                value = llvm::APSInt(llvm::APInt(itype->bits, value->getZExtValue()), /*isUnsigned=*/false);
-            }
-            else
-            {
-                value->truncate(itype->bits);
-            }
-
-            // this->cg_value = llvm::ConstantInt::get(llvm_type, llvm::APInt(itype->bits, this->number_str, 10));
             this->cg_value = llvm::ConstantInt::get(llvm_type, value);
         }
         else if (type->is<Float>())
@@ -177,7 +153,7 @@ namespace logia::AST
             auto ftype = type->as<Float>();
             this->cg_value = llvm::ConstantFP::get(
                 llvm_type,
-                this->number_str
+                this->value_str
                 // llvm::APFloat(ftype->bits, this->number_str) // APFloat from float
             );
         }
@@ -299,5 +275,4 @@ namespace logia::AST
     {
         return new IntegerLiteral(nullptr, numberstr, body->lookup<Type>("λu64"));
     }
-
 }

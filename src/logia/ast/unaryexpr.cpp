@@ -17,6 +17,20 @@ namespace logia::AST
     UnaryExpression::UnaryExpression(antlr4::ParserRuleContext *rule, Operators op, Expression *operand) : Expression(rule)
     {
         this->op = op;
+        switch (op)
+        {
+        case Operators::POSTFIX_DECREMENT:
+        case Operators::POSTFIX_INCREMENT:
+        case Operators::PREFIX_BITWISE_NOT:
+        case Operators::PREFIX_DECREMENT:
+        case Operators::PREFIX_INCREMENT:
+        case Operators::PREFIX_NEGATION:
+        case Operators::PREFIX_LOGICAL_NOT:
+        case Operators::PREFIX_DEREFERENCE:
+            break;
+        default:
+            throw_compiler_error(std::format("try to instance unary expression with and invalid operator {}", ast_operator_to_function_name(op)));
+        }
 
         this->push_child(operand); // 0
     }
@@ -69,6 +83,23 @@ namespace logia::AST
     void UnaryExpression::_set_type(Type *ty)
     {
         this->type = ty;
+        // foward the type depending on the operator
+        switch (op)
+        {
+        case Operators::POSTFIX_DECREMENT:
+        case Operators::POSTFIX_INCREMENT:
+        case Operators::PREFIX_BITWISE_NOT:
+        case Operators::PREFIX_DECREMENT:
+        case Operators::PREFIX_INCREMENT:
+        case Operators::PREFIX_NEGATION:
+            this->get_operand()->set_type(type);
+            break;
+        case Operators::PREFIX_LOGICAL_NOT:
+        case Operators::PREFIX_DEREFERENCE:
+            break;
+        default:
+            throw_compiler_error("unreachable");
+        }
     }
 
     llvm::Value *UnaryExpression::post_codegen(logia::Backend *backend)

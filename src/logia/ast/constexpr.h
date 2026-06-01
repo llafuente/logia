@@ -5,6 +5,8 @@
 #include "logia/ast/expr.h"
 #include "utils.h"
 
+#include "llvm/ADT/APSInt.h"
+
 namespace logia::AST
 {
     /// @brief A constant expression that can be evaluated/used at compile time
@@ -63,17 +65,18 @@ namespace logia::AST
     struct IntegerLiteral : ConstExpression
     {
         /// @brief The integer value as text, we will parse it at codegen to support different bases and sizes
-        char *number_str = nullptr;
+        char *value_str = nullptr;
+
+        // Create the biggest APSInt possible, check if it fits into the target width, then truncate
+        // TODO REVIEW 128 is possible ?!
+        llvm::APSInt value = llvm::APSInt(64, /*isUnsigned=*/true);
         /// @brief the type
         Type *type = nullptr;
 
         IntegerLiteral(antlr4::ParserRuleContext *rule, const char *number_as_text, Type *type = nullptr);
-        /// @brief Retrieves the integer value as the biggest unsigned value
-        /// @return
-        uint64_t as_unsigned();
-        /// @brief Retrieves the integer value as the biggest signed value
-        /// @return
-        int64_t as_signed();
+
+        /// @brief negates current value and value_str
+        void negate();
 
         std::string to_string() override;
 

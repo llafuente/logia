@@ -396,6 +396,13 @@ namespace logia
                 // for syntactic completeness, do nothing
                 return operand;
             case LogiaParser::MINUS_TK:
+                // if it's a number, we negate the string
+                // we cannot do it later, because some numbers are out-of-range as positives!
+                if (operand->is<AST::IntegerLiteral>())
+                {
+                    operand->as<AST::IntegerLiteral>()->negate();
+                    return ANY_VOIDP_STORE(operand);
+                }
                 return ANY_VOIDP_STORE(new AST::UnaryExpression(context, AST::Operators::PREFIX_NEGATION, operand));
             case LogiaParser::TILDE_TK:
                 return ANY_VOIDP_STORE(new AST::UnaryExpression(context, AST::Operators::PREFIX_BITWISE_NOT, operand));

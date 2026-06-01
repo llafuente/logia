@@ -105,7 +105,7 @@ namespace logia::AST
 
     LOGIA_API Identifier *ast_create_identifier(LOGIA_CLONE const char *name)
     {
-        LOGIA_VERIFY(name != nullptr);
+        LOGIA_VERIFY(name == nullptr);
 
         return new Identifier(nullptr, strdup(name));
     }
