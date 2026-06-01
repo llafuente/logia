@@ -106,9 +106,71 @@ namespace logia::AST
         if (type->is<Integer>())
         {
             auto itype = type->as<Integer>();
-            // TODO add support for octal
-            // TODO add support for hexadecimal
-            this->cg_value = llvm::ConstantInt::get(llvm_type, llvm::APInt(itype->bits, this->number_str, 10));
+
+            // Create the biggest APSInt possible, check if it fits into the target width, then truncate
+            // TODO REVIEW 128 is possible ?!
+            auto value = new llvm::APInt(64, 0);
+            // llvm::APSInt *svalue = llvm::APSInt(64, itype->is_signed);
+            auto canBeNonDec = strlen(this->number_str) > 2;
+            if (canBeNonDec && this->number_str[0] == '0' && this->number_str[1] == 'b')
+            {
+                // binary
+                llvm::StringRef binStr = this->number_str + 2; // Skip the "0b" prefix
+                if (!binStr.getAsInteger(2, value))
+                {
+                    throw_semantic_error(this, std::format("LGERR_CEXPR000 Invalid binary literal '{}'", this->number_str));
+                }
+            }
+            if (canBeNonDec && this->number_str[0] == '0' && this->number_str[1] == 'o')
+            {
+                // octal
+                llvm::StringRef octStr = this->number_str + 2; // Skip the "0o" prefix
+                if (!octStr.getAsInteger(8, value))
+                {
+                    throw_semantic_error(this, std::format("LGERR_CEXPR000 Invalid octal literal '{}'", this->number_str));
+                }
+            }
+            else if (canBeNonDec && this->number_str[0] == '0' && this->number_str[1] == 'x')
+            {
+                // hexadecimal
+                llvm::StringRef hexStr = this->number_str + 2; // Skip the "0x" prefix
+                if (!hexStr.getAsInteger(16, value))
+                {
+                    throw_semantic_error(this, std::format("LGERR_CEXPR000 Invalid hexadecimal literal '{}'", this->number_str));
+                }
+            }
+            else
+            {
+                // decimal
+                llvm::StringRef decStr = this->number_str; // No prefix to skip
+                if (!decStr.getAsInteger(10, value))
+                {
+                    throw_semantic_error(this, std::format("LGERR_CEXPR000 Invalid decimal literal '{}'", this->number_str));
+                }
+            }
+
+            if (!value->isRepresentableByInt64())
+            {
+                throw_semantic_error(this, std::format("LGERR_CEXPR001 Integer literal '{}' is too big for 64-bit integers", this->number_str));
+            }
+            // handle error if the number is too big for the type
+            if (value->getActiveBits() > itype->bits)
+            {
+                throw_semantic_error(this, std::format("LGERR_CEXPR002 Integer literal '{}' is too big for type '{}'", this->number_str, type->get_repr()));
+            }
+
+            if (itype->is_signed)
+            {
+                // "cast" to SInt
+                value = llvm::APSInt(llvm::APInt(itype->bits, value->getZExtValue()), /*isUnsigned=*/false);
+            }
+            else
+            {
+                value->truncate(itype->bits);
+            }
+
+            // this->cg_value = llvm::ConstantInt::get(llvm_type, llvm::APInt(itype->bits, this->number_str, 10));
+            this->cg_value = llvm::ConstantInt::get(llvm_type, value);
         }
         else if (type->is<Float>())
         {

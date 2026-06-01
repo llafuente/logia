@@ -1,0 +1,59 @@
+// TODO overflow check
+// TODO same with secure integers
+
+function check_i8() {
+    var i8 min = -128
+    var i8 max = 127
+
+    return 0
+}
+function check_i16() {
+    var i16 min = -32768
+    var i16 max = 32767
+
+    return 0
+}
+
+function check_i32() {
+    var i32 min = -2147483648
+    var i32 max = 2147483647
+
+    return 0
+}
+function check_i64() {
+    var i64 min = -9223372036854775808
+    var i64 max = 9223372036854775807
+
+    return 0
+}
+
+
+function check_u8() {
+    var u8 min = 0
+    var u8 max = 255
+
+    return 0
+}
+function check_i16() {
+    var u16 min = 0
+    var u16 max = 65535
+
+    return 0
+}
+
+function check_i32() {
+    var u32 min = 0
+    var u32 max = 4294967295
+
+    return 0
+}
+function check_i64() {
+    var u64 min = 0
+    var u64 max = 18446744073709551615
+
+    return 0
+}
+
+
+function main() {
+}
