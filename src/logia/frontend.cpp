@@ -135,6 +135,8 @@ namespace logia
         delete this->lexer;
         delete this->input;
         free(this->text);
+
+        delete this->ast_tree;
     }
 
     char *ParseResult::__file_read(const char *file_path)
@@ -230,13 +232,14 @@ namespace logia
             << this->ast_tree->to_string_tree() << std::endl;
     }
 
-    ParseResult *logia_parse_package(const char *file_path)
+    LOGIA_LEND ParseResult *logia_parse_package(const char *file_path)
     {
         auto parse_result = new ParseResult(file_path);
         parse_result->parse(false);
         return parse_result;
     }
-    ParseResult *logia_parse_program(const char *file_path)
+
+    LOGIA_LEND ParseResult *logia_parse_program(const char *file_path)
     {
         auto parse_result = new ParseResult(file_path);
         parse_result->parse(true);

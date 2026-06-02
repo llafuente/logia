@@ -33,6 +33,7 @@ namespace logia
         {
             return &logia_config;
         }
+        void reset();
         std::string to_string();
     };
 }

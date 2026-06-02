@@ -8,6 +8,8 @@ namespace logia
 {
     int logia_run(int argc, const char *argv[])
     {
+        logia_config.reset();
+
         if (!argc)
         {
             print_usage("run");
@@ -105,8 +107,10 @@ namespace logia
         }
         auto ret = backend->run_jit("main");
 
-        delete parse_result;
         delete backend;
+        delete parse_result;
+        logia_config.reset();
+
         return ret;
     }
 
