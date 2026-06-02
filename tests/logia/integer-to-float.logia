@@ -1,0 +1,12 @@
+function check_float_decl_from_int_literal() i32{
+    var float a = -128
+    var float b = 128
+    var float c = 0xFF
+    var float d = 0xFFFFFFFF
+
+    return 0
+}
+
+function main() i32{
+    return 0
+}

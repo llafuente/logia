@@ -1,0 +1,18 @@
+// TODO overflow check
+// TODO same with secure integers
+
+function check_i8() i32{
+    var i8 a = 0xff
+    var i8 b = 0x00
+    var i8 c = 0b00000001
+    var i8 b = 0b11111111
+
+    var u8 a = 0xff
+    var u8 b = 0x00
+
+    return 0
+}
+
+function main() i32{
+    return 0
+}

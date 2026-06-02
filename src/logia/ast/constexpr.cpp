@@ -111,7 +111,7 @@ namespace logia::AST
     {
         LOG(DBG, "{}", this->to_string());
         auto type = this->get_final_type();
-        auto llvm_type = (llvm::Type *)this->get_final_type()->codegen(backend);
+        auto llvm_type = (llvm::Type *)type->codegen(backend);
 
         if (type->is<Integer>())
         {
@@ -150,12 +150,11 @@ namespace logia::AST
         }
         else if (type->is<Float>())
         {
-            auto ftype = type->as<Float>();
+            LOG(DBG, "{} to float!", this->value_str);
             this->cg_value = llvm::ConstantFP::get(
                 llvm_type,
-                this->value_str
-                // llvm::APFloat(ftype->bits, this->number_str) // APFloat from float
-            );
+                // this->value_str
+                llvm::APFloat(static_cast<double>(this->value.getSExtValue())));
         }
         else
         {
