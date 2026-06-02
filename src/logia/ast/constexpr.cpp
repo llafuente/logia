@@ -111,7 +111,8 @@ namespace logia::AST
     {
         LOG(DBG, "{}", this->to_string());
         auto type = this->get_final_type();
-        auto llvm_type = (llvm::Type *)type->codegen(backend);
+        type->codegen(backend);
+        auto llvm_type = type->ir_type;
 
         if (type->is<Integer>())
         {
@@ -150,11 +151,33 @@ namespace logia::AST
         }
         else if (type->is<Float>())
         {
-            LOG(DBG, "{} to float!", this->value_str);
-            this->cg_value = llvm::ConstantFP::get(
-                llvm_type,
-                // this->value_str
-                llvm::APFloat(static_cast<double>(this->value.getSExtValue())));
+            auto ftype = type->as<Float>();
+            LOG(DBG, "{} to float {} / {}!", this->value_str, type->get_repr(), llvm_type_to_string(llvm_type));
+            switch (ftype->bits)
+            {
+            case 16:
+                throw_compiler_error("not supportted atm");
+            /*
+                this->cg_value = llvm::ConstantFP::get(
+                    llvm_type,
+                    // this->value_str
+                    llvm::APFloat(static_cast<_Float16>(this->value.getSExtValue())));
+                    */
+            case 32:
+                this->cg_value = llvm::ConstantFP::get(
+                    llvm_type,
+                    // this->value_str
+                    llvm::APFloat(static_cast<float>(this->value.getSExtValue())));
+                break;
+            case 64:
+                this->cg_value = llvm::ConstantFP::get(
+                    llvm_type,
+                    // this->value_str
+                    llvm::APFloat(static_cast<double>(this->value.getSExtValue())));
+                break;
+            default:
+                throw_compiler_error("Invalid number of bits for float type");
+            }
         }
         else
         {
