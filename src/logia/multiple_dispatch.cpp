@@ -261,7 +261,18 @@ namespace logia::multiple_dispatch
 
         if (candidates.size() == 0)
         {
-            throw std::runtime_error(std::format("LGERR_MD001 No matching function found for call expression.\n{}", callexpr->get_debug_location()));
+            std::string debug_candidates = "";
+            int i = 1;
+            for (const auto &node : list)
+            {
+                Function *func;
+                if (node->try_cast<Function>(&func))
+                {
+                    debug_candidates += std::format("Candidate {} with: \n{}Declared {}\n", i++, func->get_repr(), func->get_debug_location(0, 0));
+                }
+                ++i;
+            }
+            throw std::runtime_error(std::format("LGERR_MD001 No matching function found for call expression.\n{}\nPossible candidates:\n{}", callexpr->get_debug_location(), debug_candidates));
         }
 
         if (candidates.size() == 1)
