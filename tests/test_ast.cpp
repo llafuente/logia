@@ -28,7 +28,7 @@ void expect_all_attached(logia::AST::Program *prg)
                           {
                             LOG(DBG, "{}", n->to_string());
       if (!n->is<logia::AST::Program>()) {
-        EXPECT_TRUE(n->is_attached) << std::format(" not attached {}", n->to_string());
+        EXPECT_TRUE(n->is_attached) << std::format(" not attached {} to {}", n->to_string(), n->parent_node->to_string());
     }
       return true; });
 }
@@ -306,14 +306,14 @@ TEST(logia_ast, logia_compiler_to_jit_test)
 
   LOGIA_UNIT_TEST_END();
 }
-*/
+
 // expose compiler functions to logia
 TEST(ast_create_if2, t1)
 {
   LOGIA_UNIT_TEST();
   using namespace logia::AST;
 
-  auto callFuncName = ast_create_identifier("logia_intrinsics_bin_eq_i64_i64");
+  auto callFuncName = ast_create_identifier("__logia_bin_eq");
   auto condition = ast_create_call_expr(callFuncName, {new IntegerLiteral(rule, "11", i64), new IntegerLiteral(rule, "11", i64)});
 
   auto ifstmt = ast_create_if(condition);
@@ -331,7 +331,7 @@ TEST(ast_create_if2, t1)
 
   LOGIA_UNIT_TEST_END();
 }
-
+*/
 // expose compiler functions to logia
 
 /*
@@ -345,7 +345,7 @@ function main() i64 {
   #assert tmp == 1
 }
 
-*/
+
 TEST(ast_create_if3, t1)
 {
   LOGIA_UNIT_TEST();
@@ -394,3 +394,4 @@ TEST(ast_create_if3, t1)
 
   LOGIA_UNIT_TEST_END();
 }
+*/

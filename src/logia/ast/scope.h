@@ -125,6 +125,14 @@ namespace logia::AST
                 p = p->parentScope;
             } while (p != nullptr);
 
+            // Log all scopes to be able to see if something is missing!
+            p = this;
+            do
+            {
+                LOG(ERR, "Scope {}", p->to_string());
+                p = p->parentScope;
+            } while (p != nullptr);
+
             throw_semantic_error(this, std::format("Identifier '{}' of type '{}' Not found in scope.", name, typeid(T).name()));
         }
 

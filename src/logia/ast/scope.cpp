@@ -63,6 +63,7 @@ namespace logia::AST
         auto parentBody = this->first_parent<Scope>();
         LOGIA_ASSERT(parentBody == nullptr);
         this->parentScope = parentBody;
+        Node::post_attach();
     }
 
     Type *Scope::get_type()

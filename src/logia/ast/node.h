@@ -93,8 +93,6 @@ namespace logia::AST
         /// @remarks Node should be attached
         void replace(Node *attached_node, Node *new_node);
 
-        void _has_to_notify_attached(Node *child);
-
         void __notify_attached();
 
         /// @brief returns a string representation of the tree starting from this node, with padding for each level

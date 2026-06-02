@@ -7,6 +7,30 @@
 
 namespace logia::AST
 {
+    // utils
+    bool __is_attached_to_program(Node *node)
+    {
+        // an attached node is the one that can reach program
+        Program *program = nullptr;
+        if (node->is<Program>() || node->try_first_parent<Program>(&program))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    void __notify_attached_descendants(Node *node)
+    {
+        LOG(SILLY, "{}", node->to_string());
+        node->__notify_attached();
+        node->foreach_descendant([](auto descendant, auto i) -> bool
+                                 {
+            descendant->__notify_attached();
+            return true; });
+    }
+
+    // impl
+
     Node::Node(antlr4::ParserRuleContext *rule) : rule(rule)
     {
     }
@@ -52,6 +76,11 @@ namespace logia::AST
         {
             flags += (flags.length() ? "," : "");
             flags += "skipcg";
+        }
+        if (this->is_attached)
+        {
+            flags += (flags.length() ? "," : "");
+            flags += "attached";
         }
 
         std::string ty = "";
@@ -135,7 +164,10 @@ namespace logia::AST
         children.push_back(child);
         child->parent_node = this;
 
-        this->_has_to_notify_attached(child);
+        if (__is_attached_to_program(this))
+        {
+            __notify_attached_descendants(child);
+        }
     }
 
     void Node::set_child(Node *child, size_t position)
@@ -147,7 +179,10 @@ namespace logia::AST
         children[position] = child;
         child->parent_node = this;
 
-        this->_has_to_notify_attached(child);
+        if (__is_attached_to_program(this))
+        {
+            __notify_attached_descendants(child);
+        }
     }
 
     void Node::unshift_child(Node *child)
@@ -159,7 +194,10 @@ namespace logia::AST
         children.insert(children.begin(), child);
         child->parent_node = this;
 
-        this->_has_to_notify_attached(child);
+        if (__is_attached_to_program(this))
+        {
+            __notify_attached_descendants(child);
+        }
     }
 
     void Node::replace_self(Node *new_node)
@@ -167,23 +205,19 @@ namespace logia::AST
         auto parent = this->parent_node;
         std::replace(parent->children.begin(), parent->children.end(), this, new_node);
         new_node->parent_node = this;
-        this->_has_to_notify_attached(new_node);
+        if (__is_attached_to_program(this))
+        {
+            __notify_attached_descendants(new_node);
+        }
     }
 
     void Node::replace(Node *attached_node, Node *new_node)
     {
         std::replace(children.begin(), children.end(), attached_node, new_node);
         new_node->parent_node = this;
-        this->_has_to_notify_attached(new_node);
-    }
-
-    void Node::_has_to_notify_attached(Node *child)
-    {
-        // an attached node is the one that can reach program
-        Program *program = nullptr;
-        if (this->is<Program>() || this->try_first_parent<Program>(&program))
+        if (__is_attached_to_program(this))
         {
-            child->__notify_attached();
+            __notify_attached_descendants(new_node);
         }
     }
 
