@@ -8,29 +8,39 @@ namespace logia::AST
     struct FunctionParameter;
     struct Identifier;
 
-    /// @brief Defines a call expression argument
+    /// @brief Argument of a call expression, can be named or positional
     struct CallExpressionArgument : Node
     {
+        /// @brief The index of the argument in the call expression, used for positional arguments
+        /// @remarks Handled by CallExpression, should not be set manually here
         size_t index = 0;
+        /// @brief Set at type inference to match the function parameter
         FunctionParameter *parameter = nullptr;
 
         CallExpressionArgument(
             size_t index,
             Identifier *name,
             Expression *value);
+        /// @brief Check if the argument is named
+        /// @return True if the argument is named, false otherwise
         bool is_named();
+        /// @brief Get the name of the argument
+        /// @return The identifier of the argument
         Identifier *get_name();
+        /// @brief Get the value of the argument
+        /// @return The expression of the argument
         Expression *get_value();
 
         std::string to_string() override;
+
         Type *get_type() override;
 
     protected:
         void _set_type(Type *type) override;
-
-    protected:
         void _post_type_inference() override;
     };
+
+    // TODO REVIEW It uses multiple dispatch, but while usefull maybe it's better to have single dispatch for "non-operator" functions
 
     /// @brief Call expression, can be a function call, method call, operator call, etc.
     struct CallExpression : Expression
@@ -98,7 +108,9 @@ namespace logia::AST
         CallExpressionArgument *get_argument_by_index(uint32_t index);
 
         std::string to_string() override;
+
         llvm::Value *post_codegen(logia::Backend *backend) override;
+
         Type *get_type() override;
 
     protected:

@@ -51,7 +51,6 @@ namespace logia::AST
         default:
         {
             /// replace with callexpr!
-            // auto locator = new Identifier(this->rule, ast_binary_operator_to_string(op, left_ty->get_type(), right_ty->get_type()));
             auto locator = new Identifier(this->rule, ast_operator_to_function_name(op));
             auto operand = this->get_operand();
 

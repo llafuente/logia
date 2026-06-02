@@ -56,11 +56,11 @@ namespace logia::AST
         auto else_body = this->get_else();
         auto continue_body = this->get_continue_block();
         then_body->pre_codegen(backend);
-        auto then_block = then_body->llvm_basicblock;
+        auto then_block = then_body->ir_basicblock;
         else_body->pre_codegen(backend);
-        auto else_block = else_body->llvm_basicblock;
+        auto else_block = else_body->ir_basicblock;
         continue_body->pre_codegen(backend);
-        auto continue_block = continue_body->llvm_basicblock;
+        auto continue_block = continue_body->ir_basicblock;
 
         // NOTE create before codegen each block so the blocks are attached to function before codegen
         auto v = backend->builder->CreateCondBr(condition, then_block, else_block);
@@ -70,7 +70,7 @@ namespace logia::AST
 
         then_body->codegen(backend);
 
-        if (!ast_llvm_block_has_terminator(then_body->llvm_basicblock))
+        if (!ast_llvm_block_has_terminator(then_body->ir_basicblock))
         {
             LOG(DBG, "then_block has no terminator -> br");
             continue_block_required = true;
@@ -78,7 +78,7 @@ namespace logia::AST
         }
 
         else_body->codegen(backend);
-        if (!ast_llvm_block_has_terminator(then_body->llvm_basicblock))
+        if (!ast_llvm_block_has_terminator(then_body->ir_basicblock))
         {
             LOG(DBG, "else_block has no terminator -> br");
             continue_block_required = true;

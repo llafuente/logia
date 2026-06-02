@@ -17,6 +17,7 @@ namespace logia::AST
 
     Block::Block(antlr4::ParserRuleContext *rule, Identifier *name) : Scope(rule), name(name)
     {
+        LOGIA_ASSERT(name != nullptr);
         name->skip_codegen = true; // even if it's not reachable we should be careful
     }
 
@@ -70,14 +71,14 @@ namespace logia::AST
 
     void Block::pre_codegen(logia::Backend *backend)
     {
-        if (this->llvm_basicblock != nullptr)
+        if (this->ir_basicblock != nullptr)
         {
             return;
         }
 
-        this->llvm_basicblock = llvm::BasicBlock::Create(backend->context, this->get_name(), nullptr);
+        this->ir_basicblock = llvm::BasicBlock::Create(backend->context, this->get_name(), nullptr);
 
-        LOG(DBG, "{} name = {} llvm_basicblock = {}", this->to_string(), this->get_name(), (void *)this->llvm_basicblock);
+        LOG(DBG, "{} name = {} ir_basicblock = {}", this->to_string(), this->get_name(), (void *)this->ir_basicblock);
     }
 
     llvm::Value *Block::post_codegen(logia::Backend *backend)
@@ -96,16 +97,16 @@ namespace logia::AST
 
         if (!ast_llvm_block_has_terminator(previous_block))
         {
-            backend->builder->CreateBr(this->llvm_basicblock); // goto
+            backend->builder->CreateBr(this->ir_basicblock); // goto
         }
         // insert block into current function
         auto func = backend->builder->GetInsertBlock()->getParent();
-        func->insert(func->end(), this->llvm_basicblock);
-        backend->builder->SetInsertPoint(this->llvm_basicblock);
+        func->insert(func->end(), this->ir_basicblock);
+        backend->builder->SetInsertPoint(this->ir_basicblock);
 
         this->codegen_children(backend);
 
-        this->cg_value = this->llvm_basicblock;
+        this->cg_value = this->ir_basicblock;
         return Node::post_codegen(backend);
     }
     void Block::codegen_children(logia::Backend *backend)
@@ -137,7 +138,7 @@ namespace logia::AST
             // we should skip until next block
             // This is an ill formated program and could lead to problems/cashes later
             // we need a way to detect this "dead code" and raise a semantic_errror -> the coder to remove it!
-            if (this->llvm_basicblock && i != last && ast_llvm_block_has_terminator(backend->builder->GetInsertBlock()))
+            if (this->ir_basicblock && i != last && ast_llvm_block_has_terminator(backend->builder->GetInsertBlock()))
             {
                 LOG(WRN, "skip until next block, current block has terminator");
                 ++i;
@@ -159,10 +160,5 @@ namespace logia::AST
         {
             backend->dscopes.pop_back();
         }
-    }
-
-    LOGIA_API Block *ast_create_block(Identifier *name)
-    {
-        return new Block(nullptr, name);
     }
 }

@@ -230,7 +230,7 @@ namespace logia::AST
                 auto column = name->rule->start->getCharPositionInLine();
                 backend->dbuilder->insertDeclare(param->alloca_inst, D, backend->dbuilder->createExpression(),
                                                  llvm::DILocation::get(this->di_subprogram->getContext(), line, column, this->di_subprogram),
-                                                 this->get_body()->llvm_basicblock);
+                                                 this->get_body()->ir_basicblock);
             }
             ++i;
         }
@@ -417,7 +417,16 @@ namespace logia::AST
     // Operator
     //
 
-    Operator::Operator(antlr4::ParserRuleContext *rule, Operators op, Type *return_type) : Function(rule, new Identifier(rule, ast_operator_to_function_name(op)), return_type, false) {}
+    Operator::Operator(antlr4::ParserRuleContext *rule, Operators op, Type *return_type) : Function(rule, new Identifier(rule, ast_operator_to_function_name(op)), return_type, false)
+    {
+        switch (op)
+        {
+        case Operators::PREFIX_DEREFERENCE:
+            throw_semantic_error(this, "LGERR_OP001 dereference operator is not allowed to overload");
+            break;
+        }
+        this->op = op;
+    }
     Operator::~Operator() {}
 
     //

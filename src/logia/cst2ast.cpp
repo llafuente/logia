@@ -758,6 +758,7 @@ namespace logia
         {
             CST_UNREACHABLE();
         }
+        return ANY_VOIDP_STORE(imp);
     }
 
     std::any CST2AST::visitIdentifier(LogiaParser::IdentifierContext *context)

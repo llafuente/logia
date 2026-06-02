@@ -16,22 +16,4 @@ namespace logia::AST
 
         llvm::Value *post_codegen(logia::Backend *backend) override;
     };
-
-    //
-    // utils
-    //
-
-    /// @brief Converts a binary operator to its string representation
-    LOGIA_API const char *ast_postfix_unary_operator_to_string(Operators op, Type *operand);
-
-    /// @brief Converts a binary operator to its string representation
-    LOGIA_API const char *ast_prefix_unary_operator_to_string(Operators op, Type *operand);
-
-    /// @brief Converts a binary operator to its string representation
-    /// @param op The binary operator
-    /// @param left The left operand type
-    /// @param right The right operand type
-    /// @return The string representation of the binary operator
-    LOGIA_API const char *ast_binary_operator_to_string(Operators op, Type *left, Type *right);
-
 }

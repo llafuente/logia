@@ -26,19 +26,19 @@ namespace logia::AST
 
         Block::pre_codegen(backend);
         auto function = this->first_parent<Function>();
-        function->ir_func->insert(function->ir_func->end(), this->llvm_basicblock);
-        backend->builder->SetInsertPoint(this->llvm_basicblock);
+        function->ir_func->insert(function->ir_func->end(), this->ir_basicblock);
+        backend->builder->SetInsertPoint(this->ir_basicblock);
 
         this->parent_node->as<Function>()->codegen_parameters(backend);
     }
 
     llvm::Value *FunctionBlock::post_codegen(logia::Backend *backend)
     {
-        backend->builder->SetInsertPoint(this->llvm_basicblock);
+        backend->builder->SetInsertPoint(this->ir_basicblock);
 
         Block::codegen_children(backend);
 
-        this->cg_value = this->llvm_basicblock;
+        this->cg_value = this->ir_basicblock;
         return Node::post_codegen(backend);
     }
 

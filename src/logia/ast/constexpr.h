@@ -7,10 +7,9 @@
 
 namespace logia::AST
 {
-    /// @brief A constant expression that can be evaluated at compile time
+    /// @brief A constant expression that can be evaluated/used at compile time
     struct ConstExpression : Expression
     {
-        // REVIEW strange  why do i need to declare this ?
         ConstExpression(antlr4::ParserRuleContext *rule);
 
         std::string to_string() override;

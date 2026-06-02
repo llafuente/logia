@@ -15,7 +15,17 @@ namespace logia::AST
 
     std::string Import::to_string()
     {
-        return std::format("Import{}", Node::to_string());
+        // join package by dot
+        std::string package_name;
+        for (auto id : package)
+        {
+            if (!package_name.empty())
+            {
+                package_name += ".";
+            }
+            package_name += id->identifier;
+        }
+        return std::format("Import[{}]{}", package_name, Node::to_string());
     }
 
     void Import::set_package(std::vector<AST::Identifier *> package)
@@ -38,6 +48,45 @@ namespace logia::AST
     void Import::set_scope_target(Scope *target)
     {
         this->target = target;
+    }
+
+    void Import::validate()
+    {
+        if (this->is_import_all_package && !this->import_list.empty())
+        {
+            throw_semantic_error(this, "LGERR_IMP001 cannot use import all and import list together");
+        }
+
+        if (this->is_import_into_scope && !this->import_list.empty())
+        {
+            throw_semantic_error(this, "LGERR_IMP002 cannot use import into scope and import list together");
+        }
+#ifndef _DEBUG
+        if (this->target->is<Scope>() == false)
+        {
+            throw_semantic_error(this, "LGERR_IMP003 target of import should be a scope");
+        }
+        // check import list contents are identifiers
+        auto i = 0;
+        for (auto id : this->import_list)
+        {
+            if (id->is<Identifier>() == false)
+            {
+                throw_semantic_error(this, "LGERR_IMP004 import list should contain only identifiers, invalid element at position {}", i);
+            }
+            i++;
+        }
+        // check package list contents are identifiers
+        auto j = 0;
+        for (auto id : this->package)
+        {
+            if (id->is<Identifier>() == false)
+            {
+                throw_semantic_error(this, "LGERR_IMP005 package list should contain only identifiers, invalid element at position {}", j);
+            }
+            j++;
+        }
+#endif
     }
 
     void Import::post_attach()

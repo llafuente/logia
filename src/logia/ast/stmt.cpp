@@ -76,7 +76,7 @@ namespace logia::AST
         if (func->get_body()->try_look<Block>(id, &block))
         {
             block->codegen(backend);
-            this->cg_value = backend->builder->CreateBr(block->llvm_basicblock);
+            this->cg_value = backend->builder->CreateBr(block->ir_basicblock);
             return Stmt::post_codegen(backend);
         }
 

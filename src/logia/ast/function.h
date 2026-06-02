@@ -11,20 +11,39 @@ namespace logia::AST
     /// @brief Defines a function parameter
     struct FunctionParameter : Node
     {
+        char *docstring = nullptr;
+        /// @brief Alloca instruction for this parameter, populated at codegen and used for variable access
         llvm::AllocaInst *alloca_inst = nullptr;
+
+        /// @brief Index of this parameter in the function parameter list
+        /// @remarks Handled by Function
         size_t index = 0;
 
+        /// @brief Constructs a function parameter
+        /// @param name The name of the parameter
+        /// @param type The type of the parameter
+        /// @param defaultValue The default value of the parameter, if any
         FunctionParameter(
             Identifier *name,
             Type *type,
-            Node *defaultValue);
+            Node *defaultValue = nullptr);
 
+        /// @brief Retrieves function name
         Identifier *get_name();
+
+        /// @brief Retrieves the default value of the function parameter
+        /// @return The default value expression, if any
         Expression *get_default_value();
+
+        /// @brief Checks if the function parameter has a default value
+        /// @return True if the parameter has a default value, false otherwise
         bool has_default_value();
 
         std::string to_string() override;
+
         llvm::Value *post_codegen(logia::Backend *backend) override;
+
+        /// @brief Retrieves function type (self)
         Type *get_type() override;
 
     protected:
@@ -38,15 +57,25 @@ namespace logia::AST
         char *docstring = nullptr;
         /// @brief is an intrinsic function, intrinsics don't have body and are defined outside user program.
         bool is_intrinsic = false;
-
+        /// @brief LLVM function parameter types
         std::vector<llvm::Type *> ir_parameters = {};
+        /// @brief LLVM function type
         llvm::FunctionType *ir_functy = nullptr;
+        /// @brief LLVM Function declaration
         llvm::Function *ir_func = nullptr;
+        /// @brief LLVM Debug Information Subprogram
         llvm::DISubprogram *di_subprogram = nullptr;
 
+        /// @brief Constructs a function
+        /// @param rule The parser rule context
+        /// @param name The name of the function
+        /// @param return_type The return type of the function
+        /// @param is_intrinsic Whether the function is intrinsic or not, intrinsic functions don't have body and are defined outside user program.
         Function(antlr4::ParserRuleContext *rule, Identifier *name, Type *return_type = nullptr, bool is_intrinsic = false);
         ~Function();
 
+        /// @brief Retrieves the function parameters
+        /// @return A vector of function parameters
         std::vector<FunctionParameter *> get_parameters();
 
         /// @brief Retrives function identifier name as C string
@@ -64,12 +93,23 @@ namespace logia::AST
         /// @return
         Block *get_body();
 
+        /// @brief Retrieves a function parameter by index
+        /// @param i The index of the parameter
+        /// @return The function parameter at the specified index
         FunctionParameter *get_parameter(uint32_t i);
 
+        /// @brief Retrieves the number of function parameters
+        /// @return The number of function parameters
         int64_t get_parameter_count();
 
+        /// @brief Retrieves the name of a function parameter by index
+        /// @param i The index of the parameter
+        /// @return The name of the function parameter at the specified index
         Identifier *get_parameter_name(uint32_t i);
 
+        /// @brief Retrieves a function parameter by name
+        /// @param name The name of the parameter
+        /// @return The function parameter with the specified name
         FunctionParameter *get_parameter_by_name(const char *name);
 
         /// @brief Retrives the number of mandatory parameters
@@ -101,16 +141,28 @@ namespace logia::AST
         void _pre_type_inference() override;
     };
 
+    /// @brief Defines an operator, which is a special kind of function a name based on given operator
     struct LOGIA_EXPORT Operator : public Function
     {
+        /// @brief The operator kind
+        Operators op;
+
         Operator(antlr4::ParserRuleContext *rule, Operators op, Type *return_type = nullptr);
         ~Operator();
     };
 
+    /// @brief Defines an intrinsic function, which is a special kind of function that is defined outside user program and implemented directly in LLVM IR or exposed by the compiler
     struct LOGIA_EXPORT Intrinsic : public Function
     {
+        /// @brief The real name of the intrinsic function, used to link with the correct LLVM IR function or to expose it to comptime/jit
         const char *real_name = nullptr;
 
+        /// @brief Constructs an intrinsic function
+        /// @param ir The LLVM IR Function
+        /// @param real_name The real name of the intrinsic function
+        /// @param scope_name The scope name of the intrinsic function
+        /// @param return_type The return type of the intrinsic function
+        /// @param arguments The argument types of the intrinsic function
         Intrinsic(llvm::Function *ir, const char *real_name, const char *scope_name, Type *return_type, std::vector<Type *> arguments);
         ~Intrinsic();
 
