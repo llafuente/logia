@@ -326,10 +326,15 @@ CCHAR
 // numbers
 //
 
-Number
+Integer
     : INTEGER
-    | FLOAT_NUMBER
-    | IMAG_NUMBER
+    ;
+Float
+    : FLOAT_NUMBER
+    ;
+
+Imaginary
+    : IMAG_NUMBER
     ;
 
 // https://docs.python.org/3.12/reference/lexical_analysis.html#integer-literals

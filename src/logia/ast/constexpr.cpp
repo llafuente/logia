@@ -168,12 +168,33 @@ namespace logia::AST
     // FloatLiteral
     //
 
-    FloatLiteral::FloatLiteral(antlr4::ParserRuleContext *rule, double value, Type *type) : ConstExpression(rule)
+    FloatLiteral::FloatLiteral(antlr4::ParserRuleContext *rule, const char *number_as_text, Type *type) : ConstExpression(rule)
     {
-        this->value = value;
+        LOGIA_ASSERT(number_as_text == nullptr);
+        // TODO number literals with dashes need to be cleaned right ?
+
+        // alloc one more space for sign and negate without any allocation
+        auto length = strlen(number_as_text);
+        this->value_str = (char *)malloc(length + 2); // 1 for sign, 1 for null
+        strncpy(this->value_str, number_as_text, length);
+        this->value_str[length] = '\0'; // Ensure null termination
+
         if (type != nullptr)
         {
             this->set_type(type);
+        }
+        LOG(DBG, "{} as decimal", this->value_str);
+        auto ref = llvm::StringRef(this->value_str);
+
+        // Parse with rounding to nearest, ties to even
+        llvm::Expected<llvm::APFloat::opStatus> result =
+            value.convertFromString(this->value_str, llvm::APFloat::rmNearestTiesToEven);
+        if (!result)
+        {
+            // std::unique_ptr<ErrorInfoBase> Payload = result.takeError().takePayload();
+            //  Extract and print the error
+            llvm::handleAllErrors(result.takeError(), [this](const llvm::ErrorInfoBase &EIB)
+                                  { throw_semantic_error(this, std::format("LGERR_CEXPR004 Invalid floating point format '{}'.\nParse error: {}", this->value_str, EIB.message())); });
         }
     }
 
@@ -184,14 +205,15 @@ namespace logia::AST
 
     std::string FloatLiteral::to_string()
     {
-        return std::format("FloatLiteral[{}] {}{}", this->get_type()->to_string(), this->value, Node::to_string());
+        return std::format("FloatLiteral[{}]{}", this->value_str, Node::to_string());
     }
 
     llvm::Value *FloatLiteral::post_codegen(logia::Backend *backend)
     {
-        LOG(DBG, "{}", this->to_string());
-        this->cg_value = nullptr;
-        throw_compiler_error("TODO!");
+        LOG(DBG, "{} to float!", this->value_str);
+        auto type = this->get_final_type();
+
+        this->cg_value = llvm::ConstantFP::get(type->ir_type, this->value);
         return ConstExpression::post_codegen(backend);
     }
 
@@ -204,9 +226,9 @@ namespace logia::AST
     // StringLiteral
     //
 
-    StringLiteral::StringLiteral(antlr4::ParserRuleContext *rule, char *text) : ConstExpression(rule)
+    StringLiteral::StringLiteral(antlr4::ParserRuleContext *rule, const char *text) : ConstExpression(rule)
     {
-        this->text = text;
+        this->text = strdup(text);
     }
 
     Type *StringLiteral::get_type()
@@ -256,22 +278,5 @@ namespace logia::AST
 
                 return gvar;
         */
-    }
-
-    LOGIA_API LOGIA_LEND StringLiteral *ast_create_string_lit(LOGIA_CLONE const char *text)
-    {
-        return new StringLiteral(nullptr, strdup(text));
-    }
-    LOGIA_API LOGIA_LEND FloatLiteral *ast_create_float_lit(Block *body, double value)
-    {
-        return new FloatLiteral(nullptr, value, body->lookup<Type>("λf64"));
-    }
-    LOGIA_API LOGIA_LEND IntegerLiteral *ast_create_int_lit(Block *body, const char *numberstr)
-    {
-        return new IntegerLiteral(nullptr, numberstr, body->lookup<Type>("λi64"));
-    }
-    LOGIA_API LOGIA_LEND IntegerLiteral *ast_create_uint_lit(Block *body, const char *numberstr)
-    {
-        return new IntegerLiteral(nullptr, numberstr, body->lookup<Type>("λu64"));
     }
 }

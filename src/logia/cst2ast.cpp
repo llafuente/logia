@@ -144,12 +144,20 @@ namespace logia
     //
     // Expressions
     //
-    std::any CST2AST::visitNumberLiteral(LogiaParser::NumberLiteralContext *context)
+    std::any CST2AST::visitIntegerLiteral(LogiaParser::IntegerLiteralContext *context)
     {
         CST_DEBUG_FUNCTION();
 
         auto text = context->getText();
         return ANY_VOIDP_STORE(new AST::IntegerLiteral(context, text.c_str()));
+    }
+
+    std::any CST2AST::visitFloatLiteral(LogiaParser::FloatLiteralContext *context)
+    {
+        CST_DEBUG_FUNCTION();
+
+        auto text = context->getText();
+        return ANY_VOIDP_STORE(new AST::FloatLiteral(context, text.c_str()));
     }
 
     // rhsExpr it's just a container not needed
@@ -629,7 +637,8 @@ namespace logia
             throw std::runtime_error(__FUNCTION__ " todo");
         }
 
-        CST_VISIT_BRANCH(numberLiteral, visitNumberLiteral);
+        CST_VISIT_BRANCH(integerLiteral, visitIntegerLiteral);
+        CST_VISIT_BRANCH(floatLiteral, visitFloatLiteral);
         CST_VISIT_BRANCH(identifier, visitIdentifier);
         CST_VISIT_BRANCH(stringLiteral, visitStringLiteral);
 

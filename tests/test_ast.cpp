@@ -242,7 +242,7 @@ TEST(AST_Type, ast_create_var_decl2)
 
   auto str_a = "a";
   {
-    auto value_a = ast_create_int_lit(program, "11");
+    auto value_a = new IntegerLiteral(rule, "11", i64);
     auto vdecl_a = ast_create_var_decl(ast_create_identifier(str_a), value_a->get_type(), value_a);
     main_body->push_child(vdecl_a);
   }
@@ -314,13 +314,13 @@ TEST(ast_create_if2, t1)
   using namespace logia::AST;
 
   auto callFuncName = ast_create_identifier("logia_intrinsics_bin_eq_i64_i64");
-  auto condition = ast_create_call_expr(callFuncName, {ast_create_int_lit(program, "11"), ast_create_int_lit(program, "11")});
+  auto condition = ast_create_call_expr(callFuncName, {new IntegerLiteral(rule, "11", i64), new IntegerLiteral(rule, "11", i64)});
 
   auto ifstmt = ast_create_if(condition);
   main_body->push_child(ifstmt);
   EXPECT_EQ(ifstmt->get_then()->parent_node, ifstmt);
-  ifstmt->get_then()->push_child(ast_create_return(ast_create_int_lit(program, "1")));
-  ifstmt->get_else()->push_child(ast_create_return(ast_create_int_lit(program, "0")));
+  ifstmt->get_then()->push_child(ast_create_return(new IntegerLiteral(rule, "1", i64)));
+  ifstmt->get_else()->push_child(ast_create_return(new IntegerLiteral(rule, "0", i64)));
 
   expect_all_attached(program);
 
@@ -356,25 +356,25 @@ TEST(ast_create_if3, t1)
 
   auto eqeq = ast_create_identifier("logia_intrinsics_bin_eq_i64_i64");
 
-  auto vdecl = ast_create_var_decl(ast_create_identifier("tmp"), program->lookup<Type>("λi64"), ast_create_int_lit(program, "0"));
+  auto vdecl = ast_create_var_decl(ast_create_identifier("tmp"), program->lookup<Type>("λi64"), new IntegerLiteral(rule, "0", i64));
   main_body->push_child(vdecl);
 
-  auto condition = ast_create_call_expr(eqeq, {ast_create_int_lit(program, "11"), ast_create_int_lit(program, "11")});
+  auto condition = ast_create_call_expr(eqeq, {new IntegerLiteral(rule, "11", i64), new IntegerLiteral(rule, "11", i64)});
 
   auto ifstmt = ast_create_if(condition);
   main_body->push_child(ifstmt);
   EXPECT_EQ(ifstmt->get_then()->parent_node, ifstmt);
   {
     auto fn_add_name = ast_create_identifier("logia_intrinsics_bin_add_i64_i64");
-    auto add = ast_create_call_expr(fn_add_name, {ast_create_identifier("tmp"), ast_create_int_lit(program, "1")});
-    auto fn_assignament_name = ast_create_string_lit(strdup("logia_operator_assign_i64_i64"));
+    auto add = ast_create_call_expr(fn_add_name, {ast_create_identifier("tmp"), new IntegerLiteral(rule, "1", i64)});
+    auto fn_assignament_name = new StringLiteral(rule, "logia_operator_assign_i64_i64");
     auto assignament = ast_create_binary_expr(ast_create_identifier("tmp"), Operators::BINARY_ASSIGN, add);
     ifstmt->get_then()->push_child(assignament);
   }
   {
     auto fn_add_name = ast_create_identifier("logia_intrinsics_bin_add_i64_i64");
-    auto add = ast_create_call_expr(fn_add_name, {ast_create_identifier("tmp"), ast_create_int_lit(program, "2")});
-    auto fn_assignament_name = ast_create_string_lit(strdup("logia_operator_assign_i64_i64"));
+    auto add = ast_create_call_expr(fn_add_name, {ast_create_identifier("tmp"), new IntegerLiteral(rule, "2", i64)});
+    auto fn_assignament_name = new StringLiteral(rule, "logia_operator_assign_i64_i64");
     auto assignament = ast_create_binary_expr(ast_create_identifier("tmp"), Operators::BINARY_ASSIGN, add);
     ifstmt->get_else()->push_child(assignament);
   }

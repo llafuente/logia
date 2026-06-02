@@ -33,7 +33,8 @@ namespace logia
         //
         // Expressions
         //
-        std::any visitNumberLiteral(LogiaParser::NumberLiteralContext *context) override;
+        std::any visitIntegerLiteral(LogiaParser::IntegerLiteralContext *context) override;
+        std::any visitFloatLiteral(LogiaParser::FloatLiteralContext *context) override;
 
         // rhsExpr it's just a container not needed
         std::any visitRhsExpr(LogiaParser::RhsExprContext *context) override;

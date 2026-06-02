@@ -17,7 +17,7 @@ namespace logia::AST
 
     Block::Block(antlr4::ParserRuleContext *rule, Identifier *name) : Scope(rule), name(name)
     {
-        LOGIA_ASSERT(name != nullptr);
+        LOGIA_ASSERT(name == nullptr);
         name->skip_codegen = true; // even if it's not reachable we should be careful
     }
 

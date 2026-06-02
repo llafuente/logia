@@ -194,15 +194,15 @@ doWhileStmt
   ;
 
 continueStmt
-  : 'continue' (identifier | numberLiteral)?
+  : 'continue' (identifier | integerLiteral)?
   ;
 
 restartStmt
-  : 'restart' ( identifier | numberLiteral )?
+  : 'restart' ( identifier | integerLiteral )?
   ;
 
 breakStmt
-  : 'break' ( identifier | numberLiteral )?
+  : 'break' ( identifier | integerLiteral )?
   ;
 
 fallthroughStmt
@@ -258,7 +258,8 @@ constant
     | 'null'
     | 'default'
     | stringLiteral
-    | numberLiteral
+    | integerLiteral
+    | floatLiteral
     | identifier
     | preprocessorExpr
     | regularExpressionLiteral
@@ -685,8 +686,12 @@ stringLiteral
   : STRING_LITERAL
   ;
 
-numberLiteral
-  : ('-')? Number
+integerLiteral
+  : ('-')? Integer
+  ;
+
+floatLiteral
+  : ('-')? Float
   ;
 
 anyNonNewLine

@@ -1,0 +1,25 @@
+function main() i32{
+    // 1. Decimal literal
+    var f64 d1 = 3.141592653589793;
+
+    // 2. Scientific notation
+    var f64 d2 = 1.23e4; // 1.23 × 10^4 = 12300.0
+
+    // TODO
+    // 3. Hexadecimal floating literal (C99+)
+    // var f64 d3 = 0x1.921fb54442d18p+1; // ≈ 3.141592653589793
+
+    // 4. From integer literal (implicit conversion)
+    var f64 d4 = 42;
+
+    // TODO multiple dispatch expression narrowing based on return type ?
+    // 5. From arithmetic expression
+    // var f64 d5 = (5.0 / 2.0) + 1.0;
+
+    // 6. Special values
+    // var f64 d6 = f64.nan;       // Not-a-Number
+    // var f64 d7 = f64.inf;  // Positive infinity
+    // var f64 d8 = -f64.inf; // Negative infinity
+
+    return 0;
+}

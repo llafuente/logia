@@ -27,7 +27,7 @@ namespace logia::AST
         /// @brief string type, atm a false type cstring
         Type *type = nullptr;
 
-        StringLiteral(antlr4::ParserRuleContext *rule, char *text);
+        StringLiteral(antlr4::ParserRuleContext *rule, LOGIA_CLONE const char *text);
 
         std::string to_string() override;
 
@@ -48,11 +48,16 @@ namespace logia::AST
     struct FloatLiteral : ConstExpression
     {
     public:
-        double value;
+        /// @brief The integer value as text, we will parse it at codegen to support different bases and sizes
+        char *value_str = nullptr;
+        /// @brief "Biggest" float
+        llvm::APFloat value = llvm::APFloat::IEEEdouble();
+        // llvm::APFloat value = llvm::APFloat((double)0.0);
+
         /// @brief the type
         Type *type = nullptr;
 
-        FloatLiteral(antlr4::ParserRuleContext *rule, double value, Type *type = nullptr);
+        FloatLiteral(antlr4::ParserRuleContext *rule, const char *number_as_text, Type *type = nullptr);
         std::string to_string() override;
         llvm::Value *post_codegen(logia::Backend *backend) override;
         Type *get_type() override;
@@ -87,21 +92,4 @@ namespace logia::AST
     protected:
         void _set_type(Type *t) override;
     };
-
-    /**
-     * Creates a string literal
-     */
-    LOGIA_API LOGIA_LEND StringLiteral *ast_create_string_lit(LOGIA_CLONE const char *text);
-    /**
-     * Creates a floating point literal
-     */
-    LOGIA_API LOGIA_LEND FloatLiteral *ast_create_float_lit(Block *body, double value);
-    /**
-     * Creates a signed integer literal
-     */
-    LOGIA_API LOGIA_LEND IntegerLiteral *ast_create_int_lit(Block *body, const char *numberstr);
-    /**
-     * Creates an unsigned integer literal
-     */
-    LOGIA_API LOGIA_LEND IntegerLiteral *ast_create_uint_lit(Block *body, const char *numberstr);
 }

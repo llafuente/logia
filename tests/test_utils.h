@@ -23,7 +23,8 @@ char *end_stdout_capture();
     auto i18 = program->look<logia::AST::Integer>("λi8");                                       \
     auto i16 = program->look<logia::AST::Integer>("λi16");                                      \
     auto i32 = program->look<logia::AST::Integer>("λi32");                                      \
-    auto i64 = program->look<logia::AST::Integer>("λi64");
+    auto i64 = program->look<logia::AST::Integer>("λi64");                                      \
+    auto rule = program->rule
 
 #define LOGIA_UNIT_TEST_END() \
     do                        \

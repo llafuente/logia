@@ -21,7 +21,6 @@ TEST(logia_test_multiple_dispatch, start)
 {
     LOGIA_UNIT_TEST();
 
-    auto rule = new antlr4::ParserRuleContext();
     rule->start = new antlr4::CommonToken(102);
     rule->stop = new antlr4::CommonToken(102);
 
