@@ -17,11 +17,11 @@
 #include "logia/ast/returnstmt.h"
 #include "logia/ast/identifier.h"
 
-#define CST_THROW(msg)                                         \
-    do                                                         \
-    {                                                          \
-        std::cerr << __FILE__ << ":" << __LINE__ << std::endl; \
-        throw std::runtime_error(__FUNCTION__ " " msg);        \
+#define CST_THROW(msg)                                            \
+    do                                                            \
+    {                                                             \
+        std::cerr << __FILE__ << ":" << __LINE__ << std::endl;    \
+        throw std::runtime_error(TOSTRING(__FUNCTION__) " " msg); \
     } while (false)
 
 #define CST_TODO_BRANCH(retrieve_method, visit_method) \
@@ -171,7 +171,7 @@ namespace logia
         CST_VISIT_BRANCH(tokenizeExpr, visitTokenizeExpr);
         CST_VISIT_BRANCH(anonymousfunctionDecl, visitAnonymousfunctionDecl);
 
-        throw std::runtime_error(__FUNCTION__ "unreachable");
+        throw std::runtime_error(TOSTRING(__FUNCTION__) "unreachable");
     }
     std::any CST2AST::visitAssignmentExpr(LogiaParser::AssignmentExprContext *context)
     {
@@ -278,7 +278,7 @@ namespace logia
 
             return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, tk_to_operator(context->op->start->getType()), right));
             // TODO:  '<' '>'
-            throw std::runtime_error(__FUNCTION__ "unreachable");
+            throw std::runtime_error(TOSTRING(__FUNCTION__) "unreachable");
         }
         return ANY_VOIDP_STORE(right);
     }
@@ -305,7 +305,7 @@ namespace logia
             case LogiaParser::GREATER_EQUAL_TK:
                 return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::Operators::BINARY_LOGIAL_GTE, right));
             }
-            throw std::runtime_error(__FUNCTION__ "unreachable");
+            throw std::runtime_error(TOSTRING(__FUNCTION__) "unreachable");
         }
         return ANY_VOIDP_STORE(right);
     }
@@ -328,7 +328,7 @@ namespace logia
             case LogiaParser::GT_TK:
                 return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::Operators::BINARY_BITWISE_RIGHT_SHIFT, right));
             }
-            throw std::runtime_error(__FUNCTION__ "unreachable");
+            throw std::runtime_error(TOSTRING(__FUNCTION__) "unreachable");
         }
         return ANY_VOIDP_STORE(right);
     }
@@ -369,7 +369,7 @@ namespace logia
             case LogiaParser::MOD_TK:
                 return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::Operators::BINARY_MOD, right));
             }
-            throw std::runtime_error(__FUNCTION__ "unreachable");
+            throw std::runtime_error(TOSTRING(__FUNCTION__) "unreachable");
         }
         return ANY_VOIDP_STORE(right);
     }
@@ -423,7 +423,7 @@ namespace logia
             case LogiaParser::MINUSMINUS_TK:
                 return ANY_VOIDP_STORE(new AST::UnaryExpression(context, AST::Operators::PREFIX_DECREMENT, operand));
             }
-            throw std::runtime_error(__FUNCTION__ "unreachable");
+            throw std::runtime_error(TOSTRING(__FUNCTION__) "unreachable");
         }
 
         return ANY_VOIDP_STORE(operand);
@@ -588,7 +588,7 @@ namespace logia
         {
         }
 
-        throw std::runtime_error(__FUNCTION__ " todo");
+        throw std::runtime_error(TOSTRING(__FUNCTION__) " todo");
     }
     std::any CST2AST::visitStructConstantInitializer(LogiaParser::StructConstantInitializerContext *context)
     {
@@ -633,9 +633,9 @@ namespace logia
         case LogiaParser::FALSE_TK:
             return ANY_VOIDP_STORE(new AST::IntegerLiteral(context, "0", this->program->look<AST::Type>("bool")));
         case LogiaParser::NULL_TK:
-            throw std::runtime_error(__FUNCTION__ " todo");
+            throw std::runtime_error(TOSTRING(__FUNCTION__) " todo");
         case LogiaParser::DEFAULT_TK:
-            throw std::runtime_error(__FUNCTION__ " todo");
+            throw std::runtime_error(TOSTRING(__FUNCTION__) " todo");
         }
 
         CST_VISIT_BRANCH(integerLiteral, visitIntegerLiteral);
@@ -650,7 +650,7 @@ namespace logia
         {
         }
 
-        throw std::runtime_error(__FUNCTION__ " todo");
+        throw std::runtime_error(TOSTRING(__FUNCTION__) " todo");
     }
 
     std::any CST2AST::visitReturnStmt(LogiaParser::ReturnStmtContext *context)
@@ -795,16 +795,14 @@ namespace logia
     {
         CST_DEBUG_FUNCTION();
 
-        // TODO REVIEW strdup necessary ? that memory should have similar life
-        return ANY_VOIDP_STORE(new AST::Identifier(context, strdup(context->getText().c_str())));
+        return ANY_VOIDP_STORE(new AST::Identifier(context, _strdup(context->getText().c_str())));
     }
 
     std::any CST2AST::visitStringLiteral(LogiaParser::StringLiteralContext *context)
     {
         CST_DEBUG_FUNCTION();
 
-        // TODO REVIEW strdup necessary ? that memory should have similar life
-        return ANY_VOIDP_STORE(new AST::StringLiteral(context, strdup(context->STRING_LITERAL()->getText().c_str())));
+        return ANY_VOIDP_STORE(new AST::StringLiteral(context, _strdup(context->STRING_LITERAL()->getText().c_str())));
     }
 
     std::any CST2AST::visitFunctionDecl(LogiaParser::FunctionDeclContext *context)
@@ -934,7 +932,7 @@ namespace logia
             }
             catch (std::exception e)
             {
-                LOG(ERR, "{}\n{}", stmt->toStringTree(), e.what());
+                LOG_ERR("{}\n{}", stmt->toStringTree(), e.what());
                 throw e;
             }
         }
@@ -969,7 +967,7 @@ namespace logia
         // empty stmt
         CST_VISIT_BRANCH(endOfStmt, visitEndOfStmt);
 
-        throw std::runtime_error(__FUNCTION__ "unreachable");
+        throw std::runtime_error(TOSTRING(__FUNCTION__) "unreachable");
     }
 
     std::any CST2AST::visitEndOfStmt(LogiaParser::EndOfStmtContext *context)
@@ -1008,7 +1006,7 @@ namespace logia
         }
         else if (constructor_arguments != nullptr)
         {
-            auto locator = new AST::Identifier(context, strdup("new"));
+            auto locator = new AST::Identifier(context, _strdup("new"));
             auto callexpr = new AST::CallExpression(context, locator, {});
             this->parseArguments(callexpr, constructor_arguments);
             expr = callexpr;

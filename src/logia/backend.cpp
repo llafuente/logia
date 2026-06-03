@@ -216,7 +216,7 @@ namespace logia
                             {
                                 LOG(VRB, "Parameter {} annotated = '{}'", idx, annotation);
                                 // skip "logia="
-                                output[idx] = strdup(annotation.c_str() + 6);
+                                output[idx] = _strdup(annotation.c_str() + 6);
                             }
                             else
                             {
@@ -601,7 +601,7 @@ namespace logia
     {
         this->__finalize_module();
 
-        throw std::runtime_error(__FUNCTION__ "todo");
+        throw std::runtime_error(TOSTRING(__FUNCTION__) "to-do");
 
         // & "C:\Program Files\LLVM\bin\clang.exe" .\xxx.obj -o xxx.exe
         return true;
@@ -739,7 +739,7 @@ namespace logia
         int result = main_fn();
         if (result != 0)
         {
-            LOG(ERR, "Main function run error: {}", result);
+            LOG_ERR("Main function run error: {}", result);
         }
 
         if (auto Err = session->endSession())
@@ -802,6 +802,12 @@ namespace logia
             return func;
         }
 
-        throw_compiler_error(std::format("{}{}", "function not found in current module or intrinsics", name));
+        throw_compiler_error(std::format("{}{}", "function not found in current module or intrinsics", name.str()));
+    }
+
+    llvm::Align Backend::getDefaultAlignament(llvm::Type *type)
+    {
+        const llvm::DataLayout &dl = this->module->getDataLayout();
+        return llvm::Align(dl.getABITypeAlign(type).value());
     }
 }

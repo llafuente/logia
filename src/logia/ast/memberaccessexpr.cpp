@@ -1,4 +1,6 @@
 #include "logia/ast/memberaccessexpr.h"
+
+#include "logia/backend.h"
 #include "logia/ast/identifier.h"
 #include "logia/ast/struct.h"
 
@@ -69,7 +71,7 @@ namespace logia::AST
 
         if (!left_type->is<Struct>())
         {
-            LOG(ERR, "{}", left->to_string_tree());
+            LOG_ERR("{}", left->to_string_tree());
             throw_semantic_error(left, "Expected left to be a struct");
         }
         auto struct_ty = left_type->as<Struct>();
@@ -77,7 +79,7 @@ namespace logia::AST
         auto right = this->get_right();
         if (!right->is<Identifier>())
         {
-            LOG(ERR, "{}", left->to_string_tree());
+            LOG_ERR("{}", left->to_string_tree());
             throw_semantic_error(left, "Expected right to be an identifier");
         }
         auto right_ident = right->as<Identifier>();

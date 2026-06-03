@@ -3,26 +3,24 @@
  * can be found in the LICENSE.txt file in the project root.
  */
 
-#include <iostream>
-
-#include "antlr4-runtime.h"
-#include "LogiaParser.h"
-#include "LogiaLexer.h"
-
-#include <Windows.h>
-
-#pragma execution_character_set("utf-8")
-
+#include "utils.h"
 #include "logia/log.h"
 #include "logia/help.h"
 #include "logia/run.h"
 #include "logia/compiler_error.h"
-#include "utils.h"
 
+#include "antlr4-runtime.h"
+
+#include "LogiaParser.h"
+#include "LogiaLexer.h"
+
+#include <iostream>
 // file structure
 // help
 // commands
 // main
+#include <Windows.h>
+#pragma execution_character_set("utf-8")
 
 int main(int argc, const char *argv[])
 {

@@ -10,7 +10,13 @@
 
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__))
 
-#define ERR 1
+#define LOG_ERR(FORMAT, ...) LOG(1, FORMAT, __VA_ARGS__)
+#define LOG_INF(FORMAT, ...) LOG(2, FORMAT, __VA_ARGS__)
+#define LOG_WRN(FORMAT, ...) LOG(3, FORMAT, __VA_ARGS__)
+#define LOG_DBG(FORMAT, ...) LOG(4, FORMAT, __VA_ARGS__)
+#define LOG_VRB(FORMAT, ...) LOG(5, FORMAT, __VA_ARGS__)
+#define LOG_SILLY(FORMAT, ...) LOG(6, FORMAT, __VA_ARGS__)
+
 #define INF 2
 #define WRN 3
 #define DBG 4

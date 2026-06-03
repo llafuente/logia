@@ -128,7 +128,7 @@ namespace logia::AST
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
     protected:
-        void _pre_type_inference();
+        void _pre_type_inference() override;
     };
 
     /**

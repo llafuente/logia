@@ -1,7 +1,12 @@
 #include "logia/ast/structinitexpr.h"
+
+#include "logia/backend.h"
+#include "logia/ast/expr.h"
 #include "logia/ast/identifier.h"
 #include "logia/ast/constexpr.h"
 #include "logia/ast/struct.h"
+
+#include "llvm/IR/Constant.h"
 
 namespace logia::AST
 {
@@ -149,7 +154,7 @@ namespace logia::AST
             }
         }
         this->is_constant = constant_count == struct_ty->field_count;
-        delete used;
+        delete[] used;
     }
 
     void StructInitializer::add_named_property(Identifier *name, Expression *value)

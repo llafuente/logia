@@ -1,5 +1,8 @@
 #pragma once
 
+#include "antlr4-common.h"
+#include "antlr4-runtime.h"
+
 #include "LogiaParser.h"
 #include "LogiaParserVisitor.h"
 #include "LogiaParserBaseVisitor.h"

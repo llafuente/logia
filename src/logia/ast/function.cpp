@@ -171,11 +171,11 @@ namespace logia::AST
 
     uint32_t get_mandatory_parameters_size()
     {
-        throw std::runtime_error(__FUNCTION__ "todo");
+        throw std::runtime_error(TOSTRING(__FUNCTION__) "to-do");
     }
     uint32_t get_optional_parameters_size()
     {
-        throw std::runtime_error(__FUNCTION__ "todo");
+        throw std::runtime_error(TOSTRING(__FUNCTION__) "to-do");
     }
 
     // register myself into closest block
@@ -358,7 +358,7 @@ namespace logia::AST
         }
         else
         {
-            param->get_name()->skip_type_inference;
+            param->get_name()->skip_type_inference = true;
         }
     }
 
@@ -443,7 +443,7 @@ namespace logia::AST
     //
     Intrinsic::Intrinsic(llvm::Function *ir, const char *real_name, const char *scope_name, Type *return_type, std::vector<Type *> arguments) : Function(nullptr, new Identifier(nullptr, scope_name), return_type, true)
     {
-        this->real_name = strdup(real_name);
+        this->real_name = _strdup(real_name);
 
         for (auto t : arguments)
         {

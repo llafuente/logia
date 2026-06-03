@@ -1,7 +1,10 @@
-#pragma once
-
 #include "logia/ast/unaryexpr.h"
+
+#include "logia/backend.h"
 #include "logia/ast/identifier.h"
+#include "logia/ast/callexpr.h"
+
+#include "llvm/IR/DerivedTypes.h"
 
 namespace logia::AST
 {
@@ -107,20 +110,19 @@ namespace logia::AST
         LOG(DBG, "{}", this->to_string());
 
         auto operand = this->get_operand();
-        auto operand_value = this->get_operand()->codegen(backend);
-        auto operand_ty = operand_value->getType();
+        auto ir_value = operand->codegen(backend);
+        auto ir_ty = ir_value->getType();
 
         switch (this->op)
         {
         case Operators::PREFIX_DEREFERENCE:
         {
-            // return builder->CreateIntToPtr(operandValue, llvm::PointerType::get(codegen->context, 0));
-            // return builder->CreateLoad(llvm::PointerType::get(codegen->context, 0), operandValue);
-            // return builder->CreateLoad(operandType->getPointerTo(), operandValue, false);
-            auto ptr = this->cg_value = backend->builder->CreateAlloca(operand_ty->getPointerTo(), nullptr, "deref");
+            // deprecated
+            // auto ptr = this->cg_value = backend->builder->CreateAlloca(llvm::PointerType::get(ir_ty, backend->getDefaultAlignament(ir_ty).value()), nullptr, "deref");
+            auto ptr = this->cg_value = backend->builder->CreateAlloca(llvm::PointerType::get(backend->context, backend->getDefaultAlignament(ir_ty).value()), nullptr, "deref");
             backend->set_debug_loc((llvm::Instruction *)ptr, this->rule);
 
-            auto store = backend->builder->CreateStore(operand_value, ptr);
+            auto store = backend->builder->CreateStore(ir_value, ptr);
             backend->set_debug_loc((llvm::Instruction *)store, this->rule);
 
             // this->cg_value = backend->builder->CreateLoad(operandType->getPointerTo(), ptr);

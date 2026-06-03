@@ -1,15 +1,17 @@
 #pragma once
 
-#include "antlr4-runtime.h"
-#include "LogiaParser.h"
-#include "LogiaLexer.h"
 #include "utils.h"
-
 #include "logia/ast/program.h"
 #include "logia/ast/package.h"
 #include "logia/config.h"
 
-#include <Windows.h>
+#include "LogiaParser.h"
+#include "LogiaLexer.h"
+
+#include "antlr4-runtime.h"
+
+// do not include <windows.h>
+#define MAX_PATH 260
 
 namespace logia
 {
@@ -23,7 +25,7 @@ namespace logia
     public:
         ErrorListener(std::string inputFile, std::string input);
         void syntaxError(antlr4::Recognizer *recognizer, antlr4::Token *offendingSymbol, size_t line,
-                         size_t column, const std::string &msg, std::exception_ptr e);
+                         size_t column, const std::string &msg, std::exception_ptr e) override;
 
         // Inherited via ANTLRErrorListener
         void reportAmbiguity(antlr4::Parser *recognizer, const antlr4::dfa::DFA &dfa, size_t startIndex, size_t stopIndex, bool exact, const antlrcpp::BitSet &ambigAlts, antlr4::atn::ATNConfigSet *configs) override;

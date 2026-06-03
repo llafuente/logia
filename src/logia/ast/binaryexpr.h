@@ -1,7 +1,10 @@
 #include "logia/ast/expr.h"
+#include "logia/ast/operators.h"
 
 namespace logia::AST
 {
+    struct CallExpression;
+
     /// @brief Binary expression, used for binary operators
     /// @remarks Implemented as a call expression to be able to resolve operator overloads and use intrinsics for codegen
     struct BinaryExpression : Expression

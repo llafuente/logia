@@ -124,7 +124,7 @@ namespace logia
             {
                 for (auto node : pending)
                 {
-                    LOG(ERR, "{}\n{}", node->to_string(), node->get_debug_location());
+                    LOG_ERR("{}\n{}", node->to_string(), node->get_debug_location());
                 }
                 throw_compiler_error("Could not finish pre_type_inference for some nodes!");
             }

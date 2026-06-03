@@ -4,6 +4,8 @@
 
 namespace logia::AST
 {
+
+    struct Identifier;
     /// @brief Defines a struct initializer, used for struct literals and struct field default values
     struct StructInitializer : Expression
     {

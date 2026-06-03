@@ -26,7 +26,7 @@ namespace logia::AST
         }
         if (!this->scope.contains(name))
         {
-            this->scope[strdup(name)] = {node};
+            this->scope[_strdup(name)] = {node};
         }
         else
         {

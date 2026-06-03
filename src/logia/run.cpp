@@ -1,12 +1,11 @@
 #include "run.h"
 
-#include <iostream>
-
+#include "utils.h"
 #include "logia/help.h"
 #include "logia/frontend.h"
 #include "logia/backend.h"
 
-#include "utils.h"
+#include <iostream>
 
 namespace logia
 {

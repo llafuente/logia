@@ -1,9 +1,15 @@
-#include "logia/compiler_error.h"
 #include "logia/ast/constexpr.h"
-#include "logia/ast/type.h"
 
-#include "logia/log.h"
 #include "utils.h"
+#include "logia/log.h"
+#include "logia/backend.h"
+#include "logia/ast/scope.h"
+#include "logia/ast/identifier.h"
+#include "logia/compiler_error.h"
+#include "logia/ast/type.h"
+#include "logia/ast/llvm.h"
+
+#include "llvm/IR/Constant.h"
 
 namespace logia::AST
 {
@@ -144,7 +150,7 @@ namespace logia::AST
         llvm::APSInt lhsVal = this->value;
         llvm::APSInt rhsVal = rhs->value;
 
-        const unsigned maxBits = std::max(lhsVal.getBitWidth(), rhsVal.getBitWidth());
+        const unsigned maxBits = std::max<unsigned int>(lhsVal.getBitWidth(), rhsVal.getBitWidth());
         lhsVal = lhsVal.extOrTrunc(maxBits);
         rhsVal = rhsVal.extOrTrunc(maxBits);
 
@@ -290,6 +296,18 @@ namespace logia::AST
         return this->type;
     }
 
+    bool FloatLiteral::is_valid_constant_operator(Operators op)
+    {
+        // TODO
+        return false;
+    }
+
+    ConstExpression *FloatLiteral::operator+(ConstExpression *other)
+    {
+        // TODO
+        return nullptr;
+    }
+
     std::string FloatLiteral::to_string()
     {
         return std::format("FloatLiteral[{}]{}", this->value_str, Node::to_string());
@@ -316,9 +334,9 @@ namespace logia::AST
     StringLiteral::StringLiteral(antlr4::ParserRuleContext *rule, const char *text) : ConstExpression(rule)
     {
         // assert not null, or llvm will crash without any message :S
-        LOGIA_ASSERT(text != nullptr);
+        LOGIA_ASSERT(text == nullptr);
 
-        this->text = strdup(text);
+        this->text = _strdup(text);
     }
 
     Type *StringLiteral::get_type()

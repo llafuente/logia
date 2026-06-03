@@ -1,6 +1,5 @@
-#pragma once
-
 #include "logia/ast/functionblock.h"
+
 #include "logia/ast/type.h"
 #include "logia/ast/function.h"
 #include "logia/backend.h"

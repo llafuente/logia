@@ -1,19 +1,21 @@
 #include "logia/ast/binaryexpr.h"
 
+#include "logia/log.h"
+#include "logia/type_system.h"
+#include "logia/type_inference.h"
+#include "logia/backend.h"
 #include "logia/ast/callexpr.h"
 #include "logia/ast/operators.h"
 #include "logia/ast/unaryexpr.h"
 #include "logia/ast/identifier.h"
 #include "logia/ast/constexpr.h"
 #include "logia/ast/cast.h"
-
 #include "logia/ast/llvm.h"
-
-#include "logia/log.h"
-#include "logia/type_system.h"
-#include "logia/type_inference.h"
+#include "logia/ast/program.h"
 
 #include <format>
+
+#include "llvm/IR/Instructions.h"
 
 namespace logia::AST
 {
@@ -101,7 +103,7 @@ namespace logia::AST
             auto err = type_system::type_is_compatible(left_ty, right_ty);
             if (err.is_error())
             {
-                err.throw_semantic(this);
+                throw_semantic_error(this, err.message);
             }
             auto result = err.unwrap_success();
             if (((uint32_t)result & (uint32_t)type_system::type_compatibility::AUTOCAST_CAST) != 0)
@@ -128,14 +130,14 @@ namespace logia::AST
         auto left_ty = left->get_final_type();
         if (left_ty->is<InferType>())
         {
-            LOG(ERR, "{}", this->to_string_tree());
+            LOG_ERR("{}", this->to_string_tree());
             throw_compiler_error("Unexpected left side infer type");
         }
         auto right = this->get_right();
         auto right_ty = right->get_final_type();
         if (right_ty->is<InferType>())
         {
-            LOG(ERR, "{}", this->to_string_tree());
+            LOG_ERR("{}", this->to_string_tree());
             throw_compiler_error("Unexpected right side infer type");
         }
         switch (op)

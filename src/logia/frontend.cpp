@@ -1,24 +1,24 @@
 #include "logia/frontend.h"
 
-#include <llvm/Support/TargetSelect.h>
-
-#include "antlr4-runtime.h"
 #include "LogiaParser.h"
 #include "LogiaLexer.h"
 
 #include "logia/log.h"
 #include "logia/cst2ast.h"
 #include "logia/compiler_error.h"
+#include "logia/ast/program.h"
+#include "logia/ast/package.h"
+
+#include "llvm/Support/TargetSelect.h"
+#include "antlr4-runtime.h"
 
 #if _WIN32
-#include "windows.h"
+#include <windows.h>
 #include <shlwapi.h>
 #pragma comment(lib, "Shlwapi.lib") // Link with Shlwapi.lib
 #else
 // TODO On Linux/macOS
 #endif
-
-#include "logia/ast/constexpr.h"
 
 namespace logia
 {
@@ -45,7 +45,7 @@ namespace logia
         // Splitting the str string
         // by delimiter
         int count = 1;
-        auto start = max(0, line - 5);
+        auto start = std::max<size_t>(0, line - 5);
         auto end = line + 3;
         while (getline(ss, str, del))
         {
@@ -172,7 +172,7 @@ namespace logia
 
     AST::Program *ParseResult::parse(bool is_program)
     {
-        if (!this->entry_point_filename)
+        if (this->entry_point_filename[0] == '\0') // empty?
         {
             throw_compiler_error("ParseResult: File not specified");
         }

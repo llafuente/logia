@@ -4,9 +4,19 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
+set(CMAKE_C_COMPILER_WORKS 1)
+set(CMAKE_CXX_COMPILER_WORKS 1)
+
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
+
+if(CMAKE_GENERATOR MATCHES "Ninja")
+  # fix clang no support CXX compiler feature
+  set(CMAKE_POLICY_DEFAULT_CMP0025 NEW)
+  # enable compile_commands.json to use clang-check -> requires ninja
+  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+endif()
 # once downloaded no more!
 #set(FETCHCONTENT_FULLY_DISCONNECTED ON)
 
@@ -128,22 +138,26 @@ foreach(project_name IN ITEMS "logia" "logia_test_suite")
   target_link_libraries(${project_name} PRIVATE antlr4_static)
   target_link_libraries(${project_name} PRIVATE ${LLVM_LIBS})
 
-  #target_compile_features(${project_name} PRIVATE cxx_std_20)
-  target_compile_features(${project_name} PRIVATE cxx_std_23)
   set_target_properties(${project_name} PROPERTIES
-      CXX_STANDARD 23
+      CXX_STANDARD 23 # std::stacktrace
       CXX_STANDARD_REQUIRED ON
       CXX_EXTENSIONS OFF
   )
 
-
-  # needed for __VA_OPT__
-  if (MSVC)
-    target_compile_options(${project_name} PRIVATE /Zc:preprocessor)
+  if (WIN32)
+      target_compile_definitions(${project_name} PRIVATE
+        # Prevents Windows.h from adding unnecessary includes
+        WIN32_LEAN_AND_MEAN
+        # Prevents Windows.h from defining min/max as macros
+        NOMINMAX
+      )
   endif()
+
+  message(STATUS "CMAKE_CXX_COMPILER_ID = ${CMAKE_CXX_COMPILER_ID}")
 
   if (MSVC)
       target_compile_options(${project_name} PRIVATE
+          /Zc:preprocessor # needed for __VA_OPT__
           /W4            # High warning level
           /permissive-   # Stricter C++
       )
@@ -152,8 +166,10 @@ foreach(project_name IN ITEMS "logia" "logia_test_suite")
           -Wall -Wextra -Wpedantic
       )
   elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-      target_compile_options(${project_name} PRIVATE
-          -Wall -Wextra -Wpedantic
+      target_compile_options(${project_name} PUBLIC
+          -Wall
+          -Wextra
+          -Wpedantic
       )
   endif()
 

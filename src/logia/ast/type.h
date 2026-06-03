@@ -77,7 +77,7 @@ namespace logia::AST
         void post_attach() override;
 
     protected:
-        void _set_type(Type *type);
+        void _set_type(Type *type) override;
         /// @brief registers this type into block
         /// @param name
         void __register_type(const char *name);

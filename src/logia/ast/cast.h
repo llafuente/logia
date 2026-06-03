@@ -37,7 +37,7 @@ namespace logia::AST
     protected:
         /// @brief Overrides current target type
         /// @param type The new target type
-        void _set_type(Type *type);
+        void _set_type(Type *type) override;
         void _post_type_inference() override;
     };
 }

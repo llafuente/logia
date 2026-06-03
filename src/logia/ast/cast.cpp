@@ -231,7 +231,7 @@ namespace logia::AST
         // float to integer
         if (from_type->primitive == Primitives::FLOATING_POINT_TY && to_type->primitive == Primitives::INTEGER_TY)
         {
-            auto from_flt_ty = from_type->as<Float>();
+            // auto from_flt_ty = from_type->as<Float>();
             auto to_int_ty = to_type->as<Integer>();
             // float to int
             if (to_int_ty->is_signed)
@@ -244,5 +244,7 @@ namespace logia::AST
             }
             return Expression::post_codegen(backend);
         }
+
+        throw_compiler_error("to-do: cast non-implemented");
     }
 }

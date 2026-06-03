@@ -97,7 +97,8 @@ namespace logia::AST
                 auto it = p->scope.find(name_view);
                 if (it != p->scope.end())
                 {
-                    *out = it->second->as<T>();
+                    std::vector<logia::AST::Node *> list = it->second;
+                    *out = list[0]->as<T>();
                     return true;
                 }
                 p = p->parentScope;
@@ -130,7 +131,7 @@ namespace logia::AST
             p = this;
             do
             {
-                LOG(ERR, "Scope {}", p->to_string());
+                LOG_ERR("Scope {}", p->to_string());
                 p = p->parentScope;
             } while (p != nullptr);
 

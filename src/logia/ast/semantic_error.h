@@ -15,6 +15,11 @@ namespace logia::AST
 #define LGERR_CONSTEX001b "LGERR_CONSTEX001b Right operand is not constant"
 #define LGERR_CONSTEX002 "LGERR_CONSTEX002 Right operand should be an Integer"
 #define LGERR_CONSTEX005 "LGERR_CONSTEX005 Unsupported operator in constant expression"
+#define LGERR_IMP004 "LGERR_IMP004 import list should contain only identifiers, invalid element at position {}"
+#define LGERR_IMP003 "LGERR_IMP003 target of import should be a scope"
+#define LGERR_IMP002 "LGERR_IMP002 cannot use import into scope and import list together"
+#define LGERR_IMP001 "LGERR_IMP001 cannot use import all and import list together"
+#define LGERR_IMP005 "LGERR_IMP005 package list should contain only identifiers, invalid element at position {}"
 
     class semantic_error : public std::runtime_error
     {
@@ -29,7 +34,7 @@ namespace logia::AST
     do                                                                                                                                         \
     {                                                                                                                                          \
         auto ___e = ::logia::AST::semantic_error(node, message, std::to_string(std::stacktrace::current()), __FUNCTION__, __FILE__, __LINE__); \
-        LOG(ERR, "{}", ___e.what());                                                                                                           \
+        LOG_ERR("{}", ___e.what());                                                                                                            \
         throw ___e;                                                                                                                            \
     } while (false)
 }

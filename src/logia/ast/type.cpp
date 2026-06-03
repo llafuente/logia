@@ -18,17 +18,17 @@ namespace logia::AST
         switch (prim)
         {
         case Primitives::VOID_TY:
-            return strdup("void");
+            return _strdup("void");
         case Primitives::INTEGER_TY:
-            return strdup("int");
+            return _strdup("int");
         case Primitives::FLOATING_POINT_TY:
-            return strdup("float");
+            return _strdup("float");
         case Primitives::PTR_TY:
-            return strdup("ptr");
+            return _strdup("ptr");
         case Primitives::STRUCT_TY:
-            return strdup("struct");
+            return _strdup("struct");
         case Primitives::FUNCTION_TY:
-            return strdup("function");
+            return _strdup("function");
         default:
             throw std::exception("unreachable");
         }
@@ -96,7 +96,7 @@ namespace logia::AST
         }
 
         // TODO
-        throw std::exception(__FUNCTION__ "todo");
+        throw std::exception(TOSTRING(__FUNCTION__) "to-do");
     }
 
     //

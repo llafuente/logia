@@ -11,12 +11,12 @@
 namespace llvm
 {
     // #include "llvm/IR/Value.h"
-    struct Value;
+    class Value;
 }
 // #include "antlr4-runtime.h"
 namespace antlr4
 {
-    struct ParserRuleContext;
+    class ParserRuleContext;
 }
 namespace logia
 {
@@ -27,6 +27,7 @@ namespace logia::AST
 {
     struct Type;
     struct Block;
+    struct Prorgam;
 
     /// @brief Base class for all AST nodes
     struct LOGIA_EXPORT Node
@@ -236,7 +237,8 @@ namespace logia::AST
         {
             for (const auto &ptr : this->children)
             {
-                if (auto out = dynamic_cast<T *>(ptr))
+                T *out = dynamic_cast<T *>(ptr);
+                if (out != nullptr)
                 {
                     return out;
                 }
@@ -256,7 +258,8 @@ namespace logia::AST
             // DEBUG() << ptr->to_string() << std::endl;
             do
             {
-                if (auto out = dynamic_cast<T *>(ptr))
+                T *out = dynamic_cast<T *>(ptr);
+                if (out != nullptr)
                 {
                     return out;
                 }
@@ -278,8 +281,8 @@ namespace logia::AST
             while (ptr != nullptr)
             {
                 // DEBUG() << ptr->to_string() << std::endl;
-
-                if (auto maybe = dynamic_cast<T *>(ptr))
+                T *maybe = dynamic_cast<T *>(ptr);
+                if (maybe != nullptr)
                 {
                     *out = maybe;
                     return true;
@@ -299,7 +302,8 @@ namespace logia::AST
         T *get_child(uint32_t index)
         {
             auto node = this->children[index];
-            if (auto out = dynamic_cast<T *>(node))
+            T *out = dynamic_cast<T *>(node);
+            if (out != nullptr)
             {
                 return out;
             }
@@ -314,7 +318,8 @@ namespace logia::AST
         bool is_child(uint32_t index)
         {
             auto node = this->children[index];
-            if (auto out = dynamic_cast<T *>(node))
+            T *out = dynamic_cast<T *>(node);
+            if (out != nullptr)
             {
                 return true;
             }
@@ -327,7 +332,8 @@ namespace logia::AST
         template <class T>
         T *as(const char *message = nullptr)
         {
-            if (auto out = dynamic_cast<T *>(this))
+            T *out = dynamic_cast<T *>(this);
+            if (out != nullptr)
             {
                 return out;
             }
@@ -344,11 +350,8 @@ namespace logia::AST
         template <class T>
         bool is()
         {
-            if (auto out = dynamic_cast<T *>(this))
-            {
-                return true;
-            }
-            return false;
+            T *out = dynamic_cast<T *>(this);
+            return out != nullptr;
         }
 
         /// @brief reverse the tree and returns true if found a match, false otherwise
@@ -358,7 +361,8 @@ namespace logia::AST
         template <typename T>
         bool try_cast(T **out)
         {
-            if (auto tmp = dynamic_cast<T *>(this))
+            T *tmp = dynamic_cast<T *>(this);
+            if (tmp != nullptr)
             {
                 *out = tmp;
                 return true;

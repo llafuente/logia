@@ -4,6 +4,8 @@
 
 namespace logia::AST
 {
+    struct Identifier;
+
     /// @brief Member access expression, used for struct field access and method calls
     struct MemberAccessExpression : Expression
     {

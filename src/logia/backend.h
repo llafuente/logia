@@ -124,6 +124,8 @@ namespace logia
         /// @brief searches a function inside intrinsics or current module
         llvm::Function *getFunction(llvm::StringRef Name) const;
 
+        llvm::Align getDefaultAlignament(llvm::Type *type);
+
     private:
         void __finalize_module();
     };

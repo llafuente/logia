@@ -54,17 +54,17 @@ namespace logia::AST
     {
         if (this->is_import_all_package && !this->import_list.empty())
         {
-            throw_semantic_error(this, "LGERR_IMP001 cannot use import all and import list together");
+            throw_semantic_error(this, LGERR_IMP001);
         }
 
         if (this->is_import_into_scope && !this->import_list.empty())
         {
-            throw_semantic_error(this, "LGERR_IMP002 cannot use import into scope and import list together");
+            throw_semantic_error(this, LGERR_IMP002);
         }
 #ifndef _DEBUG
         if (this->target->is<Scope>() == false)
         {
-            throw_semantic_error(this, "LGERR_IMP003 target of import should be a scope");
+            throw_semantic_error(this, LGERR_IMP003);
         }
         // check import list contents are identifiers
         auto i = 0;
@@ -72,7 +72,7 @@ namespace logia::AST
         {
             if (id->is<Identifier>() == false)
             {
-                throw_semantic_error(this, "LGERR_IMP004 import list should contain only identifiers, invalid element at position {}", i);
+                throw_semantic_error(this, std::format(LGERR_IMP004, i));
             }
             i++;
         }
@@ -82,7 +82,7 @@ namespace logia::AST
         {
             if (id->is<Identifier>() == false)
             {
-                throw_semantic_error(this, "LGERR_IMP005 package list should contain only identifiers, invalid element at position {}", j);
+                throw_semantic_error(this, std::format(LGERR_IMP005, j));
             }
             j++;
         }

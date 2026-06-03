@@ -1,6 +1,7 @@
 #pragma once
 
 #include "logia/ast/expr.h"
+#include "logia/ast/operators.h"
 
 #include "llvm/ADT/APInt.h"
 #include "llvm/ADT/APSInt.h"
@@ -18,11 +19,11 @@ namespace logia::AST
         /// @brief Determines if the operator can be applied to this constant expression at compile time
         /// @param op
         /// @return
-        virtual bool is_valid_constant_operator(Operators op);
+        virtual bool is_valid_constant_operator(Operators op) = 0;
 
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
-        virtual ConstExpression *operator+(ConstExpression *other);
+        virtual ConstExpression *operator+(ConstExpression *other) = 0;
     };
 
     /// @brief A string literal constant expression
@@ -74,6 +75,11 @@ namespace logia::AST
         llvm::Value *post_codegen(logia::Backend *backend) override;
         Type *get_type() override;
 
+        /// @brief Returns true if given op is valid for integers
+        bool is_valid_constant_operator(Operators op) override;
+        /// @brief Returns a new IntegerLiteral with this->value + rhs.value
+        ConstExpression *operator+(ConstExpression *other) override;
+
     protected:
         void _set_type(Type *t) override;
     };
@@ -101,7 +107,7 @@ namespace logia::AST
 
         Type *get_type() override;
 
-        // constant expression operators
+        /// @brief Returns true if given op is valid for integers
         bool is_valid_constant_operator(Operators op) override;
         /// @brief Returns a new IntegerLiteral with this->value + rhs.value
         ConstExpression *operator+(ConstExpression *other) override;

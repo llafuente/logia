@@ -1,13 +1,17 @@
 #include "logia/ast/identifier.h"
+
+#include "utils.h"
 #include "logia/ast/vardeclstmt.h"
 #include "logia/ast/block.h"
 #include "logia/ast/function.h"
+
+#include "llvm/IR/Instructions.h"
 
 namespace logia::AST
 {
     Identifier::Identifier(antlr4::ParserRuleContext *rule, LOGIA_CLONE const char *identifier) : Expression(rule)
     {
-        this->identifier = strdup(identifier);
+        this->identifier = _strdup(identifier);
     }
     std::string Identifier::to_string()
     {
@@ -107,7 +111,7 @@ namespace logia::AST
     {
         LOGIA_VERIFY(name == nullptr);
 
-        return new Identifier(nullptr, strdup(name));
+        return new Identifier(nullptr, _strdup(name));
     }
 
 } // namespace logia::AST

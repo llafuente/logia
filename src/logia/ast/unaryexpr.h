@@ -1,9 +1,13 @@
 #pragma once
 
-#include "logia/ast/callexpr.h"
+#include "logia/ast/expr.h"
+#include "logia/ast/operators.h"
 
 namespace logia::AST
 {
+    struct Type;
+    struct CallExpression;
+
     /// @brief Prefix unary expression, used for prefix unary operators
     /// @remarks Implemented as a call expression to be able to resolve operator overloads and use intrinsics for codegen
     /// @remarks Reference operator can be an instrinic and it's implemented directly
