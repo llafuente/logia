@@ -5,9 +5,6 @@
 #include "logia/log.h"
 #include "utils.h"
 
-#include "llvm/ADT/APInt.h"
-#include "llvm/ADT/APSInt.h"
-
 namespace logia::AST
 {
     //
@@ -133,19 +130,19 @@ namespace logia::AST
         }
     }
 
-    IntegerLiteral IntegerLiteral::operator+(const ConstExpression &rhs) const
+    ConstExpression *IntegerLiteral::operator+(ConstExpression *other)
     {
-        if (!rhs->is<IntegerLiteral>())
+        if (!other->is<IntegerLiteral>())
         {
-            throw_semantic_error(rhs, LGERR_CONSTEX002);
+            throw_semantic_error(other, LGERR_CONSTEX002);
         }
-        const IntegerLiteral &rhsInt = rhs->as<IntegerLiteral>();
+        auto rhs = other->as<IntegerLiteral>();
         // Build a copy-like result (same rule/type, own buffers)
-        IntegerLiteral result(this->rule, "0", this->type);
+        auto result = new IntegerLiteral(this->rule, "0", this->type);
 
         // Align bit width/signedness before add
         llvm::APSInt lhsVal = this->value;
-        llvm::APSInt rhsVal = rhsInt.value;
+        llvm::APSInt rhsVal = rhs->value;
 
         const unsigned maxBits = std::max(lhsVal.getBitWidth(), rhsVal.getBitWidth());
         lhsVal = lhsVal.extOrTrunc(maxBits);
@@ -155,21 +152,21 @@ namespace logia::AST
         rhsVal.setIsSigned(lhsVal.isSigned());
 
         llvm::APInt sumRaw = lhsVal + rhsVal;
-        result.value = llvm::APSInt(sumRaw, lhsVal.isUnsigned());
+        result->value = llvm::APSInt(sumRaw, lhsVal.isUnsigned());
 
         // Keep textual form in sync (decimal)
-        std::string text = result.value.isSigned()
-                               ? std::to_string(result.value.getSExtValue())
-                               : std::to_string(result.value.getZExtValue());
+        std::string text = result->value.isSigned()
+                               ? std::to_string(result->value.getSExtValue())
+                               : std::to_string(result->value.getZExtValue());
 
-        if (result.value_str != nullptr)
+        if (result->value_str != nullptr)
         {
-            free(result.value_str);
-            result.value_str = nullptr;
+            free(result->value_str);
+            result->value_str = nullptr;
         }
 
-        result.value_str = (char *)malloc(text.size() + 1);
-        std::memcpy(result.value_str, text.c_str(), text.size() + 1);
+        result->value_str = (char *)malloc(text.size() + 1);
+        std::memcpy(result->value_str, text.c_str(), text.size() + 1);
 
         return result;
     }
@@ -357,10 +354,15 @@ namespace logia::AST
         return false;
     }
 
-    StringLiteral StringLiteral::operator+(const StringLiteral &rhs) const
+    ConstExpression *StringLiteral::operator+(ConstExpression *other)
     {
+        if (!other->is<StringLiteral>())
+        {
+            throw_semantic_error(other, LGERR_CONSTEX002);
+        }
+        auto rhs = other->as<StringLiteral>();
         const size_t lhs_len = strlen(this->text);
-        const size_t rhs_len = strlen(rhs.text);
+        const size_t rhs_len = strlen(rhs->text);
 
         char *combined = (char *)malloc(lhs_len + rhs_len + 1);
 
@@ -370,12 +372,12 @@ namespace logia::AST
         }
         if (rhs_len > 0)
         {
-            std::memcpy(combined + lhs_len, rhs.text, rhs_len);
+            std::memcpy(combined + lhs_len, rhs->text, rhs_len);
         }
         combined[lhs_len + rhs_len] = '\0';
 
-        StringLiteral result(this->rule, combined);
-        result.type = this->type;
+        auto result = new StringLiteral(this->rule, combined);
+        result->type = this->type;
         return result;
     }
 

@@ -1,10 +1,8 @@
 #pragma once
 
-#include "logia/ast/node.h"
-#include "logia/ast/block.h"
 #include "logia/ast/expr.h"
-#include "utils.h"
 
+#include "llvm/ADT/APInt.h"
 #include "llvm/ADT/APSInt.h"
 #include "llvm/ADT/APFloat.h"
 
@@ -23,9 +21,12 @@ namespace logia::AST
         virtual bool is_valid_constant_operator(Operators op);
 
         llvm::Value *post_codegen(logia::Backend *backend) override;
+
+        virtual ConstExpression *operator+(ConstExpression *other);
     };
 
     /// @brief A string literal constant expression
+    /// @details
     struct StringLiteral : ConstExpression
     {
         /// @brief The string value (utf-8), non-null
@@ -43,7 +44,7 @@ namespace logia::AST
         bool is_valid_constant_operator(Operators op) override;
 
         /// @brief Returns a new StringLiteral with this->text + rhs.text
-        StringLiteral operator+(const StringLiteral &rhs) const;
+        ConstExpression *operator+(ConstExpression *other) override;
 
         // TODO return out type!!
         /// @brief Retrieves the type of the string literal
@@ -103,7 +104,7 @@ namespace logia::AST
         // constant expression operators
         bool is_valid_constant_operator(Operators op) override;
         /// @brief Returns a new IntegerLiteral with this->value + rhs.value
-        IntegerLiteral operator+(const ConstExpression &rhs) const;
+        ConstExpression *operator+(ConstExpression *other) override;
 
     protected:
         void _set_type(Type *t) override;

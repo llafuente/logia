@@ -136,7 +136,7 @@ namespace logia::AST
     // constant expression
     //
 
-    maybe_semantic_error UnaryExpression::is_constant()
+    maybe_semantic_error UnaryExpression::can_execute()
     {
         switch (op)
         {
@@ -152,41 +152,44 @@ namespace logia::AST
 
             break;
         default:
-            return make_semantic_error(this, LGERR_CONSTEX005);
+            return make_semantic_error(LGERR_CONSTEX005, this);
         }
 
         auto operand = this->get_operand();
-        if (operand->is_constant())
+        if (operand->can_execute().is_error())
         {
-            return make_semantic_error(this, LGERR_CONSTEX001a);
+            return make_semantic_error(LGERR_CONSTEX001a, this);
         }
 
         return make_semantic_success(true);
     }
 
-    ConstExpression UnaryExpression::execute()
+    ConstExpression *UnaryExpression::execute()
     {
-        auto operand = this->get_operand()->execute();
+        /*
+                auto operand = this->get_operand()->execute();
 
-        switch (op)
-        {
-        case Operators::PREFIX_NEGATION:
-            return -operand;
-        case Operators::PREFIX_LOGICAL_NOT:
-            return !operand;
-        case Operators::PREFIX_INCREMENT:
-            return operand + new IntegerLiteral(nullptr, "1", nullptr);
-        case Operators::PREFIX_DECREMENT:
-            return operand - new IntegerLiteral(nullptr, "1", nullptr);
-        case Operators::PREFIX_BITWISE_NOT:
-            return ~operand;
-        case Operators::POSTFIX_INCREMENT:
-            return operand + new IntegerLiteral(nullptr, "1", nullptr);
-        case Operators::POSTFIX_DECREMENT:
-            return operand - new IntegerLiteral(nullptr, "1", nullptr);
-            break;
-        default:
-            throw_semantic_error(this, LGERR_CONSTEX005);
-        }
+                switch (op)
+                {
+                case Operators::PREFIX_NEGATION:
+                    return -operand;
+                case Operators::PREFIX_LOGICAL_NOT:
+                    return !operand;
+                case Operators::PREFIX_INCREMENT:
+                    return operand + new IntegerLiteral(nullptr, "1", nullptr);
+                case Operators::PREFIX_DECREMENT:
+                    return operand - new IntegerLiteral(nullptr, "1", nullptr);
+                case Operators::PREFIX_BITWISE_NOT:
+                    return ~operand;
+                case Operators::POSTFIX_INCREMENT:
+                    return operand + new IntegerLiteral(nullptr, "1", nullptr);
+                case Operators::POSTFIX_DECREMENT:
+                    return operand - new IntegerLiteral(nullptr, "1", nullptr);
+                    break;
+                default:
+                    throw_semantic_error(this, LGERR_CONSTEX005);
+                }
+        */
+        return nullptr;
     }
 }

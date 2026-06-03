@@ -12,17 +12,15 @@
 #include "logia/multiple_dispatch.h"
 
 #include "gtest/gtest.h"
+#include "gmock/gmock.h" // For matchers like HasSubstr
 #include <Windows.h>
 
 #include "test_utils.h"
 #include "logia/run.h"
 
-TEST(logia_test_multiple_dispatch, start)
+TEST(logia_test_multiple_dispatch, match001)
 {
     LOGIA_UNIT_TEST();
-
-    rule->start = new antlr4::CommonToken(102);
-    rule->stop = new antlr4::CommonToken(102);
 
     using namespace logia::multiple_dispatch;
     using namespace logia::AST;
@@ -162,6 +160,85 @@ TEST(logia_test_multiple_dispatch, start)
         EXPECT_EQ(callexpr4->argument_count, 2);
         EXPECT_EQ(callexpr4->get_argument_by_index(0)->get_value(), i32_v);
         EXPECT_EQ(callexpr4->get_argument_by_index(1)->get_value(), i32_v);
+    }
+}
+TEST(logia_test_multiple_dispatch, find001)
+{
+    LOGIA_UNIT_TEST();
+
+    using namespace logia::multiple_dispatch;
+    using namespace logia::AST;
+    using namespace logia::type_system;
+
+    auto i16_v = new IntegerLiteral(rule, "10", i16);
+    auto i32_v = new IntegerLiteral(rule, "10", i32);
+    auto i32_v2 = new IntegerLiteral(rule, "10", i32);
+    auto i64_v = new IntegerLiteral(rule, "10", i64);
+
+    auto fn_a_i32 = new Function(rule, new Identifier(rule, "xxx"), i32, false);
+    fn_a_i32->push_parameter(new FunctionParameter(new Identifier(rule, "a"), i32, nullptr));
+    program->push_child(fn_a_i32);
+
+    auto callexpr = new CallExpression(rule, new Identifier(rule, "xxx"), {i32_v});
+    main_body->push_child(callexpr);
+
+    /*
+        auto fn_a_i32_b_i32 = new Function(rule, new Identifier(rule, "xxx"), i32, false);
+        fn_a_i32_b_i32->push_parameter(new FunctionParameter(new Identifier(rule, "a"), i32, nullptr));
+        fn_a_i32_b_i32->push_parameter(new FunctionParameter(new Identifier(rule, "b"), i32, i32_v2));
+        program->push_child(fn_a_i32_b_i32);
+
+
+        {
+            // function xxx(i32 a)
+            // function xxx(i32 a, i32)
+            // xxx(i32) -> found first function!
+            auto x = find(callexpr);
+            EXPECT_EQ(x, fn_a_i32);
+        }
+    */
+    auto fn_a_i64 = new Function(rule, new Identifier(rule, "xxx"), i64, false);
+    fn_a_i64->push_parameter(new FunctionParameter(new Identifier(rule, "a"), i64, nullptr));
+    program->push_child(fn_a_i64);
+
+    {
+        // i32 should be used
+        // i64 should be discarded
+        auto x = find(callexpr);
+        EXPECT_EQ(x, fn_a_i32);
+    }
+
+    auto fn_a_i16 = new Function(rule, new Identifier(rule, "xxx"), i16, false);
+    fn_a_i16->push_parameter(new FunctionParameter(new Identifier(rule, "a"), i16, nullptr));
+    program->push_child(fn_a_i16);
+
+    {
+        // function xxx(i32 a)
+        // function xxx(i64 a)
+        // function xxx(i32 a, i32)
+        // xxx(i32) -> found first function!
+        try
+        {
+            auto x = find(callexpr);
+            FAIL();
+        }
+        catch (::logia::AST::semantic_error e)
+        {
+            EXPECT_THAT(e.what(), ::testing::HasSubstr("LGERR_MD002 Ambiguous call expression, multiple candidates found"));
+        }
+    }
+
+    {
+        callexpr->set_type(i64);
+        try
+        {
+            auto x = find(callexpr);
+            FAIL();
+        }
+        catch (::logia::AST::semantic_error e)
+        {
+            EXPECT_THAT(e.what(), ::testing::HasSubstr("LGERR_MD002 Ambiguous call expression, multiple candidates found"));
+        }
     }
 }
 /*

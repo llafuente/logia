@@ -21,9 +21,13 @@ namespace logia::AST
         return std::format("Expression{}", Node::to_string());
     }
 
-    bool Expression::is_constant()
+    maybe_semantic_error Expression::can_execute()
     {
-        return false;
+        return make_semantic_error(LGERR_CONSTEX000, this);
+    }
+    ConstExpression *Expression::execute()
+    {
+        throw_compiler_error("need to be implemented!");
     }
 
     llvm::Value *Expression::post_codegen(logia::Backend *backend)

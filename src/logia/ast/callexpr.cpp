@@ -189,8 +189,7 @@ namespace logia::AST
 
     void CallExpression::_set_type(Type *type)
     {
-        // NOTE side-effect of Node::set_type: this implicity check that our return type is the expecte :P
-        this->type = type;
+        // this->enforce_return_type(type);
     }
 
     void CallExpression::_pre_type_inference()
@@ -204,6 +203,7 @@ namespace logia::AST
 
         // find a proper target or throws!
         Function *target = multiple_dispatch::find(this);
+        this->callee = target;
         locator->set_type((Type *)target);
         // fill the gaps, order arguments, etc.
         multiple_dispatch::match(this, target, true);
@@ -229,7 +229,7 @@ namespace logia::AST
 
     Type *CallExpression::get_type()
     {
-        return this->type;
+        return this->callee == nullptr ? nullptr : this->callee->get_return_type();
     }
 
     std::string CallExpression::to_string()

@@ -48,8 +48,10 @@ namespace logia::AST
     {
         /// @brief Argument count
         uint32_t argument_count = 0;
-        /// @brief Cached return type
-        Type *type = nullptr;
+        /// @brief enforced type at type inference
+        Type *return_type_hint = nullptr;
+        /// @brief Callee function
+        Function *callee = nullptr;
 
         /// @brief Empty constructor for internal usage of CallExpression
         /// @remarks Do not use the constructor to build ASTs
@@ -111,6 +113,8 @@ namespace logia::AST
         std::string to_string() override;
 
         llvm::Value *post_codegen(logia::Backend *backend) override;
+
+        void enforce_return_type(Type *ty);
 
         Type *get_type() override;
 

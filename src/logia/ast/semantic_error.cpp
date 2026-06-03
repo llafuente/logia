@@ -27,13 +27,14 @@ namespace logia::AST
             // TODO extract code snippet!!
             auto program = node->is<Program>() ? node->as<Program>() : node->first_parent<Program>();
 
-            auto err_line = node->rule->start->getLine();
+            auto err_start_line = node->rule->start->getLine();
             auto err_start_column = node->rule->start->getCharPositionInLine();
+            auto err_stop_line = std::max<size_t>(node->rule->start->getLine(), node->rule->stop->getLine());
             auto err_stop_column = std::max<size_t>(err_start_column + 1, node->rule->stop->getCharPositionInLine());
+            auto start_line = std::max<size_t>(0, err_start_line - 2);
+            auto end_line = err_start_line + 2;
 
-            auto start_line = std::max<size_t>(0, err_line - 2);
-            auto end_line = err_line + 2;
-
+            LOG(DBG, "start = {}:{} end = {}:{}", err_start_line, err_start_column, err_stop_line, err_stop_column);
             char snippet[1024];
             const char *text = program->file_contents;
             size_t src = 0;
@@ -49,7 +50,7 @@ namespace logia::AST
 
                 if (c == '\n')
                 {
-                    if (line == err_line)
+                    if (line == err_start_line)
                     {
                         for (size_t j = 0; j < err_start_column; ++j)
                         {
@@ -66,7 +67,7 @@ namespace logia::AST
             }
             snippet[dst++] = '\0';
 
-            code_location = std::format("at {}:{}:{}\n{}", program->entry_point_file, err_line + 1, err_start_column, snippet);
+            code_location = std::format("at {}:{}:{}\n{}", program->entry_point_file, err_start_line + 1, err_start_column, snippet);
         }
 
         return std::format("semantic error:\n    \033[31m{}\033[0m\nat: {}\nExpcetion thrown at {} {}:{}\n\nstacktrace:\n{}", message, code_location, function, file, file_line, trace);

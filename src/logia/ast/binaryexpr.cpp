@@ -195,7 +195,7 @@ namespace logia::AST
     // constant expression
     //
 
-    maybe_semantic_error BinaryExpression::is_constant()
+    maybe_semantic_error BinaryExpression::can_execute()
     {
         switch (op)
         {
@@ -217,25 +217,25 @@ namespace logia::AST
         case Operators::BINARY_BITWISE_RIGHT_SHIFT:
             break;
         default:
-            return make_semantic_error(this, LGERR_CONSTEX005);
+            return make_semantic_error(LGERR_CONSTEX005, this);
         }
 
         auto left = this->get_left();
-        if (left->is_constant())
+        if (left->can_execute().is_error())
         {
-            return make_semantic_error(this, LGERR_CONSTEX001a);
+            return make_semantic_error(LGERR_CONSTEX001a, this);
         }
 
         auto right = this->get_right();
-        if (right->is_constant())
+        if (right->can_execute().is_error())
         {
-            return make_semantic_error(this, LGERR_CONSTEX001b);
+            return make_semantic_error(LGERR_CONSTEX001b, this);
         }
 
         return make_semantic_success(true);
     }
 
-    ConstExpression BinaryExpression::execute()
+    ConstExpression *BinaryExpression::execute()
     {
         auto left = this->get_left()->execute();
         auto right = this->get_right()->execute();
@@ -243,38 +243,40 @@ namespace logia::AST
         switch (op)
         {
         case Operators::BINARY_ADD:
-            return left + right;
-        case Operators::BINARY_SUB:
-            return left - right;
-        case Operators::BINARY_MUL:
-            return left * right;
-        case Operators::BINARY_DIV:
-            return left / right;
-        case Operators::BINARY_MOD:
-            return left % right;
-        case Operators::BINARY_LOGIAL_EQ:
-            return left == right;
-        case Operators::BINARY_LOGIAL_NEQ:
-            return left != right;
-        case Operators::BINARY_LOGIAL_LT:
-            return left < right;
-        case Operators::BINARY_LOGIAL_GT:
-            return left > right;
-        case Operators::BINARY_LOGIAL_LTE:
-            return left <= right;
-        case Operators::BINARY_LOGIAL_GTE:
-            return left >= right;
-        case Operators::BINARY_BITWISE_AND:
-            return left & right;
-        case Operators::BINARY_BITWISE_OR:
-            return left | right;
-        case Operators::BINARY_BITWISE_XOR:
-            return left ^ right;
-        case Operators::BINARY_BITWISE_LEFT_SHIFT:
-            return left << right;
-        case Operators::BINARY_BITWISE_RIGHT_SHIFT:
-            return left >> right;
-            break;
+            return left->operator+(right);
+            /*
+                    case Operators::BINARY_SUB:
+                        return left - right;
+                    case Operators::BINARY_MUL:
+                        return left * right;
+                    case Operators::BINARY_DIV:
+                        return left / right;
+                    case Operators::BINARY_MOD:
+                        return left % right;
+                    case Operators::BINARY_LOGIAL_EQ:
+                        return left == right;
+                    case Operators::BINARY_LOGIAL_NEQ:
+                        return left != right;
+                    case Operators::BINARY_LOGIAL_LT:
+                        return left < right;
+                    case Operators::BINARY_LOGIAL_GT:
+                        return left > right;
+                    case Operators::BINARY_LOGIAL_LTE:
+                        return left <= right;
+                    case Operators::BINARY_LOGIAL_GTE:
+                        return left >= right;
+                    case Operators::BINARY_BITWISE_AND:
+                        return left & right;
+                    case Operators::BINARY_BITWISE_OR:
+                        return left | right;
+                    case Operators::BINARY_BITWISE_XOR:
+                        return left ^ right;
+                    case Operators::BINARY_BITWISE_LEFT_SHIFT:
+                        return left << right;
+                    case Operators::BINARY_BITWISE_RIGHT_SHIFT:
+                        return left >> right;
+                        break;
+            */
         default:
             throw_semantic_error(this, LGERR_CONSTEX005);
         }
