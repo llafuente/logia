@@ -250,7 +250,14 @@ namespace logia::multiple_dispatch
                 auto m = match(callexpr, func, false);
                 if (m.is_success())
                 {
-                    candidates.push_back({m.unwrap_success(), func});
+                    auto f = m.unwrap_success();
+                    LOG(DBG, "candidate points = {}", f);
+                    candidates.push_back({f, func});
+                }
+                else
+                {
+                    auto f = m.unwrap_error();
+                    LOG(DBG, "candidate no good = {}", (uint32_t)f.reason);
                 }
             }
             else
