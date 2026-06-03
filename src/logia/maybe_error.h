@@ -1,17 +1,24 @@
 #pragma once
+
 #include <string>
-#include "logia/ast/node.h"
-#include "logia/ast/semantic_error.h"
+#include <format>
+#include <stdexcept>
+#include "logia/compiler_error.h"
 
 namespace logia
 {
+    namespace AST
+    {
+        struct Node;
+    }
+
     // This namespace is to make an alias with your types and use directly make*
     namespace utils
     {
         /// @brief Represents a possible error that need to be handle properly. success_the error can be accessed in a way that requires handling :)
         /// @tparam success_t
         /// @example
-        /// auto x = maybe_error()
+        /// auto x = maybe_error<bool, bool>()
         template <typename success_t, typename error_t>
         struct maybe_error
         {
@@ -46,7 +53,7 @@ namespace logia
             {
                 if (is_error())
                 {
-                    this->throw_semantic(nullptr);
+                    throw_compiler_error(this->message);
                 }
                 return this->success_data;
             }
@@ -58,12 +65,6 @@ namespace logia
                     throw std::runtime_error("try to unwrap an error that is a success! check is_error first!");
                 }
                 return this->error_data;
-            }
-
-            /// @brief throw shortcut
-            void throw_semantic(AST::Node *node = nullptr)
-            {
-                throw_semantic_error(node, this->message);
             }
         };
 
@@ -83,6 +84,7 @@ namespace logia
         template <typename success_t, typename error_t>
         maybe_error<success_t, error_t> make_success(success_t data)
         {
+            // return maybe_error<success_t, error_t>(data, "", std::default_initializable<error_t>());
             return maybe_error<success_t, error_t>(data, "", {});
         }
     }

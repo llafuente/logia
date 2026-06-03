@@ -1,6 +1,11 @@
 #include "logia/ast/struct.h"
+
+#include "utils.h"
+#include "logia/backend.h"
 #include "logia/ast/identifier.h"
 #include "logia/ast/expr.h"
+
+#include "llvm/IR/DerivedTypes.h" // StructType
 
 namespace logia::AST
 {

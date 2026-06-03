@@ -4,13 +4,13 @@
 #include <string>
 #include <stacktrace>
 
-#include "antlr4-runtime.h"
 #include "logia/log.h"
-#include "logia/ast/node.h"
 
 namespace logia::AST
 {
+    struct Node;
 
+#define LGERR_CONSTEX000 "LGERR_CONSTEX000 Expression is not constant"
 #define LGERR_CONSTEX001a "LGERR_CONSTEX001a Left operand is not constant"
 #define LGERR_CONSTEX001b "LGERR_CONSTEX001b Right operand is not constant"
 #define LGERR_CONSTEX002 "LGERR_CONSTEX002 Right operand should be an Integer"
@@ -25,17 +25,6 @@ namespace logia::AST
         std::string format_message(Node *node, const std::string &message, const std::string &trace, const char *function, const char *file, int line);
     };
 
-    struct maybe_semantic_error
-    {
-        Node *aggressor;
-        std::string &message;
-    };
-
-    typedef utils::maybe_error<bool, maybe_semantic_error> maybe_error_semantic;
-    constexpr auto make_semantic_error = logia::utils::make_error<bool, maybe_semantic_error>;
-    constexpr auto make_semantic_success = logia::utils::make_success<bool, maybe_semantic_error>;
-    constexpr auto make_semantic_chained_error = logia::utils::make_chained_error<bool, maybe_semantic_error>;
-
 #define throw_semantic_error(node, message)                                                                                                    \
     do                                                                                                                                         \
     {                                                                                                                                          \
@@ -43,4 +32,21 @@ namespace logia::AST
         LOG(ERR, "{}", ___e.what());                                                                                                           \
         throw ___e;                                                                                                                            \
     } while (false)
+}
+
+// resolve cyclic dependency
+
+#include "logia/maybe_error.h"
+
+namespace logia::AST
+{
+    struct Node;
+
+    using namespace logia::utils;
+
+    typedef maybe_error<bool, Node *> maybe_semantic_error;
+
+    constexpr auto make_semantic_error = make_error<bool, logia::AST::Node *>;
+    constexpr auto make_semantic_success = make_success<bool, logia::AST::Node *>;
+    constexpr auto make_semantic_chained_error = make_chained_error<bool, logia::AST::Node *>;
 }

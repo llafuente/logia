@@ -1,11 +1,15 @@
 #include "logia/ast/type.h"
 
+#include "utils.h"
+#include "logia/backend.h"
 #include "logia/ast/constexpr.h"
 #include "logia/ast/callexpr.h"
 #include "logia/ast/identifier.h"
 #include "logia/ast/functionblock.h"
 #include "logia/ast/returnstmt.h"
-#include "utils.h"
+
+#include "llvm/IR/Type.h"              // Type
+#include "llvm/IR/DebugInfoMetadata.h" // dwarf
 
 namespace logia::AST
 {

@@ -1,7 +1,10 @@
 #pragma once
 
+#include "logia/log.h"
+#include "logia/backend.h"
 #include "logia/ast/returnstmt.h"
 #include "logia/ast/llvm.h"
+#include "logia/ast/expr.h"
 
 namespace logia::AST
 {

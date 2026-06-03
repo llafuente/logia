@@ -1,5 +1,7 @@
 #include "logia/maybe_error.h"
 
-namespace logia
+#include "logia/ast/semantic_error.h"
+
+namespace logia::utils
 {
 }

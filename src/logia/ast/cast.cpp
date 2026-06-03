@@ -1,6 +1,8 @@
 #include "logia/ast/cast.h"
 
+#include "logia/backend.h"
 #include "logia/ast/expr.h"
+#include "logia/ast/type.h"
 #include "logia/ast/identifier.h"
 #include "logia/ast/callexpr.h"
 #include "logia/ast/semantic_error.h"

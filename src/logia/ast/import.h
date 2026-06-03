@@ -1,15 +1,7 @@
 #pragma once
 
-#include <vector>
+#include "logia/ast/scope.h"
 
-#include "logia/ast/node.h"
-#include "logia/ast/block.h"
-
-#include "utils.h"
-
-#include "antlr4-runtime.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/Value.h"
 namespace logia
 {
     struct Backend;

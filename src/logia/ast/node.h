@@ -1,17 +1,27 @@
 #pragma once
 
-#include <vector>
-#include <format>
+#include "logia/logia.h"
 
-#include "utils.h"
-#include "logia/backend.h"
+#include <vector>
+#include <string>
+#include <functional>
+#include <format>
 #include "logia/compiler_error.h"
 
-#include "antlr4-runtime.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/Value.h"
-
-struct ::logia::Backend;
+namespace llvm
+{
+    // #include "llvm/IR/Value.h"
+    struct Value;
+}
+// #include "antlr4-runtime.h"
+namespace antlr4
+{
+    struct ParserRuleContext;
+}
+namespace logia
+{
+    struct Backend;
+}
 
 namespace logia::AST
 {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iostream>
+#include <fstream> // fix: 'std::basic_ostream<_Elem,_Traits> &std::operator <<(std::basic_ostream<_Elem,_Traits> &,const std::error_code &)': could not deduce template argument for 'std::basic_ostream<_Elem,_Traits> &' from 'std::ofstream'
 
 // Step 1: Helper macro to convert a value to a string
 #define LOG_STRINGIFY(x) #x

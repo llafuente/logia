@@ -7,24 +7,13 @@
 #include <string>
 #include <iomanip> // setw
 
+#include <iostream>
+
 // Step 1: Helper macro to convert a value to a string
 #define STRINGIFY(x) #x
 
 // Step 2: Ensure macro arguments are expanded before stringizing
 #define TOSTRING(x) STRINGIFY(x)
-
-#define LOGIA_LEND
-#define LOGIA_CLONE
-
-// Define export/import macros for Windows
-#ifdef _WIN32
-#define LOGIA_EXPORT __declspec(dllexport)
-#define LOGIA_API extern "C" LOGIA_EXPORT
-#else
-// On Linux/macOS, use GCC visibility attributes
-#define LOGIA_EXPORT __attribute__((visibility("default")))
-#define LOGIA_API extern "C" LOGIA_EXPORT
-#endif
 
 void print_stack_trace();
 
@@ -39,7 +28,7 @@ void print_stack_trace();
 #define LOGIA_VERIFY(expr)                                                     \
     do                                                                         \
     {                                                                          \
-        if (!!(expr))                                                           \
+        if (!!(expr))                                                          \
         {                                                                      \
             std::cerr << "Verify failed: " << #expr                            \
                       << "\nAt file: " << __FILE__ << ":" << __LINE__ << "\n"; \
@@ -72,11 +61,3 @@ void print_stack_trace();
             std::abort();                                                   \
         }                                                                   \
     } while (0)
-
-// NOTE do not uncooment -> cpp nonsense detected!
-// #include "llvm/IR/Type.h"
-namespace llvm
-{
-    class Type;
-}
-std::string llvm_type_to_string(llvm::Type *ty);

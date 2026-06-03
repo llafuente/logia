@@ -7,6 +7,7 @@ namespace logia::AST
 {
     struct FunctionParameter;
     struct Identifier;
+    struct Function;
 
     /// @brief Argument of a call expression, can be named or positional
     struct CallExpressionArgument : Node

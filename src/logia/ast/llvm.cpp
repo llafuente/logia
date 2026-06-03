@@ -1,9 +1,11 @@
 #include "logia/ast/llvm.h"
 
-#include "logia/log.h"
+#include <format>
+#include <iostream>
 
 #include "utils.h"
-#include <iostream>
+#include "logia/log.h"
+#include "logia/backend.h"
 #include "logia/compiler_error.h"
 
 #include "llvm/IR/Instructions.h"
@@ -92,5 +94,14 @@ namespace logia::AST
         // the rest don't need it!
 
         return value;
+    }
+
+    std::string llvm_type_to_string(llvm::Type *ty)
+    {
+        std::string typeStr;
+        llvm::raw_string_ostream rso(typeStr);
+        ty->print(rso);
+        rso.flush();
+        return typeStr;
     }
 }

@@ -1,5 +1,6 @@
 #include "logia/cst2ast.h"
 
+#include "utils.h"
 #include "logia/ast/type.h"
 #include "logia/ast/constexpr.h"
 #include "logia/ast/if_stmt.h"

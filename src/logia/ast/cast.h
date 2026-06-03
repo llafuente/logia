@@ -4,6 +4,8 @@
 
 namespace logia::AST
 {
+    struct CallExpression;
+
     /// @brief Defines a cast expression
     struct Cast : Expression
     {

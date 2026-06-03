@@ -6,6 +6,7 @@
 #include "utils.h"
 
 #include "llvm/ADT/APSInt.h"
+#include "llvm/ADT/APFloat.h"
 
 namespace logia::AST
 {

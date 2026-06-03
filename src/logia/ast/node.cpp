@@ -2,6 +2,9 @@
 #include "logia/ast/type.h"
 #include "logia/ast/import.h"
 #include "logia/ast/struct.h"
+#include "logia/ast/program.h"
+
+#include "antlr4-runtime.h"
 
 #include <format>
 

@@ -1,12 +1,6 @@
 #pragma once
 
 #include "logia/ast/stmt.h"
-#include "utils.h"
-#include "logia/backend.h"
-
-#include "antlr4-runtime.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/Value.h"
 
 namespace logia::AST
 {

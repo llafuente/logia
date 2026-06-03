@@ -1,8 +1,6 @@
 #pragma once
 
 #include "logia/ast/node.h"
-#include "logia/ast/expr.h"
-#include "logia/ast/type.h"
 
 namespace logia::AST
 {

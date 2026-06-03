@@ -3,10 +3,20 @@
 #include "logia/ast/node.h"
 #include "logia/ast/type.h"
 
+namespace llvm
+{
+    class AllocaInst;   // #include "llvm/AllocaInst.h"
+    class FunctionType; // #include "llvm/IR/DerivedTypes.h"
+    class Function;     // #include "llvm/IR/Function.h"
+    class DISubprogram;
+    class Type;
+}
+
 namespace logia::AST
 {
     struct Expression;
     struct Identifier;
+    struct Program;
 
     /// @brief Defines a function parameter
     struct FunctionParameter : Node

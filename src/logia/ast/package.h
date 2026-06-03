@@ -1,6 +1,6 @@
 #pragma once
 
-#include "logia/ast/block.h"
+#include "logia/ast/scope.h"
 
 namespace logia::AST
 {

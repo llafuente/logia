@@ -1,8 +1,12 @@
 #include "logia/ast/if_stmt.h"
 
+#include "utils.h"
 #include "logia/log.h"
+#include "logia/backend.h"
 #include "logia/ast/llvm.h"
 #include "logia/ast/identifier.h"
+#include "logia/ast/block.h"
+#include "logia/ast/type.h"
 
 namespace logia::AST
 {

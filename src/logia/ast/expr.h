@@ -1,11 +1,16 @@
 #pragma once
 
 #include "logia/ast/node.h"
-#include "logia/ast/type.h"
-#include "logia/ast/operators.h"
+#include "logia/ast/semantic_error.h"
+
+namespace logia
+{
+    struct Backend;
+}
 
 namespace logia::AST
 {
+    struct ConstExpression;
     /// @brief Base expression
     struct Expression : Node
     {
@@ -16,11 +21,11 @@ namespace logia::AST
 
         /// @brief Determines if the expression is constant at compile time
         /// @return true if constant, false otherwise
-        virtual maybe_semantic_error is_constant() = 0;
+        virtual maybe_semantic_error can_execute();
 
         /// @brief Executes the expression if it is constant at compile time
         /// @return Returns the result of the expression execution
-        virtual ConstExpression execute() = 0;
+        virtual ConstExpression *execute();
 
         llvm::Value *post_codegen(logia::Backend *backend) override;
     };

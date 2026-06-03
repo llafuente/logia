@@ -1,7 +1,17 @@
 #pragma once
 
-#include "llvm/IR/BasicBlock.h"
-#include "logia/backend.h"
+#include <string>
+
+namespace llvm
+{
+    class BasicBlock; // #include "llvm/IR/BasicBlock.h"
+    class Value;
+    class Type;
+}
+namespace logia
+{
+    struct Backend; // #include "logia/backend.h"
+}
 
 //
 // llvm utils - shortcuts
@@ -19,4 +29,6 @@ namespace logia::AST
     /// @param block
     /// @return
     llvm::Value *llvm_load_if_required(llvm::Value *value, logia::Backend *backend);
+
+    std::string llvm_type_to_string(llvm::Type *ty);
 }

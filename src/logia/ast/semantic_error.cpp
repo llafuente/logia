@@ -6,6 +6,7 @@
 
 #include <format>
 #include <stacktrace>
+#include "antlr4-runtime.h"
 
 namespace logia::AST
 {

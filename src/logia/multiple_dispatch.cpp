@@ -1,5 +1,8 @@
 #include "logia/multiple_dispatch.h"
 
+#include "logia/backend.h"
+#include "logia/ast/node.h"
+#include "logia/ast/scope.h"
 #include "logia/ast/callexpr.h"
 #include "logia/ast/cast.h"
 #include "logia/ast/identifier.h"

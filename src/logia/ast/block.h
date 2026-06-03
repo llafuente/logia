@@ -2,6 +2,12 @@
 
 #include "logia/ast/scope.h"
 
+namespace llvm
+{
+    //  #include "llvm/BasicBlock.h"
+    class BasicBlock;
+}
+
 namespace logia::AST
 {
     struct Identifier;

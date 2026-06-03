@@ -1,4 +1,6 @@
 #include "logia/ast/stmt.h"
+
+#include "logia/backend.h"
 #include "logia/ast/llvm.h"
 #include "logia/ast/identifier.h"
 #include "logia/ast/block.h"

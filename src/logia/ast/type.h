@@ -1,11 +1,13 @@
 #pragma once
 
 #include "logia/ast/node.h"
-#include "logia/ast/expr.h"
-#include "logia/ast/block.h"
-#include "llvm/IR/Type.h"
-#include "logia/ast/program.h"
 #include "logia/ast/operators.h"
+
+namespace llvm
+{
+    class DIType; // #include "llvm/DIType.h"
+    class Type;
+}
 
 namespace logia::AST
 {

@@ -3,6 +3,7 @@
 #include "logia/log.h"
 #include "logia/ast/node.h"
 #include "logia/ast/semantic_error.h"
+#include <algorithm>
 
 namespace logia::AST
 {

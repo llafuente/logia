@@ -2,6 +2,11 @@
 
 #include "logia/ast/stmt.h"
 
+namespace llvm
+{
+    class AllocaInst; // #include "llvm/IR/Instructions.h"
+}
+
 namespace logia::AST
 {
     /// @brief Variable declaration/initialization statement

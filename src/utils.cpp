@@ -76,12 +76,3 @@ void print_stack_trace()
 }
 
 #endif
-
-std::string llvm_type_to_string(llvm::Type *ty)
-{
-    std::string typeStr;
-    llvm::raw_string_ostream rso(typeStr);
-    ty->print(rso);
-    rso.flush();
-    return typeStr;
-}

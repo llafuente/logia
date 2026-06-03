@@ -1,8 +1,17 @@
 #include "logia/ast/function.h"
+
+#include "utils.h"
+#include "logia/backend.h"
 #include "logia/ast/identifier.h"
 #include "logia/ast/returnstmt.h"
 #include "logia/ast/callexpr.h"
+#include "logia/ast/program.h"
 #include "logia/ast/functionblock.h"
+#include "logia/ast/llvm.h"
+
+#include "llvm/IR/Instructions.h" // AllocaInst
+#include "llvm/IR/Metadata.h"     // Metadata
+#include "llvm/ADT/SmallVector.h" // SmallVector
 
 namespace logia::AST
 {
