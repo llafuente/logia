@@ -21,6 +21,11 @@ namespace logia::AST
         return std::format("Expression{}", Node::to_string());
     }
 
+    bool Expression::is_constant()
+    {
+        return false;
+    }
+
     llvm::Value *Expression::post_codegen(logia::Backend *backend)
     {
         if (this->cg_value != nullptr)

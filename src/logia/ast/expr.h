@@ -14,6 +14,14 @@ namespace logia::AST
 
         std::string to_string() override;
 
+        /// @brief Determines if the expression is constant at compile time
+        /// @return true if constant, false otherwise
+        virtual maybe_semantic_error is_constant() = 0;
+
+        /// @brief Executes the expression if it is constant at compile time
+        /// @return Returns the result of the expression execution
+        virtual ConstExpression execute() = 0;
+
         llvm::Value *post_codegen(logia::Backend *backend) override;
     };
 }

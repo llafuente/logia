@@ -16,13 +16,18 @@ namespace logia::AST
 
         std::string to_string() override;
 
+        /// @brief Determines if the operator can be applied to this constant expression at compile time
+        /// @param op
+        /// @return
+        virtual bool is_valid_constant_operator(Operators op);
+
         llvm::Value *post_codegen(logia::Backend *backend) override;
     };
 
     /// @brief A string literal constant expression
     struct StringLiteral : ConstExpression
     {
-        /// @brief The string value (utf-8)
+        /// @brief The string value (utf-8), non-null
         char *text = nullptr;
         /// @brief string type, atm a false type cstring
         Type *type = nullptr;
@@ -33,6 +38,11 @@ namespace logia::AST
 
         // TODO generate our string data not cstring
         llvm::Value *post_codegen(logia::Backend *backend) override;
+
+        bool is_valid_constant_operator(Operators op) override;
+
+        /// @brief Returns a new StringLiteral with this->text + rhs.text
+        StringLiteral operator+(const StringLiteral &rhs) const;
 
         // TODO return out type!!
         /// @brief Retrieves the type of the string literal
@@ -57,7 +67,7 @@ namespace logia::AST
         /// @brief the type
         Type *type = nullptr;
 
-        FloatLiteral(antlr4::ParserRuleContext *rule, const char *number_as_text, Type *type = nullptr);
+        FloatLiteral(antlr4::ParserRuleContext *rule, LOGIA_CLONE const char *number_as_text, Type *type = nullptr);
         std::string to_string() override;
         llvm::Value *post_codegen(logia::Backend *backend) override;
         Type *get_type() override;
@@ -78,7 +88,7 @@ namespace logia::AST
         /// @brief the type
         Type *type = nullptr;
 
-        IntegerLiteral(antlr4::ParserRuleContext *rule, const char *number_as_text, Type *type = nullptr);
+        IntegerLiteral(antlr4::ParserRuleContext *rule, LOGIA_CLONE const char *number_as_text, Type *type = nullptr);
 
         /// @brief negates current value and value_str
         void negate();
@@ -88,6 +98,11 @@ namespace logia::AST
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
         Type *get_type() override;
+
+        // constant expression operators
+        bool is_valid_constant_operator(Operators op) override;
+        /// @brief Returns a new IntegerLiteral with this->value + rhs.value
+        IntegerLiteral operator+(const ConstExpression &rhs) const;
 
     protected:
         void _set_type(Type *t) override;

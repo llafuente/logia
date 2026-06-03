@@ -24,6 +24,13 @@ namespace logia::AST
         /// @return The right-hand side expression
         Expression *get_right();
 
+        /// @brief A binary expression is constant if left and right are constants
+        /// @return true if constant, false otherwise
+        maybe_semantic_error is_constant() override;
+        /// @brief Executes the binary expression if it is constant at compile time
+        /// @return Returns the result of the expression execution
+        ConstExpression execute() override;
+
         std::string to_string() override;
 
         Type *get_type() override;

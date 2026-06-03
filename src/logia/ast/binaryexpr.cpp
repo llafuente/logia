@@ -190,4 +190,94 @@ namespace logia::AST
         BinaryExpression *expr = new BinaryExpression(nullptr, left, op, right);
         return expr;
     }
+
+    //
+    // constant expression
+    //
+
+    maybe_semantic_error BinaryExpression::is_constant()
+    {
+        switch (op)
+        {
+        case Operators::BINARY_ADD:
+        case Operators::BINARY_SUB:
+        case Operators::BINARY_MUL:
+        case Operators::BINARY_DIV:
+        case Operators::BINARY_MOD:
+        case Operators::BINARY_LOGIAL_EQ:
+        case Operators::BINARY_LOGIAL_NEQ:
+        case Operators::BINARY_LOGIAL_LT:
+        case Operators::BINARY_LOGIAL_GT:
+        case Operators::BINARY_LOGIAL_LTE:
+        case Operators::BINARY_LOGIAL_GTE:
+        case Operators::BINARY_BITWISE_AND:
+        case Operators::BINARY_BITWISE_OR:
+        case Operators::BINARY_BITWISE_XOR:
+        case Operators::BINARY_BITWISE_LEFT_SHIFT:
+        case Operators::BINARY_BITWISE_RIGHT_SHIFT:
+            break;
+        default:
+            return make_semantic_error(this, LGERR_CONSTEX005);
+        }
+
+        auto left = this->get_left();
+        if (left->is_constant())
+        {
+            return make_semantic_error(this, LGERR_CONSTEX001a);
+        }
+
+        auto right = this->get_right();
+        if (right->is_constant())
+        {
+            return make_semantic_error(this, LGERR_CONSTEX001b);
+        }
+
+        return make_semantic_success(true);
+    }
+
+    ConstExpression BinaryExpression::execute()
+    {
+        auto left = this->get_left()->execute();
+        auto right = this->get_right()->execute();
+
+        switch (op)
+        {
+        case Operators::BINARY_ADD:
+            return left + right;
+        case Operators::BINARY_SUB:
+            return left - right;
+        case Operators::BINARY_MUL:
+            return left * right;
+        case Operators::BINARY_DIV:
+            return left / right;
+        case Operators::BINARY_MOD:
+            return left % right;
+        case Operators::BINARY_LOGIAL_EQ:
+            return left == right;
+        case Operators::BINARY_LOGIAL_NEQ:
+            return left != right;
+        case Operators::BINARY_LOGIAL_LT:
+            return left < right;
+        case Operators::BINARY_LOGIAL_GT:
+            return left > right;
+        case Operators::BINARY_LOGIAL_LTE:
+            return left <= right;
+        case Operators::BINARY_LOGIAL_GTE:
+            return left >= right;
+        case Operators::BINARY_BITWISE_AND:
+            return left & right;
+        case Operators::BINARY_BITWISE_OR:
+            return left | right;
+        case Operators::BINARY_BITWISE_XOR:
+            return left ^ right;
+        case Operators::BINARY_BITWISE_LEFT_SHIFT:
+            return left << right;
+        case Operators::BINARY_BITWISE_RIGHT_SHIFT:
+            return left >> right;
+            break;
+        default:
+            throw_semantic_error(this, LGERR_CONSTEX005);
+        }
+    }
+
 } // namespace logia

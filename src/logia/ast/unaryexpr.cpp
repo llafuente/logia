@@ -131,4 +131,62 @@ namespace logia::AST
             return Expression::post_codegen(backend);
         }
     }
+
+    //
+    // constant expression
+    //
+
+    maybe_semantic_error UnaryExpression::is_constant()
+    {
+        switch (op)
+        {
+        // case Operators::PREFIX_DEREFERENCE:
+        case Operators::PREFIX_NEGATION:
+        case Operators::PREFIX_LOGICAL_NOT:
+        case Operators::PREFIX_INCREMENT:
+        case Operators::PREFIX_DECREMENT:
+        case Operators::PREFIX_BITWISE_NOT:
+
+        case Operators::POSTFIX_INCREMENT:
+        case Operators::POSTFIX_DECREMENT:
+
+            break;
+        default:
+            return make_semantic_error(this, LGERR_CONSTEX005);
+        }
+
+        auto operand = this->get_operand();
+        if (operand->is_constant())
+        {
+            return make_semantic_error(this, LGERR_CONSTEX001a);
+        }
+
+        return make_semantic_success(true);
+    }
+
+    ConstExpression UnaryExpression::execute()
+    {
+        auto operand = this->get_operand()->execute();
+
+        switch (op)
+        {
+        case Operators::PREFIX_NEGATION:
+            return -operand;
+        case Operators::PREFIX_LOGICAL_NOT:
+            return !operand;
+        case Operators::PREFIX_INCREMENT:
+            return operand + new IntegerLiteral(nullptr, "1", nullptr);
+        case Operators::PREFIX_DECREMENT:
+            return operand - new IntegerLiteral(nullptr, "1", nullptr);
+        case Operators::PREFIX_BITWISE_NOT:
+            return ~operand;
+        case Operators::POSTFIX_INCREMENT:
+            return operand + new IntegerLiteral(nullptr, "1", nullptr);
+        case Operators::POSTFIX_DECREMENT:
+            return operand - new IntegerLiteral(nullptr, "1", nullptr);
+            break;
+        default:
+            throw_semantic_error(this, LGERR_CONSTEX005);
+        }
+    }
 }

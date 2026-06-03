@@ -107,6 +107,73 @@ namespace logia::AST
         this->type = type;
     }
 
+    bool IntegerLiteral::is_valid_constant_operator(Operators op)
+    {
+        switch (op)
+        {
+        case Operators::BINARY_ADD:
+        case Operators::BINARY_SUB:
+        case Operators::BINARY_MUL:
+        case Operators::BINARY_DIV:
+        case Operators::BINARY_MOD:
+        case Operators::BINARY_LOGIAL_EQ:
+        case Operators::BINARY_LOGIAL_NEQ:
+        case Operators::BINARY_LOGIAL_LT:
+        case Operators::BINARY_LOGIAL_GT:
+        case Operators::BINARY_LOGIAL_LTE:
+        case Operators::BINARY_LOGIAL_GTE:
+        case Operators::BINARY_BITWISE_AND:
+        case Operators::BINARY_BITWISE_OR:
+        case Operators::BINARY_BITWISE_XOR:
+        case Operators::BINARY_BITWISE_LEFT_SHIFT:
+        case Operators::BINARY_BITWISE_RIGHT_SHIFT:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    IntegerLiteral IntegerLiteral::operator+(const ConstExpression &rhs) const
+    {
+        if (!rhs->is<IntegerLiteral>())
+        {
+            throw_semantic_error(rhs, LGERR_CONSTEX002);
+        }
+        const IntegerLiteral &rhsInt = rhs->as<IntegerLiteral>();
+        // Build a copy-like result (same rule/type, own buffers)
+        IntegerLiteral result(this->rule, "0", this->type);
+
+        // Align bit width/signedness before add
+        llvm::APSInt lhsVal = this->value;
+        llvm::APSInt rhsVal = rhsInt.value;
+
+        const unsigned maxBits = std::max(lhsVal.getBitWidth(), rhsVal.getBitWidth());
+        lhsVal = lhsVal.extOrTrunc(maxBits);
+        rhsVal = rhsVal.extOrTrunc(maxBits);
+
+        // Keep lhs signedness policy
+        rhsVal.setIsSigned(lhsVal.isSigned());
+
+        llvm::APInt sumRaw = lhsVal + rhsVal;
+        result.value = llvm::APSInt(sumRaw, lhsVal.isUnsigned());
+
+        // Keep textual form in sync (decimal)
+        std::string text = result.value.isSigned()
+                               ? std::to_string(result.value.getSExtValue())
+                               : std::to_string(result.value.getZExtValue());
+
+        if (result.value_str != nullptr)
+        {
+            free(result.value_str);
+            result.value_str = nullptr;
+        }
+
+        result.value_str = (char *)malloc(text.size() + 1);
+        std::memcpy(result.value_str, text.c_str(), text.size() + 1);
+
+        return result;
+    }
+
     llvm::Value *IntegerLiteral::post_codegen(logia::Backend *backend)
     {
         LOG(DBG, "{}", this->to_string());
@@ -251,6 +318,9 @@ namespace logia::AST
 
     StringLiteral::StringLiteral(antlr4::ParserRuleContext *rule, const char *text) : ConstExpression(rule)
     {
+        // assert not null, or llvm will crash without any message :S
+        LOGIA_ASSERT(text != nullptr);
+
         this->text = strdup(text);
     }
 
@@ -275,6 +345,38 @@ namespace logia::AST
         this->set_type(this->first_parent<Scope>()->lookup<Type>("ptr"));
 
         ConstExpression::_pre_type_inference();
+    }
+
+    bool StringLiteral::is_valid_constant_operator(Operators op)
+    {
+        switch (op)
+        {
+        case Operators::BINARY_ADD:
+            return true;
+        }
+        return false;
+    }
+
+    StringLiteral StringLiteral::operator+(const StringLiteral &rhs) const
+    {
+        const size_t lhs_len = strlen(this->text);
+        const size_t rhs_len = strlen(rhs.text);
+
+        char *combined = (char *)malloc(lhs_len + rhs_len + 1);
+
+        if (lhs_len > 0)
+        {
+            std::memcpy(combined, this->text, lhs_len);
+        }
+        if (rhs_len > 0)
+        {
+            std::memcpy(combined + lhs_len, rhs.text, rhs_len);
+        }
+        combined[lhs_len + rhs_len] = '\0';
+
+        StringLiteral result(this->rule, combined);
+        result.type = this->type;
+        return result;
     }
 
     llvm::Value *StringLiteral::post_codegen(logia::Backend *backend)

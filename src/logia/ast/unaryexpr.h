@@ -22,6 +22,13 @@ namespace logia::AST
 
         Expression *get_operand();
 
+        /// @brief A binary expression is constant if left and right are constants
+        /// @return true if constant, false otherwise
+        maybe_semantic_error is_constant() override;
+        /// @brief Executes the binary expression if it is constant at compile time
+        /// @return Returns the result of the expression execution
+        ConstExpression execute() override;
+
         std::string to_string() override;
 
         llvm::Value *post_codegen(logia::Backend *backend) override;
