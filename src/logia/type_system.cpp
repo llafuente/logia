@@ -7,6 +7,13 @@ namespace logia::type_system
 {
     using namespace logia::AST;
 
+    type_compatibility type_compatibility::NO = type_compatibility(0x000);
+    type_compatibility type_compatibility::YES = type_compatibility(0x001);
+    type_compatibility type_compatibility::EXPLICIT_CAST = type_compatibility(0x010);
+    type_compatibility type_compatibility::AUTOCAST_CAST = type_compatibility(0x020);
+    type_compatibility type_compatibility::LAYOUT_COMPATIBLE = type_compatibility(0x100);
+    type_compatibility type_compatibility::CODE_COMPATIBLE = type_compatibility(0x200);
+
     constexpr auto make_error = logia::utils::make_error<type_compatibility, type_compatibility>;
     constexpr auto make_success = logia::utils::make_success<type_compatibility, type_compatibility>;
     constexpr auto make_chained_error = logia::utils::make_chained_error<type_compatibility, type_compatibility>;
@@ -16,14 +23,14 @@ namespace logia::type_system
         // if rhs is infer, it's compatible with everything
         if (rhs->is<InferType>() || rhs == nullptr)
         {
-            return make_success((type_compatibility)((uint32_t)type_compatibility::YES));
+            return make_success(type_compatibility::YES);
         }
         // if both has the same primitive they may be compatible
         if (lhs->primitive == rhs->primitive)
         {
             if (lhs->is<Void>())
             {
-                return make_success((type_compatibility)((uint32_t)type_compatibility::YES | (uint32_t)type_compatibility::LAYOUT_COMPATIBLE));
+                return make_success(type_compatibility::YES | type_compatibility::LAYOUT_COMPATIBLE);
             }
             // TODO pointer should check pointee type
             if (lhs->is<Pointer>())

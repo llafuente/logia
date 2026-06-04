@@ -347,6 +347,7 @@ namespace logia::AST
 
         // alloc one more space for sign and negate without any allocation
         auto length = strlen(number_as_text);
+        LOGIA_ASSERT(length == 0);
         this->value_str = (char *)malloc(length + 2); // 1 for sign, 1 for null
         strncpy(this->value_str, number_as_text, length);
         this->value_str[length] = '\0'; // Ensure null termination
@@ -358,15 +359,39 @@ namespace logia::AST
         LOG(DBG, "{} as decimal", this->value_str);
         auto ref = llvm::StringRef(this->value_str);
 
-        // Parse with rounding to nearest, ties to even
-        llvm::Expected<llvm::APFloat::opStatus> result =
-            value.convertFromString(this->value_str, llvm::APFloat::rmNearestTiesToEven);
-        if (!result)
+        if (this->value_str[0] == 'i')
         {
-            // std::unique_ptr<ErrorInfoBase> Payload = result.takeError().takePayload();
-            //  Extract and print the error
-            llvm::handleAllErrors(result.takeError(), [this](const llvm::ErrorInfoBase &EIB)
-                                  { throw_semantic_error(this, std::format("LGERR_CEXPR004 Invalid floating point format '{}'.\nParse error: {}", this->value_str, EIB.message())); });
+            // infinite
+            this->value = llvm::APFloat::getInf(llvm::APFloat::IEEEdouble());
+        }
+        else if (length > 2 && this->value_str[0] == '-' && this->value_str[1] == 'i')
+        {
+            // infinite
+            this->value = llvm::APFloat::getInf(llvm::APFloat::IEEEdouble(), true);
+        }
+        else if (this->value_str[0] == 'n')
+        {
+            // nan
+            this->value = llvm::APFloat::getNaN(llvm::APFloat::IEEEdouble());
+        }
+        else if (length > 2 && this->value_str[0] == '-' && this->value_str[1] == 'n')
+        {
+            // nan
+            this->value = llvm::APFloat::getNaN(llvm::APFloat::IEEEdouble(), true);
+        }
+        else
+        {
+
+            // Parse with rounding to nearest, ties to even
+            llvm::Expected<llvm::APFloat::opStatus> result =
+                value.convertFromString(this->value_str, llvm::APFloat::rmNearestTiesToEven);
+            if (!result)
+            {
+                // std::unique_ptr<ErrorInfoBase> Payload = result.takeError().takePayload();
+                //  Extract and print the error
+                llvm::handleAllErrors(result.takeError(), [this](const llvm::ErrorInfoBase &EIB)
+                                      { throw_semantic_error(this, std::format("LGERR_CEXPR004 Invalid floating point format '{}'.\nParse error: {}", this->value_str, EIB.message())); });
+            }
         }
     }
 

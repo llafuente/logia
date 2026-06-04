@@ -166,3 +166,27 @@ TEST(test_constexpr, string_literals)
 
     LOGIA_UNIT_TEST_END();
 }
+
+TEST(test_constexpr, float_limits)
+{
+    LOGIA_UNIT_TEST();
+    using namespace logia::AST;
+    {
+        auto a = new FloatLiteral(rule, "-infinity");
+        EXPECT_TRUE(a->value.isInfinity());
+    }
+    {
+        auto a = new FloatLiteral(rule, "infinity");
+        EXPECT_TRUE(a->value.isInfinity());
+    }
+    {
+        auto a = new FloatLiteral(rule, "nan");
+        EXPECT_TRUE(a->value.isNaN());
+    }
+    {
+        auto a = new FloatLiteral(rule, "-nan");
+        EXPECT_TRUE(a->value.isNaN());
+    }
+
+    LOGIA_UNIT_TEST_END();
+}

@@ -6,15 +6,34 @@
 
 namespace logia::type_system
 {
-
-    enum class type_compatibility : uint32_t
+    // this is exactly what will end up being an enum/mask in logia
+    class type_compatibility
     {
-        NO = 0x000,
-        YES = 0x001,
-        EXPLICIT_CAST = 0x010,
-        AUTOCAST_CAST = 0x020,
-        LAYOUT_COMPATIBLE = 0x100,
-        CODE_COMPATIBLE = 0x200,
+        uint32_t value;
+
+    public:
+        static type_compatibility NO;
+        static type_compatibility YES;
+        static type_compatibility EXPLICIT_CAST;
+        static type_compatibility AUTOCAST_CAST;
+        static type_compatibility LAYOUT_COMPATIBLE;
+        static type_compatibility CODE_COMPATIBLE;
+
+        // type_compatibility(uint32_t v) : value(v) {}
+        constexpr type_compatibility() = default;
+        constexpr type_compatibility(uint32_t v) : value(v) {}
+
+        // Allow switch and comparisons.
+        constexpr operator uint32_t() const { return value; }
+
+        // Prevent usage: if(fruit)
+        explicit operator bool() const = delete;
+
+        constexpr bool operator==(type_compatibility a) const { return value == a.value; }
+        constexpr bool operator!=(type_compatibility a) const { return value != a.value; }
+        constexpr type_compatibility operator|(type_compatibility a) const { return type_compatibility((uint32_t)((uint32_t)value | (uint32_t)a.value)); }
+
+        constexpr bool contains(type_compatibility v) const { return ((uint32_t)value & (uint32_t)v.value) != 0; }
     };
 
     typedef utils::maybe_error<type_compatibility, type_compatibility> type_compatibility_result;
