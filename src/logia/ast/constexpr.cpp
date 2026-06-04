@@ -32,6 +32,23 @@ namespace logia::AST
         return Node::post_codegen(backend);
     }
 
+    ConstExpression *ConstExpression::operator+(ConstExpression *other)
+    {
+        throw_compiler_error("operator+ not available, call is_valid_constant_operator before!");
+    }
+    ConstExpression *ConstExpression::operator-(ConstExpression *other)
+    {
+        throw_compiler_error("operator+ not available, call is_valid_constant_operator before!");
+    }
+    ConstExpression *ConstExpression::operator*(ConstExpression *other)
+    {
+        throw_compiler_error("operator* not available, call is_valid_constant_operator before!");
+    }
+    ConstExpression *ConstExpression::operator/(ConstExpression *other)
+    {
+        throw_compiler_error("operator+ not available, call is_valid_constant_operator before!");
+    }
+
     //
     // IntegerLiteral
     //
@@ -136,30 +153,8 @@ namespace logia::AST
         }
     }
 
-    ConstExpression *IntegerLiteral::operator+(ConstExpression *other)
+    void _sync_int_value_to_str(IntegerLiteral *result)
     {
-        if (!other->is<IntegerLiteral>())
-        {
-            throw_semantic_error(other, LGERR_CONSTEX002);
-        }
-        auto rhs = other->as<IntegerLiteral>();
-        // Build a copy-like result (same rule/type, own buffers)
-        auto result = new IntegerLiteral(this->rule, "0", this->type);
-
-        // Align bit width/signedness before add
-        llvm::APSInt lhsVal = this->value;
-        llvm::APSInt rhsVal = rhs->value;
-
-        const unsigned maxBits = std::max<unsigned int>(lhsVal.getBitWidth(), rhsVal.getBitWidth());
-        lhsVal = lhsVal.extOrTrunc(maxBits);
-        rhsVal = rhsVal.extOrTrunc(maxBits);
-
-        // Keep lhs signedness policy
-        rhsVal.setIsSigned(lhsVal.isSigned());
-
-        llvm::APInt sumRaw = lhsVal + rhsVal;
-        result->value = llvm::APSInt(sumRaw, lhsVal.isUnsigned());
-
         // Keep textual form in sync (decimal)
         std::string text = result->value.isSigned()
                                ? std::to_string(result->value.getSExtValue())
@@ -173,8 +168,92 @@ namespace logia::AST
 
         result->value_str = (char *)malloc(text.size() + 1);
         std::memcpy(result->value_str, text.c_str(), text.size() + 1);
+    }
+
+    template <
+        typename T,
+        typename Ret,
+        typename Arg,
+        Ret (T::*Op)(const Arg &) const>
+    Ret call_binary_operator(const T &lhs, const Arg &rhs)
+    {
+        return (lhs.*Op)(rhs);
+    }
+
+    struct MyNumber
+    {
+        int value;
+        MyNumber(int v) : value(v) {}
+        MyNumber operator+(const MyNumber &o) const { return MyNumber(value + o.value); }
+        MyNumber operator-(const MyNumber &o) const { return MyNumber(value - o.value); }
+    };
+
+    template <typename T, T (T::*Op)(const T &) const>
+    IntegerLiteral *do_int_operator(IntegerLiteral *lhs, IntegerLiteral *rhs)
+    {
+        // Build a copy-like result (same rule/type, own buffers)
+        auto result = new IntegerLiteral(lhs->rule, "0", lhs->type);
+
+        // Align bit width/signedness before add
+        llvm::APSInt lhs_val = lhs->value;
+        llvm::APSInt rhs_val = rhs->value;
+
+        const unsigned maxBits = std::max<unsigned int>(lhs_val.getBitWidth(), rhs_val.getBitWidth());
+        lhs_val = lhs_val.extOrTrunc(maxBits);
+        rhs_val = rhs_val.extOrTrunc(maxBits);
+
+        // Keep lhs signedness policy
+        rhs_val.setIsSigned(lhs_val.isSigned());
+
+        T sum = (lhs_val.*Op)(rhs_val);
+
+        // llvm::APInt sum = (lhsVal.*Op)(rhsVal);
+        // llvm::APInt sum = lhsVal + rhsVal;
+        result->value = llvm::APSInt(sum, lhs_val.isUnsigned());
+
+        _sync_int_value_to_str(result);
 
         return result;
+    }
+
+    ConstExpression *IntegerLiteral::operator+(ConstExpression *other)
+    {
+        if (!other->is<IntegerLiteral>())
+        {
+            throw_semantic_error(other, LGERR_CONSTEX002);
+        }
+        auto rhs = other->as<IntegerLiteral>();
+        return do_int_operator<llvm::APSInt, &llvm::APSInt::operator+ >(this, rhs);
+    }
+
+    ConstExpression *IntegerLiteral::operator-(ConstExpression *other)
+    {
+        if (!other->is<IntegerLiteral>())
+        {
+            throw_semantic_error(other, LGERR_CONSTEX002);
+        }
+        auto rhs = other->as<IntegerLiteral>();
+        return do_int_operator<llvm::APSInt, &llvm::APSInt::operator- >(this, rhs);
+    }
+
+    ConstExpression *IntegerLiteral::operator*(ConstExpression *other)
+    {
+        if (!other->is<IntegerLiteral>())
+        {
+            throw_semantic_error(other, LGERR_CONSTEX002);
+        }
+        auto rhs = other->as<IntegerLiteral>();
+        return do_int_operator<llvm::APSInt, &llvm::APSInt::operator*>(this, rhs);
+    }
+
+    ConstExpression *IntegerLiteral::operator/(ConstExpression *other)
+    {
+        if (!other->is<IntegerLiteral>())
+        {
+            throw_semantic_error(other, LGERR_CONSTEX002);
+        }
+        auto rhs = other->as<IntegerLiteral>();
+        return do_int_operator<llvm::APSInt, &llvm::APSInt::operator/ >(this, rhs);
     }
 
     llvm::Value *IntegerLiteral::post_codegen(logia::Backend *backend)
@@ -298,11 +377,42 @@ namespace logia::AST
 
     bool FloatLiteral::is_valid_constant_operator(Operators op)
     {
-        // TODO
+        switch (op)
+        {
+        case Operators::BINARY_ADD:
+        case Operators::BINARY_SUB:
+        case Operators::BINARY_MUL:
+        case Operators::BINARY_DIV:
+        case Operators::BINARY_MOD:
+        case Operators::BINARY_LOGIAL_EQ:
+        case Operators::BINARY_LOGIAL_NEQ:
+        case Operators::BINARY_LOGIAL_LT:
+        case Operators::BINARY_LOGIAL_GT:
+        case Operators::BINARY_LOGIAL_LTE:
+        case Operators::BINARY_LOGIAL_GTE:
+            return true;
+        default:
+            return false;
+        }
         return false;
     }
 
     ConstExpression *FloatLiteral::operator+(ConstExpression *other)
+    {
+        // TODO
+        return nullptr;
+    }
+    ConstExpression *FloatLiteral::operator-(ConstExpression *other)
+    {
+        // TODO
+        return nullptr;
+    }
+    ConstExpression *FloatLiteral::operator*(ConstExpression *other)
+    {
+        // TODO
+        return nullptr;
+    }
+    ConstExpression *FloatLiteral::operator/(ConstExpression *other)
     {
         // TODO
         return nullptr;

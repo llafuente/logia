@@ -88,7 +88,7 @@ namespace logia::AST
     struct Integer : public Type
     {
     public:
-        int bits;
+        uint32_t bits;
         bool is_signed;
         // NOTE Integer is a primitive, won't have rule
         Integer(bool is_signed, int bits);

@@ -23,7 +23,10 @@ namespace logia::AST
 
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
-        virtual ConstExpression *operator+(ConstExpression *other) = 0;
+        virtual ConstExpression *operator+(ConstExpression *other);
+        virtual ConstExpression *operator-(ConstExpression *other);
+        virtual ConstExpression *operator*(ConstExpression *other);
+        virtual ConstExpression *operator/(ConstExpression *other);
     };
 
     /// @brief A string literal constant expression
@@ -75,10 +78,16 @@ namespace logia::AST
         llvm::Value *post_codegen(logia::Backend *backend) override;
         Type *get_type() override;
 
-        /// @brief Returns true if given op is valid for integers
+        /// @brief Returns true if given op is valid for float
         bool is_valid_constant_operator(Operators op) override;
-        /// @brief Returns a new IntegerLiteral with this->value + rhs.value
+        /// @brief Returns a new FloatLiteral with this->value + rhs.value
         ConstExpression *operator+(ConstExpression *other) override;
+        /// @brief Returns a new FloatLiteral with this->value - rhs.value
+        ConstExpression *operator-(ConstExpression *other) override;
+        /// @brief Returns a new FloatLiteral with this->value * rhs.value
+        ConstExpression *operator*(ConstExpression *other) override;
+        /// @brief Returns a new FloatLiteral with this->value / rhs.value
+        ConstExpression *operator/(ConstExpression *other) override;
 
     protected:
         void _set_type(Type *t) override;
@@ -111,6 +120,12 @@ namespace logia::AST
         bool is_valid_constant_operator(Operators op) override;
         /// @brief Returns a new IntegerLiteral with this->value + rhs.value
         ConstExpression *operator+(ConstExpression *other) override;
+        /// @brief Returns a new IntegerLiteral with this->value - rhs.value
+        ConstExpression *operator-(ConstExpression *other) override;
+        /// @brief Returns a new IntegerLiteral with this->value * rhs.value
+        ConstExpression *operator*(ConstExpression *other) override;
+        /// @brief Returns a new IntegerLiteral with this->value / rhs.value
+        ConstExpression *operator/(ConstExpression *other) override;
 
     protected:
         void _set_type(Type *t) override;

@@ -211,7 +211,10 @@ namespace logia::AST
 
         // find a proper target or throws!
         Function *target = multiple_dispatch::find(this);
+        // this->set_type(?)
+        this->is_typed = true;
         this->callee = target;
+
         locator->set_type((Type *)target);
         // fill the gaps, order arguments, etc.
         multiple_dispatch::match(this, target, true);
@@ -252,10 +255,10 @@ namespace logia::AST
 
         if (locator->is<Identifier>())
         {
-            return std::format("CallExpression[{}][{} arguments]{}", locator->as<Identifier>()->identifier, arguments.size(), Node::to_string());
+            return std::format("CallExpression[{}, args = {}, target = {}]{}", locator->as<Identifier>()->identifier, arguments.size(), (void *)this->callee, Node::to_string());
         }
 
-        return std::format("CallExpression[{} arguments]{}", arguments.size(), Node::to_string());
+        return std::format("CallExpression[args = {}, target = {}]{}", arguments.size(), (void *)this->callee, Node::to_string());
     }
 
     llvm::Value *CallExpression::post_codegen(logia::Backend *backend)

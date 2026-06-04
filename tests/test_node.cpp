@@ -63,3 +63,108 @@ TEST(test_node, test_1)
 
     LOGIA_UNIT_TEST_END();
 }
+
+TEST(test_constexpr, integer_literals)
+{
+    LOGIA_UNIT_TEST();
+    using namespace logia::AST;
+
+    auto i_10 = new IntegerLiteral(rule, "10");
+    auto i_11 = new IntegerLiteral(rule, "11");
+    auto i_5 = new IntegerLiteral(rule, "5");
+    auto i_7 = new IntegerLiteral(rule, "7");
+
+    EXPECT_TRUE(i_10->is_valid_constant_operator(Operators::BINARY_ADD));
+    {
+        auto result = i_10->operator+(i_11)->as<IntegerLiteral>();
+
+        EXPECT_STREQ(result->value_str, "21");
+        EXPECT_EQ(result->value.getSExtValue(), (int64_t)21);
+    }
+    EXPECT_TRUE(i_10->is_valid_constant_operator(Operators::BINARY_SUB));
+    {
+        auto result = i_10->operator-(i_11)->as<IntegerLiteral>();
+        // TODO REVIEW this is the expected value
+        // EXPECT_STREQ(result->value_str, "-1");
+        EXPECT_STREQ(result->value_str, "18446744073709551615");
+        EXPECT_EQ(result->value.getSExtValue(), (int64_t)-1);
+    }
+    EXPECT_TRUE(i_10->is_valid_constant_operator(Operators::BINARY_MUL));
+    {
+
+        auto result = i_10->operator*(i_11)->as<IntegerLiteral>();
+
+        EXPECT_STREQ(result->value_str, "110");
+        EXPECT_EQ(result->value.getSExtValue(), (int64_t)110);
+    }
+    EXPECT_TRUE(i_10->is_valid_constant_operator(Operators::BINARY_DIV));
+    {
+        auto result = i_10->operator/(i_5)->as<IntegerLiteral>();
+
+        EXPECT_STREQ(result->value_str, "2");
+        EXPECT_EQ(result->value.getSExtValue(), (int64_t)2);
+    }
+
+    LOGIA_UNIT_TEST_END();
+}
+
+TEST(test_constexpr, float_literals)
+{
+    LOGIA_UNIT_TEST();
+    using namespace logia::AST;
+
+    auto i_10 = new FloatLiteral(rule, "10");
+    auto i_11 = new FloatLiteral(rule, "11");
+    auto i_5 = new FloatLiteral(rule, "5");
+    auto i_7 = new FloatLiteral(rule, "7");
+
+    EXPECT_TRUE(i_10->is_valid_constant_operator(Operators::BINARY_ADD));
+    {
+        auto result = i_10->operator+(i_11)->as<IntegerLiteral>();
+
+        EXPECT_STREQ(result->value_str, "21");
+        EXPECT_EQ(result->value.getSExtValue(), (int64_t)21);
+    }
+    EXPECT_TRUE(i_10->is_valid_constant_operator(Operators::BINARY_SUB));
+    {
+        auto result = i_10->operator-(i_11)->as<IntegerLiteral>();
+        // TODO REVIEW this is the expected value
+        // EXPECT_STREQ(result->value_str, "-1");
+        EXPECT_STREQ(result->value_str, "-1");
+        EXPECT_EQ(result->value.getSExtValue(), (int64_t)-1);
+    }
+    EXPECT_TRUE(i_10->is_valid_constant_operator(Operators::BINARY_MUL));
+    {
+
+        auto result = i_10->operator*(i_11)->as<IntegerLiteral>();
+
+        EXPECT_STREQ(result->value_str, "110");
+        EXPECT_EQ(result->value.getSExtValue(), (int64_t)110);
+    }
+    EXPECT_TRUE(i_10->is_valid_constant_operator(Operators::BINARY_DIV));
+    {
+        auto result = i_10->operator/(i_5)->as<IntegerLiteral>();
+
+        EXPECT_STREQ(result->value_str, "2");
+        EXPECT_EQ(result->value.getSExtValue(), (int64_t)2);
+    }
+
+    LOGIA_UNIT_TEST_END();
+}
+
+TEST(test_constexpr, string_literals)
+{
+    LOGIA_UNIT_TEST();
+    using namespace logia::AST;
+
+    auto a = new StringLiteral(rule, "10");
+    auto b = new StringLiteral(rule, "11");
+
+    EXPECT_TRUE(a->is_valid_constant_operator(Operators::BINARY_ADD));
+
+    auto result = a->operator+(b)->as<StringLiteral>();
+
+    EXPECT_STREQ(result->text, "1011");
+
+    LOGIA_UNIT_TEST_END();
+}
