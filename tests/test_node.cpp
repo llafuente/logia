@@ -113,40 +113,38 @@ TEST(test_constexpr, float_literals)
     LOGIA_UNIT_TEST();
     using namespace logia::AST;
 
-    auto i_10 = new FloatLiteral(rule, "10");
-    auto i_11 = new FloatLiteral(rule, "11");
-    auto i_5 = new FloatLiteral(rule, "5");
-    auto i_7 = new FloatLiteral(rule, "7");
+    auto i_10 = new FloatLiteral(rule, "10.8");
+    auto i_11 = new FloatLiteral(rule, "11.7");
+    auto i_5 = new FloatLiteral(rule, "5.6");
+    auto i_7 = new FloatLiteral(rule, "7.4");
 
     EXPECT_TRUE(i_10->is_valid_constant_operator(Operators::BINARY_ADD));
     {
-        auto result = i_10->operator+(i_11)->as<IntegerLiteral>();
+        auto result = i_10->operator+(i_11)->as<FloatLiteral>();
 
-        EXPECT_STREQ(result->value_str, "21");
-        EXPECT_EQ(result->value.getSExtValue(), (int64_t)21);
+        EXPECT_STREQ(result->value_str, "22.5");
+        EXPECT_NEAR(result->value.convertToDouble(), 10.8 + 11.7, 0.01);
     }
     EXPECT_TRUE(i_10->is_valid_constant_operator(Operators::BINARY_SUB));
     {
-        auto result = i_10->operator-(i_11)->as<IntegerLiteral>();
-        // TODO REVIEW this is the expected value
-        // EXPECT_STREQ(result->value_str, "-1");
-        EXPECT_STREQ(result->value_str, "-1");
-        EXPECT_EQ(result->value.getSExtValue(), (int64_t)-1);
+        auto result = i_10->operator-(i_11)->as<FloatLiteral>();
+        EXPECT_STREQ(result->value_str, "-0.89999999999999858");
+        EXPECT_NEAR(result->value.convertToDouble(), 10.8 - 11.7, 0.01);
     }
     EXPECT_TRUE(i_10->is_valid_constant_operator(Operators::BINARY_MUL));
     {
 
-        auto result = i_10->operator*(i_11)->as<IntegerLiteral>();
+        auto result = i_10->operator*(i_11)->as<FloatLiteral>();
 
-        EXPECT_STREQ(result->value_str, "110");
-        EXPECT_EQ(result->value.getSExtValue(), (int64_t)110);
+        EXPECT_STREQ(result->value_str, "126.36");
+        EXPECT_NEAR(result->value.convertToDouble(), 10.8 * 11.7, 0.01);
     }
     EXPECT_TRUE(i_10->is_valid_constant_operator(Operators::BINARY_DIV));
     {
-        auto result = i_10->operator/(i_5)->as<IntegerLiteral>();
+        auto result = i_10->operator/(i_5)->as<FloatLiteral>();
 
-        EXPECT_STREQ(result->value_str, "2");
-        EXPECT_EQ(result->value.getSExtValue(), (int64_t)2);
+        EXPECT_STREQ(result->value_str, "1.9285714285714288");
+        EXPECT_NEAR(result->value.convertToDouble(), 10.8 / 5.6, 0.01);
     }
 
     LOGIA_UNIT_TEST_END();

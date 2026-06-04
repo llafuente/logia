@@ -403,32 +403,57 @@ namespace logia::AST
         {
             throw_semantic_error(other, LGERR_CONSTEX002);
         }
-        auto rhs = other->as<FloatLiteral>();
-
         llvm::APFloat sum = this->value;
-        sum.add(rhs->value, llvm::APFloat::rmNearestTiesToEven);
+        sum.add(other->as<FloatLiteral>()->value, llvm::APFloat::rmNearestTiesToEven);
 
         llvm::SmallString<32> str;
         sum.toString(str);
 
-        auto result = new FloatLiteral(this->rule, str.c_str(), this->type);
-        return result;
+        return new FloatLiteral(this->rule, str.c_str(), this->type);
     }
 
     ConstExpression *FloatLiteral::operator-(ConstExpression *other)
     {
-        // TODO
-        return nullptr;
+        if (!other->is<FloatLiteral>())
+        {
+            throw_semantic_error(other, LGERR_CONSTEX002);
+        }
+        llvm::APFloat sum = this->value;
+        sum.subtract(other->as<FloatLiteral>()->value, llvm::APFloat::rmNearestTiesToEven);
+
+        llvm::SmallString<32> str;
+        sum.toString(str);
+
+        return new FloatLiteral(this->rule, str.c_str(), this->type);
     }
     ConstExpression *FloatLiteral::operator*(ConstExpression *other)
     {
-        // TODO
-        return nullptr;
+        if (!other->is<FloatLiteral>())
+        {
+            throw_semantic_error(other, LGERR_CONSTEX002);
+        }
+        llvm::APFloat sum = this->value;
+        sum.multiply(other->as<FloatLiteral>()->value, llvm::APFloat::rmNearestTiesToEven);
+
+        llvm::SmallString<32> str;
+        sum.toString(str);
+
+        return new FloatLiteral(this->rule, str.c_str(), this->type);
     }
     ConstExpression *FloatLiteral::operator/(ConstExpression *other)
     {
-        // TODO
-        return nullptr;
+        if (!other->is<FloatLiteral>())
+        {
+            throw_semantic_error(other, LGERR_CONSTEX002);
+        }
+        llvm::APFloat sum = this->value;
+        auto rhs = other->as<FloatLiteral>();
+        sum.divide(other->as<FloatLiteral>()->value, llvm::APFloat::rmNearestTiesToEven);
+
+        llvm::SmallString<32> str;
+        sum.toString(str);
+
+        return new FloatLiteral(this->rule, str.c_str(), this->type);
     }
 
     std::string FloatLiteral::to_string()
