@@ -399,9 +399,22 @@ namespace logia::AST
 
     ConstExpression *FloatLiteral::operator+(ConstExpression *other)
     {
-        // TODO
-        return nullptr;
+        if (!other->is<FloatLiteral>())
+        {
+            throw_semantic_error(other, LGERR_CONSTEX002);
+        }
+        auto rhs = other->as<FloatLiteral>();
+
+        llvm::APFloat sum = this->value;
+        sum.add(rhs->value, llvm::APFloat::rmNearestTiesToEven);
+
+        llvm::SmallString<32> str;
+        sum.toString(str);
+
+        auto result = new FloatLiteral(this->rule, str.c_str(), this->type);
+        return result;
     }
+
     ConstExpression *FloatLiteral::operator-(ConstExpression *other)
     {
         // TODO
