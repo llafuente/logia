@@ -66,4 +66,18 @@ namespace logia::AST
 
         throw_compiler_error("unkown operator");
     }
+
+    bool is_logical_operator(Operators op)
+    {
+        switch (op)
+        {
+        case Operators::BINARY_LOGIAL_EQ:
+        case Operators::BINARY_LOGIAL_LT:
+        case Operators::BINARY_LOGIAL_LTE:
+        case Operators::BINARY_LOGIAL_NEQ:
+        case Operators::BINARY_LOGICAL_AND:
+            return true;
+        }
+        return false;
+    }
 }

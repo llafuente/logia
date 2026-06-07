@@ -17,13 +17,13 @@ char *end_stdout_capture();
     auto backend = new logia::Backend(parse_result);                                            \
     backend->load_intrinsics();                                                                 \
     logia::AST::Program *program = backend->program;                                            \
-    logia::AST::Function *main_fn = program->look<logia::AST::Function>("main");                \
+    logia::AST::Function *main_fn = scope_look_one<logia::AST::Function>(program, "main");      \
     logia::AST::Block *main_body = main_fn->get_body();                                         \
-    auto i1 = program->look<logia::AST::Integer>("λi1");                                        \
-    auto i18 = program->look<logia::AST::Integer>("λi8");                                       \
-    auto i16 = program->look<logia::AST::Integer>("λi16");                                      \
-    auto i32 = program->look<logia::AST::Integer>("λi32");                                      \
-    auto i64 = program->look<logia::AST::Integer>("λi64");                                      \
+    auto i1 = scope_look_one<logia::AST::Integer>(program, "λi1");                              \
+    auto i18 = scope_look_one<logia::AST::Integer>(program, "λi8");                             \
+    auto i16 = scope_look_one<logia::AST::Integer>(program, "λi16");                            \
+    auto i32 = scope_look_one<logia::AST::Integer>(program, "λi32");                            \
+    auto i64 = scope_look_one<logia::AST::Integer>(program, "λi64");                            \
     auto rule = program->rule
 
 #define LOGIA_UNIT_TEST_END() \

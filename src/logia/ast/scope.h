@@ -3,6 +3,7 @@
 #include "logia/log.h"
 #include "logia/ast/node.h"
 #include "logia/ast/semantic_error.h"
+#include "logia/maybe_error.h"
 #include <algorithm>
 
 namespace logia::AST
@@ -38,46 +39,6 @@ namespace logia::AST
         /// @brief A Scope do not have type, nullptr is returned
         /// @return nullptr
         Type *get_type() override;
-
-        /// @brief lookup a name into the current scope gracefully
-        /// @example
-        /// VarDeclStmt* var_decl = nullptr;
-        /// if (block->try_look<VarDeclStmt>("x", &var_decl)) {
-        ///     // var_decl is now set
-        /// }
-        template <class T>
-        bool try_look(const char *name, T **out)
-        {
-            LOG(DBG, "{}", name);
-
-            std::string_view name_view(name);
-            auto it = this->scope.find(name_view);
-            if (it != this->scope.end())
-            {
-                auto vec = it->second;
-                *out = vec[0]->as<T>();
-                return true;
-            }
-
-            return false;
-        }
-
-        /// @brief lookup a name in the current scope throws if not found
-        template <class T>
-        T *look(const char *name)
-        {
-            LOG(DBG, "{}", name);
-
-            std::string_view name_view(name);
-            auto it = this->scope.find(name_view);
-            if (it != this->scope.end())
-            {
-                auto vec = it->second;
-                return vec[0]->as<T>();
-            }
-
-            throw_semantic_error(this, std::format("Identifier '{}' not found in current scope.", name));
-        }
 
         /// @brief lookup a name into the scope chain gracefully
         /// @example
@@ -170,4 +131,74 @@ namespace logia::AST
         /// @brief Do nothing
         void _set_type(Type *ty) override;
     };
+
+    LOGIA_API Scope *scope_closest(Node *node);
+
+    /// @brief lookup a name in the current scope
+    /// @throws if not found
+    /// @throws if found more than one
+    template <class T>
+    T *scope_look_one(Node *node, const char *name)
+    {
+        LOG(DBG, "{}", name);
+
+        if (!node->is_attached)
+        {
+            LOG_ERR("{}", node->to_string());
+            throw_compiler_error("Cannot search from a detached node");
+        }
+
+        Scope *scope = scope_closest(node);
+
+        std::string_view name_view(name);
+        auto it = scope->scope.find(name_view);
+        if (it != scope->scope.end())
+        {
+            auto vec = it->second;
+            return vec[0]->as<T>();
+        }
+
+        throw_semantic_error(scope, std::format("Identifier '{}' not found in current scope.", name));
+    }
+
+    /// @brief lookup a name into the current scope gracefully
+    /// @example
+    /// VarDeclStmt* var_decl = nullptr;
+    /// if (scope_try_look_one<VarDeclStmt>(anynode, "x", &var_decl)) {
+    ///     // var_decl is now set
+    /// }
+    template <class T>
+    bool scope_try_look_one(Node *node, const char *name, T **out)
+    {
+        LOG(DBG, "{}", name);
+        if (!node->is_attached)
+        {
+            LOG_ERR("{}", node->to_string());
+            throw_compiler_error("Cannot search from a detached node");
+        }
+
+        Scope *scope = scope_closest(node);
+
+        std::string_view name_view(name);
+        auto it = scope->scope.find(name_view);
+        if (it != scope->scope.end())
+        {
+            auto vec = it->second;
+            *out = vec[0]->as<T>();
+            return true;
+        }
+
+        return false;
+    }
+
+    typedef logia::utils::maybe_error<std::vector<Node *>, bool> scope_search_result;
+
+    // constexpr auto make_error = logia::utils::make_error<std::vector<Node *>, void>;
+    // constexpr auto make_success = logia::utils::make_success<std::vector<Node *>, void>;
+    // constexpr auto make_chained_error = logia::utils::make_chained_error<std::vector<Node *>, void>;
+
+    /// @brief lookup a name into the scope chain
+    /// @throws Cannot search from a detached node
+    LOGIA_API scope_search_result scope_lookup_all(Node *node, const char *name);
+
 }

@@ -75,4 +75,45 @@ namespace logia::AST
     }
 
     void Scope::_set_type(Type *ty) {}
+
+    LOGIA_API Scope *scope_closest(Node *node)
+    {
+        Scope *scope;
+        if (!node->try_cast<Scope>(&scope))
+        {
+            return node->first_parent<Scope>();
+        }
+        return scope;
+    }
+
+    LOGIA_API scope_search_result scope_lookup_all(Node *node, const char *name)
+    {
+        LOG(DBG, "{}", name);
+
+        if (!node->is_attached)
+        {
+            LOG_ERR("{}", node->to_string());
+            return logia::utils::make_error<std::vector<Node *>, bool>("Cannot search from a detached node", false);
+        }
+
+        auto out = std::vector<Node *>();
+
+        std::string_view name_view(name);
+        Scope *p = scope_closest(node);
+        do
+        {
+            auto it = p->scope.find(name_view);
+            if (it != p->scope.end())
+            {
+                out.insert(out.end(), it->second.begin(), it->second.end());
+            }
+            p = p->parentScope;
+        } while (p != nullptr);
+
+        // TODO this unique enforcement may be caused by other bug!
+        std::sort(out.begin(), out.end());
+        out.erase(std::unique(out.begin(), out.end()), out.end());
+
+        return logia::utils::make_success<std::vector<Node *>, bool>(out);
+    }
 }

@@ -42,9 +42,9 @@ TEST(logia_ast, create)
   EXPECT_EQ(program->parent_node, nullptr);
 
   // has value
-  EXPECT_TRUE(program->look<Type>("λi8"));
+  EXPECT_TRUE(scope_look_one<Type>(program, "λi8"));
   // and is the same everytime
-  EXPECT_EQ(program->look<Type>("λi8"), program->look<Type>("λi8"));
+  EXPECT_EQ(scope_look_one<Type>(program, "λi8"), scope_look_one<Type>(program, "λi8"));
 
   expect_all_attached(program);
   LOGIA_UNIT_TEST_END();

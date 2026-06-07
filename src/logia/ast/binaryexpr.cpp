@@ -103,10 +103,17 @@ namespace logia::AST
             auto err = type_system::type_is_compatible(left_ty, right_ty);
             if (err.is_error())
             {
+                auto derr = err.unwrap_error();
+                // pass left type to right type if it's ConstExpression
+                if (derr.contains(type_system::type_compatibility::EXPLICIT_CAST) && right->is<ConstExpression>())
+                {
+                    right->set_type(left_ty);
+                    return Expression::_pre_type_inference();
+                }
                 throw_semantic_error(this, err.message);
             }
             auto result = err.unwrap_success();
-            if (((uint32_t)result & (uint32_t)type_system::type_compatibility::AUTOCAST_CAST) != 0)
+            if (result.contains(type_system::type_compatibility::AUTOCAST_CAST))
             {
                 this->replace(right, new Cast(right->rule, right, left_ty));
                 type_inference_node(this->first_parent<Program>(), this->get_right());
@@ -119,6 +126,10 @@ namespace logia::AST
                 return Expression::_pre_type_inference();
             }
             throw_compiler_error("unreable");
+        }
+        else if (is_logical_operator(this->op))
+        {
+            // this->set_type(this->look)
         }
 
         Expression::_pre_type_inference();

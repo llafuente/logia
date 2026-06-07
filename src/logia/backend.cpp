@@ -346,7 +346,7 @@ namespace logia
                     {
                         if (parameter_names[i] != nullptr)
                         {
-                            f_args.push_back(this->program->look<AST::Type>(parameter_names[i])->get_final_type());
+                            f_args.push_back(scope_look_one<AST::Type>(this->program, parameter_names[i])->get_final_type());
                         }
                         else
                         {

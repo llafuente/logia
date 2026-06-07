@@ -4,6 +4,7 @@
 #include "logia/ast/vardeclstmt.h"
 #include "logia/ast/block.h"
 #include "logia/ast/function.h"
+#include "logia/ast/semantic_error.h"
 
 #include "llvm/IR/Instructions.h"
 
@@ -73,7 +74,7 @@ namespace logia::AST
 
     Node *Identifier::resolve()
     {
-        if (this->identifier == nullptr || strlen(this->identifier) == 0)
+        if (this->is_empty())
         {
             return nullptr;
         }
@@ -96,7 +97,31 @@ namespace logia::AST
         // this means my parent will type_inference this node!
         if (!this->is_typed)
         {
-            auto ty = this->resolve()->get_final_type();
+            auto err = scope_lookup_all(this, this->identifier);
+            if (err.is_error())
+            {
+                throw_semantic_error(this, err.message);
+            }
+            auto list = err.unwrap_success();
+            // even success could be a problem :)
+            if (list.size() == 0)
+            {
+                throw_semantic_error(this, std::format(LGERR_ID001, this->identifier));
+            }
+            if (list.size() > 1)
+            {
+                std::string debug_candidates = "";
+                int i = 1;
+                for (const auto &node : list)
+                {
+                    debug_candidates += std::format("Candidate {} declared {}\n", i++, node->get_debug_location(0, 0));
+                    ++i;
+                }
+                throw_semantic_error(this, std::format(LGERR_ID002, list.size(), this->identifier, debug_candidates));
+            }
+
+            // just one is ok!
+            auto ty = list[0]->get_final_type();
             if (ty == nullptr)
             {
                 LOG(WRN, "skip._pre_type_inference (target no type) {}", this->to_string());

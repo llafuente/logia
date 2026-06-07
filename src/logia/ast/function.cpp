@@ -22,7 +22,7 @@ namespace logia::AST
     FunctionParameter::FunctionParameter(
         Identifier *name,
         Type *type,
-        Node *defaultValue) : alloca_inst(nullptr), Node(name->rule)
+        Node *defaultValue) : Node(name->rule), alloca_inst(nullptr)
     {
         LOGIA_ASSERT(name == nullptr);
         LOGIA_ASSERT(type == nullptr);

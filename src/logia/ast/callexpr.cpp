@@ -25,7 +25,7 @@ namespace logia::AST
     CallExpressionArgument::CallExpressionArgument(
         size_t index,
         Identifier *name,
-        Expression *value) : Node(value->rule)
+        Expression *value) : Node(value->rule), index(index)
     {
         this->has_type = false;
         this->skip_type_inference = true;

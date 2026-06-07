@@ -52,6 +52,8 @@ namespace logia::AST
         POSTFIX_DECREMENT,       // --
     };
 
+    bool is_logical_operator(Operators op);
+
     /// @brief Converts a binary operator to its string representation
     /// @param op The binary operator
     /// @return The string representation of the binary operator

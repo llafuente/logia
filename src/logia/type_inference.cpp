@@ -71,8 +71,8 @@ namespace logia
     void type_inference_node(AST::Program *program, AST::Node *node)
     {
         // auto program = node->first_parent<Program>();
-        auto default_integer = program->look<Type>("λi64");
-        auto default_float = program->look<Type>("λf64");
+        auto default_integer = scope_look_one<Type>(program, "λi64");
+        auto default_float = scope_look_one<Type>(program, "λf64");
 
         auto all_nodes = node->get_post_descendant();
         all_nodes.push_back(node);
