@@ -201,4 +201,11 @@ namespace logia::AST
     /// @throws Cannot search from a detached node
     LOGIA_API scope_search_result scope_lookup_all(Node *node, const char *name);
 
+    /// @brief Register 'what' in the closest scope to 'node' with given 'name'
+    /// @returns if could be set (with/out uniqueness)
+    bool scope_set(Node *node, const char *name, Node *what, bool unique);
+    /// @brief Register 'what' in the closest function scope to 'node' with given 'name'
+    /// @returns if could be set (with/out uniqueness)
+    bool function_set(Node *node, const char *name, Node *what, bool unique);
+
 }

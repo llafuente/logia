@@ -17,6 +17,8 @@ namespace logia::AST
 #define LGERR_GT002 "LGERR_GT002 Identifier '{}' has multiple matches: {}"
 #define LGERR_GT003 "LGERR_GT003 expected label '{}' to reference a block, but found:\n{}"
 
+#define LGERR_BLK001 "LGERR_BLK001 Identifier '{}' in use:\n{}"
+
 #define LGERR_CONSTEX000 "LGERR_CONSTEX000 Expression is not constant"
 #define LGERR_CONSTEX001a "LGERR_CONSTEX001a Left operand is not constant"
 #define LGERR_CONSTEX001b "LGERR_CONSTEX001b Right operand is not constant"

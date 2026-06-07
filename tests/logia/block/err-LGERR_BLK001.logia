@@ -1,0 +1,13 @@
+function xxx() i32 {
+    var i32 i = 0
+    name: {
+        i = 10
+    }
+    name: {
+        return i
+    }
+}
+
+function main() i32 {
+    return 0
+}

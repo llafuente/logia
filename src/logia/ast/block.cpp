@@ -57,15 +57,12 @@ namespace logia::AST
         Scope::post_attach();
 
         // TODO we should throw if the block is moved outside current function!!
-        try
+        // TODO what happen when we double-set because we move something an gets re-attached ??
+        if (!::logia::AST::function_set(this, this->get_name(), this, true))
         {
-            auto fblock = this->first_parent<FunctionBlock>();
-            // TODO what happen when we double-set because we move something an gets re-attached ??
-            fblock->scope_set(this->get_name(), this);
-        }
-        catch (std::exception e)
-        {
-            throw_semantic_error(this, "Expected block to be attached to a function");
+            auto result = scope_lookup_all(this, this->get_name());
+            auto node = result.unwrap_success()[0]; // at least one
+            throw_semantic_error(this, std::format(LGERR_BLK001, this->get_name(), node->get_debug_location()));
         }
     }
 

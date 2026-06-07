@@ -59,6 +59,15 @@ TEST(logia_run_file, cast)
 {
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "cast-expr"), 0);
 }
+
+TEST(logia_run_file, block)
+{
+    auto msg = test_file_with_semantic_error(".\\tests\\logia\\block\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "err-LGERR_BLK001");
+    // std::cerr << "???" << msg << "????" << std::endl;
+    EXPECT_NE(std::string(msg).find("LGERR_BLK001 Identifier 'name' in use:"), std::string::npos);
+    EXPECT_NE(std::string(msg).find("err-LGERR_BLK001.logia:7:10"), std::string::npos);
+}
+
 TEST(logia_run_file, goto)
 {
     // 0 means it jumped, 1 it doesn't

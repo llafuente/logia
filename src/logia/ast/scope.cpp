@@ -10,6 +10,8 @@
 #include "logia/ast/function.h"
 #include "logia/ast/llvm.h"
 #include "logia/ast/semantic_error.h"
+#include "logia/ast/functionblock.h"
+#include "logia/ast/program.h"
 
 namespace logia::AST
 {
@@ -115,5 +117,61 @@ namespace logia::AST
         out.erase(std::unique(out.begin(), out.end()), out.end());
 
         return logia::utils::make_success<std::vector<Node *>, bool>(out);
+    }
+
+    bool scope_set(Node *node, const char *name, Node *what, bool unique)
+    {
+        if (!what->is<Type>() && !what->is<Block>() && !what->is<VarDeclStmt>() && !what->is<FunctionParameter>())
+        {
+            throw_compiler_error(std::format("invalid node type: {} expected Type, Block, VarDeclStmt or FunctionParameter \n{}", typeid(node).name(), node->to_string()));
+        }
+
+        Scope *p = scope_closest(node);
+        bool contains = p->scope.contains(name);
+        if (contains)
+        {
+            if (unique)
+            {
+                return false;
+            }
+
+            p->scope[name].push_back(node);
+            return true;
+        }
+        p->scope[_strdup(name)] = {node};
+        return true;
+    }
+
+    bool function_set(Node *node, const char *name, Node *what, bool unique)
+    {
+        if (!what->is<Type>() && !what->is<Block>() && !what->is<VarDeclStmt>() && !what->is<FunctionParameter>())
+        {
+            throw_compiler_error(std::format("invalid node type: {} expected Type, Block, VarDeclStmt or FunctionParameter \n{}", typeid(node).name(), node->to_string()));
+        }
+
+        FunctionBlock *fblock;
+        Scope *p = scope_closest(node);
+        while (!p->try_cast<FunctionBlock>(&fblock))
+        {
+            p = scope_closest(p->parent_node); // use parent because scope_closest can return "p"
+            if (p->is<Program>())
+            {
+                throw_compiler_error(std::format("Could not find a function block for: {}", node->to_string()));
+            }
+        }
+        bool contains = p->scope.contains(name);
+        if (contains)
+        {
+            if (unique)
+            {
+                return false;
+            }
+
+            p->scope[name].push_back(node);
+            return true;
+        }
+
+        p->scope[_strdup(name)] = {node};
+        return true;
     }
 }

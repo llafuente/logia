@@ -19,7 +19,7 @@
         "request": "launch",
         "name": "Debug logia tests with cppvsdbg",
         "program": "${workspaceFolder}/build-ninja/bin/logia_test_suite.exe",
-        "args": [],
+        "args": ["--gtest_filter=*block*"],
         "cwd": "${workspaceFolder}",
         "preLaunchTask": "CMake: build tests",
       },
