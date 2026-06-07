@@ -17,11 +17,11 @@
 #include "logia/ast/returnstmt.h"
 #include "logia/ast/identifier.h"
 
-#define CST_THROW(msg)                                            \
-    do                                                            \
-    {                                                             \
-        std::cerr << __FILE__ << ":" << __LINE__ << std::endl;    \
-        throw std::runtime_error(TOSTRING(__FUNCTION__) " " msg); \
+#define CST_THROW(msg)                                         \
+    do                                                         \
+    {                                                          \
+        std::cerr << __FILE__ << ":" << __LINE__ << std::endl; \
+        throw_compiler_error(msg);                             \
     } while (false)
 
 #define CST_TODO_BRANCH(retrieve_method, visit_method) \
@@ -30,7 +30,7 @@
         auto x = context->retrieve_method();           \
         if (x != nullptr)                              \
         {                                              \
-            CST_THROW("todo");                         \
+            CST_THROW("to-do");                        \
         }                                              \
     } while (false)
 
@@ -40,7 +40,7 @@
         auto x = context->retrieve_method(0);               \
         if (x != nullptr)                                   \
         {                                                   \
-            CST_THROW("todo");                              \
+            CST_THROW("to-do");                             \
         }                                                   \
     } while (false)
 
@@ -629,9 +629,9 @@ namespace logia
         switch (context->start->getType())
         {
         case LogiaParser::TRUE_TK:
-            return ANY_VOIDP_STORE(new AST::IntegerLiteral(context, "1", this->program->look<AST::Type>("bool")));
+            return ANY_VOIDP_STORE(new AST::IntegerLiteral(context, "1", scope_look_one<AST::Type>(this->program, "bool")));
         case LogiaParser::FALSE_TK:
-            return ANY_VOIDP_STORE(new AST::IntegerLiteral(context, "0", this->program->look<AST::Type>("bool")));
+            return ANY_VOIDP_STORE(new AST::IntegerLiteral(context, "0", scope_look_one<AST::Type>(this->program, "bool")));
         case LogiaParser::NULL_TK:
             throw std::runtime_error(TOSTRING(__FUNCTION__) " todo");
         case LogiaParser::DEFAULT_TK:
