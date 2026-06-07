@@ -13,11 +13,11 @@ type i32 = struct {
 type i64 = struct {
     λi64 λ
 }
-
+/*
 type i128 = struct {
     λi128 λ
 }
-
+*/
 type u8 = struct {
     λu8 λ
 }
@@ -33,7 +33,7 @@ type u32 = struct {
 type u64 = struct {
     λu64 λ
 }
-
+/*
 type u128 = struct {
     λu128 λ
 }
@@ -41,7 +41,7 @@ type u128 = struct {
 type f16 = struct {
     λf16 λ
 }
-
+*/
 type f32 = struct {
     λf32 λ
 }
@@ -49,11 +49,11 @@ type f32 = struct {
 type f64 = struct {
     λf64 λ
 }
-
+/*
 type f128 = struct {
     λf128 λ
 }
-
+*/
 type cstring = struct {
   λi8 λ
 }

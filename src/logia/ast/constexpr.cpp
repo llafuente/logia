@@ -271,7 +271,7 @@ namespace logia::AST
 
             // check first as unsigned, limit should not be reached
             auto required_bits = value.getActiveBits();
-            LOG(DBG, "{} activebits = {} expected = {}", this->value_str, required_bits, itype->bits);
+            LOG(DBG, "value = '{}' is_signed = {} activebits = {} expected = {}", this->value_str, itype->is_signed, required_bits, itype->bits);
 
             if (required_bits > itype->bits)
             {
@@ -304,14 +304,6 @@ namespace logia::AST
             LOG(DBG, "{} to float {} / {}!", this->value_str, type->get_repr(), llvm_type_to_string(llvm_type));
             switch (ftype->bits)
             {
-            case 16:
-                throw_compiler_error("not supportted atm");
-            /*
-                this->cg_value = llvm::ConstantFP::get(
-                    llvm_type,
-                    // this->value_str
-                    llvm::APFloat(static_cast<_Float16>(this->value.getSExtValue())));
-                    */
             case 32:
                 this->cg_value = llvm::ConstantFP::get(
                     llvm_type,

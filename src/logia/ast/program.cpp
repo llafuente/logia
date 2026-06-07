@@ -14,6 +14,7 @@ namespace logia::AST
 {
     Program::Program(antlr4::ParserRuleContext *rule, const char *entry_point_file, const char *file_contents) : Block(rule, new Identifier(rule, "program")), entry_point_file(entry_point_file), file_contents(file_contents)
     {
+        this->is_attached = true; // Program is obviously never attached to anything, it's the root -> manually set the flag
         intrinsics = new Scope(rule);
         this->push_child(intrinsics);
         // we know declare all primitives
@@ -25,21 +26,21 @@ namespace logia::AST
         intrinsics->push_child(new Integer(true, 16));
         intrinsics->push_child(new Integer(true, 32));
         intrinsics->push_child(new Integer(true, 64));
-        intrinsics->push_child(new Integer(true, 128));
+        // intrinsics->push_child(new Integer(true, 128));
 
         intrinsics->push_child(new Integer(false, 8));
         intrinsics->push_child(new Integer(false, 16));
         intrinsics->push_child(new Integer(false, 32));
         intrinsics->push_child(new Integer(false, 64));
-        intrinsics->push_child(new Integer(false, 128));
+        // intrinsics->push_child(new Integer(false, 128));
 
         intrinsics->push_child(new Void());
         intrinsics->push_child(new Pointer());
 
-        intrinsics->push_child(new Float(16));
+        // intrinsics->push_child(new Float(16));
         intrinsics->push_child(new Float(32));
         intrinsics->push_child(new Float(64));
-        intrinsics->push_child(new Float(128));
+        // intrinsics->push_child(new Float(128));
 
         auto imp = new Import(nullptr);
         imp->set_import_into_scope();
