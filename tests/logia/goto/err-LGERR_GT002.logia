@@ -1,0 +1,18 @@
+function a() i32 {
+    return 0
+}
+
+function a(i32 x) i32 {
+    return 0
+}
+
+
+function test_1() i64 {
+    goto a
+
+    return 1
+}
+
+function main() i64 {
+    return test_1()
+}

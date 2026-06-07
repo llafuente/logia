@@ -5,6 +5,7 @@
 #include "logia/ast/identifier.h"
 #include "logia/ast/block.h"
 #include "logia/ast/function.h"
+#include "logia/ast/semantic_error.h"
 
 namespace logia::AST
 {
@@ -74,15 +75,31 @@ namespace logia::AST
         // label shall be inside the current function
         auto func = this->first_parent<Function>();
         Block *block = nullptr;
-        auto id = this->get_name();
-        if (func->get_body()->try_look<Block>(id, &block))
+        auto ident = this->get_identifier();
+
+        auto result = scope_lookup_all(this, ident->identifier);
+        if (result.is_error())
         {
-            block->codegen(backend);
-            this->cg_value = backend->builder->CreateBr(block->ir_basicblock);
-            return Stmt::post_codegen(backend);
+            throw_semantic_error(this, result.message);
+        }
+        auto list = result.unwrap_success();
+        if (list.size() == 0)
+        {
+            throw_semantic_error(this, std::format(LGERR_GT001, ident->identifier));
+        }
+        if (list.size() > 1)
+        {
+            throw_semantic_error(this, std::format(LGERR_GT002, ident->identifier, "to-do!"));
         }
 
-        throw_semantic_error(this, std::format("LGERR_GT001 use of undeclared or unreachable label '{}' ", id));
+        if (!list[0]->try_cast<Block>(&block))
+        {
+            throw_semantic_error(this, std::format(LGERR_GT003, ident->identifier, list[0]->get_debug_location()));
+        }
+
+        block->codegen(backend);
+        this->cg_value = backend->builder->CreateBr(block->ir_basicblock);
+        return Stmt::post_codegen(backend);
     }
 
     void GotoStmt::_set_type(Type *ty) {}

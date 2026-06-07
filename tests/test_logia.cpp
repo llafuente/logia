@@ -12,18 +12,29 @@
 #include "test_utils.h"
 #include "logia/run.h"
 
-TEST(logia_run_file, basic_staff)
+TEST(logia_run_file, helloworld)
 {
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "helloworld"), 0);
-
+}
+TEST(logia_run_file, primitives)
+{
+    // EXPECT_EQ(test_single_file(".\\tests\\logia\\primitives\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "math"), 7);
     EXPECT_EQ(test_single_file(".\\tests\\logia\\primitives\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "integer-limits"), 0);
     EXPECT_EQ(test_single_file(".\\tests\\logia\\primitives\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "integer-reprs"), 0);
     EXPECT_EQ(test_single_file(".\\tests\\logia\\primitives\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "integer-to-float"), 0);
     EXPECT_EQ(test_single_file(".\\tests\\logia\\primitives\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "integer-vardecl"), 15);
     EXPECT_EQ(test_single_file(".\\tests\\logia\\primitives\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "float"), 0);
+}
 
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "binary-expr-add-constants"), 25);
+TEST(logia_run_file, binary_expr)
+{
+
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "binary-expr-add"), 21);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "binary-expr-add-constants"), 25);
+}
+
+TEST(logia_run_file, struct)
+{
 
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer"), 11 + 13);
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer2"), 13 + 17);
@@ -37,20 +48,53 @@ TEST(logia_run_file, basic_staff)
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer-alias"), 4);
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-all-primitives"), 0);
 
+    // EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-operators"), 64);
+}
+TEST(logia_run_file, function)
+{
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "function-parameters"), 25);
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "function-blocks"), 5);
-
+}
+TEST(logia_run_file, cast)
+{
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "cast-expr"), 0);
-
+}
+TEST(logia_run_file, goto)
+{
     // 0 means it jumped, 1 it doesn't
     // also not so true as "return 1" is removed, but maybe to check regressions
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "goto-stmt-dead-code"), 0);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\goto\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "goto-stmt-dead-code"), 0);
+}
 
+TEST(logia_run_error_file, goto_semantic_error_LGERR_GT001)
+{
+    auto msg = test_file_with_semantic_error(".\\tests\\logia\\goto\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "err-LGERR_GT001");
+    // std::cerr << "???" << msg << "????" << std::endl;
+    EXPECT_NE(std::string(msg).find("LGERR_GT001 use of undeclared or unreachable label 'a'"), std::string::npos);
+    EXPECT_NE(std::string(msg).find("err-LGERR_GT001.logia:3:4"), std::string::npos);
+}
+TEST(logia_run_error_file, goto_semantic_error_LGERR_GT002)
+{
+    auto msg = test_file_with_semantic_error(".\\tests\\logia\\goto\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "err-LGERR_GT002");
+    // std::cerr << "???" << msg << "????" << std::endl;
+    EXPECT_NE(std::string(msg).find("LGERR_GT002 Identifier 'a' has multiple matches: to-do!"), std::string::npos);
+    EXPECT_NE(std::string(msg).find("err-LGERR_GT002.logia:12:4"), std::string::npos);
+}
+TEST(logia_run_error_file, goto_semantic_error_LGERR_GT003)
+{
+    auto msg = test_file_with_semantic_error(".\\tests\\logia\\goto\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "err-LGERR_GT003");
+    // std::cerr << "???" << msg << "????" << std::endl;
+    EXPECT_NE(std::string(msg).find("LGERR_GT003 expected label 'a' to reference a block, but found:"), std::string::npos);
+    EXPECT_NE(std::string(msg).find("err-LGERR_GT003.logia:7:4"), std::string::npos);
+}
+
+TEST(logia_run_file, if)
+{
     // 3 tests -> 3
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "if-stmt"), 3);
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "if-stmt-2"), 1101);
-
+}
+TEST(logia_run_file, expr)
+{
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "expr-all-operator-i64"), 0);
-
-    // EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-operators"), 64);
 }

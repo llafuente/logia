@@ -9,6 +9,13 @@
 namespace logia::AST
 {
     struct Node;
+#define LGERR_ID001 "LGERR_ID001 Identifier '{}' not found in current scope"
+#define LGERR_ID002 "LGERR_ID002 Found '{}' elements in current scope mattching identifier '{}' but expected one:\n{}"
+#define LGERR_SCOPE003 "LGERR_SCOPE003 Found '{}' of type '{}' but expected type '{}'"
+
+#define LGERR_GT001 "LGERR_GT001 use of undeclared or unreachable label '{}' "
+#define LGERR_GT002 "LGERR_GT002 Identifier '{}' has multiple matches: {}"
+#define LGERR_GT003 "LGERR_GT003 expected label '{}' to reference a block, but found:\n{}"
 
 #define LGERR_CONSTEX000 "LGERR_CONSTEX000 Expression is not constant"
 #define LGERR_CONSTEX001a "LGERR_CONSTEX001a Left operand is not constant"
