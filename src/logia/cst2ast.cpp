@@ -89,10 +89,10 @@ namespace logia
             CST_THROW("TODO");
         // value equality
         case LogiaParser::EQUALEQUAL_TK:
-            return AST::Operators::BINARY_LOGIAL_EQ;
+            return AST::Operators::BINARY_COMPARISON_EQ;
         // value inequality
         case LogiaParser::NOT_EQUAL_TK:
-            return AST::Operators::BINARY_LOGIAL_NEQ;
+            return AST::Operators::BINARY_COMPARISON_NEQ;
             /// assignament
 
         case LogiaParser::EQUAL_TK:
@@ -297,13 +297,13 @@ namespace logia
             switch (context->op->start->getType())
             {
             case LogiaParser::LT_TK:
-                return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::Operators::BINARY_LOGIAL_LT, right));
+                return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::Operators::BINARY_COMPARISON_LT, right));
             case LogiaParser::LESS_EQUAL_TK:
-                return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::Operators::BINARY_LOGIAL_LTE, right));
+                return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::Operators::BINARY_COMPARISON_LTE, right));
             case LogiaParser::GT_TK:
-                return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::Operators::BINARY_LOGIAL_GT, right));
+                return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::Operators::BINARY_COMPARISON_GT, right));
             case LogiaParser::GREATER_EQUAL_TK:
-                return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::Operators::BINARY_LOGIAL_GTE, right));
+                return ANY_VOIDP_STORE(new AST::BinaryExpression(context, left, AST::Operators::BINARY_COMPARISON_GTE, right));
             }
             throw std::runtime_error(TOSTRING(__FUNCTION__) "unreachable");
         }

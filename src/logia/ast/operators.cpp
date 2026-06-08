@@ -8,50 +8,54 @@ namespace logia::AST
         const char fn_name[36];
         uint32_t op_value;
         const char op_str[4];
+        uint32_t args;
+        const char enforce_return_type[4];
     };
     uint32_t f2op_length = 29 + 6 + 2;
     FunctionToOperator f2op[29 + 6 + 2] = {
-        {"__logia_bin_assign", (uint32_t)Operators::BINARY_ASSIGN, "="},
-        {"__logia_bin_add_assign", (uint32_t)Operators::BINARY_ADD_ASSIGN, "+="},
-        {"__logia_bin_sub_assign", (uint32_t)Operators::BINARY_SUB_ASSIGN, "-="},
-        {"__logia_bin_mul_assign", (uint32_t)Operators::BINARY_MUL_ASSIGN, "*="},
-        {"__logia_bin_div_assign", (uint32_t)Operators::BINARY_DIV_ASSIGN, "/="},
-        {"__logia_bin_mod_assign", (uint32_t)Operators::BINARY_MOD_ASSIGN, "%="},
-        {"__logia_bin_bitwise_and_assign", (uint32_t)Operators::BINARY_BITWISE_AND_ASSIGN, "&="},
-        {"__logia_bin_bitwise_or_assign", (uint32_t)Operators::BINARY_BITWISE_OR_ASSIGN, "|="},
-        {"__logia_bin_bitwise_xor_assign", (uint32_t)Operators::BINARY_BITWISE_XOR_ASSIGN, "^="},
-        {"__logia_bin_bitwise_shr_assign", (uint32_t)Operators::BINARY_BITWISE_RIGHT_SHIFT_ASSIGN, ">>="},
-        {"__logia_bin_bitwise_shl_assign", (uint32_t)Operators::BINARY_BITWISE_LEFT_SHIFT_ASSIGN, "<<="},
+        {"__logia_bin_assign", (uint32_t)Operators::BINARY_ASSIGN, "=", 2, ""},
+        {"__logia_bin_add_assign", (uint32_t)Operators::BINARY_ADD_ASSIGN, "+=", 2, ""},
+        {"__logia_bin_sub_assign", (uint32_t)Operators::BINARY_SUB_ASSIGN, "-=", 2, ""},
+        {"__logia_bin_mul_assign", (uint32_t)Operators::BINARY_MUL_ASSIGN, "*=", 2, ""},
+        {"__logia_bin_div_assign", (uint32_t)Operators::BINARY_DIV_ASSIGN, "/=", 2, ""},
+        {"__logia_bin_mod_assign", (uint32_t)Operators::BINARY_MOD_ASSIGN, "%=", 2, ""},
+        {"__logia_bin_bitwise_and_assign", (uint32_t)Operators::BINARY_BITWISE_AND_ASSIGN, "&=", 2, ""},
+        {"__logia_bin_bitwise_or_assign", (uint32_t)Operators::BINARY_BITWISE_OR_ASSIGN, "|=", 2, ""},
+        {"__logia_bin_bitwise_xor_assign", (uint32_t)Operators::BINARY_BITWISE_XOR_ASSIGN, "^=", 2, ""},
+        {"__logia_bin_bitwise_shr_assign", (uint32_t)Operators::BINARY_BITWISE_RIGHT_SHIFT_ASSIGN, ">>=", 2, ""},
+        {"__logia_bin_bitwise_shl_assign", (uint32_t)Operators::BINARY_BITWISE_LEFT_SHIFT_ASSIGN, "<<=", 2, ""},
 
-        {"__logia_bin_add", (uint32_t)Operators::BINARY_ADD, "+"},
-        {"__logia_bin_sub", (uint32_t)Operators::BINARY_SUB, "-"},
-        {"__logia_bin_mul", (uint32_t)Operators::BINARY_MUL, "*"},
-        {"__logia_bin_div", (uint32_t)Operators::BINARY_DIV, "/"},
-        {"__logia_bin_mod", (uint32_t)Operators::BINARY_MOD, "%"},
-        {"__logia_bin_eq", (uint32_t)Operators::BINARY_LOGIAL_EQ, "=="},
-        {"__logia_bin_neq", (uint32_t)Operators::BINARY_LOGIAL_NEQ, "!="},
-        {"__logia_bin_lt", (uint32_t)Operators::BINARY_LOGIAL_LT, "<"},
-        {"__logia_bin_gt", (uint32_t)Operators::BINARY_LOGIAL_GT, ">"},
-        {"__logia_bin_lte", (uint32_t)Operators::BINARY_LOGIAL_LTE, "<="},
-        {"__logia_bin_gte", (uint32_t)Operators::BINARY_LOGIAL_GTE, ">="},
+        {"__logia_bin_add", (uint32_t)Operators::BINARY_ADD, "+", 2, ""},
+        {"__logia_bin_sub", (uint32_t)Operators::BINARY_SUB, "-", 2, ""},
+        {"__logia_bin_mul", (uint32_t)Operators::BINARY_MUL, "*", 2, ""},
+        {"__logia_bin_div", (uint32_t)Operators::BINARY_DIV, "/", 2, ""},
+        {"__logia_bin_mod", (uint32_t)Operators::BINARY_MOD, "%", 2, ""},
 
-        {"__logia_bin_logical_and", (uint32_t)Operators::BINARY_LOGICAL_AND},
-        {"__logia_bin_logical_or", (uint32_t)Operators::BINARY_LOGICAL_OR},
-        {"__logia_bin_bitwise_and", (uint32_t)Operators::BINARY_BITWISE_AND, "&"},
-        {"__logia_bin_bitwise_or", (uint32_t)Operators::BINARY_BITWISE_OR, "|"},
-        {"__logia_bin_bitwise_xor", (uint32_t)Operators::BINARY_BITWISE_XOR, "^"},
-        {"__logia_bin_bitwise_shl", (uint32_t)Operators::BINARY_BITWISE_LEFT_SHIFT, "<<"},
-        {"__logia_bin_bitwise_shr", (uint32_t)Operators::BINARY_BITWISE_RIGHT_SHIFT, ">>"},
+        {"__logia_bin_cmp_eq", (uint32_t)Operators::BINARY_COMPARISON_EQ, "==", 2, "i1"},
+        {"__logia_bin_cmp_neq", (uint32_t)Operators::BINARY_COMPARISON_NEQ, "!=", 2, "i1"},
+        {"__logia_bin_cmp_lt", (uint32_t)Operators::BINARY_COMPARISON_LT, "<", 2, "i1"},
+        {"__logia_bin_cmp_gt", (uint32_t)Operators::BINARY_COMPARISON_GT, ">", 2, "i1"},
+        {"__logia_bin_cmp_lte", (uint32_t)Operators::BINARY_COMPARISON_LTE, "<=", 2, "i1"},
+        {"__logia_bin_cmp_gte", (uint32_t)Operators::BINARY_COMPARISON_GTE, ">=", 2, "i1"},
 
-        {"__logia_deref", (uint32_t)Operators::PREFIX_DEREFERENCE},
-        {"__logia_prefix_inc", (uint32_t)Operators::PREFIX_INCREMENT},
-        {"__logia_prefix_dec", (uint32_t)Operators::PREFIX_DECREMENT},
-        {"__logia_prefix_neg", (uint32_t)Operators::PREFIX_NEGATION},
-        {"__logia_prefix_bitwise_not", (uint32_t)Operators::PREFIX_BITWISE_NOT},
-        {"__logia_prefix_logical_not", (uint32_t)Operators::PREFIX_LOGICAL_NOT},
+        {"__logia_bin_logical_and", (uint32_t)Operators::BINARY_LOGICAL_AND, "&&", 2, "i1"},
+        {"__logia_bin_logical_or", (uint32_t)Operators::BINARY_LOGICAL_OR, "||", 2, "i1"},
 
-        {"__logia_postfix_inc", (uint32_t)Operators::POSTFIX_INCREMENT},
-        {"__logia_postfix_dec", (uint32_t)Operators::POSTFIX_DECREMENT},
+        {"__logia_bin_bitwise_and", (uint32_t)Operators::BINARY_BITWISE_AND, "&", 2, ""},
+        {"__logia_bin_bitwise_or", (uint32_t)Operators::BINARY_BITWISE_OR, "|", 2, ""},
+        {"__logia_bin_bitwise_xor", (uint32_t)Operators::BINARY_BITWISE_XOR, "^", 2, ""},
+        {"__logia_bin_bitwise_shl", (uint32_t)Operators::BINARY_BITWISE_LEFT_SHIFT, "<<", 2, ""},
+        {"__logia_bin_bitwise_shr", (uint32_t)Operators::BINARY_BITWISE_RIGHT_SHIFT, ">>", 2, ""},
+
+        {"__logia_deref", (uint32_t)Operators::PREFIX_DEREFERENCE, "&", 1, ""},
+        {"__logia_prefix_inc", (uint32_t)Operators::PREFIX_INCREMENT, "++", 1, ""},
+        {"__logia_prefix_dec", (uint32_t)Operators::PREFIX_DECREMENT, "--", 1, ""},
+        {"__logia_prefix_neg", (uint32_t)Operators::PREFIX_NEGATION, "-", 1, ""},
+        {"__logia_prefix_bitwise_not", (uint32_t)Operators::PREFIX_BITWISE_NOT, "~", 1, ""},
+        {"__logia_prefix_logical_not", (uint32_t)Operators::PREFIX_LOGICAL_NOT, "!", 1, ""},
+
+        {"__logia_postfix_inc", (uint32_t)Operators::POSTFIX_INCREMENT, "++", 1, ""},
+        {"__logia_postfix_dec", (uint32_t)Operators::POSTFIX_DECREMENT, "--", 1, ""},
     };
 
     LOGIA_API const char *ast_operator_to_function_name(Operators op)
@@ -67,15 +71,48 @@ namespace logia::AST
         throw_compiler_error("unkown operator");
     }
 
+    bool is_bitwise_operator(Operators op)
+    {
+        switch (op)
+        {
+        case Operators::BINARY_BITWISE_AND_ASSIGN:
+        case Operators::BINARY_BITWISE_OR_ASSIGN:
+        case Operators::BINARY_BITWISE_XOR_ASSIGN:
+        case Operators::BINARY_BITWISE_RIGHT_SHIFT_ASSIGN:
+        case Operators::BINARY_BITWISE_LEFT_SHIFT_ASSIGN:
+        case Operators::BINARY_BITWISE_AND:
+        case Operators::BINARY_BITWISE_OR:
+        case Operators::BINARY_BITWISE_XOR:
+        case Operators::BINARY_BITWISE_LEFT_SHIFT:
+        case Operators::BINARY_BITWISE_RIGHT_SHIFT:
+            return true;
+        }
+        return false;
+    }
+
+    bool is_comparison_operator(Operators op)
+    {
+        switch (op)
+        {
+
+        case Operators::BINARY_COMPARISON_EQ:
+        case Operators::BINARY_COMPARISON_NEQ:
+        case Operators::BINARY_COMPARISON_LT:
+        case Operators::BINARY_COMPARISON_GT:
+        case Operators::BINARY_COMPARISON_LTE:
+        case Operators::BINARY_COMPARISON_GTE:
+            return true;
+        }
+        return false;
+    }
+
     bool is_logical_operator(Operators op)
     {
         switch (op)
         {
-        case Operators::BINARY_LOGIAL_EQ:
-        case Operators::BINARY_LOGIAL_LT:
-        case Operators::BINARY_LOGIAL_LTE:
-        case Operators::BINARY_LOGIAL_NEQ:
         case Operators::BINARY_LOGICAL_AND:
+        case Operators::BINARY_LOGICAL_OR:
+        case Operators::PREFIX_LOGICAL_NOT:
             return true;
         }
         return false;

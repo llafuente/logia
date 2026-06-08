@@ -15,12 +15,12 @@ namespace logia::AST
         BINARY_MUL,                 // *
         BINARY_DIV,                 // /
         BINARY_MOD,                 // %
-        BINARY_LOGIAL_EQ,           // ==
-        BINARY_LOGIAL_NEQ,          // !=
-        BINARY_LOGIAL_LT,           // <
-        BINARY_LOGIAL_GT,           // >
-        BINARY_LOGIAL_LTE,          // <=
-        BINARY_LOGIAL_GTE,          // >=
+        BINARY_COMPARISON_EQ,       // ==
+        BINARY_COMPARISON_NEQ,      // !=
+        BINARY_COMPARISON_LT,       // <
+        BINARY_COMPARISON_GT,       // >
+        BINARY_COMPARISON_LTE,      // <=
+        BINARY_COMPARISON_GTE,      // >=
         BINARY_LOGICAL_AND,         // &&
         BINARY_LOGICAL_OR,          // ||
         BINARY_ASSIGN,              // =
@@ -51,7 +51,11 @@ namespace logia::AST
         POSTFIX_INCREMENT = 256, // ++
         POSTFIX_DECREMENT,       // --
     };
-
+    /// @brief Returns if given operator is a bitwise
+    bool is_bitwise_operator(Operators op);
+    /// @brief Returns if given operator is a comparison
+    bool is_comparison_operator(Operators op);
+    /// @brief Returns if given operator is a logical
     bool is_logical_operator(Operators op);
 
     /// @brief Converts a binary operator to its string representation

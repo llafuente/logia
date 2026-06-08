@@ -217,12 +217,12 @@ namespace logia::AST
         case Operators::BINARY_MUL:
         case Operators::BINARY_DIV:
         case Operators::BINARY_MOD:
-        case Operators::BINARY_LOGIAL_EQ:
-        case Operators::BINARY_LOGIAL_NEQ:
-        case Operators::BINARY_LOGIAL_LT:
-        case Operators::BINARY_LOGIAL_GT:
-        case Operators::BINARY_LOGIAL_LTE:
-        case Operators::BINARY_LOGIAL_GTE:
+        case Operators::BINARY_COMPARISON_EQ:
+        case Operators::BINARY_COMPARISON_NEQ:
+        case Operators::BINARY_COMPARISON_LT:
+        case Operators::BINARY_COMPARISON_GT:
+        case Operators::BINARY_COMPARISON_LTE:
+        case Operators::BINARY_COMPARISON_GTE:
         case Operators::BINARY_BITWISE_AND:
         case Operators::BINARY_BITWISE_OR:
         case Operators::BINARY_BITWISE_XOR:
@@ -266,17 +266,17 @@ namespace logia::AST
                         return left / right;
                     case Operators::BINARY_MOD:
                         return left % right;
-                    case Operators::BINARY_LOGIAL_EQ:
+                    case Operators::BINARY_COMPARISON_EQ:
                         return left == right;
-                    case Operators::BINARY_LOGIAL_NEQ:
+                    case Operators::BINARY_COMPARISON_NEQ:
                         return left != right;
-                    case Operators::BINARY_LOGIAL_LT:
+                    case Operators::BINARY_COMPARISON_LT:
                         return left < right;
-                    case Operators::BINARY_LOGIAL_GT:
+                    case Operators::BINARY_COMPARISON_GT:
                         return left > right;
-                    case Operators::BINARY_LOGIAL_LTE:
+                    case Operators::BINARY_COMPARISON_LTE:
                         return left <= right;
-                    case Operators::BINARY_LOGIAL_GTE:
+                    case Operators::BINARY_COMPARISON_GTE:
                         return left >= right;
                     case Operators::BINARY_BITWISE_AND:
                         return left & right;
