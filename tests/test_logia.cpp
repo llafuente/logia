@@ -60,13 +60,29 @@ TEST(logia_run_file, cast)
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "cast-expr"), 0);
 }
 
-TEST(logia_run_file, block)
+//
+// blocks
+//
+
+TEST(logia_run_file, block_err_LGERR_BLK001)
 {
     auto msg = test_file_with_semantic_error(".\\tests\\logia\\block\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "err-LGERR_BLK001");
     // std::cerr << "???" << msg << "????" << std::endl;
     EXPECT_NE(std::string(msg).find("LGERR_BLK001 Identifier 'name' in use:"), std::string::npos);
     EXPECT_NE(std::string(msg).find("err-LGERR_BLK001.logia:7:10"), std::string::npos);
 }
+
+TEST(logia_run_file, block_err_LGERR_BLK002)
+{
+    auto msg = test_file_with_semantic_error(".\\tests\\logia\\block\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "err-LGERR_BLK002");
+    // std::cerr << "???" << msg << "????" << std::endl;
+    EXPECT_NE(std::string(msg).find("LGERR_BLK001 Identifier 'name' in use:"), std::string::npos);
+    EXPECT_NE(std::string(msg).find("err-LGERR_BLK002.logia:5:10"), std::string::npos);
+}
+
+//
+// goto
+//
 
 TEST(logia_run_file, goto)
 {
@@ -96,6 +112,21 @@ TEST(logia_run_error_file, goto_semantic_error_LGERR_GT003)
     EXPECT_NE(std::string(msg).find("LGERR_GT003 expected label 'a' to reference a block, but found:"), std::string::npos);
     EXPECT_NE(std::string(msg).find("err-LGERR_GT003.logia:7:4"), std::string::npos);
 }
+
+//
+// vardecl
+//
+TEST(logia_run_error_file, vardecl_semantic_error_LGERR_VDECL001)
+{
+    auto msg = test_file_with_semantic_error(".\\tests\\logia\\vardecl\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "err-LGERR_VDECL001");
+    // std::cerr << "???" << msg << "????" << std::endl;
+    EXPECT_NE(std::string(msg).find("LGERR_VDECL001 Redeclaration/Identifier 'x' in use:"), std::string::npos);
+    EXPECT_NE(std::string(msg).find("err-LGERR_VDECL001.logia:3:4"), std::string::npos);
+}
+
+//
+// if
+//
 
 TEST(logia_run_file, if)
 {

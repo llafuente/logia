@@ -81,11 +81,13 @@ namespace logia::AST
 
     void VarDeclStmt::post_attach()
     {
-        if (!this->is_attached)
+        Stmt::post_attach();
+
+        if (!::logia::AST::scope_set(this, this->get_name(), this, true))
         {
-            this->is_attached = true;
-            auto block = this->first_parent<Block>();
-            block->scope_set(this->get_name(), this);
+            auto result = scope_lookup_all(this, this->get_name());
+            auto node = result.unwrap_success()[0]; // at least one
+            throw_semantic_error(this, std::format(LGERR_VDECL001, this->get_name(), node->get_debug_location()));
         }
     }
 

@@ -19,6 +19,8 @@ namespace logia::AST
 
 #define LGERR_BLK001 "LGERR_BLK001 Identifier '{}' in use:\n{}"
 
+#define LGERR_VDECL001 "LGERR_VDECL001 Redeclaration/Identifier '{}' in use:\n{}"
+
 #define LGERR_CONSTEX000 "LGERR_CONSTEX000 Expression is not constant"
 #define LGERR_CONSTEX001a "LGERR_CONSTEX001a Left operand is not constant"
 #define LGERR_CONSTEX001b "LGERR_CONSTEX001b Right operand is not constant"

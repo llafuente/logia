@@ -236,16 +236,20 @@ const char *test_file_with_semantic_error(const char *logia_folder, const char *
         test_single_file(logia_folder, ir_folder, obj_folder, file);
         EXPECT_TRUE(false && "unreachable, file run but no error found!");
     }
-    catch (logia::AST::semantic_error const &e)
+    // TODO REVIEW something is wrong here, sometimes it fall into std::exception
+    catch (::logia::AST::semantic_error const &e)
     {
         std::cerr << "catch logia::AST::semantic_error" << std::endl;
-        return strdup(e.what());
+        return _strdup(e.what());
     }
     catch (std::exception const &e)
     {
-        std::cerr << "catch std::exception" << std::endl;
-        throw std::runtime_error(std::format("file: {} throw an unexpected exception:\n{}", file, e.what()));
+        return _strdup(e.what());
+        // this should be the handler!
+        std::cerr << "unpexpected catch std::exception" << std::endl
+                  << std::format("file: {} throw an unexpected exception:\n{}", file, e.what()) << std::endl;
+        abort();
     }
 
-    throw std::runtime_error(std::format("file: {} don't throw", file));
+    throw std::runtime_error(std::format("expected file: {} to throw", file));
 }
