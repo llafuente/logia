@@ -272,6 +272,10 @@ namespace logia::AST
             this->_set_type(ty);
             this->is_typed = true;
         }
+        if (my_ty == ty)
+        {
+            this->is_typed = true;
+        }
     }
     /*
         void Node::_set_type(Type *ty)
