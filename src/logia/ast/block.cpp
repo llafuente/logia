@@ -58,11 +58,17 @@ namespace logia::AST
 
         // TODO we should throw if the block is moved outside current function!!
         // TODO what happen when we double-set because we move something an gets re-attached ??
-        if (!::logia::AST::function_set(this, this->get_name(), this, true))
+
+        // register into scope only named blocks
+        auto ident = this->get_identifier();
+        if (!ident->is_empty())
         {
-            auto result = scope_lookup_all(this, this->get_name());
-            auto node = result.unwrap_success()[0]; // at least one
-            throw_semantic_error(this, std::format(LGERR_BLK001, this->get_name(), node->get_debug_location()));
+            if (!::logia::AST::function_set(this, ident->identifier, this, true))
+            {
+                auto result = scope_lookup_all(this, ident->identifier);
+                auto node = result.unwrap_success()[0]; // at least one
+                throw_semantic_error(this, std::format(LGERR_BLK001, ident->identifier, node->get_debug_location()));
+            }
         }
     }
 
