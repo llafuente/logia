@@ -34,6 +34,41 @@ namespace logia::type_system
         constexpr type_compatibility operator|(type_compatibility a) const { return type_compatibility((uint32_t)((uint32_t)value | (uint32_t)a.value)); }
 
         constexpr bool contains(type_compatibility v) const { return ((uint32_t)value & (uint32_t)v.value) != 0; }
+
+        std::string to_string()
+        {
+            std::string out;
+            if (this->contains(type_compatibility::NO))
+            {
+                out += "NO";
+            }
+            if (this->contains(type_compatibility::YES))
+            {
+                out += (out.length() ? "," : "");
+                out += "YES";
+            }
+            if (this->contains(type_compatibility::EXPLICIT_CAST))
+            {
+                out += (out.length() ? "," : "");
+                out += "EXPLICIT_CAST";
+            }
+            if (this->contains(type_compatibility::AUTOCAST_CAST))
+            {
+                out += (out.length() ? "," : "");
+                out += "AUTOCAST_CAST";
+            }
+            if (this->contains(type_compatibility::LAYOUT_COMPATIBLE))
+            {
+                out += (out.length() ? "," : "");
+                out += "LAYOUT_COMPATIBLE";
+            }
+            if (this->contains(type_compatibility::CODE_COMPATIBLE))
+            {
+                out += (out.length() ? "," : "");
+                out += "CODE_COMPATIBLE";
+            }
+            return out;
+        }
     };
 
     typedef utils::maybe_error<type_compatibility, type_compatibility> type_compatibility_result;

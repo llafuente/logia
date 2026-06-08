@@ -260,7 +260,7 @@ namespace logia::multiple_dispatch
                 else
                 {
                     auto f = m.unwrap_error();
-                    LOG(DBG, "candidate no good = {}", (uint32_t)f.reason);
+                    LOG(DBG, "candidate no good = {}", f.reason.to_string());
                 }
             }
             else
