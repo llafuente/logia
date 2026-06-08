@@ -17,11 +17,14 @@ namespace logia::AST
         this->is_attached = true; // Program is obviously never attached to anything, it's the root -> manually set the flag
         intrinsics = new Scope(rule);
         this->push_child(intrinsics);
+
+        // special case i1 (not signed!)
+        intrinsics->push_child(new Integer(false, 1));
+
         // we know declare all primitives
         // any type in the language should use those
         // it's prohibited to create type using llvm
         // everything shall be supported directly
-        intrinsics->push_child(new Integer(true, 1));
         intrinsics->push_child(new Integer(true, 8));
         intrinsics->push_child(new Integer(true, 16));
         intrinsics->push_child(new Integer(true, 32));

@@ -115,7 +115,7 @@ namespace logia::AST
     }
     std::string Integer::get_repr()
     {
-        return std::format("{}{}", (this->is_signed ? "i" : "u"), this->bits);
+        return std::format("{}{}", (this->is_signed || this->bits == 1 ? "i" : "u"), this->bits);
     }
 
     void Integer::pre_codegen(logia::Backend *backend)

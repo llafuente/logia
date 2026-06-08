@@ -90,7 +90,7 @@ namespace logia::AST
 
     LOGIA_API scope_search_result scope_lookup_all(Node *node, const char *name)
     {
-        LOG(DBG, "{}", name);
+        LOG(DBG, "({}) from = {}", name, node->to_string());
 
         if (!node->is_attached)
         {
