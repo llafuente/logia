@@ -70,7 +70,7 @@ namespace logia::AST
     }
     llvm::Value *FunctionParameter::post_codegen(logia::Backend *backend)
     {
-        this->cg_value = this->alloca_inst = backend->builder->CreateAlloca((llvm::Type *)this->get_final_type()->codegen(backend), nullptr, this->get_name()->identifier);
+        this->cg_value = this->alloca_inst = backend->builder->CreateAlloca((llvm::Type *)this->get_final_type()->codegen(backend), 0, nullptr, this->get_name()->identifier);
         return Node::post_codegen(backend);
     }
     //

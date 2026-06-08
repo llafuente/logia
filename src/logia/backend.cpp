@@ -39,6 +39,7 @@
 #include "logia/ast/program.h"
 #include "logia/ast/type.h"
 #include "logia/ast/function.h"
+#include "logia/ast/llvm.h"
 
 // cross compile support ?
 #define CODEGEN_NATIVE
@@ -808,6 +809,8 @@ namespace logia
     llvm::Align Backend::getDefaultAlignament(llvm::Type *type)
     {
         const llvm::DataLayout &dl = this->module->getDataLayout();
-        return llvm::Align(dl.getABITypeAlign(type).value());
+        auto v = llvm::Align(dl.getABITypeAlign(type).value());
+        LOG(DBG, "{} {}", AST::llvm_type_to_string(type), v.value());
+        return v;
     }
 }

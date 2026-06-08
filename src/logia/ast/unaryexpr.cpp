@@ -118,8 +118,8 @@ namespace logia::AST
         case Operators::PREFIX_DEREFERENCE:
         {
             // deprecated
-            // auto ptr = this->cg_value = backend->builder->CreateAlloca(llvm::PointerType::get(ir_ty, backend->getDefaultAlignament(ir_ty).value()), nullptr, "deref");
-            auto ptr = this->cg_value = backend->builder->CreateAlloca(llvm::PointerType::get(backend->context, backend->getDefaultAlignament(ir_ty).value()), nullptr, "deref");
+            // auto ptr = this->cg_value = backend->builder->CreateAlloca(llvm::PointerType::get(ir_ty, 0), nullptr, "deref");
+            auto ptr = this->cg_value = backend->builder->CreateAlloca(llvm::PointerType::get(backend->context, 0), 0, nullptr);
             backend->set_debug_loc((llvm::Instruction *)ptr, this->rule);
 
             auto store = backend->builder->CreateStore(ir_value, ptr);
