@@ -157,6 +157,26 @@ namespace logia
         return cda->getAsCString().str();
     }
 
+    // Find the AllocaInst that corresponds to a given function argument
+    llvm::AllocaInst *llvm_find_alloca_for_argument(llvm::Argument &Arg)
+    {
+        for (llvm::User *U : Arg.users())
+        {
+            if (auto *SI = llvm::dyn_cast<llvm::StoreInst>(U))
+            {
+                // Check if the store's value operand is the argument
+                if (SI->getValueOperand() == &Arg)
+                {
+                    if (auto *AI = llvm::dyn_cast<llvm::AllocaInst>(SI->getPointerOperand()))
+                    {
+                        return AI;
+                    }
+                }
+            }
+        }
+        return nullptr;
+    }
+
     std::vector<const char *> llvm_get_logia_parameters_names(llvm::Function *F)
     {
         // initialize to nullptr, if we found something, it will return the string!
@@ -166,17 +186,13 @@ namespace logia
         // auto allocas = std::vector<const llvm::AllocaInst *>();
         // allocas.reserve(F->arg_size());
 
-        llvm::SmallVector<const llvm::AllocaInst *, 8> ParamAllocas;
-
-        for (auto &I : F->getEntryBlock())
+        llvm::SmallVector<const llvm::AllocaInst *, 8> allocas;
+        for (llvm::Argument &arg : F->args())
         {
-            if (auto *AI = llvm::dyn_cast<llvm::AllocaInst>(&I))
-            {
-                ParamAllocas.push_back(AI);
-            }
+            allocas.push_back(llvm_find_alloca_for_argument(arg));
         }
 
-        LOG(VRB, "Found {} parameters", ParamAllocas.size());
+        LOG(VRB, "Found {} parameters", allocas.size());
 
         // Now scan for annotation intrinsics
         for (auto &BB : *F)
@@ -205,9 +221,9 @@ namespace logia
                 // llvm.var.annotation first argument is the alloca
                 const llvm::Value *AnnotatedPtr = llvm_strip_cast_inst(CI->getArgOperand(0));
                 // Match annotation target to parameter-related allocas
-                for (size_t idx = 0; idx < ParamAllocas.size(); ++idx)
+                for (size_t idx = 0; idx < allocas.size(); ++idx)
                 {
-                    if (AnnotatedPtr == ParamAllocas[idx])
+                    if (AnnotatedPtr == allocas[idx])
                     {
                         std::string annotation = llvm_get_var_annotation_string(CI);
                         if (!annotation.empty())
@@ -360,14 +376,11 @@ namespace logia
                 auto f_ret_type = this->program->get_ast_type(F.getReturnType());
 
                 auto it = override_names.find(F2);
-                if (it != override_names.end())
-                {
-                    this->program->add_intrinsic(new AST::Intrinsic(F2, F.getName().str().c_str(), (*it).second.c_str(), f_ret_type, f_args));
-                }
-                else
-                {
-                    this->program->add_intrinsic(new AST::Intrinsic(F2, F.getName().str().c_str(), F.getName().str().c_str(), f_ret_type, f_args));
-                }
+                AST::Intrinsic *intrinsic = it != override_names.end()
+                                                ? new AST::Intrinsic(F2, F.getName().str().c_str(), (*it).second.c_str(), f_ret_type, f_args)
+                                                : new AST::Intrinsic(F2, F.getName().str().c_str(), F.getName().str().c_str(), f_ret_type, f_args);
+                LOG(DBG, "{}", intrinsic->get_repr());
+                this->program->add_intrinsic(intrinsic);
             }
         }
     }
@@ -664,9 +677,9 @@ namespace logia
         }
         auto mangle = llvm::orc::MangleAndInterner(*session, *data_layout);
         /*
-  auto data_layout = llvm_module->getDataLayout();
-  auto mangle = llvm::orc::MangleAndInterner(*session, data_layout);
-  */
+    auto data_layout = llvm_module->getDataLayout();
+    auto mangle = llvm::orc::MangleAndInterner(*session, data_layout);
+    */
 
         auto objectLayer = llvm::orc::RTDyldObjectLinkingLayer(*session,
                                                                [](const llvm::MemoryBuffer &)
