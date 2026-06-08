@@ -25,10 +25,10 @@ namespace logia::AST
     void __notify_attached_descendants(Node *node)
     {
         LOG(SILLY, "{}", node->to_string());
-        node->__notify_attached();
+        node->post_attach();
         node->foreach_descendant([](auto descendant, auto i) -> bool
                                  {
-            descendant->__notify_attached();
+            descendant->post_attach();
             return true; });
     }
 
@@ -222,16 +222,6 @@ namespace logia::AST
         {
             __notify_attached_descendants(new_node);
         }
-    }
-
-    void Node::__notify_attached()
-    {
-        for (auto i = 0; i < this->children.size(); ++i)
-        {
-            this->children[i]->__notify_attached();
-        }
-
-        this->post_attach();
     }
 
     std::string Node::to_string_tree(std::string padding, bool last_child)

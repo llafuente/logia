@@ -102,12 +102,7 @@ namespace logia::AST
 
     void IfStmt::post_attach()
     {
-        if (!this->is_attached)
-        {
-            this->is_attached = true;
-            this->get_then()->post_attach();
-            this->get_else()->post_attach();
-        }
+        Stmt::post_attach();
     }
 
     void IfStmt::_post_type_inference()
