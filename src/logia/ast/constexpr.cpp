@@ -55,7 +55,7 @@ namespace logia::AST
 
     IntegerLiteral::IntegerLiteral(antlr4::ParserRuleContext *rule, const char *number_as_text, Type *type) : ConstExpression(rule)
     {
-        LOGIA_ASSERT(number_as_text == nullptr);
+        LOGIA_VERIFY(number_as_text != nullptr);
         // TODO number literals with dashes need to be cleaned right ?
 
         // alloc one more space for sign and negate without any allocation
@@ -334,12 +334,12 @@ namespace logia::AST
 
     FloatLiteral::FloatLiteral(antlr4::ParserRuleContext *rule, const char *number_as_text, Type *type) : ConstExpression(rule)
     {
-        LOGIA_ASSERT(number_as_text == nullptr);
+        LOGIA_VERIFY(number_as_text != nullptr);
         // TODO number literals with dashes need to be cleaned right ?
 
         // alloc one more space for sign and negate without any allocation
         auto length = strlen(number_as_text);
-        LOGIA_ASSERT(length == 0);
+        LOGIA_VERIFY(length > 0);
         this->value_str = (char *)malloc(length + 2); // 1 for sign, 1 for null
         strncpy(this->value_str, number_as_text, length);
         this->value_str[length] = '\0'; // Ensure null termination
@@ -480,10 +480,28 @@ namespace logia::AST
 
     llvm::Value *FloatLiteral::post_codegen(logia::Backend *backend)
     {
-        LOG(DBG, "{} to float!", this->value_str);
         auto type = this->get_final_type();
+        Float *float_type;
+        LOG(DBG, "'{}' of type '{}' with value {}!", this->value_str, type->get_repr(), this->value.convertToDouble());
 
-        this->cg_value = llvm::ConstantFP::get(type->ir_type, this->value);
+        if (!type->try_cast<Float>(&float_type))
+        {
+            throw_semantic_error(this, LGERR_CONSTEX006);
+        }
+        switch (float_type->bits)
+        {
+        case 32:
+            // troubleshooting -> lead to use string no APFloat, can't find the resoning...
+            // this->cg_value = llvm::ConstantFP::get(type->ir_type, this->value.convertToFloat());
+            // Assertion failed: isRepresentableBy(getSemantics(), semIEEEsingle) && "Float semantics is not representable by IEEEsingle", file C:\Users\runneradmin\llvm\lib\Support\APFloat.cpp, line 5595
+            // this->cg_value = llvm::ConstantFP::get(type->ir_type, this->value);
+            // Assertion failed: C->getType() == Ty->getScalarType() && "ConstantFP type doesn't match the type implied by its value!", file C:\Users\runneradmin\llvm\lib\IR\Constants.cpp, line 1004
+            this->cg_value = llvm::ConstantFP::get(type->ir_type, this->value_str);
+            break;
+        case 64:
+            this->cg_value = llvm::ConstantFP::get(type->ir_type, this->value_str);
+            break;
+        }
         return ConstExpression::post_codegen(backend);
     }
 
@@ -499,7 +517,7 @@ namespace logia::AST
     StringLiteral::StringLiteral(antlr4::ParserRuleContext *rule, const char *text) : ConstExpression(rule)
     {
         // assert not null, or llvm will crash without any message :S
-        LOGIA_ASSERT(text == nullptr);
+        LOGIA_VERIFY(text != nullptr);
 
         this->text = _strdup(text);
     }

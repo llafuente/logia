@@ -1,0 +1,7 @@
+function sum(i64 a, i64 b = 15) i64 {
+    return a + b;
+}
+
+function main() i64 {
+    return sum(10)
+}

@@ -67,8 +67,8 @@ namespace logia::AST
         /// @brief The integer value as text, we will parse it at codegen to support different bases and sizes
         char *value_str = nullptr;
         /// @brief "Biggest" float
-        llvm::APFloat value = llvm::APFloat::IEEEdouble();
-        // llvm::APFloat value = llvm::APFloat((double)0.0);
+        // llvm::APFloat value = llvm::APFloat::IEEEdouble();
+        llvm::APFloat value = llvm::APFloat((double)0.0);
 
         /// @brief the type
         Type *type = nullptr;

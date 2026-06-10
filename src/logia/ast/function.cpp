@@ -24,8 +24,8 @@ namespace logia::AST
         Type *type,
         Node *defaultValue) : Node(name->rule), alloca_inst(nullptr)
     {
-        LOGIA_ASSERT(name == nullptr);
-        LOGIA_ASSERT(type == nullptr);
+        LOGIA_VERIFY(name != nullptr);
+        LOGIA_VERIFY(type != nullptr);
 
         this->is_typed = true;
         name->skip_codegen = true;
@@ -79,7 +79,7 @@ namespace logia::AST
 
     Function::Function(antlr4::ParserRuleContext *rule, Identifier *name, Type *return_type, bool is_intrinsic) : Type(rule, Primitives::FUNCTION_TY)
     {
-        LOGIA_ASSERT(name == nullptr, "name parameter is required");
+        LOGIA_VERIFY(name != nullptr, "name parameter is required");
 
         this->is_typed = true;
         name->skip_codegen = true;
@@ -349,7 +349,7 @@ namespace logia::AST
     void Function::push_parameter(FunctionParameter *param)
     {
 
-        LOGIA_ASSERT(this->is_attached, "Function type should be created before attached");
+        LOGIA_VERIFY(this->is_attached == false, "Function type should be created before attached");
         param->index = this->get_parameter_count();
         this->push_child(param);
         if (!this->is_intrinsic)
@@ -475,7 +475,7 @@ namespace logia::AST
 
     LOGIA_API LOGIA_LEND Type *ast_create_instrinsic(Program *program, Identifier *id, Type *return_type)
     {
-        LOGIA_ASSERT(program == nullptr);
+        LOGIA_VERIFY(program != nullptr);
 
         auto f = new Function(nullptr, id, return_type, true);
 

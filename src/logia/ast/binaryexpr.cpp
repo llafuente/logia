@@ -1,5 +1,6 @@
 #include "logia/ast/binaryexpr.h"
 
+#include "utils.h"
 #include "logia/log.h"
 #include "logia/type_system.h"
 #include "logia/type_inference.h"
@@ -12,6 +13,7 @@
 #include "logia/ast/cast.h"
 #include "logia/ast/llvm.h"
 #include "logia/ast/program.h"
+#include "logia/ast/function.h"
 
 #include <format>
 
@@ -19,55 +21,41 @@
 
 namespace logia::AST
 {
+    uint64_t expr_logical_count = 0;
     //
     // BinaryExpression
     //
 
     std::string BinaryExpression::to_string()
     {
-        return std::format("BinaryExpression [{}]", ast_operator_to_function_name(this->op), Expression::to_string());
+        return std::format("BinaryExpression [{}]{}", ast_operator_to_function_name(this->op), Node::to_string());
     }
 
     BinaryExpression::BinaryExpression(antlr4::ParserRuleContext *rule, Expression *left, Operators op, Expression *right) : Expression(rule)
     {
         this->op = op;
 
-        switch (op)
+        if (op == Operators::BINARY_ASSIGN)
         {
-        case Operators::BINARY_ASSIGN:
             this->push_child(left);
-            break;
-        case Operators::BINARY_ADD_ASSIGN:
-        case Operators::BINARY_SUB_ASSIGN:
-        case Operators::BINARY_MUL_ASSIGN:
-        case Operators::BINARY_DIV_ASSIGN:
+        }
+        else if (is_assignament_operator(this->op))
+        {
             this->push_child(new UnaryExpression(this->rule, Operators::PREFIX_DEREFERENCE, left));
-            break;
-        default:
-            this->push_child(left);
-            break;
         }
-        this->push_child(right);
-    }
-
-    bool BinaryExpression::is_assignament()
-    {
-        switch (this->op)
+        else
         {
-        case Operators::BINARY_ASSIGN:
-        case Operators::BINARY_ADD_ASSIGN:
-        case Operators::BINARY_SUB_ASSIGN:
-        case Operators::BINARY_MUL_ASSIGN:
-        case Operators::BINARY_DIV_ASSIGN:
-            return true;
+            this->push_child(left);
         }
-        return false;
+
+        this->push_child(right);
     }
 
     Type *BinaryExpression::get_type()
     {
         return this->type;
     }
+
     void BinaryExpression::_set_type(Type *ty)
     {
         this->type = ty;
@@ -77,59 +65,120 @@ namespace logia::AST
     {
         return this->get_child<Expression>(0);
     }
+
     Expression *BinaryExpression::get_right()
     {
         return this->get_child<Expression>(1);
     }
 
+    void BinaryExpression::__enforce_assignament_type(Type *left_ty, Type *right_ty)
+    {
+        auto right = this->get_right();
+        auto err = type_system::type_is_compatible(left_ty, right_ty);
+        if (err.is_error())
+        {
+            auto derr = err.unwrap_error();
+            // pass left type to right expr if it's a ConstExpression
+            if (derr.contains(type_system::type_compatibility::EXPLICIT_CAST) && right->is<ConstExpression>())
+            {
+                right->set_type(left_ty);
+                return;
+            }
+            // display the casting error
+            throw_semantic_error(this, err.message);
+        }
+        auto result = err.unwrap_success();
+        // it's ok -> autocast ?
+        if (result.contains(type_system::type_compatibility::AUTOCAST_CAST))
+        {
+            this->replace(right, new Cast(right->rule, right, left_ty));
+            type_inference_node(this->first_parent<Program>(), this->get_right());
+            LOG(DBG, "\n\n\n\n\n{}", this->to_string_tree());
+            return;
+        }
+        // it's ok, fully compatible
+        if (((uint32_t)result & (uint32_t)type_system::type_compatibility::LAYOUT_COMPATIBLE) != 0 || ((uint32_t)result & (uint32_t)type_system::type_compatibility::YES) != 0)
+        {
+            right->set_type(left_ty);
+            return;
+        }
+        // hell!
+        throw_compiler_error("unreable");
+    }
+
     void BinaryExpression::_pre_type_inference()
     {
         auto left = this->get_left();
-        left->pre_type_inference();
+        // left->pre_type_inference();
         auto left_ty = left->get_final_type();
-        if (this->is_assignament())
+
+        auto right = this->get_right();
+        auto right_ty = right->get_final_type();
+
+        if (left_ty == nullptr)
+        {
+            LOG(DBG, "lhs is not ready {}", this->to_string_tree());
+            return; // next time!
+        }
+        if (right_ty == nullptr)
+        {
+            LOG(DBG, "rhs is not ready {}", this->to_string_tree());
+            return; // next time!
+        }
+
+        if (op == Operators::BINARY_ASSIGN)
+        {
+            // same/comptible types ?!
+            if (left->is<ConstExpression>())
+            {
+                throw_semantic_error(this, LGERR_BINEXPR002);
+            }
+
+            this->__enforce_assignament_type(left_ty, right_ty);
+            this->set_type(left_ty);
+        }
+        else if (is_assignament_operator(this->op))
         {
             if (left->is<ConstExpression>())
             {
-                throw_semantic_error(this, "LGER032 lhs cannot be a constant expression");
+                throw_semantic_error(this, LGERR_BINEXPR002);
             }
-            if (left_ty == nullptr || left_ty->is<InferType>())
-            {
-                return; // TODO we cannot determine type atm! what we do ?
-            }
-            auto right = this->get_right();
-            auto right_ty = right->get_final_type();
 
-            auto err = type_system::type_is_compatible(left_ty, right_ty);
-            if (err.is_error())
+            // right_ty should be a ref!
+            Ref *ref_left_ty;
+            if (!left_ty->try_cast<Ref>(&ref_left_ty))
             {
-                auto derr = err.unwrap_error();
-                // pass left type to right type if it's ConstExpression
-                if (derr.contains(type_system::type_compatibility::EXPLICIT_CAST) && right->is<ConstExpression>())
-                {
-                    right->set_type(left_ty);
-                    return Expression::_pre_type_inference();
-                }
-                throw_semantic_error(this, err.message);
+                LOG_ERR("{}", this->to_string_tree());
+                throw_semantic_error(right, std::format(LGERR_BINEXPR001, left_ty->get_repr()));
             }
-            auto result = err.unwrap_success();
-            if (result.contains(type_system::type_compatibility::AUTOCAST_CAST))
-            {
-                this->replace(right, new Cast(right->rule, right, left_ty));
-                type_inference_node(this->first_parent<Program>(), this->get_right());
-                LOG(DBG, "\n\n\n\n\n{}", this->to_string_tree());
-                return Expression::_pre_type_inference();
-            }
-            if (((uint32_t)result & (uint32_t)type_system::type_compatibility::LAYOUT_COMPATIBLE) != 0 || ((uint32_t)result & (uint32_t)type_system::type_compatibility::YES) != 0)
-            {
-                right->set_type(left_ty);
-                return Expression::_pre_type_inference();
-            }
-            throw_compiler_error("unreable");
+            this->__enforce_assignament_type(ref_left_ty->get_pointee(), right_ty);
         }
         else if (is_logical_operator(this->op))
         {
-            // this->set_type(this->look)
+            this->set_type(scope_lookup_first(this, "bool")->as<Type>());
+        }
+
+        switch (op)
+        {
+        case Operators::BINARY_ASSIGN:
+        case Operators::BINARY_LOGICAL_AND:
+        case Operators::BINARY_LOGICAL_OR:
+            break;
+        default:
+            auto locator = new Identifier(this->rule, ast_operator_to_function_name(op));
+
+            this->call_expr = new CallExpression(this->rule, locator, {left, right});
+            LOG(DBG, "transform binaryexpr into function call: {}", (void *)this->call_expr);
+            // makes no sense but need to keep this node attached
+            this->push_child(this->call_expr);
+
+            this->call_expr->pre_type_inference();
+            this->call_expr->post_type_inference();
+            assert(this->call_expr->is_pre_type_inference);
+            LOGIA_VERIFY(this->call_expr->is_pre_type_inference == true);
+            LOGIA_VERIFY(this->call_expr->is_post_type_inference == true);
+            LOGIA_VERIFY(this->call_expr->callee != nullptr);
+            this->set_type(this->call_expr->get_type());
         }
 
         Expression::_pre_type_inference();
@@ -137,53 +186,50 @@ namespace logia::AST
 
     void BinaryExpression::_post_type_inference()
     {
-        auto left = this->get_left();
-        auto left_ty = left->get_final_type();
-        if (left_ty->is<InferType>())
+        switch (this->op)
         {
-            LOG_ERR("{}", this->to_string_tree());
-            throw_compiler_error("Unexpected left side infer type");
-        }
-        auto right = this->get_right();
-        auto right_ty = right->get_final_type();
-        if (right_ty->is<InferType>())
+        case Operators::BINARY_LOGICAL_AND:
+        case Operators::BINARY_LOGICAL_OR:
         {
-            LOG_ERR("{}", this->to_string_tree());
-            throw_compiler_error("Unexpected right side infer type");
-        }
-        switch (op)
-        {
-        case Operators::BINARY_ASSIGN:
-        {
-            this->set_type(left_ty);
-        }
-        break;
-        default:
-            auto locator = new Identifier(this->rule, ast_operator_to_function_name(op));
+            Integer *int_ty;
+            auto left = this->get_left();
+            if (!left->get_final_type()->try_cast<Integer>(&int_ty))
+            {
+                throw_semantic_error(left, LGERR_BINEXPR003);
+            }
+            if (int_ty->bits != 1)
+            {
+                throw_semantic_error(left, LGERR_BINEXPR003);
+            }
 
-            this->call_expr = new CallExpression(this->rule, locator, {left, right});
-            // makes no sense but need to keep this node attached
-            this->push_child(this->call_expr);
-
-            this->call_expr->pre_type_inference();
-            this->call_expr->post_type_inference();
-            this->set_type(this->call_expr->get_type());
+            auto right = this->get_right();
+            if (!right->get_final_type()->try_cast<Integer>(&int_ty))
+            {
+                throw_semantic_error(right, LGERR_BINEXPR004);
+            }
+            if (int_ty->bits != 1)
+            {
+                throw_semantic_error(right, LGERR_BINEXPR004);
+            }
+            break;
         }
-
-        this->is_typed = true;
+        }
         Expression::_post_type_inference();
     }
     llvm::Value *BinaryExpression::post_codegen(logia::Backend *backend)
     {
         auto left = this->get_left();
-        // auto left_ty = left->get_final_type();
-        auto left_value = left->codegen(backend);
         auto right = this->get_right();
-        // auto right_ty = right->get_final_type();
-        auto right_value = right->codegen(backend);
-        switch (op)
+
+        switch (this->op)
         {
         case Operators::BINARY_ASSIGN:
+        {
+            // auto left_ty = left->get_final_type();
+            auto left_value = left->codegen(backend);
+            // auto right_ty = right->get_final_type();
+            auto right_value = right->codegen(backend);
+
             right_value = llvm_load_if_required(right_value, backend);
 
             auto store = backend->builder->CreateStore(right_value, left_value, false);
@@ -191,6 +237,71 @@ namespace logia::AST
             this->cg_value = left_value;
 
             return left_value;
+        }
+        case Operators::BINARY_LOGICAL_AND:
+        {
+            auto start_bb = backend->builder->GetInsertBlock();
+            auto func = this->first_parent<Function>();
+
+            const char *test_rhs_name = std::format("logia_test_rhs_{}", expr_logical_count).c_str();
+            llvm::BasicBlock *test_rhs = llvm::BasicBlock::Create(backend->context, test_rhs_name, func->ir_func);
+            const char *phi_bb_name = std::format("logia_phi_bb_{}", expr_logical_count).c_str();
+            llvm::BasicBlock *phi_bb = llvm::BasicBlock::Create(backend->context, phi_bb_name, func->ir_func);
+            ++expr_logical_count;
+
+            auto left_value = left->codegen(backend);
+            left_value = llvm_load_if_required(left_value, backend);
+            backend->builder->CreateCondBr(left_value, test_rhs, phi_bb);
+            backend->builder->SetInsertPoint(test_rhs);
+
+            auto right_value = right->codegen(backend);
+            right_value = llvm_load_if_required(right_value, backend);
+            backend->builder->CreateBr(phi_bb);
+
+            backend->builder->SetInsertPoint(phi_bb);
+            auto i1 = scope_lookup_first(this, "bool")->as<Type>();
+            auto phi = backend->builder->CreatePHI(i1->ir_type, 2);
+
+            phi->addIncoming((new AST::IntegerLiteral(nullptr, "0", i1))->codegen(backend), start_bb);
+            phi->addIncoming(right_value, test_rhs);
+
+            backend->set_debug_loc((llvm::Instruction *)phi, this->rule);
+            this->cg_value = phi;
+
+            return phi;
+        }
+        case Operators::BINARY_LOGICAL_OR:
+        {
+            auto start_bb = backend->builder->GetInsertBlock();
+            auto func = this->first_parent<Function>();
+
+            const char *test_rhs_name = std::format("logia_test_rhs_{}", expr_logical_count).c_str();
+            llvm::BasicBlock *test_rhs = llvm::BasicBlock::Create(backend->context, test_rhs_name, func->ir_func);
+            const char *phi_bb_name = std::format("logia_phi_bb_{}", expr_logical_count).c_str();
+            llvm::BasicBlock *phi_bb = llvm::BasicBlock::Create(backend->context, phi_bb_name, func->ir_func);
+            ++expr_logical_count;
+
+            auto left_value = left->codegen(backend);
+            left_value = llvm_load_if_required(left_value, backend);
+            backend->builder->CreateCondBr(left_value, phi_bb, test_rhs);
+            backend->builder->SetInsertPoint(test_rhs);
+
+            auto right_value = right->codegen(backend);
+            right_value = llvm_load_if_required(right_value, backend);
+            backend->builder->CreateBr(phi_bb);
+
+            backend->builder->SetInsertPoint(phi_bb);
+            auto i1 = scope_lookup_first(this, "bool")->as<Type>();
+            auto phi = backend->builder->CreatePHI(i1->ir_type, 2);
+
+            phi->addIncoming((new AST::IntegerLiteral(nullptr, "1", i1))->codegen(backend), start_bb);
+            phi->addIncoming(right_value, test_rhs);
+
+            backend->set_debug_loc((llvm::Instruction *)phi, this->rule);
+            this->cg_value = phi;
+
+            return phi;
+        }
         }
 
         this->cg_value = this->call_expr->codegen(backend);

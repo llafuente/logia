@@ -5,7 +5,16 @@ namespace logia::AST
 {
     struct CallExpression;
 
+    /// @brief counter to generate unique block labels
+    extern uint64_t expr_logical_count;
+
     /// @brief Binary expression, used for binary operators
+    /// @details
+    /// Binary/Unary expressions in logia are implemented the following way
+    /// assignament -> check lhs and rhs are compatible (casting rhs if possible) -> use store instruction (TODO structs)
+    /// logical and -> check lhs and rhs are booleans -> create the jumps/blocks and phi
+    /// logical or -> check lhs and rhs are booleans -> create the jumps/blocks and phi
+    /// the reset are calls to functions defined in intrinsics.ll
     /// @remarks Implemented as a call expression to be able to resolve operator overloads and use intrinsics for codegen
     struct BinaryExpression : Expression
     {
@@ -18,8 +27,6 @@ namespace logia::AST
 
         BinaryExpression(antlr4::ParserRuleContext *rule, Expression *left, Operators op, Expression *right);
 
-        /// @brief Checks if the operator is an assignment operator (=, +=, -=, etc.)
-        bool is_assignament();
         /// @brief Gets the left-hand side expression of the binary expression
         /// @return The left-hand side expression
         Expression *get_left();
@@ -44,6 +51,9 @@ namespace logia::AST
         void _set_type(Type *type) override;
         void _pre_type_inference() override;
         void _post_type_inference() override;
+
+    private:
+        void __enforce_assignament_type(Type *left_ty, Type *right_ty);
     };
 
     LOGIA_API LOGIA_LEND BinaryExpression *ast_create_binary_expr(Expression *left, Operators op, Expression *right);

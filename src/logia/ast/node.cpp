@@ -73,7 +73,7 @@ namespace logia::AST
         if (this->is_typed)
         {
             flags += (flags.length() ? "," : "");
-            flags += "isty";
+            flags += "typed";
         }
         if (this->skip_codegen)
         {
@@ -301,27 +301,28 @@ namespace logia::AST
     void Node::_pre_type_inference()
     {
         this->is_pre_type_inference = true;
+        /* remove this test as we are going to retry on type_inference!
+        #if _DEBUG
+                // everyone should have is_pre_type_inference!
+                for (size_t i = 0; i < this->children.size(); ++i)
+                {
+                    if (!this->children[i]->has_type)
+                        continue;
 
-#if _DEBUG
-        // everyone should have is_pre_type_inference!
-        for (size_t i = 0; i < this->children.size(); ++i)
-        {
-            if (!this->children[i]->has_type)
-                continue;
+                    if (this->children[i]->skip_type_inference)
+                        continue;
 
-            if (this->children[i]->skip_type_inference)
-                continue;
+                    if (!this->children[i]->is_pre_type_inference)
+                    {
+                        std::cerr << this->to_string_tree() << std::endl
+                                  << "-------------------" << std::endl
+                                  << this->children[i]->to_string() << std::endl;
 
-            if (!this->children[i]->is_pre_type_inference)
-            {
-                std::cerr << this->to_string_tree() << std::endl
-                          << "-------------------" << std::endl
-                          << this->children[i]->to_string() << std::endl;
-
-                throw_compiler_error(std::format("Invalid children[{}] state, should have is_pre_type_inference", i));
-            }
-        }
-#endif
+                        throw_compiler_error(std::format("Invalid children[{}] state, should have is_pre_type_inference", i));
+                    }
+                }
+        #endif
+        */
     }
 
     void Node::post_type_inference()

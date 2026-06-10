@@ -1,0 +1,18 @@
+type point = struct {
+    i64 x
+    i64 y
+}
+
+function xx () point {
+    var point c = {99,99}
+    return c
+}
+
+function main() i64 {
+    var point c = {0,0}
+    c = xx()
+
+    var point d = xx()
+
+    return c.x + d.x
+}

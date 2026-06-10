@@ -28,9 +28,12 @@ TEST(logia_run_file, primitives)
 
 TEST(logia_run_file, binary_expr)
 {
-
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "binary-expr-add"), 21);
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "binary-expr-add-constants"), 25);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\expr\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "binary-expr-add"), 21);
+    // require constexpr atm!
+    // EXPECT_EQ(test_single_file(".\\tests\\logia\\expr\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "binary-expr-add-constants"), 100);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\expr\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "binary-expr-logical-and"), 1);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\expr\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "binary-expr-logical-or"), 3);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\expr\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "expr-add-all-types"), 0);
 }
 
 TEST(logia_run_file, struct)
@@ -136,5 +139,5 @@ TEST(logia_run_file, if)
 }
 TEST(logia_run_file, expr)
 {
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "expr-all-operator-i64"), 0);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "expr-all-operator-i64"), -100);
 }

@@ -110,7 +110,7 @@ namespace logia::AST
 
     void Struct::set_identifier(Identifier *id)
     {
-        LOGIA_ASSERT(id == nullptr, "id parameters is required");
+        LOGIA_VERIFY(id != nullptr, "id parameters is required");
 
         if (this->has_name)
         {
@@ -306,8 +306,8 @@ namespace logia::AST
 
     void Struct::add_alias(antlr4::ParserRuleContext *rule, Identifier *from, Identifier *to, const char *docstring)
     {
-        LOGIA_ASSERT(from == nullptr);
-        LOGIA_ASSERT(to == nullptr);
+        LOGIA_VERIFY(from != nullptr);
+        LOGIA_VERIFY(to != nullptr);
 
         // TODO exists to ?
         // TODO exists from ?

@@ -3,6 +3,7 @@
 #include "logia/backend.h"
 #include "logia/ast/identifier.h"
 #include "logia/ast/callexpr.h"
+#include "logia/ast/type.h"
 
 #include "llvm/IR/DerivedTypes.h"
 
@@ -60,8 +61,7 @@ namespace logia::AST
         {
         case Operators::PREFIX_DEREFERENCE:
         {
-            // this->set_type(this->first_parent<Scope>()->lookup<Type>("ptr"));
-            this->set_type(operand_ty);
+            this->set_type(operand_ty->get_pointer_to());
 
             break;
         }
@@ -86,6 +86,7 @@ namespace logia::AST
     void UnaryExpression::_set_type(Type *ty)
     {
         this->type = ty;
+        /*
         // foward the type depending on the operator
         switch (op)
         {
@@ -103,6 +104,7 @@ namespace logia::AST
         default:
             throw_compiler_error("unreachable");
         }
+            */
     }
 
     llvm::Value *UnaryExpression::post_codegen(logia::Backend *backend)

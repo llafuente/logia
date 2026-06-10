@@ -1,0 +1,13 @@
+function main() i32 {
+    var i16 a = 0;
+    // i32.max
+    var i32 max = 2147483647
+    //var i32 min = -2_147_483_648
+    //var i32 min = -2147483648
+    max = a;
+
+    // 2147418112 is wrong, means no cast just store 16 lower bits
+    // 0 is the real value!
+
+    return max
+}

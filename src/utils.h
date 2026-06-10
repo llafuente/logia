@@ -23,24 +23,13 @@ void print_stack_trace();
 #define SELECT_MACRO(_1, _2, NAME, ...) NAME
 
 // Main macro that chooses the correct version based on arg count
-#define LOGIA_ASSERT(...) SELECT_MACRO(__VA_ARGS__, LOGIA_ASSERT2, LOGIA_ASSERT1)(__VA_ARGS__)
+// #define LOGIA_VERIFY(...) SELECT_MACRO(__VA_ARGS__, LOGIA_VERIFY_1, LOGIA_VERIFY_2)(__VA_ARGS__)
+#define LOGIA_VERIFY(...) SELECT_MACRO(__VA_ARGS__, LOGIA_VERIFY_2, LOGIA_VERIFY_1)(__VA_ARGS__)
 
-#define LOGIA_VERIFY(expr)                                                     \
+#define LOGIA_VERIFY_1(expr)                                                   \
     do                                                                         \
     {                                                                          \
-        if (!!(expr))                                                          \
-        {                                                                      \
-            std::cerr << "Verify failed: " << #expr                            \
-                      << "\nAt file: " << __FILE__ << ":" << __LINE__ << "\n"; \
-            print_stack_trace();                                               \
-            std::abort();                                                      \
-        }                                                                      \
-    } while (0)
-
-#define LOGIA_ASSERT1(expr)                                                    \
-    do                                                                         \
-    {                                                                          \
-        if (!!(expr))                                                          \
+        if (!(!!(expr)))                                                       \
         {                                                                      \
             std::cerr << "Assertion failed: " << #expr                         \
                       << "\nAt file: " << __FILE__ << ":" << __LINE__ << "\n"; \
@@ -49,10 +38,10 @@ void print_stack_trace();
         }                                                                      \
     } while (0)
 
-#define LOGIA_ASSERT2(expr, message)                                        \
+#define LOGIA_VERIFY_2(expr, message)                                       \
     do                                                                      \
     {                                                                       \
-        if (!!(expr))                                                       \
+        if (!(!!(expr)))                                                    \
         {                                                                   \
             std::cerr << "Assertion failed: " << #expr                      \
                       << message                                            \

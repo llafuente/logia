@@ -770,11 +770,11 @@ namespace logia
         {
             return;
         }
-        LOGIA_ASSERT(context == nullptr);
+        LOGIA_VERIFY(context != nullptr);
 
         if (scope == nullptr)
         {
-            LOGIA_ASSERT(this->dscopes.size() > 0);
+            LOGIA_VERIFY(this->dscopes.size() == 0);
             scope = this->dscopes[this->dscopes.size() - 1];
         }
 

@@ -1,0 +1,35 @@
+type point = struct {
+    i64 x
+    i64 y
+}
+
+/*
+operator + (i64 a, i64 b) i64 {
+    return logia_intrinsics_bin_add_i64_i64(a, b)
+}
+
+operator + (point a, point b) point {
+    var point output = {0,0}
+    //output.x = a.x + b.x
+    //output.y = a.y + b.y
+    return output
+}
+*/
+
+function xx () point {
+    var point c = {99,99}
+    return c
+}
+
+function main() i64 {
+    var point a = {10, 11}
+    var point b = {13, 14}
+    var point c = {0,0}
+
+    //c = a + b
+
+    //return c.x + c.y
+    c = xx()
+    var point d = xx()
+    return c.x
+}

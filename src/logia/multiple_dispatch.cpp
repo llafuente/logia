@@ -66,8 +66,8 @@ namespace logia::multiple_dispatch
                     auto compatibility = type_system::type_is_compatible(arg_type, param_type);
                     if (compatibility.is_success())
                     {
-                        auto c = (uint32_t)compatibility.unwrap_success();
-                        LOG(DBG, "paramter/argument by name[{}] of type [{}] compatibility = {}", param_name->identifier, param_type->get_repr(), c);
+                        auto c = compatibility.unwrap_success();
+                        LOG(DBG, "paramter/argument by name[{}] of type [{}] compatibility = {}", param_name->identifier, param_type->get_repr(), c.to_string());
 
                         used_params[param_index++] = true;
                         used_args[arg->index] = true;
@@ -111,7 +111,7 @@ namespace logia::multiple_dispatch
 
                 } // this param should be check in the next round, by position
             }
-#ifdef _DEBUG
+#ifdef _SILLY
             {
                 std::string debug = "\nparams = ";
                 for (size_t i = 0; i < used_params.size(); ++i)
@@ -141,8 +141,8 @@ namespace logia::multiple_dispatch
                     auto compatibility = type_system::type_is_compatible(arg_type, param_type);
                     if (compatibility.is_success())
                     {
-                        auto c = (uint32_t)compatibility.unwrap_success();
-                        LOG(DBG, "parameter/argument by position[{}] of type [{}] compatibility = {}", param_name->identifier, param_type->get_repr(), c);
+                        auto c = compatibility.unwrap_success();
+                        LOG(DBG, "parameter/argument by position[{}] of type [{}] compatibility = {}", param_name->identifier, param_type->get_repr(), c.to_string());
 
                         used_params[param_index++] = true;
                         used_args[arg->index] = true;
@@ -254,13 +254,13 @@ namespace logia::multiple_dispatch
                 if (m.is_success())
                 {
                     auto f = m.unwrap_success();
-                    LOG(DBG, "candidate points = {}", f);
+                    LOG(DBG, "candidate OK with {} points", f);
                     candidates.push_back({f, func});
                 }
                 else
                 {
                     auto f = m.unwrap_error();
-                    LOG(DBG, "candidate no good = {}", f.reason.to_string());
+                    LOG(DBG, "candidate KO {} / {}", f.reason.to_string(), m.message);
                 }
             }
             else
@@ -287,30 +287,33 @@ namespace logia::multiple_dispatch
 
         if (candidates.size() == 1)
         {
-            return std::get<1>(candidates[0]);
+            auto f = std::get<1>(candidates[0]);
+            LOG(DBG, "return the only viable candidate: {} {}", (void *)f, f->get_repr());
+            return f;
         }
 
         // from all valid candidates, we should have only one with "1"
-        Function *candidate1 = nullptr;
+        Function *candidate_with_1point = nullptr;
         for (const auto &candidate : candidates)
         {
             if (std::get<0>(candidate) == 1)
             {
-                if (candidate1 == nullptr)
+                if (candidate_with_1point == nullptr)
                 {
-                    candidate1 = std::get<1>(candidate);
+                    candidate_with_1point = std::get<1>(candidate);
                 }
                 else
                 {
                     // two with 1 ? OMG! -> show the error!
-                    candidate1 = nullptr;
+                    candidate_with_1point = nullptr;
                     break;
                 }
             }
         }
-        if (candidate1 != nullptr)
+        if (candidate_with_1point != nullptr)
         {
-            return candidate1;
+            LOG(DBG, "return the only 1 point candidate: {} {}", (void *)candidate_with_1point, candidate_with_1point->get_repr());
+            return candidate_with_1point;
         }
 
         std::string debug_candidates = "";

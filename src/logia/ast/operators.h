@@ -51,6 +51,8 @@ namespace logia::AST
         POSTFIX_INCREMENT = 256, // ++
         POSTFIX_DECREMENT,       // --
     };
+    /// @brief Returns if given operator is an assignament
+    bool is_assignament_operator(Operators op);
     /// @brief Returns if given operator is a bitwise
     bool is_bitwise_operator(Operators op);
     /// @brief Returns if given operator is a comparison

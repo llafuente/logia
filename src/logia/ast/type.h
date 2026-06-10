@@ -75,6 +75,7 @@ namespace logia::AST
         llvm::Value *post_codegen(logia::Backend *backend) override;
         Type *get_type() override;
         void post_attach() override;
+        virtual Type *get_pointer_to();
 
     protected:
         void _set_type(Type *type) override;
@@ -148,6 +149,28 @@ namespace logia::AST
         // NOTE Integer is a primitive, won't have rule
         Pointer();
         ~Pointer();
+
+        std::string to_string() override;
+
+        std::string get_repr() override;
+
+        void pre_codegen(logia::Backend *backend) override;
+
+        void post_attach() override;
+    };
+
+    /// @brief Represents a referente to a single object (it's a pointer that chan't move!!)
+    /// @remarks llvm is created at pre_codegen, so it will be available anytime!
+    struct Ref : public Pointer
+    {
+    public:
+        Type *pointee;
+
+        // NOTE Integer is a primitive, won't have rule
+        Ref(Type *pointee);
+        ~Ref();
+
+        Type *get_pointee();
 
         std::string to_string() override;
 

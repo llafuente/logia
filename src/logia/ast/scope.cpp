@@ -66,7 +66,7 @@ namespace logia::AST
     {
         // keep parent body in sync regardless being already attached, allow blocks to be moved.
         auto parentBody = this->first_parent<Scope>();
-        LOGIA_ASSERT(parentBody == nullptr);
+        LOGIA_VERIFY(parentBody != nullptr);
         this->parentScope = parentBody;
         Node::post_attach();
     }
@@ -117,6 +117,33 @@ namespace logia::AST
         out.erase(std::unique(out.begin(), out.end()), out.end());
 
         return logia::utils::make_success<std::vector<Node *>, bool>(out);
+    }
+
+    LOGIA_API Node *scope_lookup_first(Node *node, const char *name)
+    {
+        LOG(DBG, "({}) from = {}", name, node->to_string());
+
+        if (!node->is_attached)
+        {
+            LOG_ERR("{}", node->to_string());
+            return nullptr;
+        }
+
+        auto out = std::vector<Node *>();
+
+        std::string_view name_view(name);
+        Scope *p = scope_closest(node);
+        do
+        {
+            auto it = p->scope.find(name_view);
+            if (it != p->scope.end())
+            {
+                return it->second.begin()[0];
+            }
+            p = p->parentScope;
+        } while (p != nullptr);
+
+        return nullptr;
     }
 
     bool scope_set(Node *node, const char *name, Node *what, bool unique)

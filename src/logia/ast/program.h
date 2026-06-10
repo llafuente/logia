@@ -14,11 +14,13 @@ namespace logia::AST
     struct Identifier;
     struct Intrinsic;
 
-    // Design
-    // A program do not need Backend information, but a logia Program does!
-    // When creating a program we fill primitives and a bit later intrinsics,
-    // those instrinsics need a llvm type to logia type conversion and that require
-    // backend in the early stage. Not the end of the world, just leave the note to know
+    // Design/Implementation notes
+    // bootstraping need a little back and forth to make it work
+    // A program do not need Backend information (until codegen), but a logia Program does (before)!
+    // Program defines language primitives that will be codegen later, but intrinsics are defined at IR file
+    // require LLVM Types to be able to go from LLVM IR to AST so we codegen_primitives before codegen
+    // in the early stage. Not the end of the world, just leave the note to know, because this is atm,
+    // the only node that requires backend early
 
     /// @brief Root of the AST, contains all the top level declarations, statements and imports
     struct Program : public Block

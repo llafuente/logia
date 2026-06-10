@@ -1,25 +1,34 @@
+function expect(bool t) i32 {
+    return 0
+}
+
+
 function main() i64 {
     var i64 a = 100
     var i64 b = 10
     var i64 c = 0
+    var bool cmp = false
 
     c = a + b
+    expect(c == 110)
     c = a - b
+    expect(c == 90)
     c = a * b
     c = a / b
     c = a % b
 
-    a == b
-    a != b
-    a < b
-    a > b
-    a <= b
-    a >= b
+    cmp = a == b
+    cmp = a != b
+    cmp = a < b
+    cmp = a > b
+    cmp = a <= b
+    cmp = a >= b
 
     c += a;
     c -= a;
     c *= a;
     c /= a;
+
     // bitwise
     c = a & b;
     c = a | b;
@@ -29,8 +38,9 @@ function main() i64 {
     c = a >> 2;
 
     c = -a;
-    //!a;
 
-    return 0
+    //c = !a;
+
+    return c
 
 }

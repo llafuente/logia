@@ -1,0 +1,73 @@
+function main() i32 {
+    var i32 acc = 0
+    {
+        var i8 a = 1
+        var i8 b = 2
+        var i8 c = a + b
+
+        // acc += cast(i32, c)
+        // acc += cast<i32>(c)
+    }
+    {
+        var i16 a = 1
+        var i16 b = 2
+        var i16 c = a + b
+    }
+    {
+        var i32 a = 1
+        var i32 b = 2
+        var i32 c = a + b
+    }
+    {
+        var i64 a = 1
+        var i64 b = 2
+        var i64 c = a + b
+    }
+
+
+    {
+        var u8 a = 1
+        var u8 b = 2
+        var u8 c = a + b
+
+        // acc += cast(u32, c)
+        // acc += cast<u32>(c)
+    }
+    {
+        var u16 a = 1
+        var u16 b = 2
+        var u16 c = a + b
+    }
+    {
+        var u32 a = 1
+        var u32 b = 2
+        var u32 c = a + b
+    }
+    {
+        var u64 a = 1
+        var u64 b = 2
+        var u64 c = a + b
+    }
+
+    {
+        var f32 a = 1
+        var f32 b = 2
+        var f32 c = a + b
+    }
+    {
+        var f64 a = 1
+        var f64 b = 2
+        var f64 c = a + b
+    }
+    {
+        var f32 a = 1.1
+        var f32 b = 2.1
+        var f32 c = a + b
+    }
+    {
+        var f64 a = 1.1
+        var f64 b = 2.1
+        var f64 c = a + b
+    }
+    return 0
+}

@@ -179,7 +179,26 @@ namespace logia::AST
         std::string to_string() override;
         llvm::Value *post_codegen(logia::Backend *backend) override;
     };
+    /*
+        /// @brief Defines an intrinsic function that will be resolved as operator overloading
+        struct LOGIA_EXPORT OperatorIntrinsic : public Intrinsic
+        {
+            /// @brief The real name of the intrinsic function, used to link with the correct LLVM IR function or to expose it to comptime/jit
+            const char *real_name = nullptr;
 
+            /// @brief Constructs an intrinsic function
+            /// @param ir The LLVM IR Function
+            /// @param real_name The real name of the intrinsic function
+            /// @param scope_name The scope name of the intrinsic function
+            /// @param return_type The return type of the intrinsic function
+            /// @param arguments The argument types of the intrinsic function
+            OperatorIntrinsic(llvm::Function *ir, const char *real_name, const Operators op, Type *return_type, std::vector<Type *> arguments);
+            ~OperatorIntrinsic();
+
+            std::string to_string() override;
+            llvm::Value *post_codegen(logia::Backend *backend) override;
+        };
+    */
     /**
      * Creates a function
      */

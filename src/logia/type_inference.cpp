@@ -89,6 +89,7 @@ namespace logia
             // it' may require that everyone around has pre_type_inference, so we need to introduce a way to delay retry this call again
             if (!node->skip_type_inference && !node->is_pre_type_inference)
             {
+                LOG(DBG, "Node can't finish pre_type_inference queue: {}", node->to_string_tree());
                 pending.push_back(node);
             }
 
@@ -110,6 +111,8 @@ namespace logia
 
         while (pending.size())
         {
+            LOG(DBG, "start pre_type_inference pending with {} items", pending.size());
+
             auto before = pending.size();
 
             pending.erase(std::remove_if(pending.begin(), pending.end(),
@@ -124,7 +127,7 @@ namespace logia
             {
                 for (auto node : pending)
                 {
-                    LOG_ERR("{}\n{}", node->to_string(), node->get_debug_location());
+                    std::cerr << std::format("tree: {}\nlocation: {}", node->to_string_tree(), node->get_debug_location());
                 }
                 throw_compiler_error("Could not finish pre_type_inference for some nodes!");
             }
@@ -160,7 +163,7 @@ namespace logia
                                             //std::cerr << program->to_string_tree() << std::endl;
             std::cerr << node->parent_node->to_string_tree() << std::endl;
                                             std::cerr << node->get_debug_location() << std::endl;
-                                            throw_compiler_error("Not able to find type, no error.");
+                                            throw_compiler_error(std::format("Not able to find type, no error: {}", node->to_string()));
                                             } });
 #endif
     }

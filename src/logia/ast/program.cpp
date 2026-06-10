@@ -19,31 +19,66 @@ namespace logia::AST
         this->push_child(intrinsics);
 
         // special case i1 (not signed!)
-        intrinsics->push_child(new Integer(false, 1));
+        auto i1 = new Integer(false, 1);
+        intrinsics->push_child(i1);
 
         // we know declare all primitives
         // any type in the language should use those
         // it's prohibited to create type using llvm
         // everything shall be supported directly
-        intrinsics->push_child(new Integer(true, 8));
-        intrinsics->push_child(new Integer(true, 16));
-        intrinsics->push_child(new Integer(true, 32));
-        intrinsics->push_child(new Integer(true, 64));
-        // intrinsics->push_child(new Integer(true, 128));
+        auto i8 = new Integer(true, 8);
+        auto i16 = new Integer(true, 16);
+        auto i32 = new Integer(true, 32);
+        auto i64 = new Integer(true, 64);
+        // TODO i128 ??
+        intrinsics->push_child(i8);
+        intrinsics->push_child(i16);
+        intrinsics->push_child(i32);
+        intrinsics->push_child(i64);
 
-        intrinsics->push_child(new Integer(false, 8));
-        intrinsics->push_child(new Integer(false, 16));
-        intrinsics->push_child(new Integer(false, 32));
-        intrinsics->push_child(new Integer(false, 64));
-        // intrinsics->push_child(new Integer(false, 128));
+        auto u8 = new Integer(false, 8);
+        auto u16 = new Integer(false, 16);
+        auto u32 = new Integer(false, 32);
+        auto u64 = new Integer(false, 64);
+        // TODO u128 ??
+        intrinsics->push_child(u8);
+        intrinsics->push_child(u16);
+        intrinsics->push_child(u32);
+        intrinsics->push_child(u64);
 
-        intrinsics->push_child(new Void());
-        intrinsics->push_child(new Pointer());
+        auto the_void = new Void(); // starcraft reference is mandatory :)
+        intrinsics->push_child(the_void);
+        auto ptr = new Pointer();
+        intrinsics->push_child(ptr);
 
-        // intrinsics->push_child(new Float(16));
-        intrinsics->push_child(new Float(32));
-        intrinsics->push_child(new Float(64));
-        // intrinsics->push_child(new Float(128));
+        // TODO f16?
+        auto f32 = new Float(32);
+        auto f64 = new Float(64);
+        // TODO f128?
+        intrinsics->push_child(f32);
+        intrinsics->push_child(f64);
+
+        // declare references to every primitive, to load intrintics!
+        auto ref_i8 = new Ref(i8);
+        auto ref_i16 = new Ref(i16);
+        auto ref_i32 = new Ref(i32);
+        auto ref_i64 = new Ref(i64);
+        auto ref_u8 = new Ref(u8);
+        auto ref_u16 = new Ref(u16);
+        auto ref_u32 = new Ref(u32);
+        auto ref_u64 = new Ref(u64);
+        auto ref_f32 = new Ref(f32);
+        auto ref_f64 = new Ref(f64);
+        intrinsics->push_child(ref_i8);
+        intrinsics->push_child(ref_i16);
+        intrinsics->push_child(ref_i32);
+        intrinsics->push_child(ref_i64);
+        intrinsics->push_child(ref_u8);
+        intrinsics->push_child(ref_u16);
+        intrinsics->push_child(ref_u32);
+        intrinsics->push_child(ref_u64);
+        intrinsics->push_child(ref_f32);
+        intrinsics->push_child(ref_f64);
 
         auto imp = new Import(nullptr);
         imp->set_import_into_scope();
@@ -63,7 +98,8 @@ namespace logia::AST
         this->scope[(char *)"float"] = this->scope[(char *)"λf64"];
         this->scope[(char *)"bool"] = this->scope[(char *)"λi1"];
         this->scope[(char *)"void"] = this->scope[(char *)"λvoid"];
-        this->scope[(char *)"ptr"] = this->scope[(char *)"λptr"];
+
+        this->scope[(char *)"ptr"] = {ptr};
     }
 
     void Program::codegen_primitives(logia::Backend *backend)

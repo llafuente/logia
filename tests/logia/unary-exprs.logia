@@ -1,0 +1,27 @@
+function main() i32 {
+    var i32 oks = 0
+    var i32 one = 1
+
+
+    var i32 i = 0
+    // multiple-dispatch with constexpr
+    if i == 1 {
+        oks += one
+    }
+    i++
+/*
+    if i == 1 {
+        oks += one
+    }
+
+
+    if i++ == 1 {
+        oks += one
+    }
+
+    if ++i == 3 {
+        oks += one
+    }
+*/
+    return one;
+}

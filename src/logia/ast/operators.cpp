@@ -71,6 +71,26 @@ namespace logia::AST
         throw_compiler_error("unkown operator");
     }
 
+    bool is_assignament_operator(Operators op)
+    {
+        switch (op)
+        {
+        case Operators::BINARY_BITWISE_LEFT_SHIFT_ASSIGN:
+        case Operators::BINARY_BITWISE_RIGHT_SHIFT_ASSIGN:
+        case Operators::BINARY_BITWISE_AND_ASSIGN:
+        case Operators::BINARY_BITWISE_XOR_ASSIGN:
+        case Operators::BINARY_BITWISE_OR_ASSIGN:
+        case Operators::BINARY_MOD_ASSIGN:
+        case Operators::BINARY_ASSIGN:
+        case Operators::BINARY_ADD_ASSIGN:
+        case Operators::BINARY_SUB_ASSIGN:
+        case Operators::BINARY_MUL_ASSIGN:
+        case Operators::BINARY_DIV_ASSIGN:
+            return true;
+        }
+        return false;
+    }
+
     bool is_bitwise_operator(Operators op)
     {
         switch (op)

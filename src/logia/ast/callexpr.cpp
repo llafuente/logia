@@ -54,7 +54,7 @@ namespace logia::AST
 
     std::string CallExpressionArgument::to_string()
     {
-        return std::format("CallExpressionArgument");
+        return std::format("CallExpressionArgument{}", Node::to_string());
     }
 
     Type *CallExpressionArgument::get_type()
@@ -81,7 +81,7 @@ namespace logia::AST
     }
     CallExpression::CallExpression(antlr4::ParserRuleContext *rule, Expression *locator, std::vector<Expression *> positional_arguments) : Expression(rule)
     {
-        LOGIA_ASSERT(locator == nullptr, "locator is mantadory");
+        LOGIA_VERIFY(locator != nullptr, "locator is mantadory");
 
         // these two rules are couple atm, but we should handle identifiers in other ways in the future...
         node_assert<Identifier, MemberAccessExpression>(locator, TOSTRING(__FUNCTION__) ":" TOSTRING(__LINE__));
@@ -97,8 +97,8 @@ namespace logia::AST
 
     void CallExpression::push_named_argument(Identifier *name, Expression *expr)
     {
-        LOGIA_ASSERT(name == nullptr, "name is mantadory");
-        LOGIA_ASSERT(expr == nullptr, "expr is mantadory");
+        LOGIA_VERIFY(name != nullptr, "name is mantadory");
+        LOGIA_VERIFY(expr != nullptr, "expr is mantadory");
 
         node_assert<Identifier>(name, TOSTRING(__FUNCTION__) ":" TOSTRING(__LINE__));
         node_assert<Expression>(expr, TOSTRING(__FUNCTION__) ":" TOSTRING(__LINE__));
@@ -185,7 +185,7 @@ namespace logia::AST
         auto v = std::vector<Expression *>();
         v.reserve(this->argument_count);
 
-        LOG_ERR("{}/{}/{}", v.size(), v.capacity(), this->children.size());
+        // LOG_ERR("{}/{}/{}", v.size(), v.capacity(), this->children.size());
 
         for (size_t i = 1; i < this->children.size(); ++i)
         {
@@ -197,7 +197,7 @@ namespace logia::AST
 
     void CallExpression::_set_type(Type *type)
     {
-        // this->enforce_return_type(type);
+        // nothing!
     }
 
     void CallExpression::_pre_type_inference()
@@ -211,7 +211,7 @@ namespace logia::AST
 
         // find a proper target or throws!
         Function *target = multiple_dispatch::find(this);
-        // this->set_type(?)
+        // NOTE don't use set_type, just set the flag
         this->is_typed = true;
         this->callee = target;
 
@@ -233,14 +233,12 @@ namespace logia::AST
             }
         }
 
-        this->set_type(target->get_return_type()->get_final_type());
-
         Expression::_pre_type_inference();
     }
 
     Type *CallExpression::get_type()
     {
-        return this->callee == nullptr ? nullptr : this->callee->get_return_type();
+        return this->callee == nullptr ? nullptr : this->callee->get_return_type()->get_final_type();
     }
 
     std::string CallExpression::to_string()

@@ -10,19 +10,22 @@ for (let type of types) {
         if (o.category === 'comparison') { // return bool
             console.log(`
 extern "C"
-bool ${o.func}_${type}_${type}(${type} a, ${type} b){
+[[clang::annotate("logia=${o.logia_fn}")]]
+bool ${o.func}_${type}_${type}([[clang::annotate("logia=λ${type}")]] ${type} a, [[clang::annotate("logia=λ${type}")]] ${type} b){
     return a ${o.operator} b;
 }`);
-        } else if (o.category === 'bitwise' || o.category === 'arithmetic') {
+        } else if (o.category === 'arithmetic') {
             console.log(`
 extern "C"
-${type} ${o.func}_${type}_${type}(${type} a, ${type} b){
+[[clang::annotate("logia=${o.logia_fn}")]]
+${type} ${o.func}_${type}_${type}([[clang::annotate("logia=λ${type}")]] ${type} a, [[clang::annotate("logia=λ${type}")]] ${type} b){
     return a ${o.operator} b;
 }`);
         } else if (o.category === 'assignment') {
             console.log(`
 extern "C"
-${type} ${o.func}_${type}_${type}(${type} *a, ${type} b){
+[[clang::annotate("logia=${o.logia_fn}")]]
+${type} ${o.func}_${type}_${type}([[clang::annotate("logia=ref<${type}>")]] ${type} *a, [[clang::annotate("logia=${type}")]] ${type} b){
     *a ${o.operator} b;
     return *a;
 }`);

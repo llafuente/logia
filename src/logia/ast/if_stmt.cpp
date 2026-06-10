@@ -127,7 +127,7 @@ namespace logia::AST
 
     LOGIA_API LOGIA_LEND IfStmt *ast_create_if(Expression *condition)
     {
-        LOGIA_ASSERT(condition == nullptr);
+        LOGIA_VERIFY(condition != nullptr);
 
         return new IfStmt(nullptr, condition);
     }

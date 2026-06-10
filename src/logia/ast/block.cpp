@@ -21,7 +21,7 @@ namespace logia::AST
 
     Block::Block(antlr4::ParserRuleContext *rule, Identifier *name) : Scope(rule), name(name)
     {
-        LOGIA_ASSERT(name == nullptr);
+        LOGIA_VERIFY(name != nullptr);
         name->skip_codegen = true; // even if it's not reachable we should be careful
     }
 
@@ -54,6 +54,10 @@ namespace logia::AST
 
     void Block::post_attach()
     {
+        if (is_attached)
+        {
+            throw_compiler_error("should be attached once ?!");
+        }
         Scope::post_attach();
 
         // TODO we should throw if the block is moved outside current function!!

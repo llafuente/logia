@@ -43,7 +43,7 @@ TEST(test_node, test_1)
     program->intrinsics->foreach_child<Integer>([&count](auto p)
                                                 { ++count; });
 
-    EXPECT_EQ(count, 11);
+    EXPECT_EQ(count, 9);
 
     count = 0;
     program->foreach_child<Identifier>([&count](auto p)

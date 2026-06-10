@@ -21,11 +21,18 @@ namespace logia::AST
 
 #define LGERR_VDECL001 "LGERR_VDECL001 Redeclaration/Identifier '{}' in use:\n{}"
 
+#define LGERR_BINEXPR001 "LGERR_BINEXPR001 Expected lhs to be a reference but found '{}'"
+#define LGERR_BINEXPR002 "LGERR_BINEXPR002 lhs cannot be a constant expression"
+#define LGERR_BINEXPR003 "LGERR_BINEXPR003 expected lhs to be a bool"
+#define LGERR_BINEXPR004 "LGERR_BINEXPR004 expected rhs to be a bool"
+
 #define LGERR_CONSTEX000 "LGERR_CONSTEX000 Expression is not constant"
 #define LGERR_CONSTEX001a "LGERR_CONSTEX001a Left operand is not constant"
 #define LGERR_CONSTEX001b "LGERR_CONSTEX001b Right operand is not constant"
 #define LGERR_CONSTEX002 "LGERR_CONSTEX002 Right operand should be an Integer"
 #define LGERR_CONSTEX005 "LGERR_CONSTEX005 Unsupported operator in constant expression"
+#define LGERR_CONSTEX006 "LGERR_CONSTEX006 A floating point should have float type"
+
 #define LGERR_IMP004 "LGERR_IMP004 import list should contain only identifiers, invalid element at position {}"
 #define LGERR_IMP003 "LGERR_IMP003 target of import should be a scope"
 #define LGERR_IMP002 "LGERR_IMP002 cannot use import into scope and import list together"

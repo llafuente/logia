@@ -133,7 +133,7 @@ namespace logia::AST
 
     LOGIA_API LOGIA_LEND VarDeclStmt *ast_create_var_decl(Identifier *id, Type *type, Expression *expr)
     {
-        LOGIA_ASSERT(id == nullptr);
+        LOGIA_VERIFY(id != nullptr);
 
         VarDeclStmt *variable = new VarDeclStmt(nullptr, id, type, expr);
 

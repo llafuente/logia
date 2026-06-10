@@ -1,0 +1,31 @@
+function expect(bool b) i32 {
+    // do nothing babe!
+    return 0
+}
+function main() i32 {
+    var u32 i = 0;
+    i += 5;
+    expect(i == 5);
+    i -= 2;
+    expect(i == 3);
+    i *= 20;
+    expect(i == 60);
+    i /= 3;
+    expect(i == 20);
+    i %= 11;
+    expect(i == 9);
+    i <<= 1;
+    expect(i == 18);
+    i >>= 2;
+    expect(i == 4);
+    i = 6;
+    i &= 5;
+    expect(i == 4);
+    i ^= 6;
+    expect(i == 2);
+    i = 6;
+    i |= 3;
+    expect(i == 7);
+
+    return i
+}

@@ -46,7 +46,7 @@ module.exports = [
         "type": "binary",
         "category": "comparison",
         "func": "logia_intrinsics_bin_eq",
-        "logia_fn": "__logia_bin_eq"
+        "logia_fn": "__logia_bin_cmp_eq"
     },
     {
         "operator": "!=",
@@ -54,7 +54,7 @@ module.exports = [
         "type": "binary",
         "category": "comparison",
         "func": "logia_intrinsics_bin_neq",
-        "logia_fn": "__logia_bin_neq"
+        "logia_fn": "__logia_bin_cmp_neq"
     },
     {
         "operator": "<",
@@ -62,7 +62,7 @@ module.exports = [
         "type": "binary",
         "category": "comparison",
         "func": "logia_intrinsics_bin_lt",
-        "logia_fn": "__logia_bin_lt"
+        "logia_fn": "__logia_bin_cmp_lt"
     },
     {
         "operator": ">",
@@ -70,7 +70,7 @@ module.exports = [
         "type": "binary",
         "category": "comparison",
         "func": "logia_intrinsics_bin_gt",
-        "logia_fn": "__logia_bin_gt"
+        "logia_fn": "__logia_bin_cmp_gt"
     },
     {
         "operator": "<=",
@@ -78,7 +78,7 @@ module.exports = [
         "type": "binary",
         "category": "comparison",
         "func": "logia_intrinsics_bin_lte",
-        "logia_fn": "__logia_bin_lte"
+        "logia_fn": "__logia_bin_cmp_lte"
     },
     {
         "operator": ">=",
@@ -86,7 +86,7 @@ module.exports = [
         "type": "binary",
         "category": "comparison",
         "func": "logia_intrinsics_bin_gte",
-        "logia_fn": "__logia_bin_gte"
+        "logia_fn": "__logia_bin_cmp_gte"
     },
 
     {

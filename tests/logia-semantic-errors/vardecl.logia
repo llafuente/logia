@@ -1,0 +1,3 @@
+function main() i32 {
+    var i64 x = 1.0e10
+}
