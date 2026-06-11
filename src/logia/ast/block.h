@@ -26,7 +26,7 @@ namespace logia::AST
         /// @brief Constructs a block with a given name
         /// @param rule The parser rule context
         /// @param name The identifier for the block, could be empty (no nullptr)
-        Block(antlr4::ParserRuleContext *rule, Identifier *name);
+        Block(location loc, Identifier *name);
 
         /// @brief Retrieves the block name, used for goto and debugging
         Identifier *get_identifier();

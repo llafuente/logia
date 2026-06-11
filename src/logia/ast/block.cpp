@@ -19,7 +19,7 @@ namespace logia::AST
     // Block
     //
 
-    Block::Block(antlr4::ParserRuleContext *rule, Identifier *name) : Scope(rule), name(name)
+    Block::Block(location loc, Identifier *name) : Scope(loc), name(name)
     {
         LOGIA_VERIFY(name != nullptr);
         name->skip_codegen = true; // even if it's not reachable we should be careful
@@ -71,7 +71,7 @@ namespace logia::AST
             {
                 auto result = scope_lookup_all(this, ident->identifier);
                 auto node = result.unwrap_success()[0]; // at least one
-                throw_semantic_error(this, std::format(LGERR_BLK001, ident->identifier, node->get_debug_location()));
+                throw_semantic_error(this, std::format(LGERR_BLK001, ident->identifier, node->loc.get_debug_location()));
             }
         }
     }
@@ -123,8 +123,8 @@ namespace logia::AST
             auto scope = backend->dbuilder->createLexicalBlock(
                 backend->dscopes[backend->dscopes.size() - 1],
                 backend->dfile,
-                this->rule->start->getLine(),
-                this->rule->start->getCharPositionInLine());
+                this->loc.start_line,
+                this->loc.start_column);
 
             backend->dscopes.push_back(scope);
         }

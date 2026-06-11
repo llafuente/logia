@@ -18,7 +18,7 @@ namespace logia::AST
         return std::format("UnaryExpression [{}] {}", ast_operator_to_function_name(op), Node::to_string());
     }
 
-    UnaryExpression::UnaryExpression(antlr4::ParserRuleContext *rule, Operators op, Expression *operand) : Expression(rule)
+    UnaryExpression::UnaryExpression(location loc, Operators op, Expression *operand) : Expression(loc)
     {
         this->op = op;
         switch (op)
@@ -68,10 +68,10 @@ namespace logia::AST
         default:
         {
             /// replace with callexpr!
-            auto locator = new Identifier(this->rule, ast_operator_to_function_name(op));
+            auto locator = new Identifier(this->loc, ast_operator_to_function_name(op));
             auto operand = this->get_operand();
 
-            this->call_expr = new CallExpression(this->rule, locator, {operand});
+            this->call_expr = new CallExpression(this->loc, locator, {operand});
             // makes no sense but need to keep this node attached
             this->push_child(this->call_expr);
 
@@ -122,10 +122,10 @@ namespace logia::AST
             // deprecated
             // auto ptr = this->cg_value = backend->builder->CreateAlloca(llvm::PointerType::get(ir_ty, 0), nullptr, "deref");
             auto ptr = this->cg_value = backend->builder->CreateAlloca(llvm::PointerType::get(backend->context, 0), 0, nullptr);
-            backend->set_debug_loc((llvm::Instruction *)ptr, this->rule);
+            backend->set_debug_loc((llvm::Instruction *)ptr, this->loc);
 
             auto store = backend->builder->CreateStore(ir_value, ptr);
-            backend->set_debug_loc((llvm::Instruction *)store, this->rule);
+            backend->set_debug_loc((llvm::Instruction *)store, this->loc);
 
             // this->cg_value = backend->builder->CreateLoad(operandType->getPointerTo(), ptr);
             return Expression::post_codegen(backend);

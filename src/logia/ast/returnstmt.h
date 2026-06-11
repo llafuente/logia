@@ -9,7 +9,7 @@ namespace logia::AST
     /// @brief Return statement
     struct ReturnStmt : Stmt
     {
-        ReturnStmt(antlr4::ParserRuleContext *rule, Expression *expr);
+        ReturnStmt(location loc, Expression *expr);
 
         std::string to_string() override;
 
@@ -22,8 +22,4 @@ namespace logia::AST
         /// @brief Forward type to return expression
         void _set_type(Type *ty) override;
     };
-
-    /// @brief Creates a return statement
-    LOGIA_API LOGIA_LEND ReturnStmt *ast_create_return(Expression *ret);
-
 }

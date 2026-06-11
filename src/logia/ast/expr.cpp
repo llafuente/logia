@@ -15,7 +15,7 @@ namespace logia::AST
     // Expression
     //
 
-    Expression::Expression(antlr4::ParserRuleContext *rule) : Node(rule) {}
+    Expression::Expression(location loc) : Node(loc) {}
     std::string Expression::to_string()
     {
         return std::format("Expression{}", Node::to_string());
@@ -35,7 +35,7 @@ namespace logia::AST
         if (this->cg_value != nullptr)
         {
             LOG(DBG, "{}", this->to_string());
-            backend->set_debug_loc((llvm::Instruction *)this->cg_value, this->rule);
+            backend->set_debug_loc((llvm::Instruction *)this->cg_value, this->loc);
         }
         return Node::post_codegen(backend);
     }

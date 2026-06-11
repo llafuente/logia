@@ -7,7 +7,7 @@
 
 namespace logia::AST
 {
-    ReturnStmt::ReturnStmt(antlr4::ParserRuleContext *rule, Expression *expr) : Stmt(rule)
+    ReturnStmt::ReturnStmt(location loc, Expression *expr) : Stmt(loc)
     {
         this->push_child(expr);
     }
@@ -42,11 +42,5 @@ namespace logia::AST
         }
 
         return Stmt::post_codegen(backend);
-    }
-
-    LOGIA_API LOGIA_LEND ReturnStmt *ast_create_return(Expression *ret)
-    {
-        auto stmt = new ReturnStmt(nullptr, ret);
-        return stmt;
     }
 }

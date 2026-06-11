@@ -32,7 +32,7 @@ namespace logia::AST
         /// @brief The target scope where the imported symbols will be registered, if nullptr the parent scope will be used
         Scope *target = nullptr;
 
-        Import(antlr4::ParserRuleContext *rule);
+        Import(location loc);
 
         std::string to_string() override;
 

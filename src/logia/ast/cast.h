@@ -16,7 +16,7 @@ namespace logia::AST
         /// @param expr The expression to cast
         /// @param to The target type
         Cast(
-            antlr4::ParserRuleContext *rule,
+            location loc,
             Expression *expr,
             Type *to);
         /// @brief Gets the source type of the cast

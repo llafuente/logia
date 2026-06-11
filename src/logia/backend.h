@@ -25,9 +25,8 @@
 // debug
 #include "llvm/IR/DIBuilder.h"
 
-#include "antlr4-runtime.h"
-
 #include "logia/config.h"
+#include "logia/ast/location.h"
 
 namespace logia
 {
@@ -117,9 +116,9 @@ namespace logia
         /// @brief Sets debug information for the current context and scope
         /// @param context The parser rule context
         /// @param scope The debug scope, if nullptr is provided, the current scope will be used
-        void set_debug_information(antlr4::ParserRuleContext *context, llvm::DIScope *scope = nullptr);
+        void set_debug_information(AST::location loc, llvm::DIScope *scope = nullptr);
 
-        void set_debug_loc(llvm::Instruction *value, antlr4::ParserRuleContext *context);
+        void set_debug_loc(llvm::Instruction *value, AST::location loc);
 
         /// @brief searches a function inside intrinsics or current module
         llvm::Function *getFunction(llvm::StringRef Name) const;

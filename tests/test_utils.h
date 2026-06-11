@@ -24,7 +24,7 @@ char *end_stdout_capture();
     auto i16 = scope_look_one<logia::AST::Integer>(program, "λi16");                            \
     auto i32 = scope_look_one<logia::AST::Integer>(program, "λi32");                            \
     auto i64 = scope_look_one<logia::AST::Integer>(program, "λi64");                            \
-    auto rule = program->rule
+    auto loc = program->loc
 
 #define LOGIA_UNIT_TEST_END() \
     do                        \

@@ -127,7 +127,7 @@ namespace logia
             {
                 for (auto node : pending)
                 {
-                    std::cerr << std::format("tree: {}\nlocation: {}", node->to_string_tree(), node->get_debug_location());
+                    std::cerr << std::format("tree: {}\nlocation: {}", node->to_string_tree(), node->loc.get_debug_location());
                 }
                 throw_compiler_error("Could not finish pre_type_inference for some nodes!");
             }
@@ -162,7 +162,7 @@ namespace logia
                                       { if (node->has_type && !node->is_typed) {
                                             //std::cerr << program->to_string_tree() << std::endl;
             std::cerr << node->parent_node->to_string_tree() << std::endl;
-                                            std::cerr << node->get_debug_location() << std::endl;
+                                            std::cerr << node->loc.get_debug_location() << std::endl;
                                             throw_compiler_error(std::format("Not able to find type, no error: {}", node->to_string()));
                                             } });
 #endif

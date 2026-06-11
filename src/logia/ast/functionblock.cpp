@@ -10,7 +10,7 @@ namespace logia::AST
     // FunctionBlock
     //
 
-    FunctionBlock::FunctionBlock(antlr4::ParserRuleContext *rule, Identifier *name) : Block(rule, name) {}
+    FunctionBlock::FunctionBlock(location loc, Identifier *name) : Block(loc, name) {}
     std::string FunctionBlock::to_string()
     {
         return std::format("{}{}", "Function", Block::to_string());

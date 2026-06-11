@@ -12,7 +12,7 @@ namespace logia::AST
         const char *entry_point_file = nullptr;
         const char *file_contents = nullptr;
 
-        Package(antlr4::ParserRuleContext *rule, const char *entry_point_file, const char *file_contents);
+        Package(location loc, const char *entry_point_file, const char *file_contents);
 
         std::string to_string() override;
 

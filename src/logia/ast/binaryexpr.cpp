@@ -31,7 +31,7 @@ namespace logia::AST
         return std::format("BinaryExpression [{}]{}", ast_operator_to_function_name(this->op), Node::to_string());
     }
 
-    BinaryExpression::BinaryExpression(antlr4::ParserRuleContext *rule, Expression *left, Operators op, Expression *right) : Expression(rule)
+    BinaryExpression::BinaryExpression(location loc, Expression *left, Operators op, Expression *right) : Expression(loc)
     {
         this->op = op;
 
@@ -41,7 +41,7 @@ namespace logia::AST
         }
         else if (is_assignament_operator(this->op))
         {
-            this->push_child(new UnaryExpression(this->rule, Operators::PREFIX_DEREFERENCE, left));
+            this->push_child(new UnaryExpression(this->loc, Operators::PREFIX_DEREFERENCE, left));
         }
         else
         {
@@ -91,7 +91,7 @@ namespace logia::AST
         // it's ok -> autocast ?
         if (result.contains(type_system::type_compatibility::AUTOCAST_CAST))
         {
-            this->replace(right, new Cast(right->rule, right, left_ty));
+            this->replace(right, new Cast(right->loc, right, left_ty));
             type_inference_node(this->first_parent<Program>(), this->get_right());
             LOG(DBG, "\n\n\n\n\n{}", this->to_string_tree());
             return;
@@ -165,9 +165,9 @@ namespace logia::AST
         case Operators::BINARY_LOGICAL_OR:
             break;
         default:
-            auto locator = new Identifier(this->rule, ast_operator_to_function_name(op));
+            auto locator = new Identifier(this->loc, ast_operator_to_function_name(op));
 
-            this->call_expr = new CallExpression(this->rule, locator, {left, right});
+            this->call_expr = new CallExpression(this->loc, locator, {left, right});
             LOG(DBG, "transform binaryexpr into function call: {}", (void *)this->call_expr);
             // makes no sense but need to keep this node attached
             this->push_child(this->call_expr);
@@ -233,7 +233,7 @@ namespace logia::AST
             right_value = llvm_load_if_required(right_value, backend);
 
             auto store = backend->builder->CreateStore(right_value, left_value, false);
-            backend->set_debug_loc((llvm::Instruction *)store, this->rule);
+            backend->set_debug_loc((llvm::Instruction *)store, this->loc);
             this->cg_value = left_value;
 
             return left_value;
@@ -262,10 +262,10 @@ namespace logia::AST
             auto i1 = scope_lookup_first(this, "bool")->as<Type>();
             auto phi = backend->builder->CreatePHI(i1->ir_type, 2);
 
-            phi->addIncoming((new AST::IntegerLiteral(nullptr, "0", i1))->codegen(backend), start_bb);
+            phi->addIncoming((new AST::IntegerLiteral({}, "0", i1))->codegen(backend), start_bb);
             phi->addIncoming(right_value, test_rhs);
 
-            backend->set_debug_loc((llvm::Instruction *)phi, this->rule);
+            backend->set_debug_loc((llvm::Instruction *)phi, this->loc);
             this->cg_value = phi;
 
             return phi;
@@ -294,10 +294,10 @@ namespace logia::AST
             auto i1 = scope_lookup_first(this, "bool")->as<Type>();
             auto phi = backend->builder->CreatePHI(i1->ir_type, 2);
 
-            phi->addIncoming((new AST::IntegerLiteral(nullptr, "1", i1))->codegen(backend), start_bb);
+            phi->addIncoming((new AST::IntegerLiteral({}, "1", i1))->codegen(backend), start_bb);
             phi->addIncoming(right_value, test_rhs);
 
-            backend->set_debug_loc((llvm::Instruction *)phi, this->rule);
+            backend->set_debug_loc((llvm::Instruction *)phi, this->loc);
             this->cg_value = phi;
 
             return phi;
@@ -311,7 +311,7 @@ namespace logia::AST
 
     LOGIA_API LOGIA_LEND BinaryExpression *ast_create_binary_expr(Expression *left, Operators op, Expression *right)
     {
-        BinaryExpression *expr = new BinaryExpression(nullptr, left, op, right);
+        BinaryExpression *expr = new BinaryExpression({}, left, op, right);
         return expr;
     }
 

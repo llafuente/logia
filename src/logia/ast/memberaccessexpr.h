@@ -11,7 +11,7 @@ namespace logia::AST
     {
         Type *type = nullptr;
 
-        MemberAccessExpression(antlr4::ParserRuleContext *rule, Node *left, Identifier *right);
+        MemberAccessExpression(location loc, Node *left, Identifier *right);
         /// @brief Retrieves the left expression of the member access
         /// @return The left expression
         Expression *get_left();

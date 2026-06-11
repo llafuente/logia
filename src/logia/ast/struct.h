@@ -10,7 +10,7 @@ namespace logia::AST
     {
     public:
         const char *docstring;
-        StructAlias(antlr4::ParserRuleContext *rule, Identifier *from, Identifier *to, const char *_docstring = nullptr);
+        StructAlias(location loc, Identifier *from, Identifier *to, const char *_docstring = nullptr);
 
         std::string to_string() override;
         Type *get_type() override;
@@ -30,7 +30,7 @@ namespace logia::AST
         uint32_t index;
 
         StructField(
-            antlr4::ParserRuleContext *rule,
+            location loc,
             uint32_t index,
             Identifier *name,
             Type *type,
@@ -68,7 +68,7 @@ namespace logia::AST
         /// @brief number of methods
         uint32_t setter_count = 0;
 
-        Struct(antlr4::ParserRuleContext *rule, Identifier *id);
+        Struct(location loc, Identifier *id);
 
         /// @brief Retrives struct identifier name as C string
         /// @return
@@ -83,14 +83,14 @@ namespace logia::AST
 
         /// @brief Adds a field to the struct
         void add_field(
-            antlr4::ParserRuleContext *rule,
+            location loc,
             Identifier *name,
             Type *type,
             Expression *default_value = nullptr,
             const char *docstring = nullptr);
 
         /// @brief Adds an alias to the struct
-        void add_alias(antlr4::ParserRuleContext *rule, Identifier *from, Identifier *to, const char *docstring);
+        void add_alias(location loc, Identifier *from, Identifier *to, const char *docstring);
 
         /// @brief Retrieves the target identifier of an alias
         /// @param from The source identifier of the alias
@@ -130,9 +130,4 @@ namespace logia::AST
     protected:
         void _pre_type_inference() override;
     };
-
-    /**
-     * Creates a struct type
-     */
-    LOGIA_API LOGIA_LEND Struct *ast_create_struct_type(Identifier *id);
 } // namespace logia::AST

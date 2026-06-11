@@ -14,7 +14,7 @@ namespace logia::AST
     // StructInitializer
     //
 
-    StructInitializer::StructInitializer(antlr4::ParserRuleContext *rule) : Expression(rule) {}
+    StructInitializer::StructInitializer(location loc) : Expression(loc) {}
     std::string StructInitializer::to_string()
     {
         return std::format("{}{}", "StructInitializer", Expression::to_string());

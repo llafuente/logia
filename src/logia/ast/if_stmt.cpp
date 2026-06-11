@@ -13,17 +13,17 @@ namespace logia::AST
 
     uint64_t if_stmt_count = 0;
 
-    IfStmt::IfStmt(antlr4::ParserRuleContext *rule, Expression *condition) : Stmt(rule)
+    IfStmt::IfStmt(location loc, Expression *condition) : Stmt(loc)
     {
         this->push_child(condition);
         auto then_name = std::format("{}_{}", "then_block", if_stmt_count);
-        this->push_child(new Block(nullptr, new Identifier(rule, then_name.c_str())));
+        this->push_child(new Block({}, new Identifier(loc, then_name.c_str())));
 
         auto else_name = std::format("{}_{}", "else_block", if_stmt_count);
-        this->push_child(new Block(nullptr, new Identifier(rule, else_name.c_str())));
+        this->push_child(new Block({}, new Identifier(loc, else_name.c_str())));
 
         auto continue_name = std::format("{}_{}", "continue_block", if_stmt_count);
-        this->push_child(new Block(nullptr, new Identifier(rule, continue_name.c_str())));
+        this->push_child(new Block({}, new Identifier(loc, continue_name.c_str())));
 
         ++if_stmt_count;
 
@@ -124,11 +124,4 @@ namespace logia::AST
     }
 
     void IfStmt::_set_type(Type *t) {}
-
-    LOGIA_API LOGIA_LEND IfStmt *ast_create_if(Expression *condition)
-    {
-        LOGIA_VERIFY(condition != nullptr);
-
-        return new IfStmt(nullptr, condition);
-    }
 }

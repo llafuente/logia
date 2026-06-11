@@ -764,13 +764,12 @@ namespace logia
         return result;
     }
 
-    void Backend::set_debug_information(antlr4::ParserRuleContext *context, llvm::DIScope *scope)
+    void Backend::set_debug_information(AST::location loc, llvm::DIScope *scope)
     {
-        if (!logia_config.debug)
+        if (!logia_config.debug || loc.file == nullptr)
         {
             return;
         }
-        LOGIA_VERIFY(context != nullptr);
 
         if (scope == nullptr)
         {
@@ -778,28 +777,21 @@ namespace logia
             scope = this->dscopes[this->dscopes.size() - 1];
         }
 
-        auto start_tk = context->getStart();
-        auto end_tk = context->getStop();
-        auto start_line = start_tk->getLine();
-        auto end_line = start_tk->getLine();
-        auto start_column = start_tk->getCharPositionInLine();
-        auto end_column = end_tk->getCharPositionInLine();
-
         // Set the current debug location
         builder->SetCurrentDebugLocation(
             llvm::DILocation::get(this->context,
-                                  start_line,   // line number
-                                  start_column, // column number
-                                  scope         // llvm::DIScope* (e.g., from a subprogram)
+                                  loc.start_line,   // line number
+                                  loc.start_column, // column number
+                                  scope             // llvm::DIScope* (e.g., from a subprogram)
                                   ));
     }
 
-    void Backend::set_debug_loc(llvm::Instruction *value, antlr4::ParserRuleContext *context)
+    void Backend::set_debug_loc(llvm::Instruction *value, AST::location loc)
     {
         if (logia_config.debug)
         {
             // value->setDebugLoc(llvm::DebugLoc::get(1, 0, this->dfile));
-            value->setDebugLoc(llvm::DILocation::get(this->context, context->start->getLine(), context->start->getCharPositionInLine(), this->dscopes[this->dscopes.size() - 1]));
+            value->setDebugLoc(llvm::DILocation::get(this->context, loc.start_line, loc.start_column, this->dscopes[this->dscopes.size() - 1]));
         }
     }
 

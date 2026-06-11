@@ -12,7 +12,7 @@ namespace logia::AST
         const char *identifier;
         Type *type = nullptr;
 
-        Identifier(antlr4::ParserRuleContext *rule, const char *identifier);
+        Identifier(location loc, const char *identifier);
         bool operator==(const char *id);
         bool operator==(const Identifier *id);
 

@@ -18,7 +18,7 @@ namespace logia::AST
     //
     // Scope
     //
-    Scope::Scope(antlr4::ParserRuleContext *rule) : Node(rule) { this->has_type = false; }
+    Scope::Scope(location loc) : Node(loc) { this->has_type = false; }
 
     void Scope::scope_set(const char *name, Node *node)
     {

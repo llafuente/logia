@@ -2,6 +2,7 @@
 /build/
 /build-debug/
 /build-release/
+/build-ninja/
 CMakeFiles/
 cmake_install.cmake
 *.cmake.cache

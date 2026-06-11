@@ -204,12 +204,12 @@ namespace logia
 
         if (is_program)
         {
-            this->ast_tree = new AST::Program(rule, this->entry_point_fullpath, this->text);
+            this->ast_tree = new AST::Program({this->entry_point_fullpath, 0, 0, 0, 0, this->text}, this->entry_point_fullpath, this->text);
         }
         else
         {
             // TODO @llafuente invalid cast
-            this->ast_tree = (AST::Program *)new AST::Package(rule, this->entry_point_fullpath, this->text);
+            this->ast_tree = (AST::Program *)new AST::Package({this->entry_point_fullpath, 0, 0, 0, 0, this->text}, this->entry_point_fullpath, this->text);
         }
 
         CST2AST *llvmVisitor = new CST2AST(this->ast_tree);

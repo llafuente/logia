@@ -9,7 +9,7 @@
 namespace logia::AST
 {
 
-    Import::Import(antlr4::ParserRuleContext *rule) : Scope(rule)
+    Import::Import(location loc) : Scope(loc)
     {
     }
 

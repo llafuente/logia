@@ -39,7 +39,7 @@ namespace logia::AST
     // Type
     //
 
-    Type::Type(antlr4::ParserRuleContext *rule, Primitives prim) : Node(rule)
+    Type::Type(location loc, Primitives prim) : Node(loc)
     {
         this->skip_type_inference = true; // we are a type ourselves!
         this->primitive = prim;
@@ -111,7 +111,7 @@ namespace logia::AST
     // Integer
     //
 
-    Integer::Integer(bool is_signed, int bits) : Type(nullptr, Primitives::INTEGER_TY), is_signed(is_signed), bits(bits)
+    Integer::Integer(bool is_signed, int bits) : Type({}, Primitives::INTEGER_TY), is_signed(is_signed), bits(bits)
     {
         this->is_typed = true;
     }
@@ -200,7 +200,7 @@ namespace logia::AST
     // Float
     //
 
-    Float::Float(int bits) : Type(nullptr, Primitives::FLOATING_POINT_TY), bits(bits)
+    Float::Float(int bits) : Type({}, Primitives::FLOATING_POINT_TY), bits(bits)
     {
         this->is_typed = true;
     }
@@ -275,7 +275,7 @@ namespace logia::AST
     // Void
     //
 
-    Void::Void() : Type(nullptr, Primitives::VOID_TY)
+    Void::Void() : Type({}, Primitives::VOID_TY)
     {
         this->is_typed = true;
     }
@@ -319,7 +319,7 @@ namespace logia::AST
     // Pointer
     //
 
-    Pointer::Pointer() : Type(nullptr, Primitives::PTR_TY)
+    Pointer::Pointer() : Type({}, Primitives::PTR_TY)
     {
         this->is_typed = true;
     }
@@ -423,7 +423,7 @@ namespace logia::AST
     // TypeDef
     //
     // REVIEW, it's a type but it's definition, need to  distinguish both ?
-    TypeDef::TypeDef() : Type(nullptr, Primitives::NONE)
+    TypeDef::TypeDef() : Type({}, Primitives::NONE)
     {
         this->is_typed = true;
     }
@@ -480,7 +480,7 @@ namespace logia::AST
     //
     // InferType
     //
-    InferType::InferType() : Type(nullptr, Primitives::NONE) {}
+    InferType::InferType() : Type({}, Primitives::NONE) {}
 
     InferType::~InferType() {}
 

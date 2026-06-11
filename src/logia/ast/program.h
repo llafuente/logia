@@ -35,7 +35,7 @@ namespace logia::AST
         /// @brief The entry point file contents, used for error reporting and debugging
         const char *file_contents = nullptr;
 
-        Program(antlr4::ParserRuleContext *rule, const char *entry_point_file, const char *file_contents);
+        Program(location loc, const char *entry_point_file, const char *file_contents);
 
         std::string to_string() override;
 

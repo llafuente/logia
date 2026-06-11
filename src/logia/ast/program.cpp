@@ -12,10 +12,10 @@
 
 namespace logia::AST
 {
-    Program::Program(antlr4::ParserRuleContext *rule, const char *entry_point_file, const char *file_contents) : Block(rule, new Identifier(rule, "program")), entry_point_file(entry_point_file), file_contents(file_contents)
+    Program::Program(location loc, const char *entry_point_file, const char *file_contents) : Block(loc, new Identifier(loc, "program")), entry_point_file(entry_point_file), file_contents(file_contents)
     {
         this->is_attached = true; // Program is obviously never attached to anything, it's the root -> manually set the flag
-        intrinsics = new Scope(rule);
+        intrinsics = new Scope(loc);
         this->push_child(intrinsics);
 
         // special case i1 (not signed!)
@@ -80,9 +80,9 @@ namespace logia::AST
         intrinsics->push_child(ref_f32);
         intrinsics->push_child(ref_f64);
 
-        auto imp = new Import(nullptr);
+        auto imp = new Import({});
         imp->set_import_into_scope();
-        imp->set_package({new Identifier(nullptr, "core"), new Identifier(nullptr, "primitives")});
+        imp->set_package({new Identifier({}, "core"), new Identifier({}, "primitives")});
         imp->set_scope_target(this);
 
         intrinsics->push_child(imp);

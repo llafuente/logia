@@ -17,7 +17,7 @@ namespace logia::AST
     // ConstExpression
     //
 
-    ConstExpression::ConstExpression(antlr4::ParserRuleContext *rule) : Expression(rule)
+    ConstExpression::ConstExpression(location loc) : Expression(loc)
     {
         this->is_constant = true;
     }
@@ -53,7 +53,7 @@ namespace logia::AST
     // IntegerLiteral
     //
 
-    IntegerLiteral::IntegerLiteral(antlr4::ParserRuleContext *rule, const char *number_as_text, Type *type) : ConstExpression(rule)
+    IntegerLiteral::IntegerLiteral(location loc, const char *number_as_text, Type *type) : ConstExpression(loc)
     {
         LOGIA_VERIFY(number_as_text != nullptr);
         // TODO number literals with dashes need to be cleaned right ?
@@ -192,7 +192,7 @@ namespace logia::AST
     IntegerLiteral *do_int_operator(IntegerLiteral *lhs, IntegerLiteral *rhs)
     {
         // Build a copy-like result (same rule/type, own buffers)
-        auto result = new IntegerLiteral(lhs->rule, "0", lhs->type);
+        auto result = new IntegerLiteral(lhs->loc, "0", lhs->type);
 
         // Align bit width/signedness before add
         llvm::APSInt lhs_val = lhs->value;
@@ -332,7 +332,7 @@ namespace logia::AST
     // FloatLiteral
     //
 
-    FloatLiteral::FloatLiteral(antlr4::ParserRuleContext *rule, const char *number_as_text, Type *type) : ConstExpression(rule)
+    FloatLiteral::FloatLiteral(location loc, const char *number_as_text, Type *type) : ConstExpression(loc)
     {
         LOGIA_VERIFY(number_as_text != nullptr);
         // TODO number literals with dashes need to be cleaned right ?
@@ -426,7 +426,7 @@ namespace logia::AST
         llvm::SmallString<32> str;
         sum.toString(str);
 
-        return new FloatLiteral(this->rule, str.c_str(), this->type);
+        return new FloatLiteral(this->loc, str.c_str(), this->type);
     }
 
     ConstExpression *FloatLiteral::operator-(ConstExpression *other)
@@ -441,7 +441,7 @@ namespace logia::AST
         llvm::SmallString<32> str;
         sum.toString(str);
 
-        return new FloatLiteral(this->rule, str.c_str(), this->type);
+        return new FloatLiteral(this->loc, str.c_str(), this->type);
     }
     ConstExpression *FloatLiteral::operator*(ConstExpression *other)
     {
@@ -455,7 +455,7 @@ namespace logia::AST
         llvm::SmallString<32> str;
         sum.toString(str);
 
-        return new FloatLiteral(this->rule, str.c_str(), this->type);
+        return new FloatLiteral(this->loc, str.c_str(), this->type);
     }
     ConstExpression *FloatLiteral::operator/(ConstExpression *other)
     {
@@ -470,7 +470,7 @@ namespace logia::AST
         llvm::SmallString<32> str;
         sum.toString(str);
 
-        return new FloatLiteral(this->rule, str.c_str(), this->type);
+        return new FloatLiteral(this->loc, str.c_str(), this->type);
     }
 
     std::string FloatLiteral::to_string()
@@ -514,7 +514,7 @@ namespace logia::AST
     // StringLiteral
     //
 
-    StringLiteral::StringLiteral(antlr4::ParserRuleContext *rule, const char *text) : ConstExpression(rule)
+    StringLiteral::StringLiteral(location loc, const char *text) : ConstExpression(loc)
     {
         // assert not null, or llvm will crash without any message :S
         LOGIA_VERIFY(text != nullptr);
@@ -577,7 +577,7 @@ namespace logia::AST
         }
         combined[lhs_len + rhs_len] = '\0';
 
-        auto result = new StringLiteral(this->rule, combined);
+        auto result = new StringLiteral(this->loc, combined);
         result->type = this->type;
         return result;
     }

@@ -69,10 +69,10 @@ TEST(test_constexpr, integer_literals)
     LOGIA_UNIT_TEST();
     using namespace logia::AST;
 
-    auto i_10 = new IntegerLiteral(rule, "10");
-    auto i_11 = new IntegerLiteral(rule, "11");
-    auto i_5 = new IntegerLiteral(rule, "5");
-    auto i_7 = new IntegerLiteral(rule, "7");
+    auto i_10 = new IntegerLiteral(loc, "10");
+    auto i_11 = new IntegerLiteral(loc, "11");
+    auto i_5 = new IntegerLiteral(loc, "5");
+    auto i_7 = new IntegerLiteral(loc, "7");
 
     EXPECT_TRUE(i_10->is_valid_constant_operator(Operators::BINARY_ADD));
     {
@@ -113,10 +113,10 @@ TEST(test_constexpr, float_literals)
     LOGIA_UNIT_TEST();
     using namespace logia::AST;
 
-    auto i_10 = new FloatLiteral(rule, "10.8");
-    auto i_11 = new FloatLiteral(rule, "11.7");
-    auto i_5 = new FloatLiteral(rule, "5.6");
-    auto i_7 = new FloatLiteral(rule, "7.4");
+    auto i_10 = new FloatLiteral(loc, "10.8");
+    auto i_11 = new FloatLiteral(loc, "11.7");
+    auto i_5 = new FloatLiteral(loc, "5.6");
+    auto i_7 = new FloatLiteral(loc, "7.4");
 
     EXPECT_TRUE(i_10->is_valid_constant_operator(Operators::BINARY_ADD));
     {
@@ -155,8 +155,8 @@ TEST(test_constexpr, string_literals)
     LOGIA_UNIT_TEST();
     using namespace logia::AST;
 
-    auto a = new StringLiteral(rule, "10");
-    auto b = new StringLiteral(rule, "11");
+    auto a = new StringLiteral(loc, "10");
+    auto b = new StringLiteral(loc, "11");
 
     EXPECT_TRUE(a->is_valid_constant_operator(Operators::BINARY_ADD));
 
@@ -172,19 +172,19 @@ TEST(test_constexpr, float_limits)
     LOGIA_UNIT_TEST();
     using namespace logia::AST;
     {
-        auto a = new FloatLiteral(rule, "-infinity");
+        auto a = new FloatLiteral(loc, "-infinity");
         EXPECT_TRUE(a->value.isInfinity());
     }
     {
-        auto a = new FloatLiteral(rule, "infinity");
+        auto a = new FloatLiteral(loc, "infinity");
         EXPECT_TRUE(a->value.isInfinity());
     }
     {
-        auto a = new FloatLiteral(rule, "nan");
+        auto a = new FloatLiteral(loc, "nan");
         EXPECT_TRUE(a->value.isNaN());
     }
     {
-        auto a = new FloatLiteral(rule, "-nan");
+        auto a = new FloatLiteral(loc, "-nan");
         EXPECT_TRUE(a->value.isNaN());
     }
 

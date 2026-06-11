@@ -17,7 +17,7 @@ namespace logia::AST
         /// @brief Cached type
         Type *type;
 
-        VarDeclStmt(antlr4::ParserRuleContext *rule, Identifier *id, Type *type, Expression *expr);
+        VarDeclStmt(location loc, Identifier *id, Type *type, Expression *expr);
 
         /// @brief Returns initializer expression
         /// @return
@@ -48,8 +48,4 @@ namespace logia::AST
         /// @brief Sets type
         void _set_type(Type *ty) override;
     };
-
-    /// @brief Creates a variable declaration
-    /// Note, to create a constant Type should be readonly.
-    LOGIA_API LOGIA_LEND VarDeclStmt *ast_create_var_decl(Identifier *id, Type *type, Expression *expr);
 } // namespace logia::AST

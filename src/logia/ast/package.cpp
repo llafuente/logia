@@ -8,7 +8,7 @@
 namespace logia::AST
 {
 
-    Package::Package(antlr4::ParserRuleContext *rule, const char *entry_point_file, const char *file_contents) : Scope(rule), entry_point_file(entry_point_file), file_contents(file_contents) {}
+    Package::Package(location loc, const char *entry_point_file, const char *file_contents) : Scope(loc), entry_point_file(entry_point_file), file_contents(file_contents) {}
     std::string Package::to_string()
     {
         return std::format("{}{}", "Package", Scope::to_string());

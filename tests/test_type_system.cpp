@@ -21,10 +21,7 @@ TEST(logia_test_type_system, start)
     using namespace logia::AST;
     using namespace logia::type_system;
 
-    auto rule = new antlr4::ParserRuleContext();
-    rule->start = new antlr4::CommonToken(102);
-    rule->stop = new antlr4::CommonToken(102);
-    //    rule->start = antlr4::TokenFactory<antlr4::Token>.create(std::pair<TokenSource *, CharStream *> source, size_t type, const std::string &text, size_t channel, size_t start, size_t stop, size_t line, size_t charPositionInLine)
+    location loc = {"", 0, 0, 0, 0, ""};
 
     auto i32 = new logia::AST::Integer(true, 32);
     auto u32 = new logia::AST::Integer(false, 32);
@@ -62,28 +59,28 @@ TEST(logia_test_type_system, start)
     }
 
     // {x,y,z}
-    auto st1_i32 = new logia::AST::Struct(rule, new logia::AST::Identifier(rule, "st1_i32"));
-    st1_i32->add_field(rule, new logia::AST::Identifier(rule, "x"), i32);
-    st1_i32->add_field(rule, new logia::AST::Identifier(rule, "y"), i32);
-    st1_i32->add_field(rule, new logia::AST::Identifier(rule, "z"), i32);
+    auto st1_i32 = new logia::AST::Struct(loc, new logia::AST::Identifier(loc, "st1_i32"));
+    st1_i32->add_field(loc, new logia::AST::Identifier(loc, "x"), i32);
+    st1_i32->add_field(loc, new logia::AST::Identifier(loc, "y"), i32);
+    st1_i32->add_field(loc, new logia::AST::Identifier(loc, "z"), i32);
 
     // {x,y,(z)} <-- compatible at code level!
-    auto st2_i32 = new logia::AST::Struct(rule, new logia::AST::Identifier(rule, "st2_i32"));
-    st2_i32->add_field(rule, new logia::AST::Identifier(rule, "x"), i32);
-    st2_i32->add_field(rule, new logia::AST::Identifier(rule, "y"), i32);
-    st2_i32->add_alias(rule, new logia::AST::Identifier(rule, "z"), new logia::AST::Identifier(rule, "y"), nullptr);
+    auto st2_i32 = new logia::AST::Struct(loc, new logia::AST::Identifier(loc, "st2_i32"));
+    st2_i32->add_field(loc, new logia::AST::Identifier(loc, "x"), i32);
+    st2_i32->add_field(loc, new logia::AST::Identifier(loc, "y"), i32);
+    st2_i32->add_alias(loc, new logia::AST::Identifier(loc, "z"), new logia::AST::Identifier(loc, "y"), nullptr);
 
     // {x,y,g} <-- incompatible at code level! - compatible at layout!
-    auto st3_i32 = new logia::AST::Struct(rule, new logia::AST::Identifier(rule, "st3_i32"));
-    st3_i32->add_field(rule, new logia::AST::Identifier(rule, "x"), i32);
-    st3_i32->add_field(rule, new logia::AST::Identifier(rule, "y"), i32);
-    st3_i32->add_field(rule, new logia::AST::Identifier(rule, "g"), i32);
+    auto st3_i32 = new logia::AST::Struct(loc, new logia::AST::Identifier(loc, "st3_i32"));
+    st3_i32->add_field(loc, new logia::AST::Identifier(loc, "x"), i32);
+    st3_i32->add_field(loc, new logia::AST::Identifier(loc, "y"), i32);
+    st3_i32->add_field(loc, new logia::AST::Identifier(loc, "g"), i32);
 
     // {x,y,g} <-- incompatible at code level! - compatible at layout!
-    auto st4_i32 = new logia::AST::Struct(rule, new logia::AST::Identifier(rule, "st3_i32"));
-    st4_i32->add_field(rule, new logia::AST::Identifier(rule, "x"), i32);
-    st4_i32->add_field(rule, new logia::AST::Identifier(rule, "y"), f32);
-    st4_i32->add_field(rule, new logia::AST::Identifier(rule, "z"), i32);
+    auto st4_i32 = new logia::AST::Struct(loc, new logia::AST::Identifier(loc, "st3_i32"));
+    st4_i32->add_field(loc, new logia::AST::Identifier(loc, "x"), i32);
+    st4_i32->add_field(loc, new logia::AST::Identifier(loc, "y"), f32);
+    st4_i32->add_field(loc, new logia::AST::Identifier(loc, "z"), i32);
 
     {
         auto err = type_is_compatible(st1_i32, st1_i32);

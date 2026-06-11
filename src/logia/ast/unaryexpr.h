@@ -22,7 +22,7 @@ namespace logia::AST
         /// @brief operator
         Operators op;
 
-        UnaryExpression(antlr4::ParserRuleContext *rule, Operators op, Expression *operand);
+        UnaryExpression(location loc, Operators op, Expression *operand);
 
         Expression *get_operand();
 

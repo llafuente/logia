@@ -12,7 +12,7 @@ namespace logia::AST
         /// @brief Constructs a function block
         /// @param rule The parser rule context
         /// @param name The name of the function block
-        FunctionBlock(antlr4::ParserRuleContext *rule, Identifier *name);
+        FunctionBlock(location loc, Identifier *name);
 
         std::string to_string() override;
 

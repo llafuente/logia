@@ -13,7 +13,7 @@ namespace logia::AST
     /// @brief if statement, with optional else
     struct IfStmt : Stmt
     {
-        IfStmt(antlr4::ParserRuleContext *rule, Expression *condition);
+        IfStmt(location loc, Expression *condition);
         /// @brief Retrieves the condition expression
         /// @return
         Expression *get_condition();
@@ -38,7 +38,4 @@ namespace logia::AST
         void _post_type_inference() override;
         void _set_type(Type *t) override;
     };
-
-    /// @brief Creates an if statement
-    LOGIA_API LOGIA_LEND IfStmt *ast_create_if(Expression *condition);
 }

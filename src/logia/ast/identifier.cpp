@@ -10,7 +10,7 @@
 
 namespace logia::AST
 {
-    Identifier::Identifier(antlr4::ParserRuleContext *rule, LOGIA_CLONE const char *identifier) : Expression(rule)
+    Identifier::Identifier(location loc, LOGIA_CLONE const char *identifier) : Expression(loc)
     {
         this->identifier = _strdup(identifier);
     }
@@ -114,7 +114,7 @@ namespace logia::AST
                 int i = 1;
                 for (const auto &node : list)
                 {
-                    debug_candidates += std::format("Candidate {} declared {}\n", i++, node->get_debug_location(0, 0));
+                    debug_candidates += std::format("Candidate {} declared {}\n", i++, node->loc.get_debug_location(0, 0));
                     ++i;
                 }
                 throw_semantic_error(this, std::format(LGERR_ID002, list.size(), this->identifier, debug_candidates));
@@ -136,7 +136,7 @@ namespace logia::AST
     {
         LOGIA_VERIFY(name != nullptr);
 
-        return new Identifier(nullptr, _strdup(name));
+        return new Identifier({}, _strdup(name));
     }
 
 } // namespace logia::AST

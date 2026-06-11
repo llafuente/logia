@@ -81,7 +81,7 @@ namespace logia::AST
         /// @param name The name of the function
         /// @param return_type The return type of the function
         /// @param is_intrinsic Whether the function is intrinsic or not, intrinsic functions don't have body and are defined outside user program.
-        Function(antlr4::ParserRuleContext *rule, Identifier *name, Type *return_type = nullptr, bool is_intrinsic = false);
+        Function(location loc, Identifier *name, Type *return_type = nullptr, bool is_intrinsic = false);
         ~Function();
 
         /// @brief Retrieves the function parameters
@@ -157,7 +157,7 @@ namespace logia::AST
         /// @brief The operator kind
         Operators op;
 
-        Operator(antlr4::ParserRuleContext *rule, Operators op, Type *return_type = nullptr);
+        Operator(location loc, Operators op, Type *return_type = nullptr);
         ~Operator();
     };
 
@@ -199,14 +199,4 @@ namespace logia::AST
             llvm::Value *post_codegen(logia::Backend *backend) override;
         };
     */
-    /**
-     * Creates a function
-     */
-    LOGIA_API LOGIA_LEND Function *ast_create_function_type(Identifier *name, Type *return_type);
-    /**
-     * Creates a intrinsic function
-     *
-     * REVIEW TODO this may also need to call backkend::add_intrinsic to keep everything sync.
-     */
-    LOGIA_API LOGIA_LEND Type *ast_create_instrinsic(Program *program, Identifier *id, Type *return_type);
 }

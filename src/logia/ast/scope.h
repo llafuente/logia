@@ -17,7 +17,7 @@ namespace logia::AST
         /// @brief Back pointer to fast access
         Scope *parentScope = nullptr;
 
-        Scope(antlr4::ParserRuleContext *rule);
+        Scope(location loc);
 
         // NOTE: about cpp
         // std::unordered_map<char*, Node*> scope; --> wrong char* is not the expected type, no "=="

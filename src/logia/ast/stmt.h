@@ -13,7 +13,7 @@ namespace logia::AST
     /// @brief Base class for all statements
     struct Stmt : Node
     {
-        Stmt(antlr4::ParserRuleContext *rule);
+        Stmt(location loc);
 
         std::string to_string() override;
 
@@ -25,7 +25,7 @@ namespace logia::AST
     /// @brief Goto statement
     struct GotoStmt : Stmt
     {
-        GotoStmt(antlr4::ParserRuleContext *rule, Identifier *id);
+        GotoStmt(location loc, Identifier *id);
 
         /// @brief Returns the identifier of the target label
         /// @return Identifier of the target label
@@ -43,7 +43,5 @@ namespace logia::AST
         /// @brief Do nothing
         void _set_type(Type *ty) override;
     };
-
-    LOGIA_API LOGIA_LEND GotoStmt *ast_create_goto_stmt(Identifier *id);
 
 }

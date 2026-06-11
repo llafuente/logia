@@ -25,7 +25,7 @@ namespace logia::AST
         /// @brief Cached type of the binary expression (call expression return type)
         Type *type = nullptr;
 
-        BinaryExpression(antlr4::ParserRuleContext *rule, Expression *left, Operators op, Expression *right);
+        BinaryExpression(location loc, Expression *left, Operators op, Expression *right);
 
         /// @brief Gets the left-hand side expression of the binary expression
         /// @return The left-hand side expression

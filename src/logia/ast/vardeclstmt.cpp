@@ -9,7 +9,7 @@
 
 namespace logia::AST
 {
-    VarDeclStmt::VarDeclStmt(antlr4::ParserRuleContext *rule, Identifier *id, Type *type, Expression *expr) : Stmt(rule), alloca_inst(nullptr)
+    VarDeclStmt::VarDeclStmt(location loc, Identifier *id, Type *type, Expression *expr) : Stmt(loc), alloca_inst(nullptr)
     {
         this->push_child(id);           // 0
         id->skip_type_inference = true; // sets the same as vardecl
@@ -87,7 +87,7 @@ namespace logia::AST
         {
             auto result = scope_lookup_all(this, this->get_name());
             auto node = result.unwrap_success()[0]; // at least one
-            throw_semantic_error(this, std::format(LGERR_VDECL001, this->get_name(), node->get_debug_location()));
+            throw_semantic_error(this, std::format(LGERR_VDECL001, this->get_name(), node->loc.get_debug_location()));
         }
     }
 
@@ -129,14 +129,5 @@ namespace logia::AST
         }
 
         this->get_identifier()->set_type(ty);
-    }
-
-    LOGIA_API LOGIA_LEND VarDeclStmt *ast_create_var_decl(Identifier *id, Type *type, Expression *expr)
-    {
-        LOGIA_VERIFY(id != nullptr);
-
-        VarDeclStmt *variable = new VarDeclStmt(nullptr, id, type, expr);
-
-        return variable;
     }
 } // namespace logia::AST

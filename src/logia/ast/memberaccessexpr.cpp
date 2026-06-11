@@ -9,7 +9,7 @@ namespace logia::AST
     //
     // MemberAccessExpression
     //
-    MemberAccessExpression::MemberAccessExpression(antlr4::ParserRuleContext *rule, Node *left, Identifier *right) : Expression(rule)
+    MemberAccessExpression::MemberAccessExpression(location loc, Node *left, Identifier *right) : Expression(loc)
     {
         this->push_child(left);
         this->push_child(right);

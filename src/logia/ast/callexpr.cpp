@@ -25,7 +25,7 @@ namespace logia::AST
     CallExpressionArgument::CallExpressionArgument(
         size_t index,
         Identifier *name,
-        Expression *value) : Node(value->rule), index(index)
+        Expression *value) : Node(value->loc), index(index)
     {
         this->has_type = false;
         this->skip_type_inference = true;
@@ -76,10 +76,10 @@ namespace logia::AST
     //
     // CallExpression
     //
-    CallExpression::CallExpression(antlr4::ParserRuleContext *rule) : Expression(rule)
+    CallExpression::CallExpression(location loc) : Expression(loc)
     {
     }
-    CallExpression::CallExpression(antlr4::ParserRuleContext *rule, Expression *locator, std::vector<Expression *> positional_arguments) : Expression(rule)
+    CallExpression::CallExpression(location loc, Expression *locator, std::vector<Expression *> positional_arguments) : Expression(loc)
     {
         LOGIA_VERIFY(locator != nullptr, "locator is mantadory");
 
@@ -107,7 +107,7 @@ namespace logia::AST
     }
     void CallExpression::push_positional_argument(Expression *expr)
     {
-        return this->push_named_argument(new Identifier(expr->rule, ""), expr);
+        return this->push_named_argument(new Identifier(expr->loc, ""), expr);
     }
 
     void CallExpression::insert_named_argument(size_t position, Identifier *name, Expression *expr)
@@ -319,7 +319,7 @@ namespace logia::AST
 
     LOGIA_API CallExpression *ast_create_call_expr(Expression *locator, std::vector<Expression *> arguments)
     {
-        auto callexpr = new CallExpression(nullptr, locator, arguments);
+        auto callexpr = new CallExpression({}, locator, arguments);
 
         return callexpr;
     }

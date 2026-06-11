@@ -88,7 +88,7 @@ namespace logia::multiple_dispatch
                             {
                                 if (change)
                                 {
-                                    arguments.push_back(new Cast(arg->rule, value, param_type));
+                                    arguments.push_back(new Cast(arg->loc, value, param_type));
                                 }
                                 points *= 0.5;
                             }
@@ -154,7 +154,7 @@ namespace logia::multiple_dispatch
                             {
                                 if (change)
                                 {
-                                    arguments.push_back(new Cast(arg->rule, value, param_type));
+                                    arguments.push_back(new Cast(arg->loc, value, param_type));
                                 }
                                 points *= 0.5;
                             }
@@ -278,11 +278,11 @@ namespace logia::multiple_dispatch
                 Function *func;
                 if (node->try_cast<Function>(&func))
                 {
-                    debug_candidates += std::format("Candidate {} with: \n{}Declared {}\n", i++, func->get_repr(), func->get_debug_location(0, 0));
+                    debug_candidates += std::format("Candidate {} with: \n{}Declared {}\n", i++, func->get_repr(), func->loc.get_debug_location(0, 0));
                 }
                 ++i;
             }
-            throw std::runtime_error(std::format("LGERR_MD001 No matching function found for call expression.\n{}\nPossible candidates:\n{}", callexpr->get_debug_location(), debug_candidates));
+            throw std::runtime_error(std::format("LGERR_MD001 No matching function found for call expression.\n{}\nPossible candidates:\n{}", callexpr->loc.get_debug_location(), debug_candidates));
         }
 
         if (candidates.size() == 1)
@@ -322,10 +322,10 @@ namespace logia::multiple_dispatch
         {
             auto points = std::get<0>(candidate);
             auto f = std::get<1>(candidate);
-            debug_candidates += std::format("Candidate {} with {} points: \n{}Declared {}\n", i++, points, f->get_repr(), f->get_debug_location(0, 0));
+            debug_candidates += std::format("Candidate {} with {} points: \n{}Declared {}\n", i++, points, f->get_repr(), f->loc.get_debug_location(0, 0));
         }
 
         // TODO find the most specific overload
-        throw_semantic_error(callexpr, "LGERR_MD002 Ambiguous call expression, multiple candidates found: " + callexpr->get_debug_location() + "\n" + debug_candidates);
+        throw_semantic_error(callexpr, "LGERR_MD002 Ambiguous call expression, multiple candidates found: " + callexpr->loc.get_debug_location() + "\n" + debug_candidates);
     }
 }

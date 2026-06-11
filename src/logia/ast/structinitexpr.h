@@ -13,7 +13,7 @@ namespace logia::AST
         uint32_t values = 0;
         Type *type = nullptr;
 
-        StructInitializer(antlr4::ParserRuleContext *rule);
+        StructInitializer(location loc);
 
         std::string to_string() override;
         /// @brief Adds a named property

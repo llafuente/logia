@@ -58,6 +58,7 @@ set(LOGIA_SOURCE_FILES
   src/logia/maybe_error.cpp
   src/logia/multiple_dispatch.cpp
 
+  src/logia/ast/location.cpp
   src/logia/ast/node.cpp
   src/logia/ast/semantic_error.cpp
   src/logia/ast/type.cpp

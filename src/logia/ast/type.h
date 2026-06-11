@@ -59,7 +59,7 @@ namespace logia::AST
         llvm::Type *ir_type = nullptr;
         llvm::DIType *di_type = nullptr;
 
-        Type(antlr4::ParserRuleContext *rule, Primitives prim);
+        Type(location loc, Primitives prim);
         ~Type();
 
         std::string to_string() override;

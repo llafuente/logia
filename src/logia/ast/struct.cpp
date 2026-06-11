@@ -13,7 +13,7 @@ namespace logia::AST
     //
     // Struct
     //
-    StructAlias::StructAlias(antlr4::ParserRuleContext *rule, Identifier *from, Identifier *to, const char *_docstring) : docstring(_docstring), Type(rule, Primitives::NONE)
+    StructAlias::StructAlias(location loc, Identifier *from, Identifier *to, const char *_docstring) : docstring(_docstring), Type(loc, Primitives::NONE)
     {
         this->is_typed = true;
 
@@ -47,12 +47,12 @@ namespace logia::AST
         return owner->get_field_type(this->get_to());
     }
 
-    StructField::StructField(antlr4::ParserRuleContext *rule,
+    StructField::StructField(location loc,
                              uint32_t index,
                              Identifier *name,
                              Type *type,
                              Expression *default_value,
-                             const char *docstring) : docstring(docstring), Type(rule, Primitives::NONE), index(index)
+                             const char *docstring) : docstring(docstring), Type(loc, Primitives::NONE), index(index)
     {
         this->is_typed = true;
 
@@ -99,7 +99,7 @@ namespace logia::AST
     // Struct
     //
 
-    Struct::Struct(antlr4::ParserRuleContext *rule, Identifier *id) : Type(rule, Primitives::STRUCT_TY)
+    Struct::Struct(location loc, Identifier *id) : Type(loc, Primitives::STRUCT_TY)
     {
         this->is_typed = true;
         if (id != nullptr)
@@ -286,7 +286,7 @@ namespace logia::AST
     }
 
     void Struct::add_field(
-        antlr4::ParserRuleContext *rule,
+        location loc,
         Identifier *name,
         Type *type,
         Expression *default_value,
@@ -301,10 +301,10 @@ namespace logia::AST
             throw_compiler_error("name is required for fields");
         }
 
-        this->push_child(new StructField(rule, this->field_count++, name, type, default_value, docstring));
+        this->push_child(new StructField(loc, this->field_count++, name, type, default_value, docstring));
     }
 
-    void Struct::add_alias(antlr4::ParserRuleContext *rule, Identifier *from, Identifier *to, const char *docstring)
+    void Struct::add_alias(location loc, Identifier *from, Identifier *to, const char *docstring)
     {
         LOGIA_VERIFY(from != nullptr);
         LOGIA_VERIFY(to != nullptr);
@@ -312,7 +312,7 @@ namespace logia::AST
         // TODO exists to ?
         // TODO exists from ?
 
-        this->push_child(new StructAlias(rule, from, to, docstring));
+        this->push_child(new StructAlias(loc, from, to, docstring));
         ++this->alias_count;
     }
 
@@ -336,14 +336,14 @@ namespace logia::AST
                     {
                         if (first_field->get_name()->operator==(second_field->get_name()))
                         {
-                            throw_semantic_error(second_field, std::format("LGERR_ST001 Redeclaration of field name '{}'.\nFirst declaration {}\nSecond declaration {}", first_field->get_name()->identifier, first_field->get_debug_location(), second_field->get_debug_location()));
+                            throw_semantic_error(second_field, std::format("LGERR_ST001 Redeclaration of field name '{}'.\nFirst declaration {}\nSecond declaration {}", first_field->get_name()->identifier, first_field->loc.get_debug_location(), second_field->loc.get_debug_location()));
                         }
                     }
                     else if (second->try_cast<StructAlias>(&second_alias))
                     {
                         if (first_field->get_name()->operator==(second_alias->get_from()))
                         {
-                            throw_semantic_error(second_alias, std::format("LGERR_ST001 Redeclaration of field name '{}'.\nFirst declaration {}\nSecond declaration {}", first_field->get_name()->identifier, first_field->get_debug_location(), second_alias->get_debug_location()));
+                            throw_semantic_error(second_alias, std::format("LGERR_ST001 Redeclaration of field name '{}'.\nFirst declaration {}\nSecond declaration {}", first_field->get_name()->identifier, first_field->loc.get_debug_location(), second_alias->loc.get_debug_location()));
                         }
                     }
                 }
@@ -359,14 +359,14 @@ namespace logia::AST
                     {
                         if (first_alias->get_from()->operator==(second_field->get_name()))
                         {
-                            throw_semantic_error(second_field, std::format("LGERR_ST001 Redeclaration of field name '{}'.\nFirst declaration {}\nSecond declaration {}", first_alias->get_from()->identifier, first_alias->get_debug_location(), second_field->get_debug_location()));
+                            throw_semantic_error(second_field, std::format("LGERR_ST001 Redeclaration of field name '{}'.\nFirst declaration {}\nSecond declaration {}", first_alias->get_from()->identifier, first_alias->loc.get_debug_location(), second_field->loc.get_debug_location()));
                         }
                     }
                     else if (second->try_cast<StructAlias>(&second_alias))
                     {
                         if (first_alias->get_from()->operator==(second_alias->get_from()))
                         {
-                            throw_semantic_error(second_alias, std::format("LGERR_ST001 Redeclaration of field name '{}'.\nFirst declaration {}\nSecond declaration {}", first_alias->get_from()->identifier, first_alias->get_debug_location(), second_alias->get_debug_location()));
+                            throw_semantic_error(second_alias, std::format("LGERR_ST001 Redeclaration of field name '{}'.\nFirst declaration {}\nSecond declaration {}", first_alias->get_from()->identifier, first_alias->loc.get_debug_location(), second_alias->loc.get_debug_location()));
                         }
                     }
                 }
@@ -385,7 +385,7 @@ namespace logia::AST
                 }
                 if (!found)
                 {
-                    throw_semantic_error(first_alias, std::format("LGERR_ST002 Alias target '{}' not found.\nDeclared {}", first_alias->get_to()->identifier, first_alias->get_debug_location()));
+                    throw_semantic_error(first_alias, std::format("LGERR_ST002 Alias target '{}' not found.\nDeclared {}", first_alias->get_to()->identifier, first_alias->loc.get_debug_location()));
                 }
             }
             else
@@ -404,10 +404,4 @@ namespace logia::AST
                         */
         }
     }
-
-    LOGIA_API LOGIA_LEND Struct *ast_create_struct_type(Identifier *id)
-    {
-        return new Struct(nullptr, id);
-    }
-
 } // namespace logia::AST

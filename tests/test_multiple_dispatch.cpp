@@ -26,34 +26,34 @@ TEST(logia_test_multiple_dispatch, match001)
     using namespace logia::AST;
     using namespace logia::type_system;
 
-    auto i16_v = new IntegerLiteral(rule, "10", i16);
-    auto i32_v = new IntegerLiteral(rule, "10", i32);
-    auto i32_v2 = new IntegerLiteral(rule, "10", i32);
-    auto i64_v = new IntegerLiteral(rule, "10", i64);
+    auto i16_v = new IntegerLiteral(loc, "10", i16);
+    auto i32_v = new IntegerLiteral(loc, "10", i32);
+    auto i32_v2 = new IntegerLiteral(loc, "10", i32);
+    auto i64_v = new IntegerLiteral(loc, "10", i64);
 
-    auto xxx_fn = new Function(rule, new Identifier(rule, "xxx"), i32, false);
-    xxx_fn->push_parameter(new FunctionParameter(new Identifier(rule, "a"), i32, nullptr));
+    auto xxx_fn = new Function(loc, new Identifier(loc, "xxx"), i32, false);
+    xxx_fn->push_parameter(new FunctionParameter(new Identifier(loc, "a"), i32, nullptr));
     program->push_child(xxx_fn);
 
-    auto xxx2_fn = new Function(rule, new Identifier(rule, "xxx"), i32, false);
-    xxx2_fn->push_parameter(new FunctionParameter(new Identifier(rule, "a"), i32, nullptr));
-    xxx2_fn->push_parameter(new FunctionParameter(new Identifier(rule, "b"), i32, i32_v2));
+    auto xxx2_fn = new Function(loc, new Identifier(loc, "xxx"), i32, false);
+    xxx2_fn->push_parameter(new FunctionParameter(new Identifier(loc, "a"), i32, nullptr));
+    xxx2_fn->push_parameter(new FunctionParameter(new Identifier(loc, "b"), i32, i32_v2));
     program->push_child(xxx2_fn);
 
     // NOTE call expression locator is not tested!
-    auto callexpr = new CallExpression(rule, new Identifier(rule, "?"), {i32_v});
+    auto callexpr = new CallExpression(loc, new Identifier(loc, "?"), {i32_v});
     main_body->push_child(callexpr);
 
-    auto callexpr2 = new CallExpression(rule, new Identifier(rule, "?"), {i16_v});
+    auto callexpr2 = new CallExpression(loc, new Identifier(loc, "?"), {i16_v});
     main_body->push_child(callexpr2);
 
-    auto callexpr3 = new CallExpression(rule, new Identifier(rule, "?"), {});
-    callexpr3->push_named_argument(new Identifier(rule, "b"), i32_v);
+    auto callexpr3 = new CallExpression(loc, new Identifier(loc, "?"), {});
+    callexpr3->push_named_argument(new Identifier(loc, "b"), i32_v);
     main_body->push_child(callexpr3);
 
-    auto callexpr4 = new CallExpression(rule, new Identifier(rule, "?"), {});
-    callexpr4->push_named_argument(new Identifier(rule, "a"), i32_v);
-    callexpr4->push_named_argument(new Identifier(rule, "b"), i32_v);
+    auto callexpr4 = new CallExpression(loc, new Identifier(loc, "?"), {});
+    callexpr4->push_named_argument(new Identifier(loc, "a"), i32_v);
+    callexpr4->push_named_argument(new Identifier(loc, "b"), i32_v);
     main_body->push_child(callexpr4);
 
     {
@@ -170,22 +170,22 @@ TEST(logia_test_multiple_dispatch, find001)
     using namespace logia::AST;
     using namespace logia::type_system;
 
-    auto i16_v = new IntegerLiteral(rule, "10", i16);
-    auto i32_v = new IntegerLiteral(rule, "10", i32);
-    auto i32_v2 = new IntegerLiteral(rule, "10", i32);
-    auto i64_v = new IntegerLiteral(rule, "10", i64);
+    auto i16_v = new IntegerLiteral(loc, "10", i16);
+    auto i32_v = new IntegerLiteral(loc, "10", i32);
+    auto i32_v2 = new IntegerLiteral(loc, "10", i32);
+    auto i64_v = new IntegerLiteral(loc, "10", i64);
 
-    auto fn_a_i32 = new Function(rule, new Identifier(rule, "xxx"), i32, false);
-    fn_a_i32->push_parameter(new FunctionParameter(new Identifier(rule, "a"), i32, nullptr));
+    auto fn_a_i32 = new Function(loc, new Identifier(loc, "xxx"), i32, false);
+    fn_a_i32->push_parameter(new FunctionParameter(new Identifier(loc, "a"), i32, nullptr));
     program->push_child(fn_a_i32);
 
-    auto callexpr = new CallExpression(rule, new Identifier(rule, "xxx"), {i32_v});
+    auto callexpr = new CallExpression(loc, new Identifier(loc, "xxx"), {i32_v});
     main_body->push_child(callexpr);
 
     /*
-        auto fn_a_i32_b_i32 = new Function(rule, new Identifier(rule, "xxx"), i32, false);
-        fn_a_i32_b_i32->push_parameter(new FunctionParameter(new Identifier(rule, "a"), i32, nullptr));
-        fn_a_i32_b_i32->push_parameter(new FunctionParameter(new Identifier(rule, "b"), i32, i32_v2));
+        auto fn_a_i32_b_i32 = new Function(loc, new Identifier(loc, "xxx"), i32, false);
+        fn_a_i32_b_i32->push_parameter(new FunctionParameter(new Identifier(loc, "a"), i32, nullptr));
+        fn_a_i32_b_i32->push_parameter(new FunctionParameter(new Identifier(loc, "b"), i32, i32_v2));
         program->push_child(fn_a_i32_b_i32);
 
 
@@ -197,8 +197,8 @@ TEST(logia_test_multiple_dispatch, find001)
             EXPECT_EQ(x, fn_a_i32);
         }
     */
-    auto fn_a_i64 = new Function(rule, new Identifier(rule, "xxx"), i64, false);
-    fn_a_i64->push_parameter(new FunctionParameter(new Identifier(rule, "a"), i64, nullptr));
+    auto fn_a_i64 = new Function(loc, new Identifier(loc, "xxx"), i64, false);
+    fn_a_i64->push_parameter(new FunctionParameter(new Identifier(loc, "a"), i64, nullptr));
     program->push_child(fn_a_i64);
 
     {
@@ -208,8 +208,8 @@ TEST(logia_test_multiple_dispatch, find001)
         EXPECT_EQ(x, fn_a_i32);
     }
 
-    auto fn_a_i16 = new Function(rule, new Identifier(rule, "xxx"), i16, false);
-    fn_a_i16->push_parameter(new FunctionParameter(new Identifier(rule, "a"), i16, nullptr));
+    auto fn_a_i16 = new Function(loc, new Identifier(loc, "xxx"), i16, false);
+    fn_a_i16->push_parameter(new FunctionParameter(new Identifier(loc, "a"), i16, nullptr));
     program->push_child(fn_a_i16);
 
     {
@@ -229,7 +229,8 @@ TEST(logia_test_multiple_dispatch, find001)
     }
 
     {
-        callexpr->set_type(i64);
+        // TODO
+        // callexpr->set_type_hint(i64);
         try
         {
             auto x = find(callexpr);

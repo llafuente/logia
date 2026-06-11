@@ -22,7 +22,7 @@ namespace logia::AST
     FunctionParameter::FunctionParameter(
         Identifier *name,
         Type *type,
-        Node *defaultValue) : Node(name->rule), alloca_inst(nullptr)
+        Node *defaultValue) : Node(name->loc), alloca_inst(nullptr)
     {
         LOGIA_VERIFY(name != nullptr);
         LOGIA_VERIFY(type != nullptr);
@@ -77,7 +77,7 @@ namespace logia::AST
     // Function
     //
 
-    Function::Function(antlr4::ParserRuleContext *rule, Identifier *name, Type *return_type, bool is_intrinsic) : Type(rule, Primitives::FUNCTION_TY)
+    Function::Function(location loc, Identifier *name, Type *return_type, bool is_intrinsic) : Type(loc, Primitives::FUNCTION_TY)
     {
         LOGIA_VERIFY(name != nullptr, "name parameter is required");
 
@@ -87,7 +87,7 @@ namespace logia::AST
 
         if (return_type == nullptr)
         {
-            return_type = new Type(nullptr, Primitives::VOID_TY);
+            return_type = new Type({}, Primitives::VOID_TY); // TODO unique!
         }
 
         this->push_child(name);        // get_name
@@ -96,7 +96,7 @@ namespace logia::AST
         // auto block = new Block(nullptr, ast_create_identifier("function_param_alloca"));
         // this->push_child(block);
 
-        auto block = new FunctionBlock(nullptr, ast_create_identifier("function_body"));
+        auto block = new FunctionBlock({}, ast_create_identifier("function_body"));
         this->push_child(block); // get_body
 
         // children+3 are the arguments!
@@ -235,10 +235,8 @@ namespace logia::AST
                 llvm::DILocalVariable *D = backend->dbuilder->createParameterVariable(
                     this->di_subprogram, name->identifier, i + 1, backend->dfile, 1, ty->di_type,
                     true);
-                auto line = name->rule->start->getLine();
-                auto column = name->rule->start->getCharPositionInLine();
                 backend->dbuilder->insertDeclare(param->alloca_inst, D, backend->dbuilder->createExpression(),
-                                                 llvm::DILocation::get(this->di_subprogram->getContext(), line, column, this->di_subprogram),
+                                                 llvm::DILocation::get(this->di_subprogram->getContext(), name->loc.start_line, name->loc.start_column, this->di_subprogram),
                                                  this->get_body()->ir_basicblock);
             }
             ++i;
@@ -308,7 +306,7 @@ namespace logia::AST
                     this->get_name(),
                     llvm::StringRef(),
                     backend->dfile,
-                    this->rule->start->getLine(), // Line number
+                    this->loc.start_line, // Line number
                     DISig,
                     0,                      // STUDY first line in the scope is "0" ?
                     llvm::DINode::FlagZero, // STUDY FlagPrototyped ??
@@ -317,7 +315,7 @@ namespace logia::AST
                 // assign after initialize parameters!
                 this->ir_func->setSubprogram(this->di_subprogram);
             }
-            backend->set_debug_information(this->rule, this->di_subprogram);
+            backend->set_debug_information(this->loc, this->di_subprogram);
 
             backend->dscopes.push_back(this->di_subprogram);
             this->get_body()->pre_codegen(backend);
@@ -426,7 +424,7 @@ namespace logia::AST
     // Operator
     //
 
-    Operator::Operator(antlr4::ParserRuleContext *rule, Operators op, Type *return_type) : Function(rule, new Identifier(rule, ast_operator_to_function_name(op)), return_type, false)
+    Operator::Operator(location loc, Operators op, Type *return_type) : Function(loc, new Identifier(loc, ast_operator_to_function_name(op)), return_type, false)
     {
         switch (op)
         {
@@ -441,13 +439,13 @@ namespace logia::AST
     //
     // Intrinsics
     //
-    Intrinsic::Intrinsic(llvm::Function *ir, const char *real_name, const char *scope_name, Type *return_type, std::vector<Type *> arguments) : Function(nullptr, new Identifier(nullptr, scope_name), return_type, true)
+    Intrinsic::Intrinsic(llvm::Function *ir, const char *real_name, const char *scope_name, Type *return_type, std::vector<Type *> arguments) : Function({}, new Identifier({}, scope_name), return_type, true)
     {
         this->real_name = _strdup(real_name);
 
         for (auto t : arguments)
         {
-            this->push_parameter(new FunctionParameter(new Identifier(nullptr, ""), t, nullptr));
+            this->push_parameter(new FunctionParameter(new Identifier({}, ""), t, nullptr));
         }
         // configure/hack the function!
         this->is_post_type_inference = this->is_pre_type_inference = true; // ignore type inference, but no skip
@@ -466,22 +464,5 @@ namespace logia::AST
     {
         // skip Function::post_codegen, because we dont have a body block!
         return Type::post_codegen(backend);
-    }
-
-    LOGIA_API LOGIA_LEND Function *ast_create_function_type(Identifier *id, Type *return_type)
-    {
-        return new Function(nullptr, id, return_type);
-    }
-
-    LOGIA_API LOGIA_LEND Type *ast_create_instrinsic(Program *program, Identifier *id, Type *return_type)
-    {
-        LOGIA_VERIFY(program != nullptr);
-
-        auto f = new Function(nullptr, id, return_type, true);
-
-        // NOTE it will attach itself to program scope
-        program->unshift_child(f);
-
-        return f;
     }
 }

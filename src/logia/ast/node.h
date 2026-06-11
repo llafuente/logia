@@ -1,6 +1,7 @@
 #pragma once
 
 #include "logia/logia.h"
+#include "logia/ast/location.h"
 
 #include <vector>
 #include <string>
@@ -12,11 +13,6 @@ namespace llvm
 {
     // #include "llvm/IR/Value.h"
     class Value;
-}
-// #include "antlr4-runtime.h"
-namespace antlr4
-{
-    class ParserRuleContext;
 }
 namespace logia
 {
@@ -66,8 +62,8 @@ namespace logia::AST
         /// @brief marks node as constant so it can be used as constexpr at comptime
         unsigned char is_constant : 1 = false;
 
-        /// @brief antlr rule, used for error reporting and debugging
-        antlr4::ParserRuleContext *rule = nullptr;
+        /// @brief location in code, used for error reporting and debugging
+        location loc = {nullptr, 0, 0, 0, 0, nullptr};
 
         /// @brief backpointer to parent node to traverse to root(program)
         Node *parent_node = nullptr;
@@ -81,11 +77,11 @@ namespace logia::AST
         /// @brief codegen result
         llvm::Value *cg_value = nullptr;
 
-        Node(antlr4::ParserRuleContext *rule);
+        Node(location loc);
         ~Node();
 
         // TODO
-        // std::string getText() { return this->rule->getText(); }
+        // std::string getText() { return this->loc->getText(); }
 
         /// @brief Adds child at the end of the list
         void push_child(Node *child);
@@ -111,9 +107,6 @@ namespace logia::AST
 
         /// @brief returns essential information nto debug
         virtual std::string to_string();
-
-        /// @brief Retrieves debug information to dump to user so it can locate the (failing) code
-        virtual std::string get_debug_location(uint32_t prev_lines = 2, uint32_t post_lines = 2);
 
         /// @brief traverse the tree and if skip_codegen is false, pre_codegen and post_codegen!
         llvm::Value *codegen(logia::Backend *backend);

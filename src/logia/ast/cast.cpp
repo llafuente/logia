@@ -11,9 +11,9 @@
 namespace logia::AST
 {
     Cast::Cast(
-        antlr4::ParserRuleContext *rule,
+        location loc,
         Expression *expr,
-        Type *to) : Expression(rule)
+        Type *to) : Expression(loc)
     {
         this->is_typed = true;
         this->push_child(expr);
@@ -80,7 +80,7 @@ namespace logia::AST
         else
         {
             // we cast using a function
-            // this->callexpr = new CallExpression(this->rule, new Identifier(this->rule, "cast"), {this->get_expr()});
+            // this->callexpr = new CallExpression(this->loc, new Identifier(this->loc, "cast"), {this->get_expr()});
             throw_compiler_error("todo");
             // this need to be resolved with arguments
         }

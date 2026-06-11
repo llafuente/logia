@@ -12,7 +12,7 @@ namespace logia::AST
     //
     // Stmt
     //
-    Stmt::Stmt(antlr4::ParserRuleContext *rule) : Node(rule) { this->has_type = false; }
+    Stmt::Stmt(location loc) : Node(loc) { this->has_type = false; }
 
     std::string Stmt::to_string()
     {
@@ -29,7 +29,7 @@ namespace logia::AST
         if (this->cg_value != nullptr)
         {
             LOG(DBG, "{}", this->to_string());
-            backend->set_debug_loc((llvm::Instruction *)this->cg_value, this->rule);
+            backend->set_debug_loc((llvm::Instruction *)this->cg_value, this->loc);
         }
         return Node::post_codegen(backend);
     }
@@ -38,7 +38,7 @@ namespace logia::AST
     /// GotoStmt
     ///
 
-    GotoStmt::GotoStmt(antlr4::ParserRuleContext *rule, Identifier *id) : Stmt(rule)
+    GotoStmt::GotoStmt(location loc, Identifier *id) : Stmt(loc)
     {
         this->skip_type_inference = true; // we don't have type and don't need to calc anything!
 
@@ -46,11 +46,6 @@ namespace logia::AST
         id->has_type = false; // there is no "block" type
         id->skip_codegen = true;
         id->skip_type_inference = true;
-    }
-
-    LOGIA_API LOGIA_LEND GotoStmt *ast_create_goto_stmt(Identifier *id)
-    {
-        return new GotoStmt(nullptr, id);
     }
 
     Identifier *GotoStmt::get_identifier()
@@ -94,7 +89,7 @@ namespace logia::AST
 
         if (!list[0]->try_cast<Block>(&block))
         {
-            throw_semantic_error(this, std::format(LGERR_GT003, ident->identifier, list[0]->get_debug_location()));
+            throw_semantic_error(this, std::format(LGERR_GT003, ident->identifier, list[0]->loc.get_debug_location()));
         }
 
         block->codegen(backend);

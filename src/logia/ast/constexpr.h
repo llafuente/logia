@@ -12,7 +12,7 @@ namespace logia::AST
     /// @brief A constant expression that can be evaluated/used at compile time
     struct ConstExpression : Expression
     {
-        ConstExpression(antlr4::ParserRuleContext *rule);
+        ConstExpression(location loc);
 
         std::string to_string() override;
 
@@ -38,7 +38,7 @@ namespace logia::AST
         /// @brief string type, atm a false type cstring
         Type *type = nullptr;
 
-        StringLiteral(antlr4::ParserRuleContext *rule, LOGIA_CLONE const char *text);
+        StringLiteral(location loc, LOGIA_CLONE const char *text);
 
         std::string to_string() override;
 
@@ -73,7 +73,7 @@ namespace logia::AST
         /// @brief the type
         Type *type = nullptr;
 
-        FloatLiteral(antlr4::ParserRuleContext *rule, LOGIA_CLONE const char *number_as_text, Type *type = nullptr);
+        FloatLiteral(location loc, LOGIA_CLONE const char *number_as_text, Type *type = nullptr);
         std::string to_string() override;
         llvm::Value *post_codegen(logia::Backend *backend) override;
         Type *get_type() override;
@@ -105,7 +105,7 @@ namespace logia::AST
         /// @brief the type
         Type *type = nullptr;
 
-        IntegerLiteral(antlr4::ParserRuleContext *rule, LOGIA_CLONE const char *number_as_text, Type *type = nullptr);
+        IntegerLiteral(location loc, LOGIA_CLONE const char *number_as_text, Type *type = nullptr);
 
         /// @brief negates current value and value_str
         void negate();
