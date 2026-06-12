@@ -203,6 +203,10 @@ namespace logia::AST
     /// @brief lookup a name into the scope chain returning the first found
     LOGIA_API Node *scope_lookup_first(Node *node, const char *name);
 
+    /// @brief lookup a name into the scope chain
+    /// @throws Cannot search from a detached node
+    LOGIA_API Node *scope_lookup_one(Node *node, const char *name);
+
     /// @brief Register 'what' in the closest scope to 'node' with given 'name'
     /// @returns if could be set (with/out uniqueness)
     bool scope_set(Node *node, const char *name, Node *what, bool unique);

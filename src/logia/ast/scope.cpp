@@ -146,6 +146,21 @@ namespace logia::AST
         return nullptr;
     }
 
+    LOGIA_API Node *scope_lookup_one(Node *node, const char *name)
+    {
+        auto result = scope_lookup_all(node, name);
+        if (result.is_error())
+        {
+            return nullptr;
+        }
+        auto list = result.unwrap_success();
+        if (list.size())
+        {
+            return list[0];
+        }
+        return nullptr;
+    }
+
     bool scope_set(Node *node, const char *name, Node *what, bool unique)
     {
         if (!what->is<Type>() && !what->is<Block>() && !what->is<VarDeclStmt>() && !what->is<FunctionParameter>())
