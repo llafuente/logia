@@ -6,7 +6,7 @@
 namespace logia
 {
     std::ofstream logia_log_file;
-    size_t logia_log_level = 6;
+    size_t logia_log_level = SILLY;
 
     bool logia_init_log(char *file_name, bool append)
     {

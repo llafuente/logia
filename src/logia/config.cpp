@@ -3,7 +3,7 @@
 
 namespace logia
 {
-    Config logia_config = {.cst_log_level = 3};
+    Config logia_config = {.cst_log_level = 6};
 
     std::string Config::to_string()
     {

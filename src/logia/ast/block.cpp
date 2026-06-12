@@ -42,14 +42,7 @@ namespace logia::AST
 
     std::string Block::to_string()
     {
-        std::string list;
-        for (const auto &pair : this->scope)
-        {
-            list += list.empty() ? "" : ", ";
-            list += pair.first;
-        }
-
-        return std::format("Block[{} {} statements] scope[{}]{}", this->name->identifier, this->children.size(), list, Node::to_string());
+        return std::format("Block[{} {} statements] {}", this->name->identifier, this->children.size(), Scope::to_string());
     }
 
     void Block::post_attach()

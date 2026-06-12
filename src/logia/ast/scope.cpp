@@ -20,6 +20,17 @@ namespace logia::AST
     //
     Scope::Scope(location loc) : Node(loc) { this->has_type = false; }
 
+    std::string Scope::to_string()
+    {
+        std::string list;
+        for (const auto &pair : this->scope)
+        {
+            list += list.empty() ? "" : ", ";
+            list += pair.first;
+        }
+        return std::format("scope[{}]{}", list, Node::to_string());
+    }
+
     void Scope::scope_set(const char *name, Node *node)
     {
         if (!node->is<Type>() && !node->is<Block>() && !node->is<VarDeclStmt>() && !node->is<FunctionParameter>())

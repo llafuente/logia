@@ -17,13 +17,15 @@ namespace logia::AST
         /// @brief Back pointer to fast access
         Scope *parentScope = nullptr;
 
-        Scope(location loc);
-
         // NOTE: about cpp
         // std::unordered_map<char*, Node*> scope; --> wrong char* is not the expected type, no "=="
         // std::unordered_map<string, Node*> scope; --> misc errors
         /// @brief Defines the block scope, used for name resolution
         std::unordered_map<std::string_view, std::vector<Node *>> scope;
+
+        Scope(location loc);
+
+        std::string to_string() override;
 
         /// @brief Register a name in the scope
         void scope_set(const char *name, Node *node);

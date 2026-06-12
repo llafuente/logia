@@ -80,26 +80,25 @@ namespace logia::AST
         intrinsics->push_child(ref_f32);
         intrinsics->push_child(ref_f64);
 
+        // aliases
+        intrinsics->scope[(char *)"int"] = intrinsics->scope[(char *)"λi64"];
+        intrinsics->scope[(char *)"float"] = intrinsics->scope[(char *)"λf64"];
+        intrinsics->scope[(char *)"bool"] = intrinsics->scope[(char *)"λi1"];
+        intrinsics->scope[(char *)"void"] = intrinsics->scope[(char *)"λvoid"];
+        intrinsics->scope[(char *)"ptr"] = {ptr};
+
+        LOG(DBG, "intrinsics before core load = {}", intrinsics->to_string());
+
         auto imp = new Import({});
         imp->set_import_into_scope();
         imp->set_package({new Identifier({}, "core"), new Identifier({}, "primitives")});
         imp->set_scope_target(this);
 
         intrinsics->push_child(imp);
-
         intrinsics->scope_copy_all(this);
-
         this->children.pop_back(); // safe to remove now
 
-        LOG(DBG, "{}", intrinsics->to_string_tree());
-
-        // alias
-        this->scope[(char *)"int"] = this->scope[(char *)"λi64"];
-        this->scope[(char *)"float"] = this->scope[(char *)"λf64"];
-        this->scope[(char *)"bool"] = this->scope[(char *)"λi1"];
-        this->scope[(char *)"void"] = this->scope[(char *)"λvoid"];
-
-        this->scope[(char *)"ptr"] = {ptr};
+        LOG(DBG, "intrinsics = {}", intrinsics->to_string_tree());
     }
 
     void Program::codegen_primitives(logia::Backend *backend)
