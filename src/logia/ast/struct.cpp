@@ -4,6 +4,7 @@
 #include "logia/backend.h"
 #include "logia/ast/identifier.h"
 #include "logia/ast/expr.h"
+#include "logia/ast/function.h"
 
 #include "llvm/IR/DerivedTypes.h" // StructType
 
@@ -314,6 +315,20 @@ namespace logia::AST
 
         this->push_child(new StructAlias(loc, from, to, docstring));
         ++this->alias_count;
+    }
+
+    void Struct::add_method(Function *fn)
+    {
+        // add "this"
+        auto tdef = new TypeDef();
+        // note set_type in TypeDef is an infinite recursion... manually set
+        tdef->type = this;
+        tdef->is_typed = true;
+
+        fn->insert_parameter(0, new FunctionParameter(new Identifier({}, "this"), new Ref(tdef)));
+
+        this->push_child(fn);
+        ++this->method_count;
     }
 
     void Struct::semantic_validate()

@@ -1153,7 +1153,13 @@ namespace logia
             return;
         }
 
-        CST_TODO_BRANCH(functionDecl, FunctionDecl); // functionBody
+        auto functionDecl = context->functionDecl();
+        if (functionDecl != nullptr)
+        {
+            auto fn = ANY_VOIDP_CAST(AST::Function *, this->visitFunctionDecl(functionDecl));
+            structure->add_method(fn);
+        }
+
         CST_TODO_BRANCH(memoryFunctionDecl, MemoryFunctionDecl);
         CST_TODO_BRANCH(structGetterDecl, StructGetterDecl);
         CST_TODO_BRANCH(structSetterDecl, StructSetterDecl);

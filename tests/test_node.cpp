@@ -226,3 +226,27 @@ TEST(test_type, function)
 
     LOGIA_UNIT_TEST_END();
 }
+
+TEST(test_type, struct)
+{
+    LOGIA_UNIT_TEST();
+    using namespace logia::AST;
+    main_fn->is_attached = false; // avoid throw
+
+    auto point_st = new Struct(loc, new Identifier(loc, "point"));
+    auto point_def = new TypeDef();
+    point_def->add_locator(new Identifier(loc, "point"));
+
+    auto add_fn = new Function(loc, new Identifier(loc, "add"), point_def, false);
+    add_fn->push_parameter(new FunctionParameter(new Identifier(loc, "other"), point_def));
+    LOG(DBG, "function: {}", add_fn->to_string_tree());
+    LOG(DBG, "struct {}", point_st->to_string_tree());
+    point_st->add_method(add_fn);
+    LOG(DBG, "struct {}", point_st->to_string_tree());
+
+    program->push_child(point_st);
+
+    EXPECT_STREQ(add_fn->get_repr().c_str(), "function add (ref<struct point {}> this, struct point {} other) struct point {}");
+
+    LOGIA_UNIT_TEST_END();
+}

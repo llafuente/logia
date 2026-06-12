@@ -374,7 +374,9 @@ namespace logia::AST
     {
         this->is_typed = true;
         this->pointee = pointee;
+        this->push_child(pointee);
     }
+
     Ref::~Ref() {}
 
     std::string Ref::to_string()

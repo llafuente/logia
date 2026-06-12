@@ -4,6 +4,8 @@
 
 namespace logia::AST
 {
+    struct Function;
+
     // REVIEW method aliasing ?
     /// @brief Defines a type alias, used for struct field alias
     struct StructAlias : Type
@@ -91,6 +93,10 @@ namespace logia::AST
 
         /// @brief Adds an alias to the struct
         void add_alias(location loc, Identifier *from, Identifier *to, const char *docstring);
+
+        /// @brief Adds given function to the method
+        /// @remarks It will add "this" as first parameter
+        void add_method(Function *fn);
 
         /// @brief Retrieves the target identifier of an alias
         /// @param from The source identifier of the alias
