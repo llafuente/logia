@@ -12,6 +12,7 @@
 #include "logia/ast/operators.h"
 #include "logia/ast/binaryexpr.h"
 #include "logia/ast/unaryexpr.h"
+#include "logia/ast/struct.h"
 
 #include "gtest/gtest.h"
 #include <Windows.h>
@@ -187,6 +188,41 @@ TEST(test_constexpr, float_limits)
         auto a = new FloatLiteral(loc, "-nan");
         EXPECT_TRUE(a->value.isNaN());
     }
+
+    LOGIA_UNIT_TEST_END();
+}
+
+TEST(test_type, function)
+{
+    LOGIA_UNIT_TEST();
+    using namespace logia::AST;
+    main_fn->is_attached = false; // avoid throw
+
+    auto a = new FunctionParameter(new Identifier(loc, "a"), i32, nullptr);
+    main_fn->insert_parameter(0, a);
+    EXPECT_EQ(a->index, 0);
+
+    auto b = new FunctionParameter(new Identifier(loc, "b"), i32, nullptr);
+    main_fn->insert_parameter(0, b);
+    EXPECT_EQ(b->index, 0);
+    EXPECT_EQ(a->index, 1);
+
+    auto c = new FunctionParameter(new Identifier(loc, "c"), i32, nullptr);
+    main_fn->insert_parameter(0, c);
+
+    EXPECT_EQ(a->index, 2);
+    EXPECT_EQ(b->index, 1);
+    EXPECT_EQ(c->index, 0);
+
+    auto d = new FunctionParameter(new Identifier(loc, "d"), i32, nullptr);
+    main_fn->insert_parameter(2, d);
+    EXPECT_EQ(a->index, 3);
+    EXPECT_EQ(d->index, 2);
+    EXPECT_EQ(b->index, 1);
+    EXPECT_EQ(c->index, 0);
+
+    main_fn->is_attached = true;
+    EXPECT_STREQ(main_fn->get_repr().c_str(), "function main (i32 c, i32 b, i32 d, i32 a) i32");
 
     LOGIA_UNIT_TEST_END();
 }

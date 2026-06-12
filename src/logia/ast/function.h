@@ -133,6 +133,9 @@ namespace logia::AST
         /// @brief Adds a parameter to a function
         void push_parameter(FunctionParameter *param);
 
+        /// @brief Insert a parameter at given position
+        void insert_parameter(size_t position, FunctionParameter *param);
+
         /// @brief Checks if given call is valid
         /// @details Checks if the number of arguments and their types are compatible with the function parameters
         /// Modify callee sorting named arguments and adding default values for optional parameters if needed

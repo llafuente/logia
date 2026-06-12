@@ -360,6 +360,22 @@ namespace logia::AST
         }
     }
 
+    void Function::insert_parameter(size_t position, FunctionParameter *param)
+    {
+        this->push_parameter(param);
+        // now we swap position and length-1 to put the new argument in the right place
+        auto last = position + 3;
+        LOG(SILLY, "from {}  to {}", this->children.size() - 1, last);
+        for (size_t i = this->children.size() - 1; i > last; --i)
+        {
+            auto index = i - 3;
+            LOG(SILLY, "swap {} index {}", i, index);
+            std::swap(this->children[i], this->children[i - 1]);
+            this->children[i]->as<FunctionParameter>()->index = index;
+        }
+        this->children[last]->as<FunctionParameter>()->index = position;
+    }
+
     void Function::validate_and_fill_call(CallExpression *callee)
     {
         auto cpy = callee->children;
