@@ -208,12 +208,20 @@ namespace logia
         }
         else
         {
-            // TODO @llafuente invalid cast
+            // TODO @llafuente invalid cast -> try no to use "package/program" staff inside CST2AST
             this->ast_tree = (AST::Program *)new AST::Package({this->entry_point_fullpath, 0, 0, 0, 0, this->text}, this->entry_point_fullpath, this->text);
         }
 
+        LOGIA_VERIFY(this->ast_tree->loc.file != nullptr);
+        LOGIA_VERIFY(this->ast_tree->loc.text != nullptr);
+
+        LOG(DBG, "start CST2AST");
         CST2AST *llvmVisitor = new CST2AST(this->ast_tree);
         llvmVisitor->visit(this->cst_tree);
+
+        LOGIA_VERIFY(this->ast_tree->loc.file != nullptr);
+        LOGIA_VERIFY(this->ast_tree->loc.text != nullptr);
+
         logia_log_level = logia_config.ast_log_level;
         this->print_ast(logia_config.print_ast ? std::cerr : logia_log_file);
 
