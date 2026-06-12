@@ -425,7 +425,7 @@ namespace logia::AST
     // REVIEW, it's a type but it's definition, need to  distinguish both ?
     TypeDef::TypeDef() : Type({}, Primitives::NONE)
     {
-        this->is_typed = true;
+        this->is_typed = false;
     }
     TypeDef::~TypeDef() {}
 
@@ -437,14 +437,39 @@ namespace logia::AST
 
     Type *TypeDef::get_type()
     {
-        // TODO support more than one!?
-        LOGIA_VERIFY(this->children.size() == 1, "TO-DO: single resolve atm");
-        // search children!
-        auto id = this->get_child<Identifier>(0);
-        auto scope = this->first_parent<Scope>();
-        auto node = scope->lookup<Node>(id->identifier);
+        if (this->type == nullptr)
+        {
+            // TODO support more than one!?
+            LOGIA_VERIFY(this->children.size() == 1, "TO-DO: single resolve atm");
+            // search children!
+            auto id = this->get_child<Identifier>(0);
+            auto result = scope_lookup_all(this, id->identifier);
 
-        return node->get_type();
+            if (result.is_error())
+            {
+                throw_semantic_error(this, result.message);
+            }
+            auto list = result.unwrap_success();
+            if (list.size() == 0)
+            {
+                throw_semantic_error(this, std::format(LGERR_ID001, id->identifier));
+            }
+            if (list.size() > 1)
+            {
+                std::string debug_candidates = "";
+                int i = 1;
+                for (const auto &node : list)
+                {
+                    debug_candidates += std::format("Candidate {} declared {}\n", i++, node->loc.get_debug_location(1, 1));
+                    ++i;
+                }
+                throw_semantic_error(this, std::format(LGERR_ID002, list.size(), id->identifier, debug_candidates));
+            }
+
+            this->type = list[0]->get_type();
+            this->is_typed = true;
+        }
+        return this->type;
     }
     std::string TypeDef::to_string()
     {

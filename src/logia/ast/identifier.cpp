@@ -23,7 +23,6 @@ namespace logia::AST
     {
         LOG(DBG, "{}", this->to_string());
 
-        auto decl = this->first_parent<Scope>()->lookup<Node>(this->identifier);
         if (decl->is<VarDeclStmt>())
         {
             this->cg_value = decl->as<VarDeclStmt>()->alloca_inst;
@@ -48,7 +47,7 @@ namespace logia::AST
 
     VarDeclStmt *Identifier::get_var_decl()
     {
-        return this->first_parent<Block>()->lookup<VarDeclStmt>(this->identifier);
+        return this->decl == nullptr ? nullptr : (this->decl->is<VarDeclStmt>() ? nullptr : this->decl->as<VarDeclStmt>());
     }
 
     Function *Identifier::get_function_decl()
@@ -79,8 +78,8 @@ namespace logia::AST
             return nullptr;
         }
 
-        auto scope = this->first_parent<Scope>();
-        return scope->lookup<Node>(this->identifier);
+        this->pre_type_inference();
+        return this->decl;
     }
 
     bool Identifier::is_empty()
@@ -120,8 +119,10 @@ namespace logia::AST
                 throw_semantic_error(this, std::format(LGERR_ID002, list.size(), this->identifier, debug_candidates));
             }
 
+            this->decl = list[0];
+
             // just one is ok!
-            auto ty = list[0]->get_final_type();
+            auto ty = this->decl->get_final_type();
             if (ty == nullptr)
             {
                 LOG(WRN, "skip._pre_type_inference (target no type) {}", this->to_string());

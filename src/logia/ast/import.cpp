@@ -25,7 +25,7 @@ namespace logia::AST
             }
             package_name += id->identifier;
         }
-        return std::format("Import[{}]{}", package_name, Node::to_string());
+        return std::format("Import[{}]{}", package_name, Scope::to_string());
     }
 
     void Import::set_package(std::vector<AST::Identifier *> package)

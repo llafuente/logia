@@ -539,8 +539,7 @@ namespace logia::AST
 
     void StringLiteral::_pre_type_inference()
     {
-        // this->set_type(this->first_parent<Scope>()->lookup<Type>("cstring"));
-        this->set_type(this->first_parent<Scope>()->lookup<Type>("ptr"));
+        this->set_type(scope_lookup_one(this, "ptr")->as<Type>());
 
         ConstExpression::_pre_type_inference();
     }

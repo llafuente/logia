@@ -1,10 +1,12 @@
 #pragma once
 
+#include <vector>
 #include <cstdint>
 #include <string>
 
 namespace logia::AST
 {
+    struct Node;
     /// @brief source code location info
     struct location
     {
@@ -18,4 +20,6 @@ namespace logia::AST
         /// @brief Retrieves debug information to dump to user so it can locate the (failing) code
         std::string get_debug_location(uint32_t prev_lines = 3, uint32_t post_lines = 3);
     };
+
+    std::vector<std::string> nodelist_get_debug(std::vector<Node *> list);
 }

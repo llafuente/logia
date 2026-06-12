@@ -1,6 +1,7 @@
 #include "logia/ast/location.h"
 
 #include "logia/log.h"
+#include "logia/ast/node.h"
 
 #include <string>
 #include <format>
@@ -56,5 +57,15 @@ namespace logia::AST
         snippet[dst++] = '\0';
 
         return std::format("at {}:{}:{}\n{}", this->file, err_start_line + 1, err_start_column, snippet);
+    }
+
+    std::vector<std::string> nodelist_get_debug(std::vector<Node *> list)
+    {
+        auto out = std::vector<std::string>(list.size(), "");
+        for (auto node : list)
+        {
+            out.push_back(node->loc.get_debug_location());
+        }
+        return out;
     }
 }

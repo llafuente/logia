@@ -199,6 +199,8 @@ namespace logia::AST
         /// @brief Type is optional / null / undefined is a valid value.
         unsigned char is_optional : 1 = false;
 
+        Type *type = nullptr;
+
         TypeDef();
         ~TypeDef();
         void add_locator(Identifier *name);

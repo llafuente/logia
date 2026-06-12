@@ -10,7 +10,10 @@ namespace logia::AST
     {
         /// @brief The name of the identifier
         const char *identifier;
+        /// @brief Pointed type
         Type *type = nullptr;
+        /// @brief Pointed declaration
+        Node *decl = nullptr;
 
         Identifier(location loc, const char *identifier);
         bool operator==(const char *id);
