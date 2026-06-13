@@ -7,6 +7,7 @@ namespace llvm
 {
     class AllocaInst;   // #include "llvm/AllocaInst.h"
     class FunctionType; // #include "llvm/IR/DerivedTypes.h"
+    class PointerType;  // #include "llvm/IR/DerivedTypes.h"
     class Function;     // #include "llvm/IR/Function.h"
     class DISubprogram;
     class Type;

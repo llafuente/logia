@@ -286,12 +286,14 @@ namespace logia::AST
             LOG(DBG, "parameter[{}] is {}", i, RSO);
         }
 
-        auto func = llvm::FunctionType::get(rtype->ir_type,
-                                            this->ir_parameters, // parameter list
-                                            false);              // not variadic
-        this->ir_type = (llvm::Type *)func;
-
-        this->ir_func = llvm::Function::Create((llvm::FunctionType *)this->ir_type, llvm::Function::ExternalLinkage, 0, this->get_name(), backend->module.get());
+        // function type
+        this->ir_functy = llvm::FunctionType::get(rtype->ir_type,
+                                                  this->ir_parameters, // parameter list
+                                                  false);              // not variadic
+        // function pointer
+        this->ir_type = this->ir_functy->getPointerTo(0);
+        // the function
+        this->ir_func = llvm::Function::Create(this->ir_functy, llvm::Function::ExternalLinkage, 0, this->get_name(), backend->module.get());
 
         if (!this->is_intrinsic)
         {
