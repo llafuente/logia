@@ -1,11 +1,15 @@
 function sum(i32 a, i32 b) i32 {
     return a + b
 }
+function sum2(i32 a, i32 b) i32 {
+    return a + b
+}
 
 
 function main() i32 {
     //var sum fn
     var sum myfn = sum
+    myfn = sum2
     //var ref<i32> a  = 0
 
     //return fn(10, 11)

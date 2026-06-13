@@ -2,6 +2,7 @@
 
 #include "logia/ast/struct.h"
 #include "logia/ast/function.h"
+#include "logia/ast/semantic_error.h"
 
 namespace logia::type_system
 {
@@ -49,13 +50,13 @@ namespace logia::type_system
                 {
                     if (lhs_int->is_signed != rhs_int->is_signed)
                     {
-                        return make_error(std::format("LGERR_TS001 Incompatible types '{}' -> '{}'. Explicit cast is required, conversion changes signedness.", lhs->get_repr(), rhs->get_repr()), (type_compatibility)((uint32_t)type_compatibility::EXPLICIT_CAST | (uint32_t)type_compatibility::LAYOUT_COMPATIBLE));
+                        return make_error(std::format(LGERR_TS_INT001, lhs->get_repr(), rhs->get_repr()), (type_compatibility)((uint32_t)type_compatibility::EXPLICIT_CAST | (uint32_t)type_compatibility::LAYOUT_COMPATIBLE));
                     }
                     return make_success((type_compatibility)((uint32_t)type_compatibility::YES | (uint32_t)type_compatibility::LAYOUT_COMPATIBLE));
                 }
                 else if (lhs_int->bits < rhs_int->bits)
                 {
-                    return make_error(std::format("LGERR_TS002 Incompatible types '{}' -> '{}'. Explicit cast is required, conversion loses integer precision.", lhs->get_repr(), rhs->get_repr()), type_compatibility::EXPLICIT_CAST);
+                    return make_error(std::format(LGERR_TS_INT002, lhs->get_repr(), rhs->get_repr()), type_compatibility::EXPLICIT_CAST);
                 }
 
                 return make_success(type_compatibility::AUTOCAST_CAST);
@@ -73,7 +74,7 @@ namespace logia::type_system
                 }
                 else if (lhs_flt->bits < rhs_flt->bits)
                 {
-                    return make_error(std::format("LGERR_TS003 Incompatible types '{}' -> '{}'. Explicit cast is required, conversion loses floating-point precision.", lhs->get_repr(), rhs->get_repr()), type_compatibility::EXPLICIT_CAST);
+                    return make_error(std::format(LGERR_TS_FLT001, lhs->get_repr(), rhs->get_repr()), type_compatibility::EXPLICIT_CAST);
                 }
 
                 return make_success(type_compatibility::AUTOCAST_CAST);
@@ -89,7 +90,7 @@ namespace logia::type_system
 
                 if (lhs_st->field_count != rhs_st->field_count)
                 {
-                    return make_error(std::format("LGERR_TS004 Incompatible types '{}' -> '{}'. Types has different fields count.", lhs_st->get_repr(), rhs_st->get_repr()), type_compatibility::EXPLICIT_CAST);
+                    return make_error(std::format(LGERR_TS_ST001, lhs_st->get_repr(), rhs_st->get_repr()), type_compatibility::EXPLICIT_CAST);
                 }
 
                 // TODO REVIEW allow struct casting ?
@@ -104,7 +105,7 @@ namespace logia::type_system
                     auto x = type_is_compatible(left, right);
                     if (x.is_error())
                     {
-                        return make_chained_error(std::format("LGERR_TS005 Incompatible types '{}' -> '{}'. Incompatible field at position: '{}'.", lhs_st->get_repr(), rhs_st->get_repr(), i), x);
+                        return make_chained_error(std::format(LGERR_TS_ST002, lhs_st->get_repr(), rhs_st->get_repr(), i), x);
                     }
 
                     // TODO viable? should be the above right ?
@@ -134,12 +135,61 @@ namespace logia::type_system
                 return make_success((type_compatibility)((uint32_t)type_compatibility::YES | (uint32_t)type_compatibility::LAYOUT_COMPATIBLE | (uint32_t)type_compatibility::CODE_COMPATIBLE));
             }
 
-            return make_error(std::format("LGERR_TS004 Incompatible types '{}' -> '{}'. Unhanlded primitive.", lhs->get_repr(), rhs->get_repr()), type_compatibility::NO);
+            if (lhs->is<Function>())
+            {
+                // NOTE: this is not multiple dispatch compatibility, function-function has no posibility of casting due
+                // function pointer is a runtime feature, so both "types" shall be exactly the same!
+
+                auto lhs_fn = lhs->as<Function>();
+                auto rhs_fn = rhs->as<Function>();
+
+                if (lhs_fn->get_parameter_count() != rhs_fn->get_parameter_count())
+                {
+                    return make_error(std::format(LGERR_TS_FN001, lhs_fn->get_repr(), rhs_fn->get_repr()), type_compatibility::EXPLICIT_CAST);
+                }
+
+                {
+                    auto l = lhs_fn->get_return_type()->get_final_type();
+                    auto r = rhs_fn->get_return_type()->get_final_type();
+                    // now from return type to each arguments, all shall be compatible 100%
+                    auto result = type_is_compatible(l, r);
+                    if (result.is_error())
+                    {
+                        return make_chained_error(std::format(LGERR_TS_FN002, lhs_fn->get_repr(), rhs_fn->get_repr()), result);
+                    }
+                    // also an error FULL COMPAT!
+                    if (!result.unwrap_success().contains(type_compatibility::YES))
+                    {
+                        return make_error(std::format(LGERR_TS_FN002, lhs_fn->get_repr(), rhs_fn->get_repr()), type_compatibility::NO);
+                    }
+                }
+
+                for (auto i = 0; i < lhs_fn->get_parameter_count(); ++i)
+                {
+                    auto l = lhs_fn->get_parameter(i)->get_final_type();
+                    auto r = rhs_fn->get_parameter(i)->get_final_type();
+
+                    auto result = type_is_compatible(l, r);
+                    if (result.is_error())
+                    {
+                        return make_chained_error(std::format(LGERR_TS_FN003, lhs_fn->get_repr(), rhs_fn->get_repr(), i + 1), result);
+                    }
+                    // also an error FULL COMPAT!
+                    if (!result.unwrap_success().contains(type_compatibility::YES))
+                    {
+                        return make_error(std::format(LGERR_TS_FN003, lhs_fn->get_repr(), rhs_fn->get_repr(), i + 1), type_compatibility::NO);
+                    }
+                }
+
+                return make_success((type_compatibility)((uint32_t)type_compatibility::YES | (uint32_t)type_compatibility::LAYOUT_COMPATIBLE | (uint32_t)type_compatibility::CODE_COMPATIBLE));
+            }
+
+            return make_error(std::format(LGERR_TS000, lhs->get_repr(), rhs->get_repr()), type_compatibility::NO);
         }
         // REVIEW
         // if they don't have the same primitive, they are incompatible
         // even it's not 100% real, we will be extra safe at the start
-        return make_error(std::format("LGERR_TS002 Incompatible types '{}' -> '{}'. Types should have the same primitive.", lhs->get_repr(), rhs->get_repr()), type_compatibility::NO);
+        return make_error(std::format(LGERR_TS001, lhs->get_repr(), rhs->get_repr()), type_compatibility::NO);
     }
 
 }

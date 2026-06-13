@@ -39,6 +39,17 @@ namespace logia::AST
 #define LGERR_IMP001 "LGERR_IMP001 cannot use import all and import list together"
 #define LGERR_IMP005 "LGERR_IMP005 package list should contain only identifiers, invalid element at position {}"
 
+#define LGERR_TS000 "LGERR_TS000 Incompatible types '{}' -> '{}'. Unhanlded primitive."
+#define LGERR_TS001 "LGERR_TS001 Incompatible types '{}' -> '{}'. Types should have the same primitive."
+#define LGERR_TS_INT001 "LGERR_TS_INT001 Incompatible types '{}' -> '{}'. Explicit cast is required, conversion changes signedness."
+#define LGERR_TS_INT002 "LGERR_TS_INT002 Incompatible types '{}' -> '{}'. Explicit cast is required, conversion loses integer precision."
+#define LGERR_TS_FLT001 "LGERR_TS_FLT001 Incompatible types '{}' -> '{}'. Explicit cast is required, conversion loses floating-point precision."
+#define LGERR_TS_ST001 "LGERR_TS_ST001 Incompatible types '{}' -> '{}'. Types has different fields count."
+#define LGERR_TS_ST002 "LGERR_TS_ST002 Incompatible types '{}' -> '{}'. Incompatible field at position: '{}'."
+#define LGERR_TS_FN001 "LGERR_TS_FN001 Incompatible types '{}' -> '{}'. Parameter count missmatch."
+#define LGERR_TS_FN002 "LGERR_TS_FN002 Incompatible types '{}' -> '{}'. Return type missmatch."
+#define LGERR_TS_FN003 "LGERR_TS_FN003 Incompatible types '{}' -> '{}'. Argument {} type missmatch."
+
     class semantic_error : public std::runtime_error
     {
     public:

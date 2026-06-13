@@ -40,22 +40,22 @@ TEST(logia_test_type_system, start)
     {
         auto err = type_is_compatible(i32, u32);
         EXPECT_TRUE(err.is_error());
-        EXPECT_STREQ(err.message.c_str(), "LGERR_TS001 Incompatible types 'i32' -> 'u32'. Explicit cast is required, conversion changes signedness.");
+        EXPECT_STREQ(err.message.c_str(), "LGERR_TS_INT001 Incompatible types 'i32' -> 'u32'. Explicit cast is required, conversion changes signedness.");
     }
     {
         auto err = type_is_compatible(u32, i32);
         EXPECT_TRUE(err.is_error());
-        EXPECT_STREQ(err.message.c_str(), "LGERR_TS001 Incompatible types 'u32' -> 'i32'. Explicit cast is required, conversion changes signedness.");
+        EXPECT_STREQ(err.message.c_str(), "LGERR_TS_INT001 Incompatible types 'u32' -> 'i32'. Explicit cast is required, conversion changes signedness.");
     }
     {
         auto err = type_is_compatible(i32, i64);
         EXPECT_TRUE(err.is_error());
-        EXPECT_STREQ(err.message.c_str(), "LGERR_TS002 Incompatible types 'i32' -> 'i64'. Explicit cast is required, conversion loses integer precision.");
+        EXPECT_STREQ(err.message.c_str(), "LGERR_TS_INT002 Incompatible types 'i32' -> 'i64'. Explicit cast is required, conversion loses integer precision.");
     }
     {
         auto err = type_is_compatible(f32, f64);
         EXPECT_TRUE(err.is_error());
-        EXPECT_STREQ(err.message.c_str(), "LGERR_TS003 Incompatible types 'f32' -> 'f64'. Explicit cast is required, conversion loses floating-point precision.");
+        EXPECT_STREQ(err.message.c_str(), "LGERR_TS_FLT001 Incompatible types 'f32' -> 'f64'. Explicit cast is required, conversion loses floating-point precision.");
     }
 
     // {x,y,z}
@@ -102,7 +102,7 @@ TEST(logia_test_type_system, start)
     {
         auto err = type_is_compatible(st1_i32, st2_i32);
         EXPECT_TRUE(err.is_error());
-        EXPECT_STREQ(err.message.c_str(), "LGERR_TS004 Incompatible types 'struct st1_i32 {x i32, y i32, z i32}' -> 'struct st2_i32 {x i32, y i32}'. Types has different fields count.");
+        EXPECT_STREQ(err.message.c_str(), "LGERR_TS_ST001 Incompatible types 'struct st1_i32 {x i32, y i32, z i32}' -> 'struct st2_i32 {x i32, y i32}'. Types has different fields count.");
     }
 
     {
@@ -114,15 +114,53 @@ TEST(logia_test_type_system, start)
     {
         auto err = type_is_compatible(st1_i32, st4_i32);
         EXPECT_TRUE(err.is_error());
-        EXPECT_STREQ(err.message.c_str(), "LGERR_TS005 Incompatible types 'struct st1_i32 {x i32, y i32, z i32}' -> 'struct st3_i32 {x i32, y f32, z i32}'. Incompatible field at position: '1'.\nLGERR_TS002 Incompatible types 'i32' -> 'f32'. Types should have the same primitive.");
+        EXPECT_STREQ(err.message.c_str(), "LGERR_TS_ST002 Incompatible types 'struct st1_i32 {x i32, y i32, z i32}' -> 'struct st3_i32 {x i32, y f32, z i32}'. Incompatible field at position: '1'.\nLGERR_TS001 Incompatible types 'i32' -> 'f32'. Types should have the same primitive.");
     }
 }
 
 TEST(logia_run_error_file, type_system)
 {
     {
-        auto msg = test_file_with_semantic_error(".\\tests\\logia-errors\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "err-LGERR_TS002-001");
-        EXPECT_NE(std::string(msg).find("LGERR_TS002 Incompatible types 'i32' -> 'i64'. Explicit cast is required, conversion loses integer precision."), std::string::npos);
-        EXPECT_NE(std::string(msg).find("err-LGERR_TS002-001.logia:7:4"), std::string::npos);
+        auto msg = test_file_with_semantic_error(".\\tests\\logia-errors\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "err-LGERR_TS_INT002-001");
+        EXPECT_NE(std::string(msg).find("LGERR_TS_INT002 Incompatible types 'i32' -> 'i64'. Explicit cast is required, conversion loses integer precision."), std::string::npos);
+        EXPECT_NE(std::string(msg).find("err-LGERR_TS_INT002-001.logia:7:4"), std::string::npos);
+    }
+}
+
+TEST(logia_test_type_system, function)
+{
+    using namespace logia::AST;
+    using namespace logia::type_system;
+
+    location loc = {"", 0, 0, 0, 0, ""};
+    auto i16 = new logia::AST::Integer(true, 16);
+    auto i32 = new logia::AST::Integer(true, 32);
+    auto f32 = new logia::AST::Float(32);
+    auto the_void = new logia::AST::Void();
+
+    auto fn_a = new Function(loc, new Identifier(loc, "a"), the_void, false);
+    auto fn_b = new Function(loc, new Identifier(loc, "b"), the_void, false);
+    auto fn_c = new Function(loc, new Identifier(loc, "c"), the_void, false);
+    {
+        auto err = type_is_compatible(fn_a, fn_b);
+        EXPECT_FALSE(err.is_error());
+    }
+    fn_a->push_parameter(new FunctionParameter(new Identifier(loc, "a"), i32));
+    {
+        auto err = type_is_compatible(fn_a, fn_b);
+        EXPECT_TRUE(err.is_error());
+        EXPECT_STREQ(err.message.c_str(), "LGERR_TS_FN001 Incompatible types 'function a (i32 a) void' -> 'function b () void'. Parameter count missmatch.");
+    }
+    fn_b->push_parameter(new FunctionParameter(new Identifier(loc, "b"), i16));
+    {
+        auto err = type_is_compatible(fn_a, fn_b);
+        EXPECT_TRUE(err.is_error());
+        EXPECT_STREQ(err.message.c_str(), "LGERR_TS_FN003 Incompatible types 'function a (i32 a) void' -> 'function b (i16 b) void'. Argument 1 type missmatch.");
+    }
+    fn_c->push_parameter(new FunctionParameter(new Identifier(loc, "c"), f32));
+    {
+        auto err = type_is_compatible(fn_a, fn_c);
+        EXPECT_TRUE(err.is_error());
+        EXPECT_STREQ(err.message.c_str(), "LGERR_TS_FN003 Incompatible types 'function a (i32 a) void' -> 'function c (f32 c) void'. Argument 1 type missmatch.\nLGERR_TS001 Incompatible types 'i32' -> 'f32'. Types should have the same primitive.");
     }
 }
