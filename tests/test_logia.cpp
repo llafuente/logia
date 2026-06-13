@@ -119,6 +119,12 @@ TEST(logia_run_error_file, goto_semantic_error_LGERR_GT003)
 //
 // vardecl
 //
+
+TEST(logia_run_file, function_pointer)
+{
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\vardecl\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "function-pointer"), 0);
+}
+
 TEST(logia_run_error_file, vardecl_semantic_error_LGERR_VDECL001)
 {
     auto msg = test_file_with_semantic_error(".\\tests\\logia\\vardecl\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "err-LGERR_VDECL001");

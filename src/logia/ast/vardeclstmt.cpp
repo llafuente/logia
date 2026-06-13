@@ -45,37 +45,45 @@ namespace logia::AST
         {
             return this->alloca_inst;
         }
-
-        LOG(DBG, "{}", this->to_string());
-        auto init_value = (llvm::Value *)this->get_expr()->codegen(backend);
         auto type = this->get_final_type();
-        type->codegen(backend);
+        auto expr = this->get_expr();
+        LOG(SILLY, "type = {}", type->to_string());
+        LOG(SILLY, "expr = {}", expr->to_string());
+        LOG(SILLY, "{}", this->to_string());
+
+        // TODO this will lead to problems when the type is below the declaration!
+        // to support this we need to modify how the codegen is done, so atm we continue until the time comes!
+        // type->codegen(backend);
+
         auto name = this->get_name();
+        auto init_value = expr->codegen(backend);
 
         this->cg_value = this->alloca_inst = backend->builder->CreateAlloca(type->ir_type, 0, nullptr, name);
 
-        // TODO this shoul be handled by "binaryExpression"
-        // that said
+        // TODO this should be handled by "binaryExpression" ?
+        // that said ->
         // var x = xxx() <-- function xxx() big_struct
         // that big_struct has to be "stack allocated" and passed by pointer, a PIA at this stage!
         if (type->is<Struct>())
         {
             if (llvm::isa<llvm::GlobalVariable>(init_value))
             {
+                LOG(DBG, "struct store from global variable");
                 auto dl = backend->module->getDataLayout();
                 auto gv = llvm::dyn_cast<llvm::GlobalVariable>(init_value);
                 backend->builder->CreateMemCpy(this->alloca_inst, this->alloca_inst->getAlign(), init_value, init_value->getPointerAlignment(dl), dl.getTypeAllocSize(gv->getValueType()));
             }
             else
             {
+                LOG(DBG, "struct store from value");
                 backend->builder->CreateStore(init_value, this->alloca_inst);
             }
         }
         else
         {
+            LOG(DBG, "function/primitive store");
             backend->builder->CreateStore(init_value, this->alloca_inst);
         }
-
         return Stmt::post_codegen(backend);
     }
 

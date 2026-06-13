@@ -7,6 +7,7 @@
 #include "logia/ast/semantic_error.h"
 
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/DerivedTypes.h"
 
 namespace logia::AST
 {
@@ -21,20 +22,31 @@ namespace logia::AST
 
     llvm::Value *Identifier::post_codegen(logia::Backend *backend)
     {
-        LOG(DBG, "{}", this->to_string());
+        LOGIA_VERIFY(this->decl != nullptr);
 
-        if (decl->is<VarDeclStmt>())
+        if (this->decl->is<VarDeclStmt>())
         {
-            this->cg_value = decl->as<VarDeclStmt>()->alloca_inst;
+            LOG(DBG, "{} points to a var declaration {}", (void *)this->decl, this->to_string());
+            this->cg_value = this->decl->as<VarDeclStmt>()->alloca_inst;
             return Expression::post_codegen(backend);
         }
-        if (decl->is<FunctionParameter>())
+        if (this->decl->is<FunctionParameter>())
         {
-            this->cg_value = decl->as<FunctionParameter>()->alloca_inst;
+            LOG(DBG, "{} points to a function parameter {}", (void *)this->decl, this->to_string());
+            this->cg_value = this->decl->as<FunctionParameter>()->alloca_inst;
             return Expression::post_codegen(backend);
         }
+        if (this->decl->is<Function>())
+        {
+            LOG(DBG, "{} points to a function {}", (void *)this->decl, this->to_string());
+            // return the function itself
+            this->cg_value = (llvm::Value *)this->decl->as<Function>()->ir_func;
+            // NOTE do not use Expression::post_codegen because it will set debug information on the real function -> wrong and also SEH
+            return Node::post_codegen(backend);
+        }
+        LOG(DBG, "{} points to {}", this->to_string(), this->decl->to_string());
         // TODO function? -> function pointer
-        throw_compiler_error(std::format("{}{}", "Identifier found but type not handled yet {}!", decl->to_string(), typeid(decl).name()));
+        throw_compiler_error(std::format("{}{}", "Identifier found but type not handled yet {}!", this->decl->to_string(), typeid(this->decl).name()));
     }
     bool Identifier::operator==(const char *id)
     {
