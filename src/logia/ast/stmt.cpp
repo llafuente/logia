@@ -1,5 +1,6 @@
 #include "logia/ast/stmt.h"
 
+#include "utils.h"
 #include "logia/backend.h"
 #include "logia/ast/llvm.h"
 #include "logia/ast/identifier.h"
@@ -91,11 +92,15 @@ namespace logia::AST
         {
             throw_semantic_error(this, std::format(LGERR_GT003, ident->identifier, list[0]->loc.get_debug_location()));
         }
-
-        block->codegen(backend);
+        block->pre_codegen(backend);
+        LOGIA_VERIFY(block->ir_basicblock != nullptr); // should be generated in pre_codegen!
         this->cg_value = backend->builder->CreateBr(block->ir_basicblock);
         return Stmt::post_codegen(backend);
     }
+
+    void GotoStmt::post_attach() {}
+
+    void GotoStmt::validate() {}
 
     void GotoStmt::_set_type(Type *ty) {}
 }

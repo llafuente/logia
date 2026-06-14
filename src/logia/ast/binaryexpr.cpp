@@ -309,6 +309,10 @@ namespace logia::AST
         return Expression::post_codegen(backend);
     }
 
+    void BinaryExpression::post_attach() {}
+
+    void BinaryExpression::validate() {}
+
     LOGIA_API LOGIA_LEND BinaryExpression *ast_create_binary_expr(Expression *left, Operators op, Expression *right)
     {
         BinaryExpression *expr = new BinaryExpression({}, left, op, right);

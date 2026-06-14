@@ -1,4 +1,6 @@
 #include "logia/ast/node.h"
+
+#include "logia/log.h"
 #include "logia/ast/type.h"
 #include "logia/ast/import.h"
 #include "logia/ast/struct.h"
@@ -24,10 +26,23 @@ namespace logia::AST
     void __notify_attached_descendants(Node *node)
     {
         LOG(SILLY, "{}", node->to_string());
-        node->post_attach();
+        if (!node->is_attached)
+        {
+            node->is_attached = true;
+            node->post_attach();
+        }
+        else
+        {
+            LOG(WRN, "invalid post_attach, node already attached ? {}", node->to_string());
+        }
         node->foreach_descendant([](auto descendant, auto i) -> bool
                                  {
+                                    if(!descendant->is_attached) {
+                                    descendant->is_attached = true;
             descendant->post_attach();
+                                    } else {
+                                        LOG(WRN, "invalid post_attach, node already attached ? {}", descendant->to_string());
+                                    }
             return true; });
     }
 
@@ -224,10 +239,6 @@ namespace logia::AST
             throw std::runtime_error("set_type not supported for this type node");
         };
     */
-    void Node::post_attach()
-    {
-        this->is_attached = true;
-    }
 
     void Node::pre_type_inference()
     {
@@ -341,6 +352,22 @@ namespace logia::AST
         return nullptr;
     }
 
+    void _get_pre_descendant(Node *node, std::vector<Node *> *out)
+    {
+        out->push_back(node);
+        for (auto child : node->children)
+        {
+            _get_pre_descendant(child, out);
+        }
+    }
+
+    std::vector<Node *> Node::get_pre_descendant()
+    {
+        std::vector<Node *> out;
+        _get_pre_descendant(this, &out);
+        return out;
+    }
+
     void _get_post_descendant(Node *node, std::vector<Node *> *out)
     {
         for (auto child : node->children)
@@ -372,12 +399,14 @@ namespace logia::AST
         // exist fast, if we have the value we seek, just return!
         if (this->cg_value)
         {
+            LOG(DBG, "{} before pre_codegen return cg_value is ready!", this->to_string());
             return this->cg_value;
         }
         // pre_codegen, as optimization is pre_codegen can generate the code we need we just return!
         this->pre_codegen(backend);
         if (this->cg_value)
         {
+            LOG(DBG, "{} after pre_codegen return cg_value is ready!", this->to_string());
             // TODO set is_post_codegen ? seems like proper way to handle it not in each children
             return this->cg_value;
         }
@@ -397,5 +426,7 @@ namespace logia::AST
     std::string NoOp::to_string() { return "NoOp"; };
     llvm::Value *NoOp::post_codegen(logia::Backend *backend) { return nullptr; }
     Type *NoOp::get_type() { return nullptr; };
+    void NoOp::post_attach() {}
+    void NoOp::validate() {}
     void NoOp::_set_type(Type *) {};
 }

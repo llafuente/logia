@@ -37,6 +37,10 @@ namespace logia::AST
         return this->get_type();
     }
 
+    void MemberAccessExpression::post_attach() {}
+
+    void MemberAccessExpression::validate() {}
+
     void MemberAccessExpression::_pre_type_inference()
     {
         auto left = this->get_left();

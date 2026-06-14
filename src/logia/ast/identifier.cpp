@@ -67,11 +67,9 @@ namespace logia::AST
         throw_compiler_error("todo");
     }
 
-    void Identifier::post_attach()
-    {
-        Expression::post_attach();
-        // TODO
-    }
+    void Identifier::post_attach() {}
+
+    void Identifier::validate() {}
 
     Type *Identifier::get_type()
     {

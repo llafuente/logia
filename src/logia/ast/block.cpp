@@ -47,25 +47,38 @@ namespace logia::AST
 
     void Block::post_attach()
     {
-        if (is_attached)
-        {
-            throw_compiler_error("should be attached once ?!");
-        }
         Scope::post_attach();
 
         // TODO we should throw if the block is moved outside current function!!
         // TODO what happen when we double-set because we move something an gets re-attached ??
+    }
 
-        // register into scope only named blocks
+    void Block::validate()
+    {
+        Scope::validate();
+
         auto ident = this->get_identifier();
         if (!ident->is_empty())
         {
-            if (!::logia::AST::function_set(this, ident->identifier, this, true))
+            auto result = scope_lookup_all(this, this->get_name());
+            if (result.is_success())
             {
-                auto result = scope_lookup_all(this, ident->identifier);
-                auto node = result.unwrap_success()[0]; // at least one
-                throw_semantic_error(this, std::format(LGERR_BLK001, ident->identifier, node->loc.get_debug_location()));
+                auto list = result.unwrap_success();
+                if (list.size())
+                {
+                    // ups! collisions!
+                    int i = 1;
+                    std::string redeclarations;
+                    for (const auto &redeclaration : list)
+                    {
+                        redeclarations += std::format("declared {} here:\n{}\n", i++, redeclaration->loc.get_debug_location(0, 0));
+                    }
+
+                    throw_semantic_error(this, std::format(LGERR_BLK001, this->get_name(), this->loc.get_debug_location(3, 1), redeclarations));
+                }
             }
+            // ok, nobody has our id -> register in parent "not in myself"
+            logia::AST::scope_set(this->parent_node, this->get_name(), this, true);
         }
     }
 

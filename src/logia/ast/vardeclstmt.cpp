@@ -89,7 +89,10 @@ namespace logia::AST
 
     void VarDeclStmt::post_attach()
     {
-        Stmt::post_attach();
+    }
+
+    void VarDeclStmt::validate()
+    {
         auto result = scope_lookup_all(this, this->get_name());
         if (result.is_success())
         {

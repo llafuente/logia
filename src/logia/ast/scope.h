@@ -38,6 +38,8 @@ namespace logia::AST
 
         void post_attach() override;
 
+        void validate() override;
+
         /// @brief A Scope do not have type, nullptr is returned
         /// @return nullptr
         Type *get_type() override;

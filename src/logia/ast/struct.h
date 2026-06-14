@@ -12,6 +12,9 @@ namespace logia::AST
     {
     public:
         const char *docstring;
+
+        Node *target;
+
         StructAlias(location loc, Identifier *from, Identifier *to, const char *_docstring = nullptr);
 
         std::string to_string() override;
@@ -22,6 +25,10 @@ namespace logia::AST
         /// @brief Returns the target identifier of the alias
         /// @return
         Identifier *get_to();
+
+        void post_attach() override;
+
+        void validate() override;
     };
 
     /// @brief Defines a field (something that is stored in memory) within a struct
@@ -43,6 +50,10 @@ namespace logia::AST
         Type *get_type() override;
         Identifier *get_name();
         Expression *get_default_value();
+
+        void post_attach() override;
+
+        void validate() override;
 
     protected:
         void _pre_type_inference() override;
@@ -120,9 +131,6 @@ namespace logia::AST
 
         StructField *get_field_by_index(uint32_t index);
 
-        /// @brief Semantic validation
-        void semantic_validate();
-
         Type *get_type() override;
 
         std::string to_string() override;
@@ -130,6 +138,8 @@ namespace logia::AST
         std::string get_repr() override;
 
         void post_attach() override;
+
+        void validate() override;
 
         llvm::Value *post_codegen(logia::Backend *backend) override;
 

@@ -100,10 +100,9 @@ namespace logia::AST
         return Node::post_codegen(backend);
     }
 
-    void IfStmt::post_attach()
-    {
-        Stmt::post_attach();
-    }
+    void IfStmt::post_attach() {}
+
+    void IfStmt::validate() {}
 
     void IfStmt::_post_type_inference()
     {

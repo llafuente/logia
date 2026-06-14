@@ -44,7 +44,14 @@ namespace logia::AST
 
     void FunctionBlock::post_attach()
     {
+        // skip block!
         Scope::post_attach();
+    }
+
+    void FunctionBlock::validate()
+    {
+        // skip block!
+        Scope::validate();
     }
 
 }

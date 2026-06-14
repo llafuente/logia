@@ -247,4 +247,8 @@ namespace logia::AST
 
         throw_compiler_error("to-do: cast non-implemented");
     }
+
+    void Cast::post_attach() {}
+
+    void Cast::validate() {}
 }

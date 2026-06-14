@@ -30,9 +30,14 @@ namespace logia::AST
         Type *get_target_type();
 
         std::string to_string() override;
+
         Type *get_type() override;
 
         llvm::Value *post_codegen(logia::Backend *backend) override;
+
+        void post_attach() override;
+
+        void validate() override;
 
     protected:
         /// @brief Overrides current target type

@@ -1,0 +1,10 @@
+// this test is important because redeclaration are always at vardecl
+// to catch this we add a validation pass after attach
+function main () i32 {
+    var x = 1
+    return 0
+}
+
+function x() i32 {
+    return 0
+}

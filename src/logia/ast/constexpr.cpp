@@ -328,6 +328,10 @@ namespace logia::AST
         return ConstExpression::post_codegen(backend);
     }
 
+    void IntegerLiteral::post_attach() {}
+
+    void IntegerLiteral::validate() {}
+
     //
     // FloatLiteral
     //
@@ -505,6 +509,10 @@ namespace logia::AST
         return ConstExpression::post_codegen(backend);
     }
 
+    void FloatLiteral::post_attach() {}
+
+    void FloatLiteral::validate() {}
+
     void FloatLiteral::_set_type(Type *type)
     {
         this->type = type;
@@ -606,4 +614,9 @@ namespace logia::AST
                 return gvar;
         */
     }
+
+    void StringLiteral::post_attach() {}
+
+    void StringLiteral::validate() {}
+
 }

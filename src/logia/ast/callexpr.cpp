@@ -63,6 +63,10 @@ namespace logia::AST
         return this->get_value()->get_type();
     }
 
+    void CallExpressionArgument::post_attach() {}
+
+    void CallExpressionArgument::validate() {}
+
     void CallExpressionArgument::_set_type(Type *type)
     {
         return this->get_value()->set_type(type);
@@ -301,6 +305,10 @@ namespace logia::AST
     {
         return this->callee == nullptr ? nullptr : this->callee->get_return_type()->get_final_type();
     }
+
+    void CallExpression::post_attach() {}
+
+    void CallExpression::validate() {}
 
     std::string CallExpression::to_string()
     {

@@ -16,8 +16,6 @@ namespace logia::AST
     //
     StructAlias::StructAlias(location loc, Identifier *from, Identifier *to, const char *_docstring) : docstring(_docstring), Type(loc, Primitives::NONE)
     {
-        this->is_typed = true;
-
         this->push_child(from);
         from->has_type = false;
         from->skip_codegen = true;
@@ -31,21 +29,39 @@ namespace logia::AST
 
     Identifier *StructAlias::get_from()
     {
-        return (Identifier *)this->children[0];
+        return this->get_child<Identifier>(0);
     }
+
     Identifier *StructAlias::get_to()
     {
-        return (Identifier *)this->children[1];
+        return this->get_child<Identifier>(1);
     }
+    void StructAlias::post_attach() {}
+
+    void StructAlias::validate()
+    {
+        // check target exists!
+        auto st = this->parent_node->as<Struct>();
+        auto ident = this->get_to();
+
+        // TODO we may want to support method aliasing too... maybe another search here is enough!
+        this->target = st->get_field(ident->identifier);
+        if (this->target == nullptr)
+        {
+            throw_semantic_error(this, std::format("LGERR_ST002 Alias target '{}' not found.\nDeclared {}", ident->identifier, this->loc.get_debug_location()));
+        }
+        // if found we have the same type!
+        this->is_typed = true;
+    }
+
     std::string StructAlias::to_string()
     {
         return std::format("StructAlias{}", Node::to_string());
     }
+
     Type *StructAlias::get_type()
     {
-        auto owner = this->parent_node->as<Struct>();
-        // TODO alias of methods ?
-        return owner->get_field_type(this->get_to());
+        return this->target == nullptr ? nullptr : this->target->get_type();
     }
 
     StructField::StructField(location loc,
@@ -80,6 +96,11 @@ namespace logia::AST
     {
         return this->children.size() == 2 ? nullptr : this->get_child<Expression>(2);
     }
+
+    void StructField::post_attach() {}
+
+    void StructField::validate() {}
+
     std::string StructField::to_string()
     {
         return std::format("StructField{}", Node::to_string());
@@ -239,18 +260,10 @@ namespace logia::AST
 
     void Struct::post_attach()
     {
-        // once guard
-        if (!this->is_attached)
+        // if the struct has a name -> attach it to body
+        if (this->has_name)
         {
-            // if the struct has a name -> attach it to body
-            if (this->has_name)
-            {
-                this->__register_type(this->get_name());
-            }
-
-            this->semantic_validate();
-
-            Type::post_attach();
+            this->__register_type(this->get_name());
         }
     }
 
@@ -331,7 +344,7 @@ namespace logia::AST
         ++this->method_count;
     }
 
-    void Struct::semantic_validate()
+    void Struct::validate()
     {
         // check properties are unique!
         // check alias point to something!

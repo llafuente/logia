@@ -45,6 +45,10 @@ namespace logia::AST
         // TODO generate our string data not cstring
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
+        void post_attach() override;
+
+        void validate() override;
+
         bool is_valid_constant_operator(Operators op) override;
 
         /// @brief Returns a new StringLiteral with this->text + rhs.text
@@ -74,8 +78,15 @@ namespace logia::AST
         Type *type = nullptr;
 
         FloatLiteral(location loc, LOGIA_CLONE const char *number_as_text, Type *type = nullptr);
+
         std::string to_string() override;
+
         llvm::Value *post_codegen(logia::Backend *backend) override;
+
+        void post_attach() override;
+
+        void validate() override;
+
         Type *get_type() override;
 
         /// @brief Returns true if given op is valid for float
@@ -113,6 +124,10 @@ namespace logia::AST
         std::string to_string() override;
 
         llvm::Value *post_codegen(logia::Backend *backend) override;
+
+        void post_attach() override;
+
+        void validate() override;
 
         Type *get_type() override;
 

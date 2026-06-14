@@ -64,17 +64,6 @@ namespace logia::AST
         return this;
     }
 
-    void Type::post_attach()
-    {
-        // only once, when a type is used it will be attached many times as references
-        if (!this->is_attached)
-        {
-            this->is_attached = true;
-
-            // NOTE the rest of types has no name, because primitives are handled at ast_create_program
-        }
-    }
-
     Type *Type::get_pointer_to()
     {
         // return scope_lookup_all(this, "ptr").unwrap_success()[0]->as<Type>();
@@ -188,13 +177,10 @@ namespace logia::AST
 
     void Integer::post_attach()
     {
-        // once guard
-        if (!this->is_attached)
-        {
-            this->is_attached = true;
-            this->__register_type(std::format("λ{}", this->get_repr()).c_str());
-        }
+        this->__register_type(std::format("λ{}", this->get_repr()).c_str());
     }
+
+    void Integer::validate() {}
 
     //
     // Float
@@ -263,13 +249,10 @@ namespace logia::AST
 
     void Float::post_attach()
     {
-        // once guard
-        if (!this->is_attached)
-        {
-            this->is_attached = true;
-            this->__register_type(std::format("λ{}", this->get_repr()).c_str());
-        }
+        this->__register_type(std::format("λ{}", this->get_repr()).c_str());
     }
+
+    void Float::validate() {}
 
     //
     // Void
@@ -307,13 +290,10 @@ namespace logia::AST
 
     void Void::post_attach()
     {
-        // once guard
-        if (!this->is_attached)
-        {
-            this->is_attached = true;
-            this->__register_type(std::format("λ{}", this->get_repr()).c_str());
-        }
+        this->__register_type(std::format("λ{}", this->get_repr()).c_str());
     }
+
+    void Void::validate() {}
 
     //
     // Pointer
@@ -358,13 +338,10 @@ namespace logia::AST
 
     void Pointer::post_attach()
     {
-        // once guard
-        if (!this->is_attached)
-        {
-            this->is_attached = true;
-            this->__register_type(std::format("λ{}", this->get_repr()).c_str());
-        }
+        this->__register_type(std::format("λ{}", this->get_repr()).c_str());
     }
+
+    void Pointer::validate() {}
 
     //
     // Ref
@@ -417,9 +394,11 @@ namespace logia::AST
 
     void Ref::post_attach()
     {
-        Node::post_attach(); // skip pointer as we don't want to re-register!
+        // Type::post_attach(); <-- skip pointer/Type as we don't want to re-register!
         scope_set(this, this->get_repr().c_str(), this, true);
     }
+
+    void Ref::validate() {}
 
     //
     // TypeDef
@@ -504,6 +483,9 @@ namespace logia::AST
         return this->children[0]->resolve();
     }
 
+    void TypeDef::post_attach() {}
+    void TypeDef::validate() {}
+
     //
     // InferType
     //
@@ -535,5 +517,9 @@ namespace logia::AST
     {
         throw std::runtime_error("InferType cannot be codegen!");
     }
+
+    void InferType::post_attach() {}
+
+    void InferType::validate() {}
 
 }

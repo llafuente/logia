@@ -34,6 +34,8 @@ namespace logia::AST
 
         void post_attach() override;
 
+        void validate() override;
+
         Node *resolve() override;
 
         void set_declaration(Node *node);

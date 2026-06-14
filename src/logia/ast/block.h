@@ -49,5 +49,7 @@ namespace logia::AST
 
         /// @brief Register block name at function scope
         void post_attach() override;
+        /// @brief Checks block name is unique
+        void validate() override;
     };
 }

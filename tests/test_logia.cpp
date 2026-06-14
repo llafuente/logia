@@ -82,7 +82,7 @@ TEST(logia_run_file, block_err_LGERR_BLK001)
 {
     auto msg = test_file_with_semantic_error(".\\tests\\logia\\block\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "err-LGERR_BLK001");
     // std::cerr << "???" << msg << "????" << std::endl;
-    EXPECT_THAT(msg, testing::HasSubstr("LGERR_BLK001 Identifier 'name' in use:"));
+    EXPECT_THAT(msg, testing::HasSubstr("LGERR_BLK001 Redeclaration/Identifier 'name' in use"));
     EXPECT_THAT(msg, testing::HasSubstr("err-LGERR_BLK001.logia:3:11"));
 }
 
@@ -90,7 +90,7 @@ TEST(logia_run_file, block_err_LGERR_BLK002)
 {
     auto msg = test_file_with_semantic_error(".\\tests\\logia\\block\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "err-LGERR_BLK002");
     // std::cerr << "???" << msg << "????" << std::endl;
-    EXPECT_THAT(msg, testing::HasSubstr("LGERR_BLK001 Identifier 'name' in use:"));
+    EXPECT_THAT(msg, testing::HasSubstr("LGERR_BLK001 Redeclaration/Identifier 'name' in use"));
     EXPECT_THAT(msg, testing::HasSubstr("err-LGERR_BLK002.logia:2:5"));
 }
 
@@ -150,6 +150,15 @@ TEST(logia_run_error_file, vardecl_semantic_error_LGERR_VDECL001_2)
     // std::cerr << "???" << msg << "????" << std::endl;
     EXPECT_THAT(msg, testing::HasSubstr("LGERR_VDECL001 Redeclaration/Identifier 'x' in use:"));
     EXPECT_THAT(msg, testing::HasSubstr("err-LGERR_VDECL001-2.logia:6:5"));
+}
+
+TEST(logia_run_error_file, vardecl_semantic_error_LGERR_VDECL001_3)
+{
+    auto msg = test_file_with_semantic_error(".\\tests\\logia\\vardecl\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "err-LGERR_VDECL001-3");
+    // std::cerr << "???" << msg << "????" << std::endl;
+    EXPECT_THAT(msg, testing::HasSubstr("LGERR_VDECL001 Redeclaration/Identifier 'x' in use:"));
+    EXPECT_THAT(msg, testing::HasSubstr("err-LGERR_VDECL001-3.logia:4:5"));
+    EXPECT_THAT(msg, testing::HasSubstr("err-LGERR_VDECL001-3.logia:8:1"));
 }
 
 //

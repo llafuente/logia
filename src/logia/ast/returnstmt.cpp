@@ -22,6 +22,10 @@ namespace logia::AST
         return this->get_child<Expression>(0);
     }
 
+    void ReturnStmt::post_attach() {}
+
+    void ReturnStmt::validate() {}
+
     void ReturnStmt::_set_type(Type *ty)
     {
         this->get_expr()->set_type(ty);

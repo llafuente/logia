@@ -263,6 +263,10 @@ namespace logia::AST
         return Node::post_codegen(backend);
     }
 
+    void StructInitializer::post_attach() {}
+
+    void StructInitializer::validate() {}
+
     Type *StructInitializer::get_type()
     {
         return this->type; // TODO InferType

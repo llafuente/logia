@@ -39,6 +39,10 @@ namespace logia::AST
 
         Type *get_type() override;
 
+        void post_attach() override;
+
+        void validate() override;
+
     protected:
         void _set_type(Type *ty) override;
         void _pre_type_inference() override;

@@ -37,6 +37,8 @@ namespace logia::AST
 
         void post_attach() override;
 
+        void validate() override;
+
         /// @brief Returns the type of the variable
         /// @remarks While not necessary (logia do not support chained vardecl) could be usefull when referencing the variable
         /// @return Type of the variable

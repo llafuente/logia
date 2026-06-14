@@ -535,14 +535,33 @@ namespace logia
 
     void Backend::__finalize_module()
     {
-        if (!program->is_pre_codegen)
+        if (!program->is_validated)
+        {
+            // NOTE this pass is in pre-order because most of the error are for users to handle them
+            // and people are not compilers and their minds work top-to-bottom, left-to-right
+            // while post-order is possible it will give error in reverse order and it will be a mess
+
+            // auto all_nodes = this->program->get_post_descendant();
+            auto all_nodes = this->program->get_pre_descendant();
+            LOG(SILLY, "validating {} nodes", all_nodes.size());
+            for (auto node : all_nodes)
+            {
+                LOG(SILLY, "validate {}", node->to_string());
+                node->validate();
+                node->is_validated = true;
+            }
+        }
+
+        if (!program->is_pre_type_inference)
         {
             type_inference_program(this->program);
         }
+
         if (!program->is_pre_codegen)
         {
             this->program->codegen(this);
         }
+
         if (logia_config.debug)
         {
             // Finalize the debug info

@@ -32,6 +32,9 @@ namespace logia::AST
         /// @brief is attached to a program
         unsigned char is_attached : 1 = false;
 
+        /// @brief is current node validated
+        unsigned char is_validated : 1 = false;
+
         /// @brief codegen pass done
         unsigned char skip_codegen : 1 = false;
 
@@ -128,7 +131,10 @@ namespace logia::AST
         void set_type(Type *ty);
 
         /// @brief called after the node is attached to a program
-        virtual void post_attach();
+        virtual void post_attach() = 0;
+
+        /// @brief validate current node, mostly semantic check
+        virtual void validate() = 0;
 
         /// @brief Calls _pre_type_inference if this node required to be typed
         /// @return
@@ -142,6 +148,8 @@ namespace logia::AST
         /// @brief resolve node references
         /// @return
         virtual Node *resolve();
+
+        std::vector<Node *> get_pre_descendant();
 
         std::vector<Node *> get_post_descendant();
 
@@ -375,6 +383,8 @@ namespace logia::AST
         std::string to_string() override;
         llvm::Value *post_codegen(logia::Backend *backend) override;
         Type *get_type() override;
+        void post_attach() override;
+        void validate() override;
 
     protected:
         void _set_type(Type *) override;

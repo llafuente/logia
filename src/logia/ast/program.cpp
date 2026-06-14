@@ -12,7 +12,7 @@
 
 namespace logia::AST
 {
-    Program::Program(location loc, const char *entry_point_file, const char *file_contents) : Block(loc, new Identifier(loc, "program")), entry_point_file(entry_point_file), file_contents(file_contents)
+    Program::Program(location loc, const char *entry_point_file, const char *file_contents) : Block(loc, new Identifier(loc, "")), entry_point_file(entry_point_file), file_contents(file_contents)
     {
         this->is_attached = true; // Program is obviously never attached to anything, it's the root -> manually set the flag
         intrinsics = new Scope(loc);

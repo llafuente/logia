@@ -73,6 +73,10 @@ namespace logia::AST
         this->cg_value = this->alloca_inst = backend->builder->CreateAlloca((llvm::Type *)this->get_final_type()->codegen(backend), 0, nullptr, this->get_name()->identifier);
         return Node::post_codegen(backend);
     }
+
+    void FunctionParameter::post_attach() {}
+
+    void FunctionParameter::validate() {}
     //
     // Function
     //
@@ -87,7 +91,7 @@ namespace logia::AST
 
         if (return_type == nullptr)
         {
-            return_type = new Type({}, Primitives::VOID_TY); // TODO unique!
+            return_type = new Void(); // TODO unique!
         }
 
         this->push_child(name);        // get_name
@@ -181,14 +185,17 @@ namespace logia::AST
     // register myself into closest block
     void Function::post_attach()
     {
-        // only once, when a type is used it will be attached many times as references
-        if (!this->is_attached)
-        {
-            this->is_attached = true;
-
-            this->__register_type(this->get_name());
-        }
+        logia::AST::scope_set(this, this->get_name(), this, false);
+        // this->__register_type(this->get_name());
     }
+
+    void Function::validate()
+    {
+        // TODO search if any implementation of this function name has same parameters!
+
+        // TODO all parameters shall be unique
+    }
+
     int64_t Function::get_parameter_count()
     {
         return this->children.size() - 3;

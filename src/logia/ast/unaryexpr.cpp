@@ -49,6 +49,10 @@ namespace logia::AST
         return this->type;
     }
 
+    void UnaryExpression::post_attach() {}
+
+    void UnaryExpression::validate() {}
+
     void UnaryExpression::_pre_type_inference()
     {
         auto operand_ty = this->get_operand()->get_final_type();

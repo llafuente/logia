@@ -73,8 +73,9 @@ namespace logia::AST
         bool is_type_equivalent(Type *other);
 
         llvm::Value *post_codegen(logia::Backend *backend) override;
+
         Type *get_type() override;
-        void post_attach() override;
+
         virtual Type *get_pointer_to();
 
     protected:
@@ -102,6 +103,8 @@ namespace logia::AST
         void pre_codegen(logia::Backend *backend) override;
 
         void post_attach() override;
+
+        void validate() override;
     };
 
     /// @brief Represents an floating point number
@@ -121,6 +124,8 @@ namespace logia::AST
         void pre_codegen(logia::Backend *backend) override;
 
         void post_attach() override;
+
+        void validate() override;
     };
 
     /// @brief Represents void aka no-type
@@ -139,6 +144,7 @@ namespace logia::AST
         void pre_codegen(logia::Backend *backend) override;
 
         void post_attach() override;
+        void validate() override;
     };
 
     /// @brief Represents an opaque pointer
@@ -157,6 +163,7 @@ namespace logia::AST
         void pre_codegen(logia::Backend *backend) override;
 
         void post_attach() override;
+        void validate() override;
     };
 
     /// @brief Represents a referente to a single object (it's a pointer that chan't move!!)
@@ -179,6 +186,8 @@ namespace logia::AST
         void pre_codegen(logia::Backend *backend) override;
 
         void post_attach() override;
+
+        void validate() override;
     };
 
     // TODO implement templates
@@ -203,23 +212,40 @@ namespace logia::AST
 
         TypeDef();
         ~TypeDef();
+
         void add_locator(Identifier *name);
 
         Type *get_type() override;
+
         std::string to_string() override;
+
         std::string get_repr() override;
+
         llvm::Value *post_codegen(logia::Backend *backend) override;
+
         Node *resolve() override;
+
+        void post_attach() override;
+
+        void validate() override;
     };
 
     struct InferType : Type
     {
         InferType();
         ~InferType();
+
         std::string get_repr() override;
+
         std::string to_string() override;
+
         void pre_codegen(logia::Backend *backend) override;
+
         llvm::Value *post_codegen(logia::Backend *backend) override;
+
+        void post_attach() override;
+
+        void validate() override;
 
     protected:
         void _set_type(Type *t) override;

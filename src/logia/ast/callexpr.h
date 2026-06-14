@@ -36,6 +36,10 @@ namespace logia::AST
 
         Type *get_type() override;
 
+        void post_attach() override;
+
+        void validate() override;
+
     protected:
         void _set_type(Type *type) override;
         void _post_type_inference() override;
@@ -128,6 +132,10 @@ namespace logia::AST
         std::vector<Function *> find_candidates();
 
         Type *get_type() override;
+
+        void post_attach() override;
+
+        void validate() override;
 
     protected:
         void _set_type(Type *type) override;

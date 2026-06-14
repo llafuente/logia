@@ -17,7 +17,7 @@ namespace logia::AST
 #define LGERR_GT002 "LGERR_GT002 Identifier '{}' has multiple matches: {}"
 #define LGERR_GT003 "LGERR_GT003 expected label '{}' to reference a block, but found:\n{}"
 
-#define LGERR_BLK001 "LGERR_BLK001 Identifier '{}' in use:\n{}"
+#define LGERR_BLK001 "LGERR_BLK001 Redeclaration/Identifier '{}' in use:\n{}\n{}"
 
 #define LGERR_VDECL001 "LGERR_VDECL001 Redeclaration/Identifier '{}' in use:\n{}\n{}"
 

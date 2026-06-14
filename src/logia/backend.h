@@ -126,6 +126,12 @@ namespace logia
         llvm::Align getDefaultAlignament(llvm::Type *type);
 
     private:
+        /// @brief prepare AST for codegen
+        /// first pass -> validation (mostly semantic validation)
+        /// second pass -> type inference
+        /// third pass -> codegen
+        /// and the program is "ready" for jit/binary
+
         void __finalize_module();
     };
 }

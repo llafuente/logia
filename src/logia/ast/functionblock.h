@@ -24,6 +24,9 @@ namespace logia::AST
         /// @param backend The backend used for code generation
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
+        /// @remarks while FunctionBlock is a Block, we should ignore it's post_attach
         void post_attach() override;
+        /// @remarks while FunctionBlock is a Block, we should ignore it's validation
+        void validate() override;
     };
 }

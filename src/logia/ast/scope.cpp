@@ -79,8 +79,9 @@ namespace logia::AST
         auto parentBody = this->first_parent<Scope>();
         LOGIA_VERIFY(parentBody != nullptr);
         this->parentScope = parentBody;
-        Node::post_attach();
     }
+
+    void Scope::validate() {}
 
     Type *Scope::get_type()
     {
@@ -101,7 +102,7 @@ namespace logia::AST
 
     LOGIA_API scope_search_result scope_lookup_all(Node *node, const char *name)
     {
-        LOG(DBG, "({}) from = {}", name, node->to_string());
+        LOG(DBG, "('{}') from = {}", name, node->to_string());
 
         if (!node->is_attached)
         {
@@ -172,14 +173,15 @@ namespace logia::AST
         return nullptr;
     }
 
-    bool scope_set(Node *node, const char *name, Node *what, bool unique)
+    bool scope_set(Node *since, const char *name, Node *what, bool unique)
     {
+        LOG(DBG, "('{}') unique? {} | what = {}", name, unique, what->to_string());
         if (!what->is<Type>() && !what->is<Block>() && !what->is<VarDeclStmt>() && !what->is<FunctionParameter>())
         {
-            throw_compiler_error(std::format("invalid node type: {} expected Type, Block, VarDeclStmt or FunctionParameter \n{}", typeid(node).name(), node->to_string()));
+            throw_compiler_error(std::format("invalid node type: {} expected Type, Block, VarDeclStmt or FunctionParameter \n{}", typeid(since).name(), since->to_string()));
         }
 
-        Scope *p = scope_closest(node);
+        Scope *p = scope_closest(since);
         bool contains = p->scope.contains(name);
         if (contains)
         {
@@ -188,10 +190,10 @@ namespace logia::AST
                 return false;
             }
 
-            p->scope[name].push_back(node);
+            p->scope[name].push_back(what);
             return true;
         }
-        p->scope[_strdup(name)] = {node};
+        p->scope[_strdup(name)] = {what};
         return true;
     }
 

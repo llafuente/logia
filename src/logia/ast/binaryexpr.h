@@ -47,6 +47,10 @@ namespace logia::AST
 
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
+        void post_attach() override;
+
+        void validate() override;
+
     protected:
         void _set_type(Type *type) override;
         void _pre_type_inference() override;
