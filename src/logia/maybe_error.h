@@ -62,7 +62,7 @@ namespace logia
             {
                 if (!is_error())
                 {
-                    throw std::runtime_error("try to unwrap an error that is a success! check is_error first!");
+                    throw_compiler_error("try to unwrap an error that is a success! check is_error first!");
                 }
                 return this->error_data;
             }

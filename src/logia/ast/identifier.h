@@ -36,6 +36,8 @@ namespace logia::AST
 
         Node *resolve() override;
 
+        void set_declaration(Node *node);
+
         bool is_empty();
 
     protected:

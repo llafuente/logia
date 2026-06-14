@@ -423,4 +423,26 @@ namespace logia::AST
         }
         throw_compiler_error(std::format("{}\nExpected type: {} or {} or {}\n{}", message, typeid(T).name(), typeid(T2).name(), typeid(T3).name(), node->to_string()));
     }
+
+    template <class T>
+    std::vector<T *> nodelist_cast(std::vector<Node *> input, bool remove_failures)
+    {
+        std::vector<T *> out;
+        T *v;
+        for (auto node : input)
+        {
+            if (node->try_cast<T>(&v))
+            {
+                out.push_back(v);
+            }
+            else
+            {
+                if (!remove_failures)
+                {
+                    throw_compiler_error(std::format("Unexpected node type: {} / {}", typeid(T).name(), node->to_string()));
+                }
+            }
+        }
+        return out;
+    }
 }

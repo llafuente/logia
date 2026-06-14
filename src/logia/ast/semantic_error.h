@@ -26,6 +26,10 @@ namespace logia::AST
 #define LGERR_BINEXPR003 "LGERR_BINEXPR003 expected lhs to be a bool"
 #define LGERR_BINEXPR004 "LGERR_BINEXPR004 expected rhs to be a bool"
 
+#define LGERR_CALLEXPR001 "LGERR_CALLEXPR001 Expected expression to have function type but found ''"
+#define LGERR_CALLEXPR002 "LGERR_CALLEXPR002 expected {} argument(s), found {} calling '{}'"
+#define LGERR_CALLEXPR003 "LGERR_CALLEXPR003 invalid argument {} expected type '{}' found '{}' calling '{}'"
+
 #define LGERR_CONSTEX000 "LGERR_CONSTEX000 Expression is not constant"
 #define LGERR_CONSTEX001a "LGERR_CONSTEX001a Left operand is not constant"
 #define LGERR_CONSTEX001b "LGERR_CONSTEX001b Right operand is not constant"

@@ -1,17 +1,23 @@
+// test:
+// vardecl function type
+// call a function pointer
+// binexpr eq (store) function pointer
+// call a function pointer (modified)
+
 function sum(i32 a, i32 b) i32 {
     return a + b
 }
 function sum2(i32 a, i32 b) i32 {
-    return a + b
+    return a + b + 1
 }
 
-
 function main() i32 {
-    //var sum fn
+    // result 21
     var sum myfn = sum
+    var aux = myfn(10, 11)
+    // result 22 ^^
     myfn = sum2
-    //var ref<i32> a  = 0
+    aux += myfn(10, 11)
 
-    //return fn(10, 11)
-    return 0
+    return aux
 }

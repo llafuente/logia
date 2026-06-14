@@ -4,6 +4,7 @@
 #include "logia/logia.h"
 #include "logia/backend.h"
 #include "logia/ast/expr.h"
+#include "logia/ast/scope.h"
 #include "logia/ast/llvm.h"
 #include "logia/ast/memberaccessexpr.h"
 #include "logia/ast/identifier.h"
@@ -85,8 +86,10 @@ namespace logia::AST
 
         // these two rules are couple atm, but we should handle identifiers in other ways in the future...
         node_assert<Identifier, MemberAccessExpression>(locator, TOSTRING(__FUNCTION__) ":" TOSTRING(__LINE__));
-        locator->skip_type_inference = true;
-        locator->skip_codegen = true;
+        if (locator->is<Identifier>())
+        {
+            locator->skip_type_inference = true;
+        }
 
         this->push_child(locator);
         for (size_t i = 0; i < positional_arguments.size(); ++i)
@@ -200,6 +203,70 @@ namespace logia::AST
         // nothing!
     }
 
+    std::vector<Function *> CallExpression::find_candidates()
+    {
+        // locator is an identifier
+        // a) points to a Function(s) -> direct_call
+        // b) indirect_call
+
+        LOG(DBG, "{}", this->to_string_tree());
+
+        Expression *locator = this->get_locator();
+        Identifier *ident;
+        if (locator->try_cast<Identifier>(&ident))
+        {
+            auto result = logia::AST::scope_lookup_all(this, ident->identifier);
+            if (result.is_error())
+            {
+                throw_semantic_error(locator, result.message);
+            }
+
+            auto nlist = result.unwrap_success();
+            // did not found anything? -> error later
+            if (nlist.size() == 0)
+            {
+                return {};
+            }
+            // found something
+            // a) 0..n if Function(s)
+            if (nlist[0]->is<Function>())
+            {
+                this->is_direct_call = true;
+                locator->skip_codegen = true; // we are not going to cg anything here
+                return nodelist_cast<Function>(nlist, true);
+            }
+            // b) 1 if it's not
+            if (nlist.size() > 1)
+            {
+                throw_semantic_error(locator, "Unexpected locator with multiple resolutions");
+            }
+
+            this->is_indirect_call = true;
+            auto decl = nlist[0];
+            // cg to get the alloca value!
+            ident->set_declaration(decl);
+            auto ty = decl->get_final_type();
+            if (!ty->is<Function>())
+            {
+                throw_semantic_error(locator, std::format(LGERR_CALLEXPR001, ty->get_repr()));
+            }
+            ident->set_type(ty);
+
+            return {ty->as<Function>()};
+        }
+
+        // TODO!
+        MemberAccessExpression *mae;
+        if (locator->try_cast<MemberAccessExpression>(&mae))
+        {
+            // auto left = mae->resolve_left();
+            auto right = mae->get_right();
+            // left should be a struct -> find all methods with "right" name!
+            throw_compiler_error("to-do!");
+        }
+        throw_compiler_error("unreachable!");
+    }
+
     void CallExpression::_pre_type_inference()
     {
         // it's possible to solve at this point if the locator where final
@@ -210,7 +277,15 @@ namespace logia::AST
         auto locator = this->get_locator();
 
         // find a proper target or throws!
-        Function *target = multiple_dispatch::find(this);
+        auto list = this->find_candidates();
+        auto result = multiple_dispatch::find_one(list, this);
+        if (result.is_error())
+        {
+            throw_semantic_error(this, result.message);
+        }
+
+        Function *target = result.unwrap_success();
+
         // NOTE don't use set_type, just set the flag
         this->is_typed = true;
         this->callee = target;
@@ -218,20 +293,6 @@ namespace logia::AST
         locator->set_type((Type *)target);
         // fill the gaps, order arguments, etc.
         multiple_dispatch::match(this, target, true);
-
-        {
-            // this should not be necessary anymore, the error should raise in multiple_dispatch::find
-            auto locator_ty = locator->get_type();
-
-            Function *f = nullptr;
-            if (!locator_ty->try_cast<Function>(&f))
-            {
-                LOG_ERR("{}", this->to_string_tree());
-                LOG_ERR("{}", locator_ty->to_string_tree());
-                throw_semantic_error(this, std::format("LGERR033 This expression is not callable is: '{}'", locator_ty->get_repr()));
-                // cannot be used as a function
-            }
-        }
 
         Expression::_pre_type_inference();
     }
@@ -269,20 +330,21 @@ namespace logia::AST
         }
 
         // Look up the name in the global module table.
-        auto name = this->get_locator()->as<Identifier>(); // TODO remove Identifier, could be anything! we just want the type!
-        llvm::Function *CalleeF = name->get_type()->as<Function>()->ir_func;
+        auto func = this->get_locator()->get_type()->as<Function>();
+        llvm::Function *CalleeF = func->ir_func;
         if (!CalleeF)
         {
-            throw std::runtime_error(std::string("Unknown function referenced: ") + name->identifier);
+            // throw std::runtime_error(std::string("Unknown function referenced: ") + name->identifier);
+            throw_compiler_error("unkown function!");
         }
 
         auto arguments = this->get_arguments();
         // If argument mismatch error.
+        // REVIEW compiler error? we should have everything tested at multiple_dispatch::find_one/match
         if (CalleeF->arg_size() != arguments.size())
         {
-            throw std::runtime_error(std::format("Expected arguments {} arguments passed {} calling {}", CalleeF->arg_size(), arguments.size(), name->identifier));
+            throw_semantic_error(this, std::format(LGERR_CALLEXPR002, CalleeF->arg_size(), arguments.size(), func->get_repr()));
         }
-        auto arg_itr = CalleeF->arg_begin();
 
         std::vector<llvm::Value *> ArgsV;
         for (size_t i = 0, e = arguments.size(); i != e; ++i)
@@ -297,10 +359,11 @@ namespace logia::AST
             auto ir_parameter_ty = ir_parameter->getType();
 
             // check arguments type are compatible one by one
+            // REVIEW compiler error? we should have everything tested at multiple_dispatch::find_one/match
             if (ir_parameter_ty != ir_argument_ty)
             {
                 LOG_ERR("{}", this->to_string_tree());
-                throw_semantic_error(argument, std::format("Invalid argument {} '{}' of type '{}' expected type '{}'", i + 1, name->identifier, llvm_type_to_string(ir_argument_ty), llvm_type_to_string(ir_parameter_ty)));
+                throw_semantic_error(argument, std::format(LGERR_CALLEXPR003, i + 1, llvm_type_to_string(ir_argument_ty), llvm_type_to_string(ir_parameter_ty), func->get_repr()));
             }
 
             ArgsV.push_back(ir_argument);
@@ -311,9 +374,21 @@ namespace logia::AST
         }
 
         // @llafuente remove name or we got duplications (same if strategy ?)
-        auto call = backend->builder->CreateCall(CalleeF, ArgsV);
+        if (is_indirect_call)
+        {
+            auto value = this->get_locator()->codegen(backend);
+            value = llvm_load_if_required(value, backend);
+            this->cg_value = (llvm::Value *)backend->builder->CreateCall(func->ir_functy, value, ArgsV);
+        }
+        else if (is_direct_call)
+        {
+            this->cg_value = (llvm::Value *)backend->builder->CreateCall(CalleeF, ArgsV);
+        }
+        else
+        {
+            throw_compiler_error("unreachable!");
+        }
 
-        this->cg_value = (llvm::Value *)call;
         return Expression::post_codegen(backend);
     }
 

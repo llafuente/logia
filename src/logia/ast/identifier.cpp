@@ -131,8 +131,7 @@ namespace logia::AST
                 throw_semantic_error(this, std::format(LGERR_ID002, list.size(), this->identifier, debug_candidates));
             }
 
-            this->decl = list[0];
-
+            this->set_declaration(list[0]);
             // just one is ok!
             auto ty = this->decl->get_final_type();
             if (ty == nullptr)
@@ -143,6 +142,11 @@ namespace logia::AST
             this->set_type(ty);
         }
         Node::_pre_type_inference();
+    }
+
+    void Identifier::set_declaration(Node *node)
+    {
+        this->decl = node;
     }
 
     LOGIA_API Identifier *ast_create_identifier(LOGIA_CLONE const char *name)

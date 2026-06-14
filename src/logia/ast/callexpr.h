@@ -46,6 +46,15 @@ namespace logia::AST
     /// @brief Call expression, can be a function call, method call, operator call, etc.
     struct CallExpression : Expression
     {
+        /// @brief The call is known at compile time
+        /// @return
+        bool is_direct_call = false;
+        /// @brief The call is unknown at compile time, via function pointer
+        /// @return
+        bool is_indirect_call = false;
+        /// @brief Special case in wich lhs is "this", rhs is the method name/function pointer
+        /// @return
+        bool is_method_call = false;
         /// @brief Argument count
         uint32_t argument_count = 0;
         /// @brief enforced type at type inference
@@ -115,6 +124,8 @@ namespace logia::AST
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
         void enforce_return_type(Type *ty);
+
+        std::vector<Function *> find_candidates();
 
         Type *get_type() override;
 
