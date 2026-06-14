@@ -68,7 +68,7 @@ TEST(logia_test_multiple_dispatch, match001)
         // xxx(i16)
         auto x = match(callexpr2, xxx_fn, false);
         EXPECT_TRUE(x.is_error());
-        EXPECT_STREQ(x.message.c_str(), "LGERR_MD001 Invalid argument type at position '1' of type 'i16', expected to match parameter 'a' of type: 'i32'\nLGERR_TS002 Incompatible types 'i16' -> 'i32'. Explicit cast is required, conversion loses integer precision.");
+        EXPECT_STREQ(x.message.c_str(), "LGERR_MD001 Invalid argument type at position '1' of type 'i16', expected to match parameter 'a' of type: 'i32'\nLGERR_TS_INT002 Incompatible types 'i16' -> 'i32'. Explicit cast is required, conversion loses integer precision.");
         // std::cerr << x.message << std::endl;
     }
 
@@ -103,7 +103,7 @@ TEST(logia_test_multiple_dispatch, match001)
         // xxx(i16)
         auto x = match(callexpr2, xxx2_fn, false);
         EXPECT_TRUE(x.is_error());
-        EXPECT_STREQ(x.message.c_str(), "LGERR_MD001 Invalid argument type at position '1' of type 'i16', expected to match parameter 'a' of type: 'i32'\nLGERR_TS002 Incompatible types 'i16' -> 'i32'. Explicit cast is required, conversion loses integer precision.");
+        EXPECT_STREQ(x.message.c_str(), "LGERR_MD001 Invalid argument type at position '1' of type 'i16', expected to match parameter 'a' of type: 'i32'\nLGERR_TS_INT002 Incompatible types 'i16' -> 'i32'. Explicit cast is required, conversion loses integer precision.");
         // std::cerr << x.message << std::endl;
     }
 
@@ -204,8 +204,10 @@ TEST(logia_test_multiple_dispatch, find001)
     {
         // i32 should be used
         // i64 should be discarded
-        auto x = find(callexpr);
-        EXPECT_EQ(x, fn_a_i32);
+        auto list = callexpr->find_candidates();
+        auto result = find_one(list, callexpr);
+        EXPECT_TRUE(result.is_success());
+        EXPECT_EQ(result.unwrap_success(), fn_a_i32);
     }
 
     auto fn_a_i16 = new Function(loc, new Identifier(loc, "xxx"), i16, false);
@@ -217,29 +219,19 @@ TEST(logia_test_multiple_dispatch, find001)
         // function xxx(i64 a)
         // function xxx(i32 a, i32)
         // xxx(i32) -> found first function!
-        try
-        {
-            auto x = find(callexpr);
-            FAIL();
-        }
-        catch (::logia::AST::semantic_error e)
-        {
-            EXPECT_THAT(e.what(), ::testing::HasSubstr("LGERR_MD002 Ambiguous call expression, multiple candidates found"));
-        }
+        auto list = callexpr->find_candidates();
+        auto result = find_one(list, callexpr);
+        EXPECT_TRUE(result.is_error());
+        EXPECT_NE(std::string(result.message).find("LGERR_MD002 Ambiguous call expression, multiple candidates found"), std::string::npos);
     }
 
     {
         // TODO
         // callexpr->set_type_hint(i64);
-        try
-        {
-            auto x = find(callexpr);
-            FAIL();
-        }
-        catch (::logia::AST::semantic_error e)
-        {
-            EXPECT_THAT(e.what(), ::testing::HasSubstr("LGERR_MD002 Ambiguous call expression, multiple candidates found"));
-        }
+        auto list = callexpr->find_candidates();
+        auto result = find_one(list, callexpr);
+        EXPECT_TRUE(result.is_error());
+        EXPECT_NE(std::string(result.message).find("LGERR_MD002 Ambiguous call expression, multiple candidates found"), std::string::npos);
     }
 }
 /*

@@ -14,11 +14,11 @@ namespace logia::multiple_dispatch
 {
     using namespace logia::AST;
 
-    constexpr auto make_error = logia::utils::make_error<float, md_type_error>;
-    constexpr auto make_success = logia::utils::make_success<float, md_type_error>;
-    constexpr auto make_chained_error = logia::utils::make_chained_error<float, md_type_error>;
+    constexpr auto make_match_error = logia::utils::make_error<float, match_error>;
+    constexpr auto make_match_success = logia::utils::make_success<float, match_error>;
+    constexpr auto make_match_chained_error = logia::utils::make_chained_error<float, match_error>;
 
-    multiple_dispatch_result match(CallExpression *callexpr, Function *func, bool change)
+    match_result match(CallExpression *callexpr, Function *func, bool change)
     {
         float points = 1;
         auto params = func->get_parameters();
@@ -32,7 +32,7 @@ namespace logia::multiple_dispatch
         // arguments < parameters
         if (callexpr->argument_count > func->get_parameter_count())
         {
-            return make_error(std::format("LGERR_MD003 Invalid argument count. '{}' takes '{}' arguments but '{}' were given.", func->get_repr(), func->get_parameter_count(), callexpr->argument_count), {callexpr, type_system::type_compatibility::NO});
+            return make_match_error(std::format("LGERR_MD003 Invalid argument count. '{}' takes '{}' arguments but '{}' were given.", func->get_repr(), func->get_parameter_count(), callexpr->argument_count), {callexpr, type_system::type_compatibility::NO});
         }
 
         // all names args are parameters
@@ -45,7 +45,7 @@ namespace logia::multiple_dispatch
             {
                 if (!func->get_parameter_by_name(arg_name->identifier))
                 {
-                    return make_error(std::format("LGERR_MD002 Invalid argument name '{}', could not be found in the function: '{}'.", arg_name->identifier, func->get_repr()), {arg_name, type_system::type_compatibility::NO});
+                    return make_match_error(std::format("LGERR_MD002 Invalid argument name '{}', could not be found in the function: '{}'.", arg_name->identifier, func->get_repr()), {arg_name, type_system::type_compatibility::NO});
                 }
             }
         }
@@ -107,7 +107,7 @@ namespace logia::multiple_dispatch
                     // passing 'struct a' to parameter of incompatible type 'int'
 
                     // return maybe_error<std::tuple<size_t, type_system::type_compatibility>>(std::format("Invalid named argument type: '{}' of type '{}'.\n{}", param_name->identifier, arg_type, compatibility.message), {param_index, compatibility.unsafe_unwrap()});
-                    return make_error(std::format("{}", compatibility.message), {arg, compatibility.unwrap_error()});
+                    return make_match_error(std::format("{}", compatibility.message), {arg, compatibility.unwrap_error()});
 
                 } // this param should be check in the next round, by position
             }
@@ -192,11 +192,11 @@ namespace logia::multiple_dispatch
                             goto next_parameter;
                         }
 
-                        return make_error(std::format("LGERR_MD001 Invalid argument type at position '{}' of type '{}', expected to match parameter '{}' of type: '{}'\n{}", i + 1, arg_type->get_repr(), param_name->identifier, param_type->get_repr(), compatibility.message), {param, compatibility.unwrap_error()});
+                        return make_match_error(std::format("LGERR_MD001 Invalid argument type at position '{}' of type '{}', expected to match parameter '{}' of type: '{}'\n{}", i + 1, arg_type->get_repr(), param_name->identifier, param_type->get_repr(), compatibility.message), {param, compatibility.unwrap_error()});
 
                         // return maybe_error<std::tuple<size_t, type_system::type_compatibility>>(std::format("Invalid positional argument '{}'.\n{}", i, compatibility.message), );
                         // return maybe_error<std::tuple<size_t, type_system::type_compatibility>>(std::format("Invalid positional argument '{}'.\n{}", i, compatibility.message), {param_index, compatibility.unsafe_unwrap()});
-                        // return multiple_dispatch_result(std::format("{}", compatibility.message), {param_index, compatibility.unsafe_unwrap()});
+                        // return match_result(std::format("{}", compatibility.message), {param_index, compatibility.unsafe_unwrap()});
                     }
                 }
             }
@@ -211,7 +211,7 @@ namespace logia::multiple_dispatch
                 }
                 goto next_parameter;
             }
-            return make_error(std::format("LGERR_MD004 Missing required argument '{}'. Calling '{}'", param_name->identifier, func->get_repr()), {param, type_system::type_compatibility::NO});
+            return make_match_error(std::format("LGERR_MD004 Missing required argument '{}'. Calling '{}'", param_name->identifier, func->get_repr()), {param, type_system::type_compatibility::NO});
 
             // target for nested for loops :)
         next_parameter:;
@@ -230,23 +230,22 @@ namespace logia::multiple_dispatch
             }
         }
 
-        return make_success(points);
+        return make_match_success(points);
     }
 
-    /// @brief Searches for the most specific function overload that matches the given call expression.
-    /// @param call_expression The call expression to match against available overloads.
-    Function *find(CallExpression *callexpr)
-    {
-        LOG(DBG, "Call {}", callexpr->to_string_tree());
+    constexpr auto make_find_error = logia::utils::make_error<Function *, find_error>;
+    constexpr auto make_find_success = logia::utils::make_success<Function *, find_error>;
+    constexpr auto make_find_chained_error = logia::utils::make_chained_error<Function *, find_error>;
 
-        auto scope = callexpr->first_parent<Scope>();
-        // TODO multiple dispatch is only available for Identifier and "rhs" (memberaccess) identifiers
-        auto list = scope->lookup_all(callexpr->get_locator()->as<Identifier>()->identifier);
-        LOG(DBG, "FOUND {} candidates", list.size());
-        std::vector<std::tuple<float, Function *>> candidates;
-        for (const auto &node : list)
+    // TODO maybe_error<Function *, bool>
+    find_one_result find_one(std::vector<Function *> functions, CallExpression *callexpr)
+    {
+        std::vector<std::tuple<float, Function *>> candidates(functions.size(), {0, nullptr});
+        candidates.clear();
+
+        Function *func;
+        for (const auto &node : functions)
         {
-            Function *func;
             if (node->try_cast<Function>(&func))
             {
                 LOG(DBG, "Function: {}", node->to_string());
@@ -273,7 +272,7 @@ namespace logia::multiple_dispatch
         {
             std::string debug_candidates = "";
             int i = 1;
-            for (const auto &node : list)
+            for (const auto &node : functions)
             {
                 Function *func;
                 if (node->try_cast<Function>(&func))
@@ -289,7 +288,7 @@ namespace logia::multiple_dispatch
         {
             auto f = std::get<1>(candidates[0]);
             LOG(DBG, "return the only viable candidate: {} {}", (void *)f, f->get_repr());
-            return f;
+            return make_find_success(f);
         }
 
         // from all valid candidates, we should have only one with "1"
@@ -313,7 +312,7 @@ namespace logia::multiple_dispatch
         if (candidate_with_1point != nullptr)
         {
             LOG(DBG, "return the only 1 point candidate: {} {}", (void *)candidate_with_1point, candidate_with_1point->get_repr());
-            return candidate_with_1point;
+            return make_find_success(candidate_with_1point);
         }
 
         std::string debug_candidates = "";
@@ -325,7 +324,6 @@ namespace logia::multiple_dispatch
             debug_candidates += std::format("Candidate {} with {} points: \n{}Declared {}\n", i++, points, f->get_repr(), f->loc.get_debug_location(0, 0));
         }
 
-        // TODO find the most specific overload
-        throw_semantic_error(callexpr, "LGERR_MD002 Ambiguous call expression, multiple candidates found: " + callexpr->loc.get_debug_location() + "\n" + debug_candidates);
+        return make_find_error(std::format("LGERR_MD002 Ambiguous call expression, multiple candidates found for:\n{}\n{}", callexpr->loc.get_debug_location(), debug_candidates), {candidates, callexpr});
     }
 }

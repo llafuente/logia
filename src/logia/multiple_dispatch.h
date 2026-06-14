@@ -10,20 +10,28 @@ namespace logia::multiple_dispatch
 {
     using namespace logia::AST;
 
-    struct md_type_error
+    struct match_error
     {
         Node *aggressor;
         type_system::type_compatibility reason;
     };
     // success -> points
-    typedef utils::maybe_error<float, md_type_error> multiple_dispatch_result;
+    typedef utils::maybe_error<float, match_error> match_result;
 
     /// @brief See <find>
     /// @param callexpr
     /// @param func
     /// @param change
     /// @return
-    multiple_dispatch_result match(CallExpression *callexpr, Function *func, bool change = false);
+    match_result match(CallExpression *callexpr, Function *func, bool change = false);
+
+    struct find_error
+    {
+        std::vector<std::tuple<float, Function *>> candidates = {};
+        CallExpression *callexpr = nullptr;
+    };
+
+    typedef utils::maybe_error<Function *, find_error> find_one_result;
 
     /// @brief Searches for the most specific function overload that matches the given call expression.
     /// First it will search all functions with given callexpr name
@@ -35,6 +43,6 @@ namespace logia::multiple_dispatch
     /// if there is one, it's used
     /// if there is more, semantic error
     /// At the end only one option can be used and should be no questions about it. Full compatibility one wins.
-    /// @param call_expression The call expression to match against available overloads.
-    Function *find(CallExpression *call_expression);
+    /// @param callexpr The call expression to match against available overloads.
+    find_one_result find_one(std::vector<Function *> candidates, CallExpression *callexpr);
 }
