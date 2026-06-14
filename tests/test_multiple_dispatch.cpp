@@ -95,7 +95,7 @@ TEST(logia_test_multiple_dispatch, match001)
         // xxx2(i32)
         auto x = match(callexpr, xxx2_fn, false);
         EXPECT_TRUE(!x.is_error());
-        std::cerr << x.message << std::endl;
+        // std::cerr << x.message << std::endl;
     }
 
     {

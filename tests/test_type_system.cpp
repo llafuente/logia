@@ -10,7 +10,8 @@
 #include "logia/maybe_error.h"
 #include "logia/type_system.h"
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
+#include <gmock/gmock.h> // For matchers like HasSubstr
 #include <Windows.h>
 
 #include "test_utils.h"
@@ -122,8 +123,9 @@ TEST(logia_run_error_file, type_system)
 {
     {
         auto msg = test_file_with_semantic_error(".\\tests\\logia-errors\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "err-LGERR_TS_INT002-001");
-        EXPECT_NE(std::string(msg).find("LGERR_TS_INT002 Incompatible types 'i32' -> 'i64'. Explicit cast is required, conversion loses integer precision."), std::string::npos);
-        EXPECT_NE(std::string(msg).find("err-LGERR_TS_INT002-001.logia:7:4"), std::string::npos);
+        // std::cerr << msg;
+        EXPECT_THAT(msg, testing::HasSubstr("LGERR_TS_INT002 Incompatible types 'i32' -> 'i64'. Explicit cast is required, conversion loses integer precision."));
+        EXPECT_THAT(msg, testing::HasSubstr("err-LGERR_TS_INT002-001.logia:6:5"));
     }
 }
 

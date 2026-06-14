@@ -90,13 +90,25 @@ namespace logia::AST
     void VarDeclStmt::post_attach()
     {
         Stmt::post_attach();
-
-        if (!::logia::AST::scope_set(this, this->get_name(), this, true))
+        auto result = scope_lookup_all(this, this->get_name());
+        if (result.is_success())
         {
-            auto result = scope_lookup_all(this, this->get_name());
-            auto node = result.unwrap_success()[0]; // at least one
-            throw_semantic_error(this, std::format(LGERR_VDECL001, this->get_name(), node->loc.get_debug_location()));
+            auto list = result.unwrap_success();
+            if (list.size())
+            {
+                // ups! collisions!
+                int i = 1;
+                std::string redeclarations;
+                for (const auto &redeclaration : list)
+                {
+                    redeclarations += std::format("declared {} here:\n{}\n", i++, redeclaration->loc.get_debug_location(0, 0));
+                }
+
+                throw_semantic_error(this, std::format(LGERR_VDECL001, this->get_name(), this->loc.get_debug_location(3, 1), redeclarations));
+            }
         }
+        // ok, nobody has our id -> register!
+        logia::AST::scope_set(this, this->get_name(), this, true);
     }
 
     Type *VarDeclStmt::get_type()

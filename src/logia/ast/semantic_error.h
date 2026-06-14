@@ -19,7 +19,7 @@ namespace logia::AST
 
 #define LGERR_BLK001 "LGERR_BLK001 Identifier '{}' in use:\n{}"
 
-#define LGERR_VDECL001 "LGERR_VDECL001 Redeclaration/Identifier '{}' in use:\n{}"
+#define LGERR_VDECL001 "LGERR_VDECL001 Redeclaration/Identifier '{}' in use:\n{}\n{}"
 
 #define LGERR_BINEXPR001 "LGERR_BINEXPR001 Expected lhs to be a reference but found '{}'"
 #define LGERR_BINEXPR002 "LGERR_BINEXPR002 lhs cannot be a constant expression"
