@@ -70,7 +70,7 @@
 #define ANY_VOIDP_CAST(type, expr) (type)(std::any_cast<void *>(expr))
 
 #define MAKE_LOCATION(context) \
-    {this->program->loc.file, context->start->getLine(), context->start->getCharPositionInLine(), context->stop->getLine(), context->stop->getCharPositionInLine(), this->program->loc.text}
+    {this->program->loc.file, context->start->getLine() - 1, context->start->getCharPositionInLine(), context->stop->getLine() - 1, context->stop->getCharPositionInLine(), this->program->loc.text}
 
 namespace logia
 {

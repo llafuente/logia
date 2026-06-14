@@ -19,8 +19,8 @@ namespace logia::AST
         auto err_start_column = this->start_column;
         auto err_stop_line = std::max<size_t>(this->start_line, this->stop_line);
         auto err_stop_column = std::max<size_t>(err_start_column + 1, this->stop_column);
-        auto start_line = std::max<size_t>(0, err_start_line - prev_lines);
-        auto stop_line = err_start_line + post_lines;
+        auto snippet_start_line = err_start_line > prev_lines ? std::max<size_t>(0, err_start_line - prev_lines) : 0; // mind not to underflow!
+        auto snippet_stop_line = err_start_line + post_lines;                                                         // don't mind to"overflow"
 
         LOG(DBG, "start = {}:{} end = {}:{}", err_start_line, err_start_column, err_stop_line, err_stop_column);
 
@@ -32,7 +32,7 @@ namespace logia::AST
         char c;
         while ((c = text[src++]) != '\0')
         {
-            if (line >= start_line && line <= stop_line)
+            if (line >= snippet_start_line && line <= snippet_stop_line)
             {
                 snippet[dst++] = c;
             }
@@ -56,7 +56,7 @@ namespace logia::AST
         }
         snippet[dst++] = '\0';
 
-        return std::format("at {}:{}:{}\n{}", this->file, err_start_line + 1, err_start_column, snippet);
+        return std::format("at {}:{}:{}\n{}", this->file, err_start_line + 1, err_start_column + 1, snippet);
     }
 
     std::vector<std::string> nodelist_get_debug(std::vector<Node *> list)
