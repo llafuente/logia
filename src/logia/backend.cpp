@@ -363,7 +363,13 @@ namespace logia
                     {
                         if (parameter_names[i] != nullptr)
                         {
-                            f_args.push_back(scope_look_one<AST::Type>(this->program, parameter_names[i])->get_final_type());
+                            auto type = scope_look_one<AST::Type>(this->program, parameter_names[i]);
+                            LOG(DBG, "found type: {}", (void *)type);
+                            auto ftype = type->get_final_type();
+                            {
+                            }
+                            LOGIA_VERIFY(ftype != nullptr);
+                            f_args.push_back(ftype);
                         }
                         else
                         {
@@ -795,7 +801,7 @@ namespace logia
         }
     }
 
-    llvm::Function *Backend::getFunction(llvm::StringRef name) const
+    llvm::Function *Backend::getFunction(const char *name) const
     {
         auto func = this->intrinsics_module->getFunction(name);
         if (func)
@@ -808,7 +814,7 @@ namespace logia
             return func;
         }
 
-        throw_compiler_error(std::format("{}{}", "function not found in current module or intrinsics", name.str()));
+        throw_compiler_error(std::format("{}{}", "function not found in current module or intrinsics", name));
     }
 
     llvm::Align Backend::getDefaultAlignament(llvm::Type *type)

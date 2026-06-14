@@ -121,7 +121,7 @@ namespace logia
         void set_debug_loc(llvm::Instruction *value, AST::location loc);
 
         /// @brief searches a function inside intrinsics or current module
-        llvm::Function *getFunction(llvm::StringRef Name) const;
+        llvm::Function *getFunction(const char *name) const;
 
         llvm::Align getDefaultAlignament(llvm::Type *type);
 
