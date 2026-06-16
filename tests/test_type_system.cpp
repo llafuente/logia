@@ -30,6 +30,11 @@ TEST(logia_test_type_system, start)
     auto i64 = new logia::AST::Integer(true, 64);
     auto f64 = new logia::AST::Float(64);
 
+    auto u32_ptr = new logia::AST::Pointer(u32);
+    auto u64_ptr = new logia::AST::Pointer(u64);
+    auto u16_ptr = new logia::AST::Pointer(u16);
+    auto i32_ptr = new logia::AST::Pointer(i32);
+
     {
         EXPECT_EQ(type_is_compatible(i64, i32).unwrap_success(), type_compatibility::AUTOCAST_CAST);
         EXPECT_EQ(type_is_compatible(f64, f32).unwrap_success(), type_compatibility::AUTOCAST_CAST);
@@ -57,6 +62,17 @@ TEST(logia_test_type_system, start)
         auto err = type_is_compatible(f32, f64);
         EXPECT_TRUE(err.is_error());
         EXPECT_STREQ(err.message.c_str(), "LGERR_TS_FLT001 Incompatible types 'f32' -> 'f64'. Explicit cast is required, conversion loses floating-point precision.");
+    }
+
+    {
+        auto err = type_is_compatible(i32_ptr, i64_ptr);
+        EXPECT_TRUE(err.is_error());
+        EXPECT_STREQ(err.message.c_str(), "LGERR_TS_PTR001 Incompatible types 'ptr<i32>' -> 'ptr<i64>'. Pointee types are incompatible.");
+    }
+    {
+        auto err = type_is_compatible(i64_ptr, i32_ptr);
+        EXPECT_TRUE(err.is_error());
+        EXPECT_STREQ(err.message.c_str(), "LGERR_TS_PTR001 Incompatible types 'ptr<i64>' -> 'ptr<i32>'. Pointee types are incompatible.");
     }
 
     // {x,y,z}

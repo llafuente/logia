@@ -237,7 +237,6 @@ namespace logia::multiple_dispatch
     constexpr auto make_find_success = logia::utils::make_success<Function *, find_error>;
     constexpr auto make_find_chained_error = logia::utils::make_chained_error<Function *, find_error>;
 
-    // TODO maybe_error<Function *, bool>
     find_one_result find_one(std::vector<Function *> functions, CallExpression *callexpr)
     {
         std::vector<std::tuple<float, Function *>> candidates(functions.size(), {0, nullptr});

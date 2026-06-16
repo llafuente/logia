@@ -33,9 +33,22 @@ namespace logia::type_system
             {
                 return make_success(type_compatibility::YES | type_compatibility::LAYOUT_COMPATIBLE);
             }
-            // TODO pointer should check pointee type
+
             if (lhs->is<Pointer>())
             {
+                // NOTE: while pointee can be autocasted the pointer itself DONT!
+                auto lhs_ptr = lhs->as<Pointer>();
+                auto rhs_ptr = rhs->as<Pointer>();
+                auto result = type_is_compatible(lhs_ptr->get_pointee_type()->get_final_type(), rhs_ptr->get_pointee_type()->get_final_type());
+                if (result.is_error())
+                {
+                    return make_chained_error(std::format(LGERR_TS_PTR001, lhs->get_repr(), rhs->get_repr()), result);
+                }
+                // also an error FULL COMPAT!
+                if (!result.unwrap_success().contains(type_compatibility::AUTOCAST_CAST))
+                {
+                    return make_error(std::format(LGERR_TS_PTR001, lhs->get_repr(), rhs->get_repr()), type_compatibility::NO);
+                }
                 return make_success((type_compatibility)((uint32_t)type_compatibility::YES | (uint32_t)type_compatibility::LAYOUT_COMPATIBLE));
             }
 

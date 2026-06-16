@@ -53,6 +53,7 @@ namespace logia::AST
 #define LGERR_TS_FN001 "LGERR_TS_FN001 Incompatible types '{}' -> '{}'. Parameter count missmatch."
 #define LGERR_TS_FN002 "LGERR_TS_FN002 Incompatible types '{}' -> '{}'. Return type missmatch."
 #define LGERR_TS_FN003 "LGERR_TS_FN003 Incompatible types '{}' -> '{}'. Argument {} type missmatch."
+#define LGERR_TS_PTR001 "LGERR_TS_PTR001 Incompatible types '{}' -> '{}'. Pointee types are incompatible."
 
     class semantic_error : public std::runtime_error
     {
