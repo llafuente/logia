@@ -91,9 +91,6 @@ namespace logia::AST
         /// @return
         Identifier *get_identifier();
 
-        /// @brief Sets the struct identifier, call this once or throws!
-        void set_identifier(Identifier *id);
-
         /// @brief Adds a field to the struct
         void add_field(
             location loc,

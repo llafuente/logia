@@ -1041,8 +1041,7 @@ namespace logia
 
         if (context->structTypeDecl())
         {
-            auto structure = ANY_VOIDP_CAST(AST::Struct *, this->visitStructTypeDecl(context->structTypeDecl()));
-            structure->set_identifier(type_name);
+            auto structure = this->parseStructTypeDecl(type_name, context->structTypeDecl());
 
             this->program->push_child(structure); // <-- TODO push to program atm :)
             return ANY_VOIDP_STORE(structure);
@@ -1057,13 +1056,14 @@ namespace logia
 
         CST_UNREACHABLE();
     }
-    std::any CST2AST::visitStructTypeDecl(LogiaParser::StructTypeDeclContext *context)
+    // std::any CST2AST::visitStructTypeDecl(LogiaParser::StructTypeDeclContext *context)
+    AST::Struct *CST2AST::parseStructTypeDecl(AST::Identifier *name, LogiaParser::StructTypeDeclContext *context)
     {
         CST_DEBUG_FUNCTION();
         CST_TODO_BRANCH_LIST(typeExtendsDecl, visitTypeExtendsDecl);
         CST_TODO_BRANCH_LIST(typeImplementsDecl, visitTypeImplementsDecl);
 
-        auto structure = new AST::Struct(MAKE_LOCATION(context), nullptr);
+        auto structure = new AST::Struct(MAKE_LOCATION(context), name);
 
         for (int i = 0;; ++i)
         {
@@ -1076,7 +1076,7 @@ namespace logia
             this->parseStructProperty(property, structure);
         }
 
-        return ANY_VOIDP_STORE(structure);
+        return structure;
     }
     std::any CST2AST::visitStructProperty(LogiaParser::StructPropertyContext *context)
     {

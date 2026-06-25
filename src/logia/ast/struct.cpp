@@ -124,33 +124,20 @@ namespace logia::AST
     Struct::Struct(location loc, Identifier *id) : Type(loc, Primitives::STRUCT_TY)
     {
         this->is_typed = true;
-        if (id != nullptr)
-        {
-            this->set_identifier(id);
-        }
-    }
 
-    void Struct::set_identifier(Identifier *id)
-    {
-        LOGIA_VERIFY(id != nullptr, "id parameters is required");
+        LOGIA_VERIFY(id != nullptr);
 
-        if (this->has_name)
-        {
-            throw std::runtime_error("Struct already has a name");
-        }
+        id->skip_codegen = true;
+        id->skip_type_inference = true;
+        // NOTE the following stmt order is important :)
+        this->push_child(id);
+        id->set_type(this);
 
         this->has_name = true;
-        id->skip_codegen = true;
-        id->set_type(this);
-        this->unshift_child(id);
     }
 
     const char *Struct::get_name()
     {
-        if (!this->has_name)
-        {
-            return "unkown"; // TODO REVIEW fail ?
-        }
         return get_identifier()->identifier;
     }
 
@@ -251,7 +238,8 @@ namespace logia::AST
                 {
                     list += ", ";
                 }
-                list += std::format("{} {}", field->get_name()->identifier, field->get_final_type()->get_repr());
+                auto ty = field->get_final_type();
+                list += std::format("{} {}", field->get_name()->identifier, ty == nullptr ? "??" : ty->get_repr());
             }
         }
 
@@ -260,11 +248,7 @@ namespace logia::AST
 
     void Struct::post_attach()
     {
-        // if the struct has a name -> attach it to body
-        if (this->has_name)
-        {
-            this->__register_type(this->get_name());
-        }
+        this->__register_type(this->get_name());
     }
 
     llvm::Value *Struct::post_codegen(logia::Backend *backend)

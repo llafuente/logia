@@ -104,7 +104,8 @@ namespace logia
         // types
         //
         std::any visitTypeDecl(LogiaParser::TypeDeclContext *context) override;
-        std::any visitStructTypeDecl(LogiaParser::StructTypeDeclContext *context) override;
+        // std::any visitStructTypeDecl(LogiaParser::StructTypeDeclContext *context) override;
+        AST::Struct *parseStructTypeDecl(AST::Identifier *name, LogiaParser::StructTypeDeclContext *context);
         std::any visitStructProperty(LogiaParser::StructPropertyContext *context) override;
         void parseStructProperty(LogiaParser::StructPropertyContext *context, AST::Struct *structure);
         std::any visitStructPropertyDecl(LogiaParser::StructPropertyDeclContext *context) override;
