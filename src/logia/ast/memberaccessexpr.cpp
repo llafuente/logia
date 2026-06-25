@@ -62,7 +62,7 @@ namespace logia::AST
         }
 
         auto left_ty_stuct = left_ty->as<Struct>();
-        auto right = this->get_right();
+        auto right = this->get_right()->as<Identifier>(); // TODO
         auto ty = left_ty_stuct->get_field_type(right)->get_final_type();
         right->set_type(ty);
         this->set_type(ty);

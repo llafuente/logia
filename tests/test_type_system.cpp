@@ -25,15 +25,18 @@ TEST(logia_test_type_system, start)
     location loc = {"", 0, 0, 0, 0, ""};
 
     auto i32 = new logia::AST::Integer(true, 32);
+    auto u16 = new logia::AST::Integer(false, 16);
     auto u32 = new logia::AST::Integer(false, 32);
+    auto u64 = new logia::AST::Integer(false, 64);
     auto f32 = new logia::AST::Float(32);
     auto i64 = new logia::AST::Integer(true, 64);
     auto f64 = new logia::AST::Float(64);
 
-    auto u32_ptr = new logia::AST::Pointer(u32);
-    auto u64_ptr = new logia::AST::Pointer(u64);
-    auto u16_ptr = new logia::AST::Pointer(u16);
-    auto i32_ptr = new logia::AST::Pointer(i32);
+    auto u32_ref = new logia::AST::Ref(u32);
+    auto u64_ref = new logia::AST::Ref(u64);
+    auto u16_ref = new logia::AST::Ref(u16);
+    auto i32_ref = new logia::AST::Ref(i32);
+    auto i64_ref = new logia::AST::Ref(i64);
 
     {
         EXPECT_EQ(type_is_compatible(i64, i32).unwrap_success(), type_compatibility::AUTOCAST_CAST);
@@ -65,14 +68,14 @@ TEST(logia_test_type_system, start)
     }
 
     {
-        auto err = type_is_compatible(i32_ptr, i64_ptr);
+        auto err = type_is_compatible(i32_ref, i64_ref);
         EXPECT_TRUE(err.is_error());
-        EXPECT_STREQ(err.message.c_str(), "LGERR_TS_PTR001 Incompatible types 'ptr<i32>' -> 'ptr<i64>'. Pointee types are incompatible.");
+        EXPECT_STREQ(err.message.c_str(), "LGERR_TS_PTR001 Incompatible types 'ref<i32>' -> 'ref<i64>'. Pointee types are incompatible.\nLGERR_TS_INT002 Incompatible types 'i32' -> 'i64'. Explicit cast is required, conversion loses integer precision.");
     }
     {
-        auto err = type_is_compatible(i64_ptr, i32_ptr);
+        auto err = type_is_compatible(i64_ref, i32_ref);
         EXPECT_TRUE(err.is_error());
-        EXPECT_STREQ(err.message.c_str(), "LGERR_TS_PTR001 Incompatible types 'ptr<i64>' -> 'ptr<i32>'. Pointee types are incompatible.");
+        EXPECT_STREQ(err.message.c_str(), "LGERR_TS_PTR001 Incompatible types 'ref<i64>' -> 'ref<i32>'. Pointee types are incompatible.");
     }
 
     // {x,y,z}
@@ -167,18 +170,18 @@ TEST(logia_test_type_system, function)
     {
         auto err = type_is_compatible(fn_a, fn_b);
         EXPECT_TRUE(err.is_error());
-        EXPECT_STREQ(err.message.c_str(), "LGERR_TS_FN001 Incompatible types 'function a (i32 a) void' -> 'function b () void'. Parameter count missmatch.");
+        EXPECT_STREQ(err.message.c_str(), "LGERR_TS_FN001 Incompatible types 'function a (i32 a) void' -> 'function b () void'. Parameter count mismatch.");
     }
     fn_b->push_parameter(new FunctionParameter(new Identifier(loc, "b"), i16));
     {
         auto err = type_is_compatible(fn_a, fn_b);
         EXPECT_TRUE(err.is_error());
-        EXPECT_STREQ(err.message.c_str(), "LGERR_TS_FN003 Incompatible types 'function a (i32 a) void' -> 'function b (i16 b) void'. Argument 1 type missmatch.");
+        EXPECT_STREQ(err.message.c_str(), "LGERR_TS_FN003 Incompatible types 'function a (i32 a) void' -> 'function b (i16 b) void'. Argument 1 type mismatch.");
     }
     fn_c->push_parameter(new FunctionParameter(new Identifier(loc, "c"), f32));
     {
         auto err = type_is_compatible(fn_a, fn_c);
         EXPECT_TRUE(err.is_error());
-        EXPECT_STREQ(err.message.c_str(), "LGERR_TS_FN003 Incompatible types 'function a (i32 a) void' -> 'function c (f32 c) void'. Argument 1 type missmatch.\nLGERR_TS001 Incompatible types 'i32' -> 'f32'. Types should have the same primitive.");
+        EXPECT_STREQ(err.message.c_str(), "LGERR_TS_FN003 Incompatible types 'function a (i32 a) void' -> 'function c (f32 c) void'. Argument 1 type mismatch.\nLGERR_TS001 Incompatible types 'i32' -> 'f32'. Types should have the same primitive.");
     }
 }

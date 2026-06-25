@@ -81,17 +81,6 @@ namespace logia::AST
         this->type = t;
     }
 
-    Node *Identifier::resolve()
-    {
-        if (this->is_empty())
-        {
-            return nullptr;
-        }
-
-        this->pre_type_inference();
-        return this->decl;
-    }
-
     bool Identifier::is_empty()
     {
         return this->identifier == nullptr || strlen(this->identifier) == 0;

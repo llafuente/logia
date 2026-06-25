@@ -42,8 +42,6 @@ namespace logia::AST
 
         void validate() override;
 
-        Node *resolve() override;
-
         void set_declaration(Node *node);
 
         bool is_empty();

@@ -29,27 +29,34 @@ namespace logia::type_system
         // if both has the same primitive they may be compatible
         if (lhs->primitive == rhs->primitive)
         {
+            // NOTE: remember to check here from the deepest in the hierarchy to the parent!
             if (lhs->is<Void>())
             {
                 return make_success(type_compatibility::YES | type_compatibility::LAYOUT_COMPATIBLE);
             }
 
-            if (lhs->is<Pointer>())
+            if (lhs->is<Ref>())
             {
                 // NOTE: while pointee can be autocasted the pointer itself DONT!
-                auto lhs_ptr = lhs->as<Pointer>();
-                auto rhs_ptr = rhs->as<Pointer>();
-                auto result = type_is_compatible(lhs_ptr->get_pointee_type()->get_final_type(), rhs_ptr->get_pointee_type()->get_final_type());
+                auto lhs_ptr = lhs->as<Ref>();
+                auto rhs_ptr = rhs->as<Ref>();
+                auto result = type_is_compatible(lhs_ptr->get_pointee()->get_final_type(), rhs_ptr->get_pointee()->get_final_type());
                 if (result.is_error())
                 {
                     return make_chained_error(std::format(LGERR_TS_PTR001, lhs->get_repr(), rhs->get_repr()), result);
                 }
                 // also an error FULL COMPAT!
-                if (!result.unwrap_success().contains(type_compatibility::AUTOCAST_CAST))
+                if (result.unwrap_success().contains(type_compatibility::AUTOCAST_CAST))
                 {
                     return make_error(std::format(LGERR_TS_PTR001, lhs->get_repr(), rhs->get_repr()), type_compatibility::NO);
                 }
                 return make_success((type_compatibility)((uint32_t)type_compatibility::YES | (uint32_t)type_compatibility::LAYOUT_COMPATIBLE));
+            }
+
+            // pointer are opaque and always compatible, this is the way to have problems, we know...
+            if (lhs->is<Pointer>())
+            {
+                return make_success(type_compatibility::YES);
             }
 
             // integers, check signedness and bits
