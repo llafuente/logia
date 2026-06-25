@@ -6,11 +6,13 @@
 #include "logia/ast/node.h"
 #include "logia/ast/if_stmt.h"
 #include "logia/ast/expr.h"
+#include "logia/ast/callexpr.h"
 #include "logia/ast/constexpr.h"
 #include "logia/ast/stmt.h"
 #include "logia/ast/identifier.h"
 #include "logia/ast/operators.h"
 #include "logia/ast/binaryexpr.h"
+#include "logia/ast/returnstmt.h"
 #include "logia/ast/unaryexpr.h"
 #include "logia/ast/struct.h"
 
@@ -247,6 +249,25 @@ TEST(test_type, struct)
     program->push_child(point_st);
 
     EXPECT_STREQ(add_fn->get_repr().c_str(), "function add (ref<struct point {}> this, struct point {} other) struct point {}");
+
+    LOGIA_UNIT_TEST_END();
+}
+
+TEST(test_type, callexpr)
+{
+    LOGIA_UNIT_TEST();
+    using namespace logia::AST;
+    main_fn->is_attached = false; // avoid throw
+
+    auto test_fn = new Function(loc, new Identifier(loc, "test"), i32, false);
+    test_fn->get_body()->push_child(new ReturnStmt(loc, new IntegerLiteral(loc, "0", i32)));
+    program->unshift_child(test_fn);
+
+    EXPECT_STREQ(test_fn->get_repr().c_str(), "function test () i32");
+
+    main_body->unshift_child(new CallExpression(loc, new Identifier(loc, "test"), {}));
+    backend->emitTargetLLVMIR("xxx.ll");
+    backend->run_jit("main");
 
     LOGIA_UNIT_TEST_END();
 }

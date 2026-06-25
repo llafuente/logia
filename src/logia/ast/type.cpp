@@ -413,24 +413,30 @@ namespace logia::AST
     void TypeDef::add_locator(Identifier *name)
     {
         name->skip_codegen = true;
+        name->resolve = true;
+        name->resolve_unique = false;
         this->push_child(name);
     }
 
     Type *TypeDef::get_type()
     {
+        // this could happens while parsing, not a real issue but avoid some null-access
+        if (!this->is_attached)
+        {
+            return nullptr;
+        }
+
         if (this->type == nullptr)
         {
             // TODO support more than one!?
             LOGIA_VERIFY(this->children.size() == 1, "TO-DO: single resolve atm");
             // search children!
             auto id = this->get_child<Identifier>(0);
-            auto result = scope_lookup_all(this, id->identifier);
+            // TODO this could be removed ?
+            id->pre_type_inference();
+            id->post_type_inference();
 
-            if (result.is_error())
-            {
-                throw_semantic_error(this, result.message);
-            }
-            auto list = result.unwrap_success();
+            auto list = id->decl_candidates;
             if (list.size() == 0)
             {
                 throw_semantic_error(this, std::format(LGERR_ID001, id->identifier));

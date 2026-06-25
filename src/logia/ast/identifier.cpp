@@ -17,7 +17,23 @@ namespace logia::AST
     }
     std::string Identifier::to_string()
     {
-        return std::format("Identifier[{}]{}", this->identifier, Node::to_string());
+        // flags
+        std::string flags = "";
+        if (this->resolve)
+        {
+            flags += (flags.length() ? "," : "");
+            flags += std::format("resolve");
+
+            flags += (flags.length() ? "," : "");
+            if (is_pre_type_inference)
+            {
+                flags += std::format("resolved({})", this->decl_candidates.size());
+            }
+        }
+        flags += (flags.length() ? "," : "");
+        flags += this->resolve_unique ? "unique" : "multiple";
+
+        return std::format("Identifier[{}]{}{}", this->identifier, flags, Node::to_string());
     }
 
     llvm::Value *Identifier::post_codegen(logia::Backend *backend)
@@ -91,6 +107,10 @@ namespace logia::AST
         if (is_empty())
         {
             throw_compiler_error("try to type an empty identifier!");
+        }
+        if (!this->resolve)
+        {
+            return Node::_pre_type_inference();
         }
 
         if (this->decl_candidates.size() == 0)
