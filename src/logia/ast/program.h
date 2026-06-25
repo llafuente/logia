@@ -23,7 +23,7 @@ namespace logia::AST
     // the only node that requires backend early
 
     /// @brief Root of the AST, contains all the top level declarations, statements and imports
-    struct Program : public Block
+    struct Program : public Scope
     {
     public:
         /// @brief Intrinsics are functions that are implemented directly in llvm ir

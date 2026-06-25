@@ -12,7 +12,7 @@
 
 namespace logia::AST
 {
-    Program::Program(location loc, const char *entry_point_file, const char *file_contents) : Block(loc, new Identifier(loc, "")), entry_point_file(entry_point_file), file_contents(file_contents)
+    Program::Program(location loc, const char *entry_point_file, const char *file_contents) : Scope(loc), entry_point_file(entry_point_file), file_contents(file_contents)
     {
         this->is_attached = true; // Program is obviously never attached to anything, it's the root -> manually set the flag
         intrinsics = new Scope(loc);
@@ -116,7 +116,7 @@ namespace logia::AST
 
     std::string Program::to_string()
     {
-        return std::format("Program.{}", Block::to_string());
+        return std::format("Program.{}", Scope::to_string());
     }
 
     void Program::add_intrinsic(Intrinsic *fn)
@@ -153,6 +153,8 @@ namespace logia::AST
 
     void Program::pre_codegen(logia::Backend *backend)
     {
+        LOG(DBG, "{}", this->to_string());
+        return Scope::pre_codegen(backend);
     }
 
     llvm::Value *Program::post_codegen(logia::Backend *backend)
@@ -161,7 +163,14 @@ namespace logia::AST
 
         this->intrinsics->codegen(backend); // forward codegen
 
-        this->codegen_children(backend);
+        auto max = this->children.size();
+        for (size_t i = 0; i < max; ++i)
+        {
+            Node *n = this->children[i];
+            LOG(DBG, "codegen.program.statement[{}] = {}", i, n->to_string());
+
+            n->codegen(backend);
+        }
 
         this->cg_value = nullptr; // nobody need program return type!
 
