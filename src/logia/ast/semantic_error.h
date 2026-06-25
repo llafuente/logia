@@ -10,7 +10,7 @@ namespace logia::AST
 {
     struct Node;
 #define LGERR_ID001 "LGERR_ID001 Identifier '{}' not found in current scope"
-#define LGERR_ID002 "LGERR_ID002 Found '{}' elements in current scope mattching identifier '{}' but expected one:\n{}"
+#define LGERR_ID002 "LGERR_ID002 Found '{}' elements in current scope matching identifier '{}' but expected one:\n{}"
 #define LGERR_SCOPE003 "LGERR_SCOPE003 Found '{}' of type '{}' but expected type '{}'"
 
 #define LGERR_GT001 "LGERR_GT001 use of undeclared or unreachable label '{}' "
@@ -43,16 +43,16 @@ namespace logia::AST
 #define LGERR_IMP001 "LGERR_IMP001 cannot use import all and import list together"
 #define LGERR_IMP005 "LGERR_IMP005 package list should contain only identifiers, invalid element at position {}"
 
-#define LGERR_TS000 "LGERR_TS000 Incompatible types '{}' -> '{}'. Unhanlded primitive."
+#define LGERR_TS000 "LGERR_TS000 Incompatible types '{}' -> '{}'. Unhandled primitive."
 #define LGERR_TS001 "LGERR_TS001 Incompatible types '{}' -> '{}'. Types should have the same primitive."
 #define LGERR_TS_INT001 "LGERR_TS_INT001 Incompatible types '{}' -> '{}'. Explicit cast is required, conversion changes signedness."
 #define LGERR_TS_INT002 "LGERR_TS_INT002 Incompatible types '{}' -> '{}'. Explicit cast is required, conversion loses integer precision."
 #define LGERR_TS_FLT001 "LGERR_TS_FLT001 Incompatible types '{}' -> '{}'. Explicit cast is required, conversion loses floating-point precision."
 #define LGERR_TS_ST001 "LGERR_TS_ST001 Incompatible types '{}' -> '{}'. Types has different fields count."
 #define LGERR_TS_ST002 "LGERR_TS_ST002 Incompatible types '{}' -> '{}'. Incompatible field at position: '{}'."
-#define LGERR_TS_FN001 "LGERR_TS_FN001 Incompatible types '{}' -> '{}'. Parameter count missmatch."
-#define LGERR_TS_FN002 "LGERR_TS_FN002 Incompatible types '{}' -> '{}'. Return type missmatch."
-#define LGERR_TS_FN003 "LGERR_TS_FN003 Incompatible types '{}' -> '{}'. Argument {} type missmatch."
+#define LGERR_TS_FN001 "LGERR_TS_FN001 Incompatible types '{}' -> '{}'. Parameter count mismatch."
+#define LGERR_TS_FN002 "LGERR_TS_FN002 Incompatible types '{}' -> '{}'. Return type mismatch."
+#define LGERR_TS_FN003 "LGERR_TS_FN003 Incompatible types '{}' -> '{}'. Argument {} type mismatch."
 #define LGERR_TS_PTR001 "LGERR_TS_PTR001 Incompatible types '{}' -> '{}'. Pointee types are incompatible."
 
     class semantic_error : public std::runtime_error

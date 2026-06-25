@@ -93,7 +93,7 @@ namespace logia::type_system
                 return make_success(type_compatibility::AUTOCAST_CAST);
             }
 
-            // structs, check field by field has a 100% compatible type
+            // structs, check field by field shall have 100% compatible type (no autocast, no explicit cast)
             // then check code compatibility, layout + aliases + getter + setters
             // REVIEW method compatibility is required ?
             if (lhs->is<Struct>())

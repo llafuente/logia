@@ -8,8 +8,14 @@ namespace logia::AST
     /// @brief Defines an identifier, used for variable names, function names, struct field names, etc.
     struct Identifier : Expression
     {
+        /// @brief Whether this identifier should be resolved in type inference phase
+        bool resolve = false;
+        /// @brief Whether this identifier should be resolved to a unique declaration, if false it can be used for member access and function call where multiple declaration can be valid
+        bool resolve_unique = true;
         /// @brief The name of the identifier
         const char *identifier;
+        /// @brief List of candidate declarations for this identifier
+        std::vector<Node *> decl_candidates = {};
         /// @brief Pointed type
         Type *type = nullptr;
         /// @brief Pointed declaration

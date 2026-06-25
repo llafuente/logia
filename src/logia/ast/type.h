@@ -41,6 +41,7 @@ namespace logia::AST
         FUNCTION_TY,
         // this is a pointer to function, but we may need to declare at this level
         // callable,
+        ANY_TY,
     };
 
     /**
@@ -64,13 +65,6 @@ namespace logia::AST
 
         std::string to_string() override;
         virtual std::string get_repr(); // TODO do it pure virtual asap :)
-
-        // TODO
-        /// @brief Checks if this type is layout equivalent to another type, this is used for struct field access and function parameters matching
-        bool is_layout_equivalent(Type *other);
-        // TODO
-        /// @brief Checks if this type is type equivalent to another type
-        bool is_type_equivalent(Type *other);
 
         llvm::Value *post_codegen(logia::Backend *backend) override;
 

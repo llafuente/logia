@@ -88,11 +88,20 @@ namespace logia::AST
     {
         LOGIA_VERIFY(locator != nullptr, "locator is mantadory");
 
-        // these two rules are couple atm, but we should handle identifiers in other ways in the future...
-        node_assert<Identifier, MemberAccessExpression>(locator, TOSTRING(__FUNCTION__) ":" TOSTRING(__LINE__));
-        if (locator->is<Identifier>())
+        Identifier *ident;
+        MemberAccessExpression *mae;
+        if (locator->try_cast<Identifier>(&ident))
         {
-            locator->skip_type_inference = true;
+            ident->resolve = true;
+            ident->resolve_unique = false;
+        }
+        else if (locator->try_cast<MemberAccessExpression>(&mae))
+        {
+            // nothing to do for now, we will resolve it at type inference when we have more info about the left side
+        }
+        else
+        {
+            throw_compiler_error("unexpected locator type for CallExpression");
         }
 
         this->push_child(locator);

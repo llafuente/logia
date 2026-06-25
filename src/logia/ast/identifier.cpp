@@ -103,34 +103,42 @@ namespace logia::AST
         {
             throw_compiler_error("try to type an empty identifier!");
         }
-        // this means my parent will type_inference this node!
-        if (!this->is_typed)
+
+        if (this->decl_candidates.size() == 0)
         {
             auto err = scope_lookup_all(this, this->identifier);
             if (err.is_error())
             {
                 throw_semantic_error(this, err.message);
             }
-            auto list = err.unwrap_success();
+            this->decl_candidates = err.unwrap_success();
             // even success could be a problem :)
-            if (list.size() == 0)
+            if (this->decl_candidates.size() == 0)
             {
                 throw_semantic_error(this, std::format(LGERR_ID001, this->identifier));
             }
-            if (list.size() > 1)
+            if (this->decl_candidates.size() > 1)
             {
-                std::string debug_candidates = "";
-                int i = 1;
-                for (const auto &node : list)
+                if (this->resolve_unique)
                 {
-                    debug_candidates += std::format("Candidate {} declared {}\n", i++, node->loc.get_debug_location(0, 0));
-                    ++i;
+                    std::string debug_candidates = "";
+                    int i = 1;
+                    for (const auto &node : this->decl_candidates)
+                    {
+                        debug_candidates += std::format("Candidate {} declared {}\n", i++, node->loc.get_debug_location(0, 0));
+                        ++i;
+                    }
+                    throw_semantic_error(this, std::format(LGERR_ID002, this->decl_candidates.size(), this->identifier, debug_candidates));
                 }
-                throw_semantic_error(this, std::format(LGERR_ID002, list.size(), this->identifier, debug_candidates));
+                // the Identifier itself cannot determine which declaration is the right one, we will check it at codegen when we will have more information about the context (member access, function call, etc.)
+                return Node::_pre_type_inference();
             }
+        }
 
-            this->set_declaration(list[0]);
-            // just one is ok!
+        if (this->decl_candidates.size() == 1)
+        {
+            // just one candidate, we can resolve it right now
+            this->set_declaration(this->decl_candidates[0]);
             auto ty = this->decl->get_final_type();
             if (ty == nullptr)
             {
@@ -138,8 +146,10 @@ namespace logia::AST
                 return; // skip for later!
             }
             this->set_type(ty);
+            return Node::_pre_type_inference();
         }
-        Node::_pre_type_inference();
+
+        throw_compiler_error("unreachable code");
     }
 
     void Identifier::set_declaration(Node *node)

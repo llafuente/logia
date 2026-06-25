@@ -11,13 +11,13 @@ namespace logia::AST
     {
         Type *type = nullptr;
 
-        MemberAccessExpression(location loc, Node *left, Identifier *right);
+        MemberAccessExpression(location loc, Expression *left, Expression *right);
         /// @brief Retrieves the left expression of the member access
         /// @return The left expression
         Expression *get_left();
-        /// @brief Retrieves the right identifier of the member access
-        /// @return The right identifier
-        Identifier *get_right();
+        /// @brief Retrieves the right expression of the member access
+        /// @return The right expression
+        Expression *get_right();
 
         std::string to_string() override;
 
@@ -35,11 +35,42 @@ namespace logia::AST
         void _set_type(Type *type) override;
         void _pre_type_inference() override;
     };
+    /*
+        type x  = struct { float x; float y;}
+        var x xi = {}
+        x.x // <-- NamedMemberAccessExpression / Dot access
+    */
+    /// @brief Named member access expression, used for struct/type field access and method calls with identifier on the right side
+    class NamedMemberAccessExpression : public MemberAccessExpression
+    {
+    public:
+        NamedMemberAccessExpression(location loc, Expression *left, Identifier *right);
+        Identifier *get_right_ident();
+        void validate() override;
+    };
 
-    /// @brief Creates a member access expression
-    /// @param left The left expression of the member access
-    /// @param right The right identifier of the member access
-    /// @return The created member access expression
-    LOGIA_API LOGIA_LEND MemberAccessExpression *ast_create_memberaccess_expr(Node *left, Node *right);
+    /*
+        // constexpr values
+        type x  = struct { float x; float y;}
+        var x xi = {}
+        x["x"] // <-- StringLiteral
+
+        var z = int[10](0)
+        z[10] // <-- IntLiteral
+
+        // runtime values
+        var z = int[10](0)
+        var idx = 10
+        z[idx] // <-- (value) Identifier
+        z[xxx()] // <-- (value) CallExpr
+    */
+    class ComputedMemberAccessExpression : public MemberAccessExpression
+    {
+    public:
+        ComputedMemberAccessExpression(location loc, Expression *left, Expression *right);
+        bool is_constexpr();
+        std::string get_constexpr_value();
+        void validate() override;
+    };
 
 } // namespace logia

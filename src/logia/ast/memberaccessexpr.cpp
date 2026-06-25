@@ -9,19 +9,25 @@ namespace logia::AST
     //
     // MemberAccessExpression
     //
-    MemberAccessExpression::MemberAccessExpression(location loc, Node *left, Identifier *right) : Expression(loc)
+    MemberAccessExpression::MemberAccessExpression(location loc, Expression *left, Expression *right) : Expression(loc)
     {
         this->push_child(left);
+        // leaf?
+        Identifier *ident;
+        if (left->try_cast<Identifier>(&ident))
+        {
+            ident->resolve = true;
+            ident->resolve_unique = true;
+        }
         this->push_child(right);
-        right->skip_type_inference = true;
     }
     Expression *MemberAccessExpression::get_left()
     {
         return this->get_child<Expression>(0);
     }
-    Identifier *MemberAccessExpression::get_right()
+    Expression *MemberAccessExpression::get_right()
     {
-        return this->get_child<Identifier>(1);
+        return this->get_child<Expression>(1);
     }
     Type *MemberAccessExpression::get_type()
     {
@@ -44,7 +50,10 @@ namespace logia::AST
     void MemberAccessExpression::_pre_type_inference()
     {
         auto left = this->get_left();
-        left->pre_type_inference();
+        if (!left->is_pre_type_inference)
+        {
+            return; // later...
+        }
         auto left_ty = left->get_type();
 
         if (!left_ty->is<Struct>())
