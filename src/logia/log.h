@@ -22,18 +22,19 @@
 #define DBG 4
 #define VRB 5
 #define SILLY 6
-#define LOG(LEVEL, FORMAT, ...)                                                                                                                                                                \
-    do                                                                                                                                                                                         \
-    {                                                                                                                                                                                          \
-        if (::logia::logia_log_level >= LEVEL)                                                                                                                                                 \
-        {                                                                                                                                                                                      \
-            ::logia::logia_log_file << LOG_TOSTRING(LEVEL) << "|" << __FILENAME__ << ":" << __LINE__ << "|" << __func__ << " " << std::format(FORMAT __VA_OPT__(, ) __VA_ARGS__) << std::endl; \
-        }                                                                                                                                                                                      \
+#define LOG(LEVEL, FORMAT, ...)                                                                                                                                                                                            \
+    do                                                                                                                                                                                                                     \
+    {                                                                                                                                                                                                                      \
+        if (::logia::logia_log_level >= LEVEL)                                                                                                                                                                             \
+        {                                                                                                                                                                                                                  \
+            ::logia::logia_log_file << ::logia::logia_log_level << LOG_TOSTRING(LEVEL) << "|" << __FILENAME__ << ":" << __LINE__ << "|" << __func__ << " " << std::format(FORMAT __VA_OPT__(, ) __VA_ARGS__) << std::endl; \
+        }                                                                                                                                                                                                                  \
     } while (false)
 
 namespace logia
 {
     extern std::ofstream logia_log_file;
+    extern size_t logia_previous_log_level;
     extern size_t logia_log_level;
 
     /**
@@ -41,4 +42,13 @@ namespace logia
      */
     bool logia_init_log(char *file_name, bool append = false);
     void logia_deinit_log();
+    void logia_push_log_level(size_t new_level);
+    void logia_pop_log_level();
+
+#define START_INTRINSICS() \
+    logia_push_log_level(2)
+
+#define STOP_INTRINSICS() \
+    logia_pop_log_level()
+
 }

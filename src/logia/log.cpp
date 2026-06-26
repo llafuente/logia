@@ -7,6 +7,7 @@ namespace logia
 {
     std::ofstream logia_log_file;
     size_t logia_log_level = SILLY;
+    size_t logia_previous_log_level = SILLY;
 
     bool logia_init_log(char *file_name, bool append)
     {
@@ -33,5 +34,17 @@ namespace logia
         {
             logia_log_file.close();
         }
+    }
+
+    void logia_push_log_level(size_t new_level)
+    {
+        LOG(0, "change log level to 2");
+        logia_previous_log_level = logia_log_level;
+        logia_log_level = 2;
+    }
+    void logia_pop_log_level()
+    {
+        LOG(0, "restore log level {}", logia_previous_log_level);
+        logia_log_level = logia_previous_log_level;
     }
 }

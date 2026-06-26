@@ -86,7 +86,7 @@ namespace logia::AST
         intrinsics->scope[(char *)"bool"] = intrinsics->scope[(char *)"λi1"];
         intrinsics->scope[(char *)"void"] = intrinsics->scope[(char *)"λvoid"];
         intrinsics->scope[(char *)"ptr"] = {ptr};
-
+        START_INTRINSICS();
         LOG(DBG, "intrinsics before core load = {}", intrinsics->to_string());
 
         auto imp = new Import({});
@@ -99,6 +99,7 @@ namespace logia::AST
         this->children.pop_back(); // safe to remove now
 
         LOG(DBG, "intrinsics = {}", intrinsics->to_string_tree());
+        STOP_INTRINSICS();
     }
 
     void Program::codegen_primitives(logia::Backend *backend)

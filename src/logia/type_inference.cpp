@@ -180,7 +180,12 @@ namespace logia
 
         LOG(INF, "Tree before type_inference!\n{}", program->to_string_tree());
 
+        START_INTRINSICS();
+        LOG(INF, "type_inference -> intrinsics!");
         type_inference_node(program, program->intrinsics);
+        STOP_INTRINSICS();
+
+        LOG(INF, "type_inference -> program!");
         type_inference_node(program, program);
 
         LOG(INF, "Tree after type_inference!\n{}", program->to_string_tree());
