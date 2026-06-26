@@ -93,7 +93,7 @@ namespace logia::AST
         Type *from_type = this->get_source_type();
         Type *to_type = this->get_target_type();
 
-        auto value = llvm_load_if_required(this->get_expr()->codegen(backend), backend);
+        auto value = llvm_load_if_required(this->get_expr()->post_codegen(backend), backend);
 
         // integer to integer
         if (from_type->primitive == Primitives::INTEGER_TY && to_type->primitive == Primitives::INTEGER_TY)
@@ -248,7 +248,7 @@ namespace logia::AST
         throw_compiler_error("to-do: cast non-implemented");
     }
 
-    void Cast::post_attach() {}
+    void Cast::on_after_attach() {}
 
     void Cast::validate() {}
 }

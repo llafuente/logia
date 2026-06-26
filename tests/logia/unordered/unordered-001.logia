@@ -1,0 +1,7 @@
+function main() i32 {
+    return xxx()
+}
+
+function xxx() i32 {
+    return 0
+}

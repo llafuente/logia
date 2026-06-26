@@ -17,10 +17,11 @@ namespace logia::AST
     // Design/Implementation notes
     // bootstraping need a little back and forth to make it work
     // A program do not need Backend information (until codegen), but a logia Program does (before)!
-    // Program defines language primitives that will be codegen later, but intrinsics are defined at IR file
-    // require LLVM Types to be able to go from LLVM IR to AST so we codegen_primitives before codegen
-    // in the early stage. Not the end of the world, just leave the note to know, because this is atm,
+    // A Program will define language primitives that could be codegen later, but intrinsics (that are defined at IR file)
+    // require a conversion between LLVM Types and out type system (LLVM IR to AST) so we need to codegen primitives in the early stage.
+    // Not the end of the world, just leave the note to know, because this is atm,
     // the only node that requires backend early
+    // Also note that LLVM Types are unique while Logia don't (at least not at this moment!)
 
     /// @brief Root of the AST, contains all the top level declarations, statements and imports
     struct Program : public Scope
@@ -55,10 +56,26 @@ namespace logia::AST
         /// @param backend
         void codegen_primitives(logia::Backend *backend);
 
+        /// @brief Codegen the program
+        /// @details
+        /// Codegen it's done in two phases
+        /// pre_codegen: traverse all nodes inorder - create all types, prepare functions
+        /// post_codegen: traverse a specific order defined by each node - generates llvm instructions / debug
+        /// @param backend
+        void codegen(logia::Backend *backend);
+
+        /// @brief do nothing
         void pre_codegen(logia::Backend *backend) override;
 
+        /// @brief codegen all children
+        /// @param backend
+        /// @return nullptr
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
-        void post_attach() override;
+        /// @brief do nothing
+        void on_after_attach() override;
+
+        /// @brief validates and type inferences the program
+        void semantic_analysis();
     };
 }

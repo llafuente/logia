@@ -1,6 +1,7 @@
 #include "logia/ast/node.h"
 
 #include "logia/log.h"
+#include "logia/type_inference.h"
 #include "logia/ast/type.h"
 #include "logia/ast/import.h"
 #include "logia/ast/struct.h"
@@ -28,21 +29,28 @@ namespace logia::AST
         LOG(SILLY, "{}", node->to_string());
         if (!node->is_attached)
         {
+            // node->on_before_attach();
             node->is_attached = true;
-            node->post_attach();
         }
         else
         {
             LOG(WRN, "invalid post_attach, node already attached ? {}", node->to_string());
         }
+
         node->foreach_descendant([](auto descendant, auto i) -> bool
                                  {
                                     if(!descendant->is_attached) {
-                                    descendant->is_attached = true;
-            descendant->post_attach();
+                                        //descendant->on_before_attach();
+                                        descendant->is_attached = true;
                                     } else {
                                         LOG(WRN, "invalid post_attach, node already attached ? {}", descendant->to_string());
                                     }
+            return true; });
+
+        node->on_after_attach();
+        node->foreach_descendant([](auto descendant, auto i) -> bool
+                                 {
+                                    descendant->on_after_attach();
             return true; });
     }
 
@@ -68,16 +76,6 @@ namespace logia::AST
         {
             flags += (flags.length() ? "," : "");
             flags += "poscg";
-        }
-        if (this->is_pre_type_inference)
-        {
-            flags += (flags.length() ? "," : "");
-            flags += "prety";
-        }
-        if (this->is_post_type_inference)
-        {
-            flags += (flags.length() ? "," : "");
-            flags += "postty";
         }
         if (this->has_type)
         {
@@ -105,12 +103,20 @@ namespace logia::AST
         {
             ty = "no";
         }
-        else
+        else if (is_typed && is_attached)
         {
-            ty = is_typed && is_attached ? this->get_final_type()->get_repr() : "??";
+            auto fty = this->get_final_type();
+            if (fty != nullptr)
+            {
+                ty = fty->get_repr();
+            }
+            else
+            {
+                ty = "??";
+            }
         }
 
-        return std::format("| {} [@{}] ty={} [{}]", static_cast<void *>(this), static_cast<void *>(this->parent_node), ty, flags);
+        return std::format("| {} [@{}] ty={} [{},type_inference={}]", static_cast<void *>(this), static_cast<void *>(this->parent_node), ty, flags, this->type_inference_pass_id);
     }
 
     void Node::push_child(Node *child)
@@ -213,24 +219,17 @@ namespace logia::AST
             // REVIEW can we do anything ?!
         }
 
-        auto my_ty = this->get_type();
-        if (my_ty == nullptr)
-        {
-            this->_set_type(ty);
-            this->is_typed = true;
-        }
-        else if (my_ty != ty)
+        if (this->real_type != ty)
         {
             // TODO we should check this ? we may not
             // throw_compiler_error("Type already set");
-            LOG(WRN, "Type already set");
-            this->_set_type(ty);
-            this->is_typed = true;
+            LOG(WRN, "Type already set / Type change!");
         }
-        if (my_ty == ty)
-        {
-            this->is_typed = true;
-        }
+
+        this->real_type = ty;
+        this->is_typed = true;
+
+        this->_set_type(ty);
     }
     /*
         void Node::_set_type(Type *ty)
@@ -240,72 +239,39 @@ namespace logia::AST
         };
     */
 
-    void Node::pre_type_inference()
+    void Node::type_inference(size_t pass_id)
     {
-        LOG(DBG, "{}", this->to_string());
-
-        if (!this->skip_type_inference || this->is_pre_type_inference)
+        // skip ?
+        if (this->type_inference_pass_id >= pass_id)
         {
-            this->_pre_type_inference();
+            return;
         }
+
+        switch (pass_id)
+        {
+        case TYPE_INFERENCE_EARLY:
+            return this->_early_type_inference();
+        case TYPE_INFERENCE_PRE:
+            return this->_pre_type_inference();
+        case TYPE_INFERENCE_POST:
+            return this->_post_type_inference();
+        }
+
+        throw_compiler_error("unreachable!");
     }
+    void Node::_early_type_inference()
+    {
+        this->type_inference_pass_id = TYPE_INFERENCE_EARLY;
+    }
+
     void Node::_pre_type_inference()
     {
-        this->is_pre_type_inference = true;
-        /* remove this test as we are going to retry on type_inference!
-        #if _DEBUG
-                // everyone should have is_pre_type_inference!
-                for (size_t i = 0; i < this->children.size(); ++i)
-                {
-                    if (!this->children[i]->has_type)
-                        continue;
-
-                    if (this->children[i]->skip_type_inference)
-                        continue;
-
-                    if (!this->children[i]->is_pre_type_inference)
-                    {
-                        std::cerr << this->to_string_tree() << std::endl
-                                  << "-------------------" << std::endl
-                                  << this->children[i]->to_string() << std::endl;
-
-                        throw_compiler_error(std::format("Invalid children[{}] state, should have is_pre_type_inference", i));
-                    }
-                }
-        #endif
-        */
-    }
-
-    void Node::post_type_inference()
-    {
-        LOG(DBG, "{}", this->to_string());
-
-        if (!this->skip_type_inference || this->is_post_type_inference)
-        {
-            this->_post_type_inference();
-        }
+        this->type_inference_pass_id = TYPE_INFERENCE_PRE;
     }
 
     void Node::_post_type_inference()
     {
-        this->is_post_type_inference = true;
-#if _DEBUG
-        // everyone should have is_post_type_inference!
-        for (size_t i = 0; i < this->children.size(); ++i)
-        {
-            if (!this->children[i]->has_type)
-                continue;
-
-            if (this->children[i]->skip_type_inference)
-                continue;
-
-            if (!this->children[i]->is_post_type_inference)
-            {
-                std::cerr << this->to_string_tree() << std::endl;
-                throw_compiler_error(std::format("Invalid children[{}] state, should have is_post_type_inference", i));
-            }
-        }
-#endif
+        this->type_inference_pass_id = TYPE_INFERENCE_POST;
     }
 
     Type *Node::get_final_type()
@@ -333,7 +299,14 @@ namespace logia::AST
                     auto field = s->get_field("λ");
                     if (field != nullptr)
                     {
-                        return field->get_final_type();
+                        if (field->is_typed)
+                        {
+                            return field->get_final_type();
+                        }
+                        else
+                        {
+                            return nullptr;
+                        }
                     }
                 }
                 return type;
@@ -345,11 +318,6 @@ namespace logia::AST
         }
 
         throw std::runtime_error(std::format("exceeded MAX iteration"));
-    }
-
-    Node *Node::resolve()
-    {
-        return nullptr;
     }
 
     void _get_pre_descendant(Node *node, std::vector<Node *> *out)
@@ -394,26 +362,6 @@ namespace logia::AST
         return this->cg_value;
     }
 
-    llvm::Value *Node::codegen(logia::Backend *backend)
-    {
-        // exist fast, if we have the value we seek, just return!
-        if (this->cg_value)
-        {
-            LOG(DBG, "{} before pre_codegen return cg_value is ready!", this->to_string());
-            return this->cg_value;
-        }
-        // pre_codegen, as optimization is pre_codegen can generate the code we need we just return!
-        this->pre_codegen(backend);
-        if (this->cg_value)
-        {
-            LOG(DBG, "{} after pre_codegen return cg_value is ready!", this->to_string());
-            // TODO set is_post_codegen ? seems like proper way to handle it not in each children
-            return this->cg_value;
-        }
-
-        return (this->cg_value = this->post_codegen(backend));
-    }
-
     //
     // NoOp
     //
@@ -421,12 +369,12 @@ namespace logia::AST
     {
         this->has_type = false;
         this->skip_codegen = true;
-        this->skip_type_inference = true;
+        this->type_inference_pass_id = TYPE_INFERENCE_MAX;
     }
     std::string NoOp::to_string() { return "NoOp"; };
     llvm::Value *NoOp::post_codegen(logia::Backend *backend) { return nullptr; }
     Type *NoOp::get_type() { return nullptr; };
-    void NoOp::post_attach() {}
+    void NoOp::on_after_attach() {}
     void NoOp::validate() {}
     void NoOp::_set_type(Type *) {};
 }

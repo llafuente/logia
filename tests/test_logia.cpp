@@ -171,7 +171,22 @@ TEST(logia_run_file, if)
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "if-stmt"), 3);
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "if-stmt-2"), 1101);
 }
+
+//
+// expressions
+//
+
 TEST(logia_run_file, expr)
 {
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "expr-all-operator-i64"), -100);
+}
+
+//
+// unordered code
+//
+TEST(logia_run_file, unordered)
+{
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\unordered\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "unordered-001"), 0);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\unordered\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "unordered-002"), 0);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\unordered\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "unordered-003"), 0);
 }

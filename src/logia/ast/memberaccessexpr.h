@@ -25,9 +25,7 @@ namespace logia::AST
 
         Type *get_type() override;
 
-        Node *resolve() override;
-
-        void post_attach() override;
+        void on_after_attach() override;
 
         void validate() override;
 

@@ -36,20 +36,20 @@ function check_u8() i32{
 
     return 0
 }
-function check_i16() i32{
+function check_u16() i32{
     var u16 min = 0
     var u16 max = 65535
 
     return 0
 }
 
-function check_i32() i32{
+function check_u32() i32{
     var u32 min = 0
     var u32 max = 4294967295
 
     return 0
 }
-function check_i64() i32{
+function check_u64() i32{
     var u64 min = 0
     var u64 max = 18446744073709551615
 
@@ -58,5 +58,15 @@ function check_i64() i32{
 
 
 function main() i32{
+
+    check_i8()
+    check_i16()
+    check_i32()
+    check_i64()
+    check_u8()
+    check_u16()
+    check_u32()
+    check_u64()
+
     return 0
 }

@@ -260,7 +260,7 @@ namespace logia::AST
     {
         LOG(DBG, "{}", this->to_string());
         auto type = this->get_final_type();
-        type->codegen(backend);
+        type->post_codegen(backend);
         auto llvm_type = type->ir_type;
 
         if (type->is<Integer>())
@@ -328,7 +328,7 @@ namespace logia::AST
         return ConstExpression::post_codegen(backend);
     }
 
-    void IntegerLiteral::post_attach() {}
+    void IntegerLiteral::on_after_attach() {}
 
     void IntegerLiteral::validate() {}
 
@@ -509,7 +509,7 @@ namespace logia::AST
         return ConstExpression::post_codegen(backend);
     }
 
-    void FloatLiteral::post_attach() {}
+    void FloatLiteral::on_after_attach() {}
 
     void FloatLiteral::validate() {}
 
@@ -615,7 +615,7 @@ namespace logia::AST
         */
     }
 
-    void StringLiteral::post_attach() {}
+    void StringLiteral::on_after_attach() {}
 
     void StringLiteral::validate() {}
 

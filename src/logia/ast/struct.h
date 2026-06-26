@@ -26,7 +26,7 @@ namespace logia::AST
         /// @return
         Identifier *get_to();
 
-        void post_attach() override;
+        void on_after_attach() override;
 
         void validate() override;
     };
@@ -51,7 +51,7 @@ namespace logia::AST
         Identifier *get_name();
         Expression *get_default_value();
 
-        void post_attach() override;
+        void on_after_attach() override;
 
         void validate() override;
 
@@ -81,7 +81,7 @@ namespace logia::AST
         /// @brief number of methods
         uint32_t setter_count = 0;
 
-        Struct(location loc, Identifier *id);
+        Struct(location loc, Identifier *name);
 
         /// @brief Retrives struct identifier name as C string
         /// @return
@@ -128,13 +128,11 @@ namespace logia::AST
 
         StructField *get_field_by_index(uint32_t index);
 
-        Type *get_type() override;
-
         std::string to_string() override;
 
         std::string get_repr() override;
 
-        void post_attach() override;
+        void on_after_attach() override;
 
         void validate() override;
 

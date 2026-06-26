@@ -44,23 +44,11 @@ namespace logia::AST
         /// @brief marks node as post_codegen done, used to avoid multiple calls
         unsigned char is_post_codegen : 1 = false;
 
-        /// @brief skip type_inference pass, it does not mean it does not have type, it means my parent will handle it for me!
-        unsigned char skip_type_inference : 1 = false;
-
-        /// @brief marks node as pre_type_inference done
-        unsigned char is_pre_type_inference : 1 = false;
-
-        /// @brief marks node as pre_type_inference done
-        unsigned char is_post_type_inference : 1 = false;
-
         /// @brief current node require to be typed
         unsigned char has_type : 1 = true;
 
         /// @brief type inference pass done
         unsigned char is_typed : 1 = false;
-
-        /// @brief internal, check if name is set, used to throw if double set
-        unsigned char has_name : 1 = false;
 
         /// @brief marks node as constant so it can be used as constexpr at comptime
         unsigned char is_constant : 1 = false;
@@ -73,6 +61,11 @@ namespace logia::AST
 
         /// @brief Avoids children modification (from API / direct access, you know :)
         bool freezed = false;
+
+        Type *real_type = nullptr;
+
+        /// @brief Last/Current type inference pass id
+        size_t type_inference_pass_id = 0;
 
         /// @brief My beautiful children, and some not so beautiful.
         std::vector<Node *> children = {};
@@ -111,9 +104,6 @@ namespace logia::AST
         /// @brief returns essential information nto debug
         virtual std::string to_string();
 
-        /// @brief traverse the tree and if skip_codegen is false, pre_codegen and post_codegen!
-        llvm::Value *codegen(logia::Backend *backend);
-
         /// @brief prepare node/children to generate LLVM IR
         virtual void pre_codegen(logia::Backend *backend);
 
@@ -123,7 +113,7 @@ namespace logia::AST
         /// @brief retrieves/calculate the type of this node
         /// @remarks this may be available only after type inference pass
         /// @return
-        virtual Type *get_type() = 0;
+        virtual Type *get_type() { return this->real_type; }
 
         /// @brief override node type, it's only allowed in a few node. by default throws atm!
         /// @remarks this may be available only after type inference pass
@@ -131,23 +121,16 @@ namespace logia::AST
         void set_type(Type *ty);
 
         /// @brief called after the node is attached to a program
-        virtual void post_attach() = 0;
+        virtual void on_after_attach() = 0;
 
         /// @brief validate current node, mostly semantic check
         virtual void validate() = 0;
 
         /// @brief Calls _pre_type_inference if this node required to be typed
         /// @return
-        void pre_type_inference();
-
-        /// @brief Calls _post_type_inference if this node required to be typed
-        void post_type_inference();
+        void type_inference(size_t pass_id);
 
         virtual Type *get_final_type();
-
-        /// @brief resolve node references
-        /// @return
-        virtual Node *resolve();
 
         std::vector<Node *> get_pre_descendant();
 
@@ -370,6 +353,7 @@ namespace logia::AST
         }
 
     protected:
+        virtual void _early_type_inference();
         virtual void _pre_type_inference();
         virtual void _post_type_inference();
         virtual void _set_type(Type *ty) = 0;
@@ -383,7 +367,7 @@ namespace logia::AST
         std::string to_string() override;
         llvm::Value *post_codegen(logia::Backend *backend) override;
         Type *get_type() override;
-        void post_attach() override;
+        void on_after_attach() override;
         void validate() override;
 
     protected:

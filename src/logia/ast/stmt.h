@@ -25,7 +25,7 @@ namespace logia::AST
     /// @brief Goto statement
     struct GotoStmt : Stmt
     {
-        GotoStmt(location loc, Identifier *id);
+        GotoStmt(location loc, Identifier *name);
 
         /// @brief Returns the identifier of the target label
         /// @return Identifier of the target label
@@ -39,7 +39,7 @@ namespace logia::AST
 
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
-        void post_attach() override;
+        void on_after_attach() override;
 
         void validate() override;
 

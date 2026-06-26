@@ -89,9 +89,9 @@ namespace logia::AST
 #endif
     }
 
-    void Import::post_attach()
+    void Import::on_after_attach()
     {
-        Scope::post_attach();
+        Scope::on_after_attach();
 
         // join package by slash -> file to import
         std::string package_path;

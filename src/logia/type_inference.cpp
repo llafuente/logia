@@ -16,60 +16,9 @@ namespace logia
 {
     using namespace logia::AST;
 
-    std::vector<std::pair<Node *, Type *>> todo_type_stack;
-
-    void type_inference_assert_not_equals(Type *expr_ty, Type *enforce_type)
-    {
-        expr_ty = expr_ty->get_final_type();
-        enforce_type = enforce_type->get_final_type();
-
-        if (expr_ty->cg_value != enforce_type->cg_value)
-        {
-            std::cerr << expr_ty->to_string_tree() << std::endl;
-            throw_semantic_error(expr_ty, std::format("expected {} to be {}", expr_ty->get_repr(), enforce_type->get_repr()));
-        }
-    }
-
-    void type_inference_expression(Expression *expr, Type *enforce_type)
-    {
-        // DEBUG() << expr->to_string_tree() << "=" << enforce_type->get_repr() << "|" << expr->rule->getText() << std::endl;
-        LOG(DBG, "{}={}", expr->to_string_tree(), enforce_type->get_repr());
-
-        StructInitializer *sinit;
-        if (expr->try_cast<StructInitializer>(&sinit))
-        {
-            if (!enforce_type->is<Struct>())
-            {
-                throw_semantic_error(expr, std::format("LGER030 incompatible type '{}', expected a struct", enforce_type->get_repr()));
-            }
-            if (!sinit->is_typed)
-            {
-                sinit->set_type(enforce_type);
-            }
-            else
-            {
-                // TODO warning, "double type!?"
-            }
-        }
-        else if (expr->is<IntegerLiteral>() || expr->is<FloatLiteral>() || expr->is<StringLiteral>())
-        {
-            expr->set_type(enforce_type);
-        }
-        else if (expr->is<CallExpression>())
-        {
-            /*
-            auto call = expr->as<CallExpression>();
-            for (const auto& it : call->get_arguments()) {
-
-            }
-            */
-            // TODO enforece return type!
-        }
-        // more rules ?
-    }
-
     void type_inference_node(AST::Program *program, AST::Node *node)
     {
+        // TODO cache
         // auto program = node->first_parent<Program>();
         auto default_integer = scope_look_one<Type>(program, "λi64");
         auto default_float = scope_look_one<Type>(program, "λf64");
@@ -77,83 +26,72 @@ namespace logia
         auto all_nodes = node->get_post_descendant();
         all_nodes.push_back(node);
         std::vector<Node *> pending;
-        IntegerLiteral *ilit;
-        FloatLiteral *flit;
+
         LOG(INF, "start pre_type_inference: found {} nodes", all_nodes.size());
 
+        // 1st
         for (auto node : all_nodes)
         {
-            // DEBUG() << node->to_string() << std::endl;
-            node->pre_type_inference();
-            // pre_type_inference could be imposible to be done for some nodes (like Identifiers)
-            // it' may require that everyone around has pre_type_inference, so we need to introduce a way to delay retry this call again
-            if (!node->skip_type_inference && !node->is_pre_type_inference)
-            {
-                LOG(DBG, "Node can't finish pre_type_inference queue: {}", node->to_string_tree());
-                pending.push_back(node);
-            }
-
             if (!node->is_typed)
             {
                 if (node->is<IntegerLiteral>())
                 {
-                    // todo_type_stack.push_back({node, default_integer});
                     node->set_type(default_integer);
                 }
                 else if (node->is<FloatLiteral>())
                 {
-                    // todo_type_stack.push_back({node, default_float});
                     node->set_type(default_float);
                 }
             }
         }
-        LOG(INF, "end pre_type_inference: pending {} nodes", pending.size());
 
-        while (pending.size())
+        // 2nd
+        for (size_t pass_id = 1; pass_id <= TYPE_INFERENCE_MAX; ++pass_id)
         {
-            LOG(DBG, "start pre_type_inference pending with {} items", pending.size());
-
-            auto before = pending.size();
-
-            pending.erase(std::remove_if(pending.begin(), pending.end(),
-                                         [](auto node)
-                                         {
-                                             node->pre_type_inference();
-                                             return node->is_pre_type_inference;
-                                         }),
-                          pending.end());
-
-            if (before == pending.size())
+            if (pass_id != 1)
             {
-                for (auto node : pending)
+                // update after each pass!
+                all_nodes = node->get_post_descendant();
+                all_nodes.push_back(node);
+            }
+
+            for (auto node : all_nodes)
+            {
+                node->type_inference(pass_id);
+                // pre_type_inference could be imposible to be done for some nodes (like Identifiers)
+                // it' may require that everyone around has pre_type_inference, so we need to introduce a way to delay retry this call again
+                if (node->type_inference_pass_id < pass_id)
                 {
-                    std::cerr << std::format("tree: {}\nlocation: {}", node->to_string_tree(), node->loc.get_debug_location());
+                    LOG(DBG, "Node can't finish pre_type_inference queue: {}", node->to_string_tree());
+                    pending.push_back(node);
                 }
-                throw_compiler_error("Could not finish pre_type_inference for some nodes!");
             }
-        }
 
-        LOG(DBG, "Found {}  literals", todo_type_stack.size());
-
-        // if at the end, this nodes are not resolved, force them!
-        for (const auto &it : todo_type_stack)
-        {
-            auto ty = it.first->get_type();
-            if (ty == nullptr || ty->is<InferType>())
+            // process 2nd queue
+            LOG(INF, "end pre_type_inference: pending {} nodes", pending.size());
+            while (pending.size())
             {
-                LOG(DBG, "set default type because it's infer {}", it.first->to_string());
-                it.first->set_type(it.second);
+                LOG(DBG, "start pre_type_inference pending with {} items", pending.size());
+
+                auto before = pending.size();
+
+                pending.erase(std::remove_if(pending.begin(), pending.end(),
+                                             [pass_id](auto node)
+                                             {
+                                                 node->type_inference(pass_id);
+                                                 return node->type_inference_pass_id >= pass_id;
+                                             }),
+                              pending.end());
+
+                if (before == pending.size())
+                {
+                    for (auto node : pending)
+                    {
+                        std::cerr << std::format("tree: {}\nlocation: {}", node->to_string_tree(), node->loc.get_debug_location());
+                    }
+                    throw_compiler_error(std::format("Could not finish pass_id: {} for some nodes!", pass_id));
+                }
             }
-        }
-        todo_type_stack.clear();
-
-        LOG(DBG, "start post_type_inference: pending {} nodes", pending.size());
-
-        for (auto node : all_nodes)
-        {
-            // DEBUG() << node->to_string() << std::endl;
-            node->post_type_inference();
-            // TODO queue post ?
         }
 
 #if _DEBUG

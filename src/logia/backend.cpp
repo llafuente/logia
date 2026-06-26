@@ -324,8 +324,8 @@ namespace logia
     void Backend::load_intrinsics(char *filepath)
     {
         LOG(INF, "({})", filepath);
-        START_INTRINSICS();
-        // to find logia type from LLVM Type we need to codegen our types first!
+        // START_INTRINSICS();
+        //  to find logia type from LLVM Type we need to codegen our types first!
         this->program->codegen_primitives(this);
 
         llvm::SMDiagnostic diag;
@@ -537,30 +537,11 @@ namespace logia
 
     void Backend::__finalize_module()
     {
-        if (!program->is_validated)
-        {
-            // NOTE this pass is in pre-order because most of the error are for users to handle them
-            // and people are not compilers and their minds work top-to-bottom, left-to-right
-            // while post-order is possible it will give error in reverse order and it will be a mess
-
-            // auto all_nodes = this->program->get_post_descendant();
-            auto all_nodes = this->program->get_pre_descendant();
-            LOG(SILLY, "validating {} nodes", all_nodes.size());
-            for (auto node : all_nodes)
-            {
-                LOG(SILLY, "validate {}", node->to_string());
-                node->validate();
-                node->is_validated = true;
-            }
-        }
-
-        if (!program->is_pre_type_inference)
-        {
-            type_inference_program(this->program);
-        }
+        this->program->semantic_analysis();
 
         if (!program->is_pre_codegen)
         {
+            LOG(INF, "start codegen");
             this->program->codegen(this);
         }
 
@@ -642,7 +623,7 @@ namespace logia
     {
         this->__finalize_module();
 
-        throw std::runtime_error(TOSTRING(__FUNCTION__) "to-do");
+        throw_compiler_error("to-do");
 
         // & "C:\Program Files\LLVM\bin\clang.exe" .\xxx.obj -o xxx.exe
         return true;

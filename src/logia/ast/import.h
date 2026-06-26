@@ -52,6 +52,6 @@ namespace logia::AST
         /// @brief Throws if the import is not valid
         void validate();
         /// @brief Parses file at this stage, once attached we can parse and copy our scope if required
-        void post_attach() override;
+        void on_after_attach() override;
     };
 }

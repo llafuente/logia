@@ -1,0 +1,15 @@
+function main() i32 {
+    var rectangle r = {{1,1},1,1}
+    return 0
+}
+
+type rectangle = struct {
+    point origin = {}
+    float width = 0
+    float height = 0
+}
+
+type point = struct {
+    float x = 0
+    float y = 0
+}

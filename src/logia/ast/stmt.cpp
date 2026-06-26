@@ -1,6 +1,7 @@
 #include "logia/ast/stmt.h"
 
 #include "utils.h"
+#include "logia/type_inference.h"
 #include "logia/backend.h"
 #include "logia/ast/llvm.h"
 #include "logia/ast/identifier.h"
@@ -22,7 +23,7 @@ namespace logia::AST
 
     Type *Stmt::get_type()
     {
-        return nullptr;
+        return this->real_type;
     }
 
     llvm::Value *Stmt::post_codegen(logia::Backend *backend)
@@ -39,14 +40,15 @@ namespace logia::AST
     /// GotoStmt
     ///
 
-    GotoStmt::GotoStmt(location loc, Identifier *id) : Stmt(loc)
+    GotoStmt::GotoStmt(location loc, Identifier *name) : Stmt(loc)
     {
-        this->skip_type_inference = true; // we don't have type and don't need to calc anything!
+        // we don't have type and don't need to calc anything!
+        this->type_inference_pass_id = TYPE_INFERENCE_MAX;
 
-        this->push_child(id);
-        id->has_type = false; // there is no "block" type
-        id->skip_codegen = true;
-        id->skip_type_inference = true;
+        this->push_child(name);
+        name->has_type = false; // there is no "block" type
+        name->skip_codegen = true;
+        name->type_inference_pass_id = TYPE_INFERENCE_MAX;
     }
 
     Identifier *GotoStmt::get_identifier()
@@ -98,7 +100,7 @@ namespace logia::AST
         return Stmt::post_codegen(backend);
     }
 
-    void GotoStmt::post_attach() {}
+    void GotoStmt::on_after_attach() {}
 
     void GotoStmt::validate() {}
 

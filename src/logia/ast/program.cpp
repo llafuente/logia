@@ -1,6 +1,7 @@
 #include "logia/ast/program.h"
 
 #include "logia/log.h"
+#include "logia/type_inference.h"
 #include "logia/backend.h"
 #include "logia/ast/node.h"
 #include "logia/ast/type.h"
@@ -86,7 +87,7 @@ namespace logia::AST
         intrinsics->scope[(char *)"bool"] = intrinsics->scope[(char *)"λi1"];
         intrinsics->scope[(char *)"void"] = intrinsics->scope[(char *)"λvoid"];
         intrinsics->scope[(char *)"ptr"] = {ptr};
-        START_INTRINSICS();
+        // START_INTRINSICS();
         LOG(DBG, "intrinsics before core load = {}", intrinsics->to_string());
 
         auto imp = new Import({});
@@ -106,7 +107,8 @@ namespace logia::AST
     {
         for (const auto it : intrinsics->children)
         {
-            it->codegen(backend);
+            it->pre_codegen(backend);
+            it->post_codegen(backend);
         }
     }
 
@@ -147,7 +149,7 @@ namespace logia::AST
         throw_compiler_error(std::format("llvm type not found: {}", llvm_type_to_string(type)));
     }
 
-    void Program::post_attach()
+    void Program::on_after_attach()
     {
         // do nothing, parentBody should be empty
     }
@@ -162,7 +164,7 @@ namespace logia::AST
     {
         LOG(DBG, "{}", this->to_string());
 
-        this->intrinsics->codegen(backend); // forward codegen
+        this->intrinsics->post_codegen(backend); // forward codegen
 
         auto max = this->children.size();
         for (size_t i = 0; i < max; ++i)
@@ -170,7 +172,7 @@ namespace logia::AST
             Node *n = this->children[i];
             LOG(DBG, "codegen.program.statement[{}] = {}", i, n->to_string());
 
-            n->codegen(backend);
+            n->post_codegen(backend);
         }
 
         this->cg_value = nullptr; // nobody need program return type!
@@ -179,4 +181,57 @@ namespace logia::AST
         // Block::post_codegen(backend);
         return Node::post_codegen(backend);
     }
+
+    void Program::codegen(logia::Backend *backend)
+    {
+        this->pre_codegen(backend);
+        this->foreach_descendant([backend](AST::Node *node, auto deep) -> bool
+                                 {
+                                                LOG(DBG, "pre_codegen {}", node->to_string());
+                                                if (node->skip_codegen) { return true;}
+                                                // guard against multiple pre_codegen, some nodes may require to pre_codegen others in a specific order
+                                                if (!node->is_pre_codegen) {
+                node->pre_codegen(backend);
+                                                }
+                if (!node->is_pre_codegen)
+                {
+                    throw_compiler_error(std::format("is_pre_codegen is not set: {}", node->to_string()));
+                }
+                return true; });
+        // NOTE this allow to see the program "skeleton"
+        // at this point we should not have generated any instruction, just functions and variables!
+        // backend->module->dump();
+        this->post_codegen(backend);
+    }
+
+    void Program::semantic_analysis()
+    {
+        if (!this->is_validated)
+        {
+            // NOTE this pass is in pre-order because most of the error are for users to handle them
+            // and people are not compilers and their minds work top-to-bottom, left-to-right
+            // while post-order is possible it will give error in reverse order and it will be a mess
+
+            // auto all_nodes = this->program->get_post_descendant();
+            auto all_nodes = this->get_pre_descendant();
+            LOG(INF, "validating {} nodes", all_nodes.size());
+            for (auto node : all_nodes)
+            {
+                LOG(SILLY, "validate {}", node->to_string());
+                node->validate();
+                node->is_validated = true;
+            }
+        }
+        else
+        {
+            LOG(INF, "validated");
+        }
+
+        if (this->type_inference_pass_id == 0)
+        {
+            LOG(INF, "start type inference");
+            type_inference_program(this);
+        }
+    }
+
 }

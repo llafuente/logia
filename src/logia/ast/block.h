@@ -42,13 +42,13 @@ namespace logia::AST
 
         /// @brief Codegen children without touching block insertion and jump, used for continue block and if stmt codegen
         /// @param backend
-        void codegen_children(logia::Backend *backend);
+        void post_codegen_children(logia::Backend *backend);
 
         /// @brief Notice that block do not have type, nullptr is returned
         Type *get_type() override;
 
         /// @brief Register block name at function scope
-        void post_attach() override;
+        void on_after_attach() override;
         /// @brief Checks block name is unique
         void validate() override;
     };

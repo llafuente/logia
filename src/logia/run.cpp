@@ -20,9 +20,9 @@ namespace logia
         }
 
         // skip first, it's entry point file
+        // parse args -> store in config -> throw on error
         for (int i = 1; i < argc; ++i)
         {
-            // std::cout << argv[i] << std::endl;
             if (strcmp("--help", argv[i]) == 0)
             {
                 print_usage("run");

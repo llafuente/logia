@@ -28,9 +28,9 @@ TEST(test_node, test_1)
     using namespace logia::AST;
 
     int size = program->children.size();
-    program->push_child(ast_create_identifier("a"));
-    program->push_child(ast_create_binary_expr(ast_create_identifier("a"), Operators::BINARY_ADD, ast_create_identifier("b")));
-    program->push_child(ast_create_identifier("c"));
+    program->push_child(new Identifier(loc, "a"));
+    program->push_child(new BinaryExpression(loc, new Identifier(loc, "a"), Operators::BINARY_ADD, new Identifier(loc, "b")));
+    program->push_child(new Identifier(loc, "c"));
 
     EXPECT_TRUE(program->get_child<Identifier>(size));
     EXPECT_TRUE(program->get_child<Expression>(size));
@@ -236,17 +236,20 @@ TEST(test_type, struct)
     main_fn->is_attached = false; // avoid throw
 
     auto point_st = new Struct(loc, new Identifier(loc, "point"));
+    program->push_child(point_st);
+
     auto point_def = new TypeDef();
     point_def->add_locator(new Identifier(loc, "point"));
 
+    auto point_def2 = new TypeDef();
+    point_def2->add_locator(new Identifier(loc, "point"));
+
     auto add_fn = new Function(loc, new Identifier(loc, "add"), point_def, false);
-    add_fn->push_parameter(new FunctionParameter(new Identifier(loc, "other"), point_def));
+    add_fn->push_parameter(new FunctionParameter(new Identifier(loc, "other"), point_def2));
     LOG(DBG, "function: {}", add_fn->to_string_tree());
     LOG(DBG, "struct {}", point_st->to_string_tree());
     point_st->add_method(add_fn);
     LOG(DBG, "struct {}", point_st->to_string_tree());
-
-    program->push_child(point_st);
 
     EXPECT_STREQ(add_fn->get_repr().c_str(), "function add (ref<struct point {}> this, struct point {} other) struct point {}");
 
@@ -268,6 +271,22 @@ TEST(test_type, callexpr)
     main_body->unshift_child(new CallExpression(loc, new Identifier(loc, "test"), {}));
     backend->emitTargetLLVMIR("xxx.ll");
     backend->run_jit("main");
+
+    LOGIA_UNIT_TEST_END();
+}
+
+TEST(test_type, type_inference_return_stmt_constexpr)
+{
+    LOGIA_UNIT_TEST();
+    using namespace logia::AST;
+    main_fn->is_attached = false; // avoid throw
+
+    EXPECT_EQ(backend->run_jit("main"), 0);
+    // 0 - NoOp
+    auto ret = main_body->get_child<ReturnStmt>(1);
+
+    EXPECT_EQ(ret->get_final_type(), i32);
+    EXPECT_EQ(ret->get_expr()->get_final_type(), i32);
 
     LOGIA_UNIT_TEST_END();
 }

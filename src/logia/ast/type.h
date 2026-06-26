@@ -68,8 +68,6 @@ namespace logia::AST
 
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
-        Type *get_type() override;
-
         virtual Type *get_pointer_to();
 
     protected:
@@ -96,7 +94,7 @@ namespace logia::AST
 
         void pre_codegen(logia::Backend *backend) override;
 
-        void post_attach() override;
+        void on_after_attach() override;
 
         void validate() override;
     };
@@ -117,7 +115,7 @@ namespace logia::AST
 
         void pre_codegen(logia::Backend *backend) override;
 
-        void post_attach() override;
+        void on_after_attach() override;
 
         void validate() override;
     };
@@ -137,7 +135,7 @@ namespace logia::AST
 
         void pre_codegen(logia::Backend *backend) override;
 
-        void post_attach() override;
+        void on_after_attach() override;
         void validate() override;
     };
 
@@ -156,7 +154,7 @@ namespace logia::AST
 
         void pre_codegen(logia::Backend *backend) override;
 
-        void post_attach() override;
+        void on_after_attach() override;
         void validate() override;
     };
 
@@ -179,7 +177,7 @@ namespace logia::AST
 
         void pre_codegen(logia::Backend *backend) override;
 
-        void post_attach() override;
+        void on_after_attach() override;
 
         void validate() override;
     };
@@ -187,7 +185,9 @@ namespace logia::AST
     // TODO implement templates
     // TODO implement static values
     // TODO aggregates ?
-    /// @brief Node to resolve a type by name
+    /// @brief Node to resolve a type by name(s)
+    /// @remarks Due to some implementation collisions, TypeDef need to be resolved asap, this means
+    /// that the real "type_inference" is done at on_after_attach
     struct LOGIA_EXPORT TypeDef : public Type
     {
         /// @brief type modification not allowed
@@ -202,8 +202,6 @@ namespace logia::AST
         /// @brief Type is optional / null / undefined is a valid value.
         unsigned char is_optional : 1 = false;
 
-        Type *type = nullptr;
-
         TypeDef();
         ~TypeDef();
 
@@ -217,11 +215,13 @@ namespace logia::AST
 
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
-        Node *resolve() override;
-
-        void post_attach() override;
+        void on_after_attach() override;
 
         void validate() override;
+
+    protected:
+        void _early_type_inference() override;
+        void _pre_type_inference() override;
     };
 
     struct InferType : Type
@@ -237,7 +237,7 @@ namespace logia::AST
 
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
-        void post_attach() override;
+        void on_after_attach() override;
 
         void validate() override;
 

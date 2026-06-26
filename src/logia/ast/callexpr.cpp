@@ -2,6 +2,7 @@
 
 #include "utils.h"
 #include "logia/logia.h"
+#include "logia/type_inference.h"
 #include "logia/backend.h"
 #include "logia/ast/expr.h"
 #include "logia/ast/scope.h"
@@ -29,12 +30,12 @@ namespace logia::AST
         Expression *value) : Node(value->loc), index(index)
     {
         this->has_type = false;
-        this->skip_type_inference = true;
+        this->type_inference_pass_id = TYPE_INFERENCE_MAX;
 
         this->push_child(name);
         name->skip_codegen = true;
-        name->skip_type_inference = true;
         name->has_type = false;
+        name->type_inference_pass_id = TYPE_INFERENCE_MAX;
         this->push_child(value);
     }
 
@@ -63,7 +64,7 @@ namespace logia::AST
         return this->get_value()->get_type();
     }
 
-    void CallExpressionArgument::post_attach() {}
+    void CallExpressionArgument::on_after_attach() {}
 
     void CallExpressionArgument::validate() {}
 
@@ -139,7 +140,7 @@ namespace logia::AST
 
     void CallExpression::insert_positional_argument(size_t position, Expression *expr)
     {
-        return this->insert_named_argument(position, ast_create_identifier((char *)""), expr);
+        return this->insert_named_argument(position, new Identifier(expr->loc, ""), expr);
     }
 
     void CallExpression::remove_argument_at(size_t position)
@@ -315,7 +316,7 @@ namespace logia::AST
         return this->callee == nullptr ? nullptr : this->callee->get_return_type()->get_final_type();
     }
 
-    void CallExpression::post_attach() {}
+    void CallExpression::on_after_attach() {}
 
     void CallExpression::validate() {}
 
@@ -369,7 +370,7 @@ namespace logia::AST
             LOG(DBG, "argument[{}]", i);
 
             auto argument = arguments[i];
-            auto ir_argument = llvm_load_if_required(argument->codegen(backend), backend);
+            auto ir_argument = llvm_load_if_required(argument->post_codegen(backend), backend);
             auto ir_argument_ty = ir_argument->getType();
 
             auto ir_parameter = CalleeF->getArg(i);
@@ -393,7 +394,7 @@ namespace logia::AST
         // @llafuente remove name or we got duplications (same if strategy ?)
         if (is_indirect_call)
         {
-            auto value = this->get_locator()->codegen(backend);
+            auto value = this->get_locator()->post_codegen(backend);
             value = llvm_load_if_required(value, backend);
             this->cg_value = (llvm::Value *)backend->builder->CreateCall(func->ir_functy, value, ArgsV);
         }
@@ -409,10 +410,4 @@ namespace logia::AST
         return Expression::post_codegen(backend);
     }
 
-    LOGIA_API CallExpression *ast_create_call_expr(Expression *locator, std::vector<Expression *> arguments)
-    {
-        auto callexpr = new CallExpression({}, locator, arguments);
-
-        return callexpr;
-    }
 } // namespace logia

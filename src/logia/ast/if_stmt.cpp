@@ -55,7 +55,7 @@ namespace logia::AST
     {
         LOG(DBG, "{}", this->to_string());
 
-        auto condition = this->get_condition()->codegen(backend);
+        auto condition = this->get_condition()->post_codegen(backend);
         auto then_body = this->get_then();
         auto else_body = this->get_else();
         auto continue_body = this->get_continue_block();
@@ -72,7 +72,7 @@ namespace logia::AST
 
         bool continue_block_required = false;
 
-        then_body->codegen(backend);
+        then_body->post_codegen(backend);
 
         if (!ast_llvm_block_has_terminator(then_body->ir_basicblock))
         {
@@ -81,7 +81,7 @@ namespace logia::AST
             backend->builder->CreateBr(continue_block);
         }
 
-        else_body->codegen(backend);
+        else_body->post_codegen(backend);
         if (!ast_llvm_block_has_terminator(then_body->ir_basicblock))
         {
             LOG(DBG, "else_block has no terminator -> br");
@@ -91,7 +91,7 @@ namespace logia::AST
 
         if (continue_block_required)
         {
-            continue_body->codegen(backend);
+            continue_body->post_codegen(backend);
             this->cg_value = continue_block;
             return Node::post_codegen(backend);
         }
@@ -100,7 +100,7 @@ namespace logia::AST
         return Node::post_codegen(backend);
     }
 
-    void IfStmt::post_attach() {}
+    void IfStmt::on_after_attach() {}
 
     void IfStmt::validate() {}
 

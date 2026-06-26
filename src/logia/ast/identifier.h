@@ -9,7 +9,7 @@ namespace logia::AST
     struct Identifier : Expression
     {
         /// @brief Whether this identifier should be resolved in type inference phase
-        bool resolve = false;
+        bool resolve = true;
         /// @brief Whether this identifier should be resolved to a unique declaration, if false it can be used for member access and function call where multiple declaration can be valid
         bool resolve_unique = true;
         /// @brief The name of the identifier
@@ -38,7 +38,7 @@ namespace logia::AST
 
         Type *get_type() override;
 
-        void post_attach() override;
+        void on_after_attach() override;
 
         void validate() override;
 
@@ -50,10 +50,5 @@ namespace logia::AST
         void _set_type(Type *t) override;
         void _pre_type_inference() override;
     };
-
-    /// @brief Creates an identifier
-    /// @param name The name of the identifier
-    /// @return The created identifier
-    LOGIA_API Identifier *ast_create_identifier(LOGIA_CLONE const char *name);
 
 } // namespace logia::AST

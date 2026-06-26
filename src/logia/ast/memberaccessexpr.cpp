@@ -1,5 +1,6 @@
 #include "logia/ast/memberaccessexpr.h"
 
+#include "logia/type_inference.h"
 #include "logia/backend.h"
 #include "logia/ast/identifier.h"
 #include "logia/ast/struct.h"
@@ -12,14 +13,23 @@ namespace logia::AST
     MemberAccessExpression::MemberAccessExpression(location loc, Expression *left, Expression *right) : Expression(loc)
     {
         this->push_child(left);
-        // leaf?
+        this->push_child(right);
+
+        // left recursive parser
+        // MemberAccessExpression(x,y) -> x resolve, y !resolve
+        // MemberAccessExpression(MemberAccessExpression(x,y), z) x resolve, y !resolve, z !resolve
+
         Identifier *ident;
+        // if (this->parent_node->is<MemberAccessExpression>()) {
         if (left->try_cast<Identifier>(&ident))
         {
             ident->resolve = true;
-            ident->resolve_unique = true;
+            ident->resolve_unique = true; // TODO REVIEW atm we do not let to resolve multiple dispatch directly!
         }
-        this->push_child(right);
+        if (right->try_cast<Identifier>(&ident))
+        {
+            ident->resolve = false;
+        }
     }
     Expression *MemberAccessExpression::get_left()
     {
@@ -37,20 +47,15 @@ namespace logia::AST
     {
         this->type = ty;
     }
-    Node *MemberAccessExpression::resolve()
-    {
-        this->pre_type_inference();
-        return this->get_type();
-    }
 
-    void MemberAccessExpression::post_attach() {}
+    void MemberAccessExpression::on_after_attach() {}
 
     void MemberAccessExpression::validate() {}
 
     void MemberAccessExpression::_pre_type_inference()
     {
         auto left = this->get_left();
-        if (!left->is_pre_type_inference)
+        if (left->type_inference_pass_id != TYPE_INFERENCE_PRE)
         {
             return; // later...
         }
@@ -80,7 +85,7 @@ namespace logia::AST
         // TODO handle left side to be a pointer to struct or struct itself, for now we assume it's always a pointer
         auto left = this->get_left();
         auto left_type = left->get_type();
-        auto left_value = left->codegen(backend);
+        auto left_value = left->post_codegen(backend);
 
         if (!left_type->is<Struct>())
         {

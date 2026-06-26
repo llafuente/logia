@@ -22,7 +22,7 @@ namespace logia::AST
         auto snippet_start_line = err_start_line > prev_lines ? std::max<size_t>(0, err_start_line - prev_lines) : 0; // mind not to underflow!
         auto snippet_stop_line = err_start_line + post_lines;                                                         // don't mind to"overflow"
 
-        LOG(DBG, "start = {}:{} end = {}:{}", err_start_line, err_start_column, err_stop_line, err_stop_column);
+        // LOG(DBG, "start = {}:{} end = {}:{}", err_start_line, err_start_column, err_stop_line, err_stop_column);
 
         char snippet[1024];
         const char *text = this->text;

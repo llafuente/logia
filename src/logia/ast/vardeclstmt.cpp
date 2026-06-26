@@ -1,6 +1,7 @@
 #include "logia/ast/vardeclstmt.h"
 
 #include "utils.h"
+#include "logia/type_inference.h"
 #include "logia/ast/identifier.h"
 #include "logia/ast/struct.h"
 #include "logia/ast/block.h"
@@ -11,9 +12,10 @@ namespace logia::AST
 {
     VarDeclStmt::VarDeclStmt(location loc, Identifier *id, Type *type, Expression *expr) : Stmt(loc), alloca_inst(nullptr)
     {
-        this->push_child(id);           // 0
-        id->skip_type_inference = true; // sets the same as vardecl
-        this->push_child(expr);         // 1
+        this->push_child(id); // 0
+        // we will set the type based on expr / type
+        id->type_inference_pass_id = TYPE_INFERENCE_MAX;
+        this->push_child(expr); // 1
         if (type != nullptr)
         {
             this->set_type(type);
@@ -56,7 +58,7 @@ namespace logia::AST
         // type->codegen(backend);
 
         auto name = this->get_name();
-        auto init_value = expr->codegen(backend);
+        auto init_value = expr->post_codegen(backend);
 
         this->cg_value = this->alloca_inst = backend->builder->CreateAlloca(type->ir_type, 0, nullptr, name);
 
@@ -87,7 +89,7 @@ namespace logia::AST
         return Stmt::post_codegen(backend);
     }
 
-    void VarDeclStmt::post_attach()
+    void VarDeclStmt::on_after_attach()
     {
     }
 

@@ -1,0 +1,9 @@
+function main() i32 {
+    var point p = {}
+    return 0
+}
+
+type point = struct {
+    float x = 0
+    float y = 0
+}

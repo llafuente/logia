@@ -1,6 +1,7 @@
 #include "logia/ast/type.h"
 
 #include "utils.h"
+#include "logia/type_inference.h"
 #include "logia/backend.h"
 #include "logia/ast/constexpr.h"
 #include "logia/ast/callexpr.h"
@@ -41,7 +42,6 @@ namespace logia::AST
 
     Type::Type(location loc, Primitives prim) : Node(loc)
     {
-        this->skip_type_inference = true; // we are a type ourselves!
         this->primitive = prim;
     }
     Type::~Type()
@@ -59,11 +59,6 @@ namespace logia::AST
         return "not-def";
     }
 
-    Type *Type::get_type()
-    {
-        return this;
-    }
-
     Type *Type::get_pointer_to()
     {
         // return scope_lookup_all(this, "ptr").unwrap_success()[0]->as<Type>();
@@ -75,6 +70,7 @@ namespace logia::AST
         // REVIEW we should do something, makes sense to treat Types as "expressions" that should be the identifier right ?
         throw_compiler_error("set_type of a type ?");
     }
+
     void Type::__register_type(const char *name)
     {
         // TODO REVIEW function block scope ? -> or closest block scope!?
@@ -86,14 +82,14 @@ namespace logia::AST
     {
         LOG(DBG, "{}", this->to_string());
         // cache, because type are unique and we will be visiting this a lot
-        if (this->ir_type)
+        if (this->ir_type != nullptr)
         {
             this->cg_value = (llvm::Value *)this->ir_type;
             return Node::post_codegen(backend);
         }
 
         // TODO
-        throw std::exception(TOSTRING(__FUNCTION__) "to-do");
+        throw_compiler_error("to-do");
     }
 
     //
@@ -102,6 +98,8 @@ namespace logia::AST
 
     Integer::Integer(bool is_signed, int bits) : Type({}, Primitives::INTEGER_TY), is_signed(is_signed), bits(bits)
     {
+        // TODO REVIEW type-system do not use: set_type atm
+        this->real_type = this;
         this->is_typed = true;
     }
     Integer::~Integer() {}
@@ -117,6 +115,7 @@ namespace logia::AST
 
     void Integer::pre_codegen(logia::Backend *backend)
     {
+        LOG(SILLY, "");
         switch (this->bits)
         {
         case 1:
@@ -175,7 +174,7 @@ namespace logia::AST
         Node::pre_codegen(backend);
     }
 
-    void Integer::post_attach()
+    void Integer::on_after_attach()
     {
         this->__register_type(std::format("λ{}", this->get_repr()).c_str());
     }
@@ -188,6 +187,8 @@ namespace logia::AST
 
     Float::Float(int bits) : Type({}, Primitives::FLOATING_POINT_TY), bits(bits)
     {
+        // TODO REVIEW type-system do not use: set_type atm
+        this->real_type = this;
         this->is_typed = true;
     }
     Float::~Float() {}
@@ -247,7 +248,7 @@ namespace logia::AST
         Node::pre_codegen(backend);
     }
 
-    void Float::post_attach()
+    void Float::on_after_attach()
     {
         this->__register_type(std::format("λ{}", this->get_repr()).c_str());
     }
@@ -260,6 +261,8 @@ namespace logia::AST
 
     Void::Void() : Type({}, Primitives::VOID_TY)
     {
+        // TODO REVIEW type-system do not use: set_type atm
+        this->real_type = this;
         this->is_typed = true;
     }
     Void::~Void() {}
@@ -288,7 +291,7 @@ namespace logia::AST
         Node::pre_codegen(backend);
     }
 
-    void Void::post_attach()
+    void Void::on_after_attach()
     {
         this->__register_type(std::format("λ{}", this->get_repr()).c_str());
     }
@@ -301,6 +304,8 @@ namespace logia::AST
 
     Pointer::Pointer() : Type({}, Primitives::PTR_TY)
     {
+        // TODO REVIEW type-system do not use: set_type atm
+        this->real_type = this;
         this->is_typed = true;
     }
     Pointer::~Pointer() {}
@@ -336,7 +341,7 @@ namespace logia::AST
         Node::pre_codegen(backend);
     }
 
-    void Pointer::post_attach()
+    void Pointer::on_after_attach()
     {
         this->__register_type(std::format("λ{}", this->get_repr()).c_str());
     }
@@ -349,7 +354,6 @@ namespace logia::AST
 
     Ref::Ref(Type *pointee) : Pointer()
     {
-        this->is_typed = true;
         this->pointee = pointee;
         this->push_child(pointee);
     }
@@ -392,9 +396,9 @@ namespace logia::AST
         Node::pre_codegen(backend);
     }
 
-    void Ref::post_attach()
+    void Ref::on_after_attach()
     {
-        // Type::post_attach(); <-- skip pointer/Type as we don't want to re-register!
+        // Type::on_after_attach(); <-- skip pointer/Type as we don't want to re-register!
         scope_set(this, this->get_repr().c_str(), this, true);
     }
 
@@ -406,6 +410,7 @@ namespace logia::AST
     // REVIEW, it's a type but it's definition, need to  distinguish both ?
     TypeDef::TypeDef() : Type({}, Primitives::NONE)
     {
+        this->has_type = true;
         this->is_typed = false;
     }
     TypeDef::~TypeDef() {}
@@ -426,38 +431,14 @@ namespace logia::AST
             return nullptr;
         }
 
-        if (this->type == nullptr)
-        {
-            // TODO support more than one!?
-            LOGIA_VERIFY(this->children.size() == 1, "TO-DO: single resolve atm");
-            // search children!
-            auto id = this->get_child<Identifier>(0);
-            // TODO this could be removed ?
-            id->pre_type_inference();
-            id->post_type_inference();
-
-            auto list = id->decl_candidates;
-            if (list.size() == 0)
-            {
-                throw_semantic_error(this, std::format(LGERR_ID001, id->identifier));
-            }
-            if (list.size() > 1)
-            {
-                std::string debug_candidates = "";
-                int i = 1;
-                for (const auto &node : list)
-                {
-                    debug_candidates += std::format("Candidate {} declared {}\n", i++, node->loc.get_debug_location(1, 1));
-                    ++i;
-                }
-                throw_semantic_error(this, std::format(LGERR_ID002, list.size(), id->identifier, debug_candidates));
-            }
-
-            this->type = list[0]->get_type();
-            this->is_typed = true;
-        }
-        return this->type;
+        return this->real_type;
     }
+
+    void TypeDef::_pre_type_inference()
+    {
+        Type::_pre_type_inference();
+    }
+
     std::string TypeDef::to_string()
     {
         if (this->children.size())
@@ -470,26 +451,65 @@ namespace logia::AST
 
     std::string TypeDef::get_repr()
     {
-        if (is_attached)
+        if (is_attached && is_typed)
         {
             return this->get_final_type()->get_repr();
         }
-        return "not-attached-yet";
+        return "not-yet";
     }
 
     llvm::Value *TypeDef::post_codegen(logia::Backend *backend)
     {
-        this->cg_value = this->get_type()->codegen(backend);
+        this->cg_value = this->get_type()->post_codegen(backend);
         return Node::post_codegen(backend);
     }
 
-    Node *TypeDef::resolve()
+    void TypeDef::on_after_attach()
     {
-        LOGIA_VERIFY(this->children.size() == 1, "TO-DO: single resolve atm");
-        return this->children[0]->resolve();
+        // TODO nasty HACK this is a PIA because we need typedef so early for intrinsics...
+        try
+        {
+            this->_early_type_inference();
+        }
+        catch (std::exception e)
+        {
+        }
     }
 
-    void TypeDef::post_attach() {}
+    void TypeDef::_early_type_inference()
+    {
+        LOG(DBG, "");
+        // TODO support more than one!?
+        LOGIA_VERIFY(this->children.size() == 1, "TO-DO: single resolve atm");
+        // search children!
+        auto id = this->get_child<Identifier>(0);
+        // TODO this could be removed ?
+        id->type_inference(TYPE_INFERENCE_PRE);
+        id->type_inference(TYPE_INFERENCE_POST);
+
+        auto list = id->decl_candidates;
+        if (list.size() == 0)
+        {
+            throw_semantic_error(this, std::format(LGERR_ID001, id->identifier));
+        }
+        if (list.size() > 1)
+        {
+            std::string debug_candidates = "";
+            int i = 1;
+            for (const auto &node : list)
+            {
+                debug_candidates += std::format("Candidate {} declared {}\n", i++, node->loc.get_debug_location(1, 1));
+                ++i;
+            }
+            throw_semantic_error(this, std::format(LGERR_ID002, list.size(), id->identifier, debug_candidates));
+        }
+
+        // TODO REVIEW type-system do not use: set_type atm
+        this->real_type = list[0]->get_type();
+        this->is_typed = true;
+        Type::_early_type_inference();
+    }
+
     void TypeDef::validate() {}
 
     //
@@ -524,8 +544,7 @@ namespace logia::AST
         throw std::runtime_error("InferType cannot be codegen!");
     }
 
-    void InferType::post_attach() {}
+    void InferType::on_after_attach() {}
 
     void InferType::validate() {}
-
 }

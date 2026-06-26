@@ -25,10 +25,7 @@ namespace logia::AST
             flags += std::format("resolve");
 
             flags += (flags.length() ? "," : "");
-            if (is_pre_type_inference)
-            {
-                flags += std::format("resolved({})", this->decl_candidates.size());
-            }
+            flags += std::format("resolved({})", this->decl_candidates.size());
         }
         flags += (flags.length() ? "," : "");
         flags += this->resolve_unique ? "unique" : "multiple";
@@ -83,7 +80,7 @@ namespace logia::AST
         throw_compiler_error("todo");
     }
 
-    void Identifier::post_attach() {}
+    void Identifier::on_after_attach() {}
 
     void Identifier::validate() {}
 
@@ -110,6 +107,7 @@ namespace logia::AST
         }
         if (!this->resolve)
         {
+            LOG(DBG, "skip pre_type_inference resolve = false");
             return Node::_pre_type_inference();
         }
 
@@ -164,13 +162,6 @@ namespace logia::AST
     void Identifier::set_declaration(Node *node)
     {
         this->decl = node;
-    }
-
-    LOGIA_API Identifier *ast_create_identifier(LOGIA_CLONE const char *name)
-    {
-        LOGIA_VERIFY(name != nullptr);
-
-        return new Identifier({}, _strdup(name));
     }
 
 } // namespace logia::AST

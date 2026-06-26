@@ -47,7 +47,7 @@ namespace logia::AST
 
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
-        void post_attach() override;
+        void on_after_attach() override;
 
         void validate() override;
 
@@ -59,6 +59,4 @@ namespace logia::AST
     private:
         void __enforce_assignament_type(Type *left_ty, Type *right_ty);
     };
-
-    LOGIA_API LOGIA_LEND BinaryExpression *ast_create_binary_expr(Expression *left, Operators op, Expression *right);
 }

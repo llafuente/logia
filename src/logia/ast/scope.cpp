@@ -73,7 +73,7 @@ namespace logia::AST
         }
     }
 
-    void Scope::post_attach()
+    void Scope::on_after_attach()
     {
         // keep parent body in sync regardless being already attached, allow blocks to be moved.
         auto parentBody = this->first_parent<Scope>();

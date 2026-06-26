@@ -36,7 +36,7 @@ namespace logia::AST
         /// @brief Copy everything into target
         void scope_copy_all(Scope *target);
 
-        void post_attach() override;
+        void on_after_attach() override;
 
         void validate() override;
 

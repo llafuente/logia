@@ -41,7 +41,7 @@ namespace logia::AST
         // Inherited via Expression
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
-        void post_attach() override;
+        void on_after_attach() override;
 
         void validate() override;
 

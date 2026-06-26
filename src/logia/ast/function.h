@@ -54,7 +54,7 @@ namespace logia::AST
 
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
-        void post_attach() override;
+        void on_after_attach() override;
 
         void validate() override;
 
@@ -149,7 +149,7 @@ namespace logia::AST
 
         std::string to_string() override;
         std::string get_repr() override;
-        void post_attach() override;
+        void on_after_attach() override;
         void validate() override;
         /// @brief generate parameters alloca. Used at FunctionBlock
         void codegen_parameters(logia::Backend *backend);

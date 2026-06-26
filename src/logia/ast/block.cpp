@@ -45,9 +45,9 @@ namespace logia::AST
         return std::format("Block[{} {} statements] {}", this->name->identifier, this->children.size(), Scope::to_string());
     }
 
-    void Block::post_attach()
+    void Block::on_after_attach()
     {
-        Scope::post_attach();
+        Scope::on_after_attach();
 
         // TODO we should throw if the block is moved outside current function!!
         // TODO what happen when we double-set because we move something an gets re-attached ??
@@ -92,6 +92,7 @@ namespace logia::AST
         this->ir_basicblock = llvm::BasicBlock::Create(backend->context, this->get_name(), nullptr);
 
         LOG(DBG, "{} name = {} ir_basicblock = {}", this->to_string(), this->get_name(), (void *)this->ir_basicblock);
+        Node::pre_codegen(backend);
     }
 
     llvm::Value *Block::post_codegen(logia::Backend *backend)
@@ -117,15 +118,17 @@ namespace logia::AST
         func->insert(func->end(), this->ir_basicblock);
         backend->builder->SetInsertPoint(this->ir_basicblock);
 
-        this->codegen_children(backend);
+        this->post_codegen_children(backend);
 
         this->cg_value = this->ir_basicblock;
         return Node::post_codegen(backend);
     }
-    void Block::codegen_children(logia::Backend *backend)
+    void Block::post_codegen_children(logia::Backend *backend)
     {
-        if (backend->debug && backend->dscopes.size())
+        if (backend->debug)
         {
+            LOG(DBG, "scopes {}", backend->dscopes.size());
+            LOGIA_VERIFY(backend->dscopes.size() > 0);
             auto scope = backend->dbuilder->createLexicalBlock(
                 backend->dscopes[backend->dscopes.size() - 1],
                 backend->dfile,
@@ -143,7 +146,7 @@ namespace logia::AST
             Node *n = this->children[i];
             LOG(DBG, "codegen.statement[{}] = {}", i, n->to_string());
 
-            auto inst = n->codegen(backend);
+            auto inst = n->post_codegen(backend);
 
             // if the current block has a terminator and we continue we run into multiple problems like:
             // fix: All predecessors must be dead!
@@ -169,8 +172,9 @@ namespace logia::AST
                 --i;
             }
         }
-        if (backend->debug && backend->dscopes.size())
+        if (backend->debug)
         {
+            LOGIA_VERIFY(backend->dscopes.size() > 0);
             backend->dscopes.pop_back();
         }
     }

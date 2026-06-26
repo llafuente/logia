@@ -172,12 +172,10 @@ namespace logia::AST
             // makes no sense but need to keep this node attached
             this->push_child(this->call_expr);
 
-            this->call_expr->pre_type_inference();
-            this->call_expr->post_type_inference();
-            assert(this->call_expr->is_pre_type_inference);
-            LOGIA_VERIFY(this->call_expr->is_pre_type_inference == true);
-            LOGIA_VERIFY(this->call_expr->is_post_type_inference == true);
+            this->call_expr->type_inference(TYPE_INFERENCE_PRE);
+            LOGIA_VERIFY(this->call_expr->type_inference_pass_id == TYPE_INFERENCE_PRE); // ensure it's done!
             LOGIA_VERIFY(this->call_expr->callee != nullptr);
+
             this->set_type(this->call_expr->get_type());
         }
 
@@ -226,9 +224,9 @@ namespace logia::AST
         case Operators::BINARY_ASSIGN:
         {
             // auto left_ty = left->get_final_type();
-            auto left_value = left->codegen(backend);
+            auto left_value = left->post_codegen(backend);
             // auto right_ty = right->get_final_type();
-            auto right_value = right->codegen(backend);
+            auto right_value = right->post_codegen(backend);
 
             right_value = llvm_load_if_required(right_value, backend);
 
@@ -249,12 +247,12 @@ namespace logia::AST
             llvm::BasicBlock *phi_bb = llvm::BasicBlock::Create(backend->context, phi_bb_name, func->ir_func);
             ++expr_logical_count;
 
-            auto left_value = left->codegen(backend);
+            auto left_value = left->post_codegen(backend);
             left_value = llvm_load_if_required(left_value, backend);
             backend->builder->CreateCondBr(left_value, test_rhs, phi_bb);
             backend->builder->SetInsertPoint(test_rhs);
 
-            auto right_value = right->codegen(backend);
+            auto right_value = right->post_codegen(backend);
             right_value = llvm_load_if_required(right_value, backend);
             backend->builder->CreateBr(phi_bb);
 
@@ -262,7 +260,7 @@ namespace logia::AST
             auto i1 = scope_lookup_first(this, "bool")->as<Type>();
             auto phi = backend->builder->CreatePHI(i1->ir_type, 2);
 
-            phi->addIncoming((new AST::IntegerLiteral({}, "0", i1))->codegen(backend), start_bb);
+            phi->addIncoming((new AST::IntegerLiteral({}, "0", i1))->post_codegen(backend), start_bb);
             phi->addIncoming(right_value, test_rhs);
 
             backend->set_debug_loc((llvm::Instruction *)phi, this->loc);
@@ -281,12 +279,12 @@ namespace logia::AST
             llvm::BasicBlock *phi_bb = llvm::BasicBlock::Create(backend->context, phi_bb_name, func->ir_func);
             ++expr_logical_count;
 
-            auto left_value = left->codegen(backend);
+            auto left_value = left->post_codegen(backend);
             left_value = llvm_load_if_required(left_value, backend);
             backend->builder->CreateCondBr(left_value, phi_bb, test_rhs);
             backend->builder->SetInsertPoint(test_rhs);
 
-            auto right_value = right->codegen(backend);
+            auto right_value = right->post_codegen(backend);
             right_value = llvm_load_if_required(right_value, backend);
             backend->builder->CreateBr(phi_bb);
 
@@ -294,7 +292,7 @@ namespace logia::AST
             auto i1 = scope_lookup_first(this, "bool")->as<Type>();
             auto phi = backend->builder->CreatePHI(i1->ir_type, 2);
 
-            phi->addIncoming((new AST::IntegerLiteral({}, "1", i1))->codegen(backend), start_bb);
+            phi->addIncoming((new AST::IntegerLiteral({}, "1", i1))->post_codegen(backend), start_bb);
             phi->addIncoming(right_value, test_rhs);
 
             backend->set_debug_loc((llvm::Instruction *)phi, this->loc);
@@ -304,24 +302,14 @@ namespace logia::AST
         }
         }
 
-        this->cg_value = this->call_expr->codegen(backend);
+        this->cg_value = this->call_expr->post_codegen(backend);
 
         return Expression::post_codegen(backend);
     }
 
-    void BinaryExpression::post_attach() {}
+    void BinaryExpression::on_after_attach() {}
 
     void BinaryExpression::validate() {}
-
-    LOGIA_API LOGIA_LEND BinaryExpression *ast_create_binary_expr(Expression *left, Operators op, Expression *right)
-    {
-        BinaryExpression *expr = new BinaryExpression({}, left, op, right);
-        return expr;
-    }
-
-    //
-    // constant expression
-    //
 
     maybe_semantic_error BinaryExpression::can_execute()
     {

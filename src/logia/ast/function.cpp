@@ -2,6 +2,7 @@
 
 #include "utils.h"
 #include "logia/backend.h"
+#include "logia/type_inference.h"
 #include "logia/ast/identifier.h"
 #include "logia/ast/returnstmt.h"
 #include "logia/ast/callexpr.h"
@@ -29,7 +30,7 @@ namespace logia::AST
 
         this->is_typed = true;
         name->skip_codegen = true;
-        name->skip_type_inference = true;
+        name->type_inference_pass_id = TYPE_INFERENCE_POST;
         name->set_type(type);
 
         this->push_child(name);
@@ -70,11 +71,11 @@ namespace logia::AST
     }
     llvm::Value *FunctionParameter::post_codegen(logia::Backend *backend)
     {
-        this->cg_value = this->alloca_inst = backend->builder->CreateAlloca((llvm::Type *)this->get_final_type()->codegen(backend), 0, nullptr, this->get_name()->identifier);
+        this->cg_value = this->alloca_inst = backend->builder->CreateAlloca((llvm::Type *)this->get_final_type()->post_codegen(backend), 0, nullptr, this->get_name()->identifier);
         return Node::post_codegen(backend);
     }
 
-    void FunctionParameter::post_attach() {}
+    void FunctionParameter::on_after_attach() {}
 
     void FunctionParameter::validate() {}
     //
@@ -85,8 +86,12 @@ namespace logia::AST
     {
         LOGIA_VERIFY(name != nullptr, "name parameter is required");
 
+        // TODO REVIEW type-system do not use: set_type atm
+        this->real_type = this;
         this->is_typed = true;
+
         name->skip_codegen = true;
+        name->type_inference_pass_id = TYPE_INFERENCE_MAX;
         name->set_type(this);
 
         if (return_type == nullptr)
@@ -97,10 +102,8 @@ namespace logia::AST
         this->push_child(name);        // get_name
         this->push_child(return_type); // get_return_type
 
-        // auto block = new Block(nullptr, ast_create_identifier("function_param_alloca"));
-        // this->push_child(block);
-
-        auto block = new FunctionBlock({}, ast_create_identifier("function_body"));
+        // location will be overriden later
+        auto block = new FunctionBlock({}, new Identifier({}, "function_body"));
         this->push_child(block); // get_body
 
         // children+3 are the arguments!
@@ -175,15 +178,15 @@ namespace logia::AST
 
     uint32_t get_mandatory_parameters_size()
     {
-        throw std::runtime_error(TOSTRING(__FUNCTION__) "to-do");
+        throw_compiler_error("to-do");
     }
     uint32_t get_optional_parameters_size()
     {
-        throw std::runtime_error(TOSTRING(__FUNCTION__) "to-do");
+        throw_compiler_error("to-do");
     }
 
     // register myself into closest block
-    void Function::post_attach()
+    void Function::on_after_attach()
     {
         logia::AST::scope_set(this, this->get_name(), this, false);
         // this->__register_type(this->get_name());
@@ -231,7 +234,7 @@ namespace logia::AST
         for (auto &Arg : this->ir_func->args())
         {
             auto param = this->get_parameter(i);
-            param->codegen(backend);
+            param->post_codegen(backend);
             backend->builder->CreateStore(&Arg, param->alloca_inst);
 
             if (backend->debug)
@@ -263,14 +266,17 @@ namespace logia::AST
 
     void Function::pre_codegen(logia::Backend *backend)
     {
-        LOG(DBG, "{}", this->to_string());
+        LOG(SILLY, "{}", this->to_string());
         // generate return type, as it's the first in metada
         auto rtype = this->get_return_type()->get_final_type();
-        rtype->codegen(backend);
+        rtype->pre_codegen(backend);
+        LOGIA_VERIFY(rtype->ir_type != nullptr);
 
         // generate all parameters
         auto pcount = this->get_parameter_count();
         this->ir_parameters.reserve(pcount);
+
+        // LOGIA_VERIFY(rtype->di_type != nullptr);
         llvm::SmallVector<llvm::Metadata *, 12> md_types;
         md_types.push_back(rtype->di_type);
 
@@ -278,7 +284,10 @@ namespace logia::AST
         {
             // IR Type
             auto param_type = this->get_parameter(i)->get_final_type();
-            param_type->codegen(backend);
+            param_type->pre_codegen(backend);
+            LOGIA_VERIFY(param_type->ir_type != nullptr);
+            // LOGIA_VERIFY(param_type->di_type != nullptr);
+
             this->ir_parameters.push_back(param_type->ir_type);
 
             // Metadata type
@@ -324,11 +333,8 @@ namespace logia::AST
                 // assign after initialize parameters!
                 this->ir_func->setSubprogram(this->di_subprogram);
             }
-            backend->set_debug_information(this->loc, this->di_subprogram);
 
-            backend->dscopes.push_back(this->di_subprogram);
             this->get_body()->pre_codegen(backend);
-            backend->dscopes.pop_back();
         }
         LOG(DBG, "exit!");
         Node::pre_codegen(backend);
@@ -337,19 +343,30 @@ namespace logia::AST
     llvm::Value *Function::post_codegen(logia::Backend *backend)
     {
         // Create a basic block and insert a return
-
-        backend->dscopes.push_back(this->di_subprogram);
+        LOGIA_VERIFY(this->is_pre_codegen == true);
+        if (backend->debug)
+        {
+            LOGIA_VERIFY(this->di_subprogram != nullptr);
+            backend->dscopes.push_back(this->di_subprogram);
+            backend->set_debug_information(this->loc, this->di_subprogram);
+        }
         this->get_body()->post_codegen(backend);
-        backend->dscopes.pop_back();
+        if (backend->debug)
+        {
+            backend->dscopes.pop_back();
+        }
 
         return Type::post_codegen(backend);
     }
 
     void Function::_pre_type_inference()
     {
-        auto return_ty = this->get_final_type();
+        auto return_ty = this->get_return_type()->get_final_type();
         this->foreach_descendant<ReturnStmt>([return_ty](auto rstmt, auto deep)
-                                             { rstmt->set_type(return_ty); return false; });
+                                             {
+                                                LOG(DBG, "enforece return type: {}", rstmt->to_string());
+                                                rstmt->set_type(return_ty);
+                                                return false; });
         Type::_pre_type_inference();
     }
 
@@ -365,7 +382,8 @@ namespace logia::AST
         }
         else
         {
-            param->get_name()->skip_type_inference = true;
+            auto ident = param->get_name();
+            ident->type_inference_pass_id = TYPE_INFERENCE_MAX;
         }
     }
 
@@ -473,8 +491,8 @@ namespace logia::AST
             this->push_parameter(new FunctionParameter(new Identifier({}, ""), t, nullptr));
         }
         // configure/hack the function!
-        this->is_post_type_inference = this->is_pre_type_inference = true; // ignore type inference, but no skip
-        this->is_post_codegen = this->is_pre_codegen = true;               // ignore codegen, but no skip
+        this->type_inference_pass_id = TYPE_INFERENCE_MAX;   // ignore type inference, but no skip
+        this->is_post_codegen = this->is_pre_codegen = true; // ignore codegen, but no skip
         // set codegen result
         this->cg_value = this->ir_func = ir;
         this->ir_functy = (llvm::FunctionType *)ir->getType();

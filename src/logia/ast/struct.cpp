@@ -1,6 +1,7 @@
 #include "logia/ast/struct.h"
 
 #include "utils.h"
+#include "logia/type_inference.h"
 #include "logia/backend.h"
 #include "logia/ast/identifier.h"
 #include "logia/ast/expr.h"
@@ -19,12 +20,12 @@ namespace logia::AST
         this->push_child(from);
         from->has_type = false;
         from->skip_codegen = true;
-        from->skip_type_inference = true;
+        from->type_inference_pass_id = TYPE_INFERENCE_MAX;
 
         this->push_child(to);
         to->has_type = false;
         to->skip_codegen = true;
-        to->skip_type_inference = true;
+        to->type_inference_pass_id = TYPE_INFERENCE_MAX;
     }
 
     Identifier *StructAlias::get_from()
@@ -36,7 +37,7 @@ namespace logia::AST
     {
         return this->get_child<Identifier>(1);
     }
-    void StructAlias::post_attach() {}
+    void StructAlias::on_after_attach() {}
 
     void StructAlias::validate()
     {
@@ -75,7 +76,7 @@ namespace logia::AST
 
         this->push_child(name); // 0
         name->skip_codegen = true;
-        name->skip_type_inference = true;
+        name->type_inference_pass_id = TYPE_INFERENCE_MAX;
         name->set_type(type);
 
         this->push_child(type); // 1
@@ -97,7 +98,7 @@ namespace logia::AST
         return this->children.size() == 2 ? nullptr : this->get_child<Expression>(2);
     }
 
-    void StructField::post_attach() {}
+    void StructField::on_after_attach() {}
 
     void StructField::validate() {}
 
@@ -121,19 +122,19 @@ namespace logia::AST
     // Struct
     //
 
-    Struct::Struct(location loc, Identifier *id) : Type(loc, Primitives::STRUCT_TY)
+    Struct::Struct(location loc, Identifier *name) : Type(loc, Primitives::STRUCT_TY)
     {
+        // TODO REVIEW type-system do not use: set_type atm
+        this->real_type = this;
         this->is_typed = true;
 
-        LOGIA_VERIFY(id != nullptr);
+        LOGIA_VERIFY(name != nullptr);
 
-        id->skip_codegen = true;
-        id->skip_type_inference = true;
+        name->skip_codegen = true;
+        name->type_inference_pass_id = TYPE_INFERENCE_MAX;
         // NOTE the following stmt order is important :)
-        this->push_child(id);
-        id->set_type(this);
-
-        this->has_name = true;
+        this->push_child(name);
+        name->set_type(this);
     }
 
     const char *Struct::get_name()
@@ -216,11 +217,6 @@ namespace logia::AST
         throw_compiler_error(std::format("index {} out of bounds", index));
     }
 
-    Type *Struct::get_type()
-    {
-        return this;
-    }
-
     std::string Struct::to_string()
     {
         return std::format("Type.Struct {}", Node::to_string());
@@ -246,7 +242,7 @@ namespace logia::AST
         return std::format("struct {} {{{}}}", this->get_name(), list);
     }
 
-    void Struct::post_attach()
+    void Struct::on_after_attach()
     {
         this->__register_type(this->get_name());
     }
@@ -267,7 +263,7 @@ namespace logia::AST
         {
             if (prop->try_cast(&field))
             {
-                elements.push_back((llvm::Type *)field->get_final_type()->codegen(backend));
+                elements.push_back((llvm::Type *)field->get_final_type()->post_codegen(backend));
             }
         }
 
@@ -318,8 +314,9 @@ namespace logia::AST
     {
         // add "this"
         auto tdef = new TypeDef();
+        tdef->add_locator(new Identifier(this->loc, this->get_name()));
         // note set_type in TypeDef is an infinite recursion... manually set
-        tdef->type = this;
+        tdef->real_type = this;
         tdef->is_typed = true;
 
         fn->insert_parameter(0, new FunctionParameter(new Identifier({}, "this"), new Ref(tdef)));

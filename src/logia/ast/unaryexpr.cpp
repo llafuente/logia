@@ -1,5 +1,7 @@
 #include "logia/ast/unaryexpr.h"
 
+#include "utils.h"
+#include "logia/type_inference.h"
 #include "logia/backend.h"
 #include "logia/ast/identifier.h"
 #include "logia/ast/callexpr.h"
@@ -49,7 +51,7 @@ namespace logia::AST
         return this->type;
     }
 
-    void UnaryExpression::post_attach() {}
+    void UnaryExpression::on_after_attach() {}
 
     void UnaryExpression::validate() {}
 
@@ -76,11 +78,14 @@ namespace logia::AST
             auto operand = this->get_operand();
 
             this->call_expr = new CallExpression(this->loc, locator, {operand});
+            LOG(DBG, "transform unaryexpr into function call: {}", (void *)this->call_expr);
             // makes no sense but need to keep this node attached
             this->push_child(this->call_expr);
 
-            this->call_expr->pre_type_inference();
-            this->call_expr->post_type_inference();
+            this->call_expr->type_inference(TYPE_INFERENCE_PRE);
+            LOGIA_VERIFY(this->call_expr->type_inference_pass_id == TYPE_INFERENCE_PRE);
+            LOGIA_VERIFY(this->call_expr->callee != nullptr);
+
             this->set_type(this->call_expr->get_type());
         }
         }
@@ -116,7 +121,7 @@ namespace logia::AST
         LOG(DBG, "{}", this->to_string());
 
         auto operand = this->get_operand();
-        auto ir_value = operand->codegen(backend);
+        auto ir_value = operand->post_codegen(backend);
         auto ir_ty = ir_value->getType();
 
         switch (this->op)
@@ -135,7 +140,7 @@ namespace logia::AST
             return Expression::post_codegen(backend);
         }
         default:
-            this->cg_value = this->call_expr->codegen(backend);
+            this->cg_value = this->call_expr->post_codegen(backend);
             return Expression::post_codegen(backend);
         }
     }

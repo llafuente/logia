@@ -9,6 +9,7 @@ namespace logia::AST
 {
     ReturnStmt::ReturnStmt(location loc, Expression *expr) : Stmt(loc)
     {
+        this->has_type = true;
         this->push_child(expr);
     }
 
@@ -22,7 +23,7 @@ namespace logia::AST
         return this->get_child<Expression>(0);
     }
 
-    void ReturnStmt::post_attach() {}
+    void ReturnStmt::on_after_attach() {}
 
     void ReturnStmt::validate() {}
 
@@ -41,7 +42,7 @@ namespace logia::AST
         }
         else
         {
-            auto value = llvm_load_if_required(expr->codegen(backend), backend);
+            auto value = llvm_load_if_required(expr->post_codegen(backend), backend);
             this->cg_value = backend->builder->CreateRet(value);
         }
 

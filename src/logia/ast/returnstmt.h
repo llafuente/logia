@@ -18,7 +18,7 @@ namespace logia::AST
         /// @return return expression
         Expression *get_expr();
 
-        void post_attach() override;
+        void on_after_attach() override;
 
         void validate() override;
 

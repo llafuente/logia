@@ -1,5 +1,6 @@
 #include "logia/ast/structinitexpr.h"
 
+#include "logia/type_inference.h"
 #include "logia/backend.h"
 #include "logia/ast/expr.h"
 #include "logia/ast/identifier.h"
@@ -161,7 +162,7 @@ namespace logia::AST
     {
         this->push_child(name);
         name->skip_codegen = true;
-        name->skip_type_inference = true;
+        name->type_inference_pass_id = TYPE_INFERENCE_MAX;
         this->push_child(value);
 
         ++this->values;
@@ -171,7 +172,7 @@ namespace logia::AST
     {
         this->children[index * 2] = name;
         name->skip_codegen = true;
-        name->skip_type_inference = true;
+        name->type_inference_pass_id = TYPE_INFERENCE_MAX;
         this->children[index * 2 + 1] = value;
     }
 
@@ -213,13 +214,13 @@ namespace logia::AST
         for (auto field_index = 0, i = 0; i < this->children.size(); i += 2, ++field_index)
         {
             auto field_ty = struct_ty->get_field_by_index(field_index)->get_final_type();
-            field_ty->codegen(backend);
+            field_ty->post_codegen(backend);
 
             auto item = this->get_child<Expression>(i + 1);
             auto item_ty = item->get_final_type();
-            item_ty->codegen(backend);
+            item_ty->post_codegen(backend);
 
-            auto ir_item_value = item->codegen(backend);
+            auto ir_item_value = item->post_codegen(backend);
             auto cir_item_value = (llvm::Constant *)(ir_item_value);
 
             if (field_ty->ir_type != item_ty->ir_type)
@@ -230,7 +231,7 @@ namespace logia::AST
             v.push_back(cir_item_value);
         }
 
-        auto ir_struct_ty = (llvm::StructType *)struct_ty->codegen(backend);
+        auto ir_struct_ty = (llvm::StructType *)struct_ty->post_codegen(backend);
 
         // 1) Constant initializer (replace with your child constants)
         llvm::Constant *init = llvm::ConstantStruct::get(ir_struct_ty, v);
@@ -263,7 +264,7 @@ namespace logia::AST
         return Node::post_codegen(backend);
     }
 
-    void StructInitializer::post_attach() {}
+    void StructInitializer::on_after_attach() {}
 
     void StructInitializer::validate() {}
 

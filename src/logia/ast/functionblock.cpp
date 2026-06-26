@@ -20,32 +20,32 @@ namespace logia::AST
     {
         if (is_inserted)
         {
+            throw_compiler_error("why do you call this ?");
             return;
         }
         is_inserted = true;
 
-        Block::pre_codegen(backend);
+        Block::pre_codegen(backend); // pre call to populate ir_basicblock
         auto function = this->first_parent<Function>();
         function->ir_func->insert(function->ir_func->end(), this->ir_basicblock);
-        backend->builder->SetInsertPoint(this->ir_basicblock);
-
-        this->parent_node->as<Function>()->codegen_parameters(backend);
     }
 
     llvm::Value *FunctionBlock::post_codegen(logia::Backend *backend)
     {
+        LOG(DBG, "");
         backend->builder->SetInsertPoint(this->ir_basicblock);
+        this->parent_node->as<Function>()->codegen_parameters(backend);
 
-        Block::codegen_children(backend);
+        Block::post_codegen_children(backend);
 
         this->cg_value = this->ir_basicblock;
         return Node::post_codegen(backend);
     }
 
-    void FunctionBlock::post_attach()
+    void FunctionBlock::on_after_attach()
     {
         // skip block!
-        Scope::post_attach();
+        Scope::on_after_attach();
     }
 
     void FunctionBlock::validate()

@@ -36,7 +36,7 @@ namespace logia::AST
 
         Type *get_type() override;
 
-        void post_attach() override;
+        void on_after_attach() override;
 
         void validate() override;
 
@@ -133,7 +133,7 @@ namespace logia::AST
 
         Type *get_type() override;
 
-        void post_attach() override;
+        void on_after_attach() override;
 
         void validate() override;
 
@@ -141,8 +141,4 @@ namespace logia::AST
         void _set_type(Type *type) override;
         void _pre_type_inference() override;
     };
-    /**
-     * Creates a call expression
-     */
-    LOGIA_API LOGIA_LEND CallExpression *ast_create_call_expr(Expression *locator, std::vector<Expression *> arguments);
 }
