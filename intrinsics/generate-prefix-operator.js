@@ -22,8 +22,7 @@ func: "logia_intrinsics_deref"
 ].forEach((o) => {
   for (let type of types) {
     console.log(`
-extern "C"
-[[clang::annotate("logia=${o.logia_fn}")]]
+LOGIA_INTRINSICS_FUNCTION("${o.logia_fn}")
 ${type} ${o.func}_${type}([[clang::annotate("logia=λ${type}")]] ${type} a) {
     return ${o.operator}a;
 }`);
@@ -40,8 +39,7 @@ ${type} ${o.func}_${type}([[clang::annotate("logia=λ${type}")]] ${type} a) {
 ].forEach((o) => {
   for (let type of types) {
     console.log(`
-extern "C"
-[[clang::annotate("logia=${o.logia_fn}")]]
+LOGIA_INTRINSICS_FUNCTION("${o.logia_fn}")
 bool ${o.func}_${type}([[clang::annotate("logia=λ${type}")]] ${type} a) {
     return ${o.operator}a;
 }`);
@@ -63,8 +61,7 @@ bool ${o.func}_${type}([[clang::annotate("logia=λ${type}")]] ${type} a) {
   }].forEach((o) => {
     for (let type of types) {
       console.log(`
-extern "C"
-[[clang::annotate("logia=${o.logia_fn}")]]
+LOGIA_INTRINSICS_FUNCTION("${o.logia_fn}")
 ${type} ${o.func}_${type}([[clang::annotate("logia=ref<${type}>")]] ${type}* a) {
     return ${o.operator}(*a);
 }`);

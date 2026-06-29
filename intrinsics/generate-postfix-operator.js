@@ -21,8 +21,7 @@ for (let o of operators) {
             continue;
         }
         console.log(`
-extern "C"
-[[clang::annotate("logia=${o.logia_fn}")]]
+LOGIA_INTRINSICS_FUNCTION("${o.logia_fn}")
 ${type} ${o.func}_${type}([[clang::annotate("logia=ref<${type}>")]] ${type} a) {
     return ${o.operator}a;
 }`);

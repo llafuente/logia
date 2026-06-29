@@ -6,22 +6,19 @@ for (let type of types) {
     for (let o of operators) {
         if (o.category === 'comparison') { // return bool
             console.log(`
-extern "C"
-[[clang::annotate("logia=${o.logia_fn}")]]
+LOGIA_INTRINSICS_FUNCTION("${o.logia_fn}")
 bool ${o.func}_${type}_${type}([[clang::annotate("logia=λ${type}")]] ${type} a, [[clang::annotate("logia=λ${type}")]] ${type} b){
     return a ${o.operator} b;
 }`);
         } else if (o.category === 'bitwise' || o.category === 'arithmetic') {
             console.log(`
-extern "C"
-[[clang::annotate("logia=${o.logia_fn}")]]
+LOGIA_INTRINSICS_FUNCTION("${o.logia_fn}")
 ${type} ${o.func}_${type}_${type}([[clang::annotate("logia=λ${type}")]] ${type} a, [[clang::annotate("logia=λ${type}")]] ${type} b){
     return a ${o.operator} b;
 }`);
         } else if (o.category === 'assignment') {
             console.log(`
-extern "C"
-[[clang::annotate("logia=${o.logia_fn}")]]
+LOGIA_INTRINSICS_FUNCTION("${o.logia_fn}")
 ${type} ${o.func}_${type}_${type}([[clang::annotate("logia=ref<${type}>")]] ${type} *a, [[clang::annotate("logia=λ${type}")]] ${type} b){
     *a ${o.operator} b;
     return *a;
