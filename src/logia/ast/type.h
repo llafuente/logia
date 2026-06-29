@@ -68,7 +68,7 @@ namespace logia::AST
 
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
-        virtual Type *get_pointer_to();
+        virtual Type *get_reference_to();
 
     protected:
         void _set_type(Type *type) override;

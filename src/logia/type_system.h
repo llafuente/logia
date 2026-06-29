@@ -16,6 +16,8 @@ namespace logia::type_system
         static type_compatibility YES;
         static type_compatibility EXPLICIT_CAST;
         static type_compatibility AUTOCAST_CAST;
+        static type_compatibility AUTOCAST_REF;
+        static type_compatibility AUTOCAST_DEREF;
         static type_compatibility LAYOUT_COMPATIBLE;
         static type_compatibility CODE_COMPATIBLE;
 

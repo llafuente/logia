@@ -12,6 +12,8 @@ namespace logia::type_system
     type_compatibility type_compatibility::YES = type_compatibility(0x001);
     type_compatibility type_compatibility::EXPLICIT_CAST = type_compatibility(0x010);
     type_compatibility type_compatibility::AUTOCAST_CAST = type_compatibility(0x020);
+    type_compatibility type_compatibility::AUTOCAST_REF = type_compatibility(0x040);
+    type_compatibility type_compatibility::AUTOCAST_DEREF = type_compatibility(0x080);
     type_compatibility type_compatibility::LAYOUT_COMPATIBLE = type_compatibility(0x100);
     type_compatibility type_compatibility::CODE_COMPATIBLE = type_compatibility(0x200);
 
@@ -206,6 +208,44 @@ namespace logia::type_system
 
             return make_error(std::format(LGERR_TS000, lhs->get_repr(), rhs->get_repr()), type_compatibility::NO);
         }
+
+        // can be an AUTOCAST_REF ?
+        if (rhs->is<Ref>())
+        {
+            // NOTE: while pointee can be autocasted the pointer itself DONT!
+            auto rhs_ptr = rhs->as<Ref>();
+
+            auto result = type_is_compatible(lhs, rhs_ptr->get_pointee()->get_final_type());
+            if (result.is_error())
+            {
+                return make_chained_error(std::format(LGERR_TS_PTR001, lhs->get_repr(), rhs->get_repr()), result);
+            }
+            // also an error FULL COMPAT!
+            if (result.unwrap_success().contains(type_compatibility::AUTOCAST_CAST))
+            {
+                return make_error(std::format(LGERR_TS_PTR001, lhs->get_repr(), rhs->get_repr()), type_compatibility::NO);
+            }
+            return make_success((type_compatibility)((uint32_t)type_compatibility::YES | (uint32_t)type_compatibility::AUTOCAST_REF));
+        }
+        // can be an AUTOCAST_DEREF ?
+        if (lhs->is<Ref>())
+        {
+            // NOTE: while pointee can be autocasted the pointer itself DONT!
+            auto lhs_ptr = lhs->as<Ref>();
+
+            auto result = type_is_compatible(lhs_ptr->get_pointee()->get_final_type(), rhs);
+            if (result.is_error())
+            {
+                return make_chained_error(std::format(LGERR_TS_PTR001, lhs->get_repr(), rhs->get_repr()), result);
+            }
+            // also an error FULL COMPAT!
+            if (result.unwrap_success().contains(type_compatibility::AUTOCAST_CAST))
+            {
+                return make_error(std::format(LGERR_TS_PTR001, lhs->get_repr(), rhs->get_repr()), type_compatibility::NO);
+            }
+            return make_success((type_compatibility)((uint32_t)type_compatibility::YES | (uint32_t)type_compatibility::AUTOCAST_DEREF));
+        }
+
         // REVIEW
         // if they don't have the same primitive, they are incompatible
         // even it's not 100% real, we will be extra safe at the start

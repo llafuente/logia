@@ -59,7 +59,7 @@ namespace logia::AST
         return "not-def";
     }
 
-    Type *Type::get_pointer_to()
+    Type *Type::get_reference_to()
     {
         // return scope_lookup_all(this, "ptr").unwrap_success()[0]->as<Type>();
         return new Ref(this); // <-- TODO this should be a factory

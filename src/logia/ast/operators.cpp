@@ -11,8 +11,8 @@ namespace logia::AST
         uint32_t args;
         const char enforce_return_type[4];
     };
-    uint32_t f2op_length = 29 + 6 + 2;
-    FunctionToOperator f2op[29 + 6 + 2] = {
+    uint32_t f2op_length = 29 + 7 + 2;
+    FunctionToOperator f2op[29 + 7 + 2] = {
         {"__logia_bin_assign", (uint32_t)Operators::BINARY_ASSIGN, "=", 2, ""},
         {"__logia_bin_add_assign", (uint32_t)Operators::BINARY_ADD_ASSIGN, "+=", 2, ""},
         {"__logia_bin_sub_assign", (uint32_t)Operators::BINARY_SUB_ASSIGN, "-=", 2, ""},
@@ -47,7 +47,8 @@ namespace logia::AST
         {"__logia_bin_bitwise_shl", (uint32_t)Operators::BINARY_BITWISE_LEFT_SHIFT, "<<", 2, ""},
         {"__logia_bin_bitwise_shr", (uint32_t)Operators::BINARY_BITWISE_RIGHT_SHIFT, ">>", 2, ""},
 
-        {"__logia_deref", (uint32_t)Operators::PREFIX_DEREFERENCE, "&", 1, ""},
+        {"__logia_ref", (uint32_t)Operators::PREFIX_REFERENCE, "&", 1, ""},
+        {"__logia_deref", (uint32_t)Operators::PREFIX_DEREFERENCE, "", 1, ""},
         {"__logia_prefix_inc", (uint32_t)Operators::PREFIX_INCREMENT, "++", 1, ""},
         {"__logia_prefix_dec", (uint32_t)Operators::PREFIX_DECREMENT, "--", 1, ""},
         {"__logia_prefix_neg", (uint32_t)Operators::PREFIX_NEGATION, "-", 1, ""},

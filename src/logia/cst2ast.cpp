@@ -402,7 +402,7 @@ namespace logia
             // UNDER REVIEW
             case LogiaParser::AT_TK:
             case LogiaParser::AND_TK:
-                return ANY_VOIDP_STORE(new AST::UnaryExpression(MAKE_LOCATION(context), AST::Operators::PREFIX_DEREFERENCE, operand));
+                return ANY_VOIDP_STORE(new AST::UnaryExpression(MAKE_LOCATION(context), AST::Operators::PREFIX_REFERENCE, operand));
 
             case LogiaParser::PLUS_TK:
                 // for syntactic completeness, do nothing

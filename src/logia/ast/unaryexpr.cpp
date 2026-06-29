@@ -33,6 +33,7 @@ namespace logia::AST
         case Operators::PREFIX_NEGATION:
         case Operators::PREFIX_LOGICAL_NOT:
         case Operators::PREFIX_DEREFERENCE:
+        case Operators::PREFIX_REFERENCE:
             break;
         default:
             throw_compiler_error(std::format("try to instance unary expression with and invalid operator {}", ast_operator_to_function_name(op)));
@@ -67,7 +68,17 @@ namespace logia::AST
         {
         case Operators::PREFIX_DEREFERENCE:
         {
-            this->set_type(operand_ty->get_pointer_to());
+            Ref *ty_ref;
+            if (!operand_ty->try_cast(&ty_ref))
+            {
+                throw_semantic_error(this, std::format("LGERR_UNARYEXPR001", operand_ty->get_repr()));
+            }
+            this->set_type(ty_ref->get_pointee());
+        }
+        break;
+        case Operators::PREFIX_REFERENCE:
+        {
+            this->set_type(operand_ty->get_reference_to());
 
             break;
         }
@@ -94,8 +105,9 @@ namespace logia::AST
 
     void UnaryExpression::_set_type(Type *ty)
     {
+        LOG(DBG, "{}", ty->get_repr());
         this->type = ty;
-        /*
+
         // foward the type depending on the operator
         switch (op)
         {
@@ -106,14 +118,17 @@ namespace logia::AST
         case Operators::PREFIX_INCREMENT:
         case Operators::PREFIX_NEGATION:
             this->get_operand()->set_type(type);
-            break;
-        case Operators::PREFIX_LOGICAL_NOT:
+
         case Operators::PREFIX_DEREFERENCE:
+            this->get_operand()->set_type(ty->get_reference_to());
+            break;
+
+        case Operators::PREFIX_LOGICAL_NOT:
+        case Operators::PREFIX_REFERENCE:
             break;
         default:
             throw_compiler_error("unreachable");
         }
-            */
     }
 
     llvm::Value *UnaryExpression::post_codegen(logia::Backend *backend)
@@ -127,6 +142,14 @@ namespace logia::AST
         switch (this->op)
         {
         case Operators::PREFIX_DEREFERENCE:
+        {
+            // This reads the value from the pointer.
+            this->cg_value = backend->builder->CreateLoad(ir_ty, ir_value);
+            return Expression::post_codegen(backend);
+        }
+        break;
+
+        case Operators::PREFIX_REFERENCE:
         {
             // deprecated
             // auto ptr = this->cg_value = backend->builder->CreateAlloca(llvm::PointerType::get(ir_ty, 0), nullptr, "deref");
@@ -153,7 +176,7 @@ namespace logia::AST
     {
         switch (op)
         {
-        // case Operators::PREFIX_DEREFERENCE:
+        case Operators::PREFIX_DEREFERENCE:
         case Operators::PREFIX_NEGATION:
         case Operators::PREFIX_LOGICAL_NOT:
         case Operators::PREFIX_INCREMENT:

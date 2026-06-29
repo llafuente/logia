@@ -41,7 +41,7 @@ namespace logia::AST
         }
         else if (is_assignament_operator(this->op))
         {
-            this->push_child(new UnaryExpression(this->loc, Operators::PREFIX_DEREFERENCE, left));
+            this->push_child(new UnaryExpression(this->loc, Operators::PREFIX_REFERENCE, left));
         }
         else
         {

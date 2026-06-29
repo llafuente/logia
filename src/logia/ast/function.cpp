@@ -118,7 +118,7 @@ namespace logia::AST
 
     std::string Function::to_string()
     {
-        return std::format("Type.Function {}", Node::to_string());
+        return std::format("Type.Function {}{}", is_method ? "method " : "", Node::to_string());
     }
 
     std::string Function::get_repr()
@@ -373,7 +373,7 @@ namespace logia::AST
     void Function::push_parameter(FunctionParameter *param)
     {
 
-        LOGIA_VERIFY(this->is_attached == false, "Function type should be created before attached");
+        // LOGIA_VERIFY(this->is_attached == false, "Function type should be created before attached");
         param->index = this->get_parameter_count();
         this->push_child(param);
         if (!this->is_intrinsic)
@@ -471,7 +471,7 @@ namespace logia::AST
     {
         switch (op)
         {
-        case Operators::PREFIX_DEREFERENCE:
+        case Operators::PREFIX_REFERENCE:
             throw_semantic_error(this, "LGERR_OP001 dereference operator is not allowed to overload");
             break;
         }

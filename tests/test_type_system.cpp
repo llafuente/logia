@@ -39,6 +39,15 @@ TEST(logia_test_type_system, start)
     auto i64_ref = new logia::AST::Ref(i64);
 
     {
+        EXPECT_EQ(type_is_compatible(i64, i64_ref).unwrap_success(), (type_compatibility)((uint32_t)type_compatibility::YES | (uint32_t)type_compatibility::AUTOCAST_REF));
+        EXPECT_EQ(type_is_compatible(i64_ref, i64).unwrap_success(), (type_compatibility)((uint32_t)type_compatibility::YES | (uint32_t)type_compatibility::AUTOCAST_DEREF));
+    }
+    {
+        auto err = type_is_compatible(i64, i32_ref);
+        EXPECT_EQ(err.is_error(), true);
+        EXPECT_STREQ(err.message.c_str(), "LGERR_TS_PTR001 Incompatible types 'i64' -> 'ref<i32>'. Pointee types are incompatible.");
+    }
+    {
         EXPECT_EQ(type_is_compatible(i64, i32).unwrap_success(), type_compatibility::AUTOCAST_CAST);
         EXPECT_EQ(type_is_compatible(f64, f32).unwrap_success(), type_compatibility::AUTOCAST_CAST);
     }
@@ -46,6 +55,7 @@ TEST(logia_test_type_system, start)
         EXPECT_EQ(type_is_compatible(i32, i32).unwrap_success(), (type_compatibility)((uint32_t)type_compatibility::YES | (uint32_t)type_compatibility::LAYOUT_COMPATIBLE));
         EXPECT_EQ(type_is_compatible(f32, f32).unwrap_success(), (type_compatibility)((uint32_t)type_compatibility::YES | (uint32_t)type_compatibility::LAYOUT_COMPATIBLE));
     }
+
     {
         auto err = type_is_compatible(i32, u32);
         EXPECT_TRUE(err.is_error());

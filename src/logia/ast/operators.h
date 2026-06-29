@@ -41,12 +41,13 @@ namespace logia::AST
         BINARY_BITWISE_OR_ASSIGN,          // |=
         BINARY_MOD_ASSIGN,                 // %=
 
-        PREFIX_DEREFERENCE = 128, // &
-        PREFIX_NEGATION,          // -
-        PREFIX_LOGICAL_NOT,       // !
-        PREFIX_INCREMENT,         // ++
-        PREFIX_DECREMENT,         // --
-        PREFIX_BITWISE_NOT,       // ~
+        PREFIX_REFERENCE = 128, // &
+        PREFIX_DEREFERENCE,     //
+        PREFIX_NEGATION,        // -
+        PREFIX_LOGICAL_NOT,     // !
+        PREFIX_INCREMENT,       // ++
+        PREFIX_DECREMENT,       // --
+        PREFIX_BITWISE_NOT,     // ~
 
         POSTFIX_INCREMENT = 256, // ++
         POSTFIX_DECREMENT,       // --
