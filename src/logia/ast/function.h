@@ -72,6 +72,8 @@ namespace logia::AST
         char *docstring = nullptr;
         /// @brief is an intrinsic function, intrinsics don't have body and are defined outside user program.
         bool is_intrinsic = false;
+        /// @brief marks function as method of a struct. First parameter will be a ref to the struct!
+        bool is_method = false;
         /// @brief LLVM function parameter types
         std::vector<llvm::Type *> ir_parameters = {};
         /// @brief LLVM function type

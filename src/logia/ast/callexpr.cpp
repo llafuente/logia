@@ -2,14 +2,15 @@
 
 #include "utils.h"
 #include "logia/logia.h"
-#include "logia/type_inference.h"
 #include "logia/backend.h"
+#include "logia/ast/program.h"
 #include "logia/ast/expr.h"
 #include "logia/ast/scope.h"
 #include "logia/ast/llvm.h"
 #include "logia/ast/memberaccessexpr.h"
 #include "logia/ast/identifier.h"
 #include "logia/ast/function.h"
+#include "logia/ast/unaryexpr.h"
 
 #include "logia/multiple_dispatch.h"
 #include "logia/type_inference.h"
@@ -269,25 +270,32 @@ namespace logia::AST
             return {ty->as<Function>()};
         }
 
-        // TODO!
-        MemberAccessExpression *mae;
-        if (locator->try_cast<MemberAccessExpression>(&mae))
-        {
-            // auto left = mae->resolve_left();
-            auto right = mae->get_right();
-            // left should be a struct -> find all methods with "right" name!
-            throw_compiler_error("to-do!");
-        }
         throw_compiler_error("unreachable!");
+    }
+
+    void CallExpression::_early_type_inference()
+    {
+        // rebalance the tree
+        auto locator = this->get_locator();
+        MemberAccessExpression *mae;
+        if (locator->try_cast<MemberAccessExpression>(&mae) && !this->is_method_call)
+        {
+            LOG(DBG, "start transforming tree {}", this->to_string_tree());
+
+            this->set_child(mae->get_right(), 0);
+            this->insert_positional_argument(0, mae->get_left());
+
+            // ?? delete mae;
+            LOG(DBG, "stop transforming tree {}", this->to_string_tree());
+            this->is_method_call = true;
+        }
+        Expression::_early_type_inference();
     }
 
     void CallExpression::_pre_type_inference()
     {
-        // it's possible to solve at this point if the locator where final
-        // maybe it's a problem with BinaryExpression ??
-        // auto locator = this->get_locator();
-        // locator->pre_type_inference();
-
+        // type inference at this point need to "rebalance" the tree if found a MemberAccessExpression
+        // because the lhs is the first parameter and rhs is the function to call
         auto locator = this->get_locator();
 
         // find a proper target or throws!

@@ -30,6 +30,8 @@ namespace logia::AST
 #define LGERR_CALLEXPR002 "LGERR_CALLEXPR002 expected {} argument(s), found {} calling '{}'"
 #define LGERR_CALLEXPR003 "LGERR_CALLEXPR003 invalid argument {} expected type '{}' found '{}' calling '{}'"
 
+#define LGERR_CALLEXPR003 "LGERR_UNARYEXPR001 cannot dereference type '{}' expected a pointer, reference or vector."
+
 #define LGERR_CONSTEX000 "LGERR_CONSTEX000 Expression is not constant"
 #define LGERR_CONSTEX001a "LGERR_CONSTEX001a Left operand is not constant"
 #define LGERR_CONSTEX001b "LGERR_CONSTEX001b Right operand is not constant"
@@ -54,6 +56,8 @@ namespace logia::AST
 #define LGERR_TS_FN002 "LGERR_TS_FN002 Incompatible types '{}' -> '{}'. Return type mismatch."
 #define LGERR_TS_FN003 "LGERR_TS_FN003 Incompatible types '{}' -> '{}'. Argument {} type mismatch."
 #define LGERR_TS_PTR001 "LGERR_TS_PTR001 Incompatible types '{}' -> '{}'. Pointee types are incompatible."
+
+#define LGERR_MAEXPR001 "LGERR_MAEXPR001 Incompatible type '{}' cannot be accessed"
 
     class semantic_error : public std::runtime_error
     {

@@ -190,3 +190,8 @@ TEST(logia_run_file, unordered)
     EXPECT_EQ(test_single_file(".\\tests\\logia\\unordered\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "unordered-002"), 0);
     EXPECT_EQ(test_single_file(".\\tests\\logia\\unordered\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "unordered-003"), 0);
 }
+
+TEST(logia_run_file, dnrg)
+{
+    EXPECT_EQ(test_single_file(".\\core\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "drng"), 1015568748);
+}

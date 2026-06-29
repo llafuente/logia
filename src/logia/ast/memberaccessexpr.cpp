@@ -4,6 +4,9 @@
 #include "logia/backend.h"
 #include "logia/ast/identifier.h"
 #include "logia/ast/struct.h"
+#include "logia/ast/function.h"
+#include "logia/ast/unaryexpr.h"
+#include "logia/ast/llvm.h"
 
 namespace logia::AST
 {
@@ -61,17 +64,33 @@ namespace logia::AST
         }
         auto left_ty = left->get_type();
 
-        if (!left_ty->is<Struct>())
+        // autoderef ?
+        Ref *left_ty_ref;
+        if (left_ty->try_cast<Ref>(&left_ty_ref))
         {
-            throw_compiler_error("TODO! Only structs can be resolved atm.");
+            // we will auto reference!
+            auto deref = new UnaryExpression(left->loc, Operators::PREFIX_DEREFERENCE, left);
+            this->set_child(deref, 0);
+            left_ty = left_ty_ref->get_pointee()->get_final_type();
         }
 
-        auto left_ty_stuct = left_ty->as<Struct>();
-        auto right = this->get_right()->as<Identifier>(); // TODO
-        auto ty = left_ty_stuct->get_field_type(right)->get_final_type();
-        right->set_type(ty);
-        this->set_type(ty);
-        Node::_pre_type_inference();
+        Struct *left_ty_stuct;
+
+        if (left_ty->try_cast<Struct>(&left_ty_stuct))
+        {
+            auto right = this->get_right()->as<Identifier>(); // TODO
+            auto prop = left_ty_stuct->get_property(right->identifier);
+
+            auto ty = prop->get_final_type();
+
+            right->set_type(ty);
+            this->set_type(ty);
+            // TODO support multiple-dispatch
+
+            return Node::_pre_type_inference();
+        }
+
+        throw_semantic_error(this, std::format(LGERR_MAEXPR001, left_ty->get_repr()));
     }
 
     std::string MemberAccessExpression::to_string()
@@ -82,9 +101,17 @@ namespace logia::AST
     llvm::Value *MemberAccessExpression::post_codegen(logia::Backend *backend)
     {
         LOG(DBG, "{}", this->to_string_tree());
+        auto ty = this->get_type();
+        Function *fn;
+        if (ty->try_cast<Function>(&fn))
+        {
+            this->cg_value = fn->ir_func;
+
+            return Expression::post_codegen(backend);
+        }
         // TODO handle left side to be a pointer to struct or struct itself, for now we assume it's always a pointer
         auto left = this->get_left();
-        auto left_type = left->get_type();
+        auto left_type = left->get_final_type();
         auto left_value = left->post_codegen(backend);
 
         if (!left_type->is<Struct>())
@@ -93,6 +120,7 @@ namespace logia::AST
             throw_semantic_error(left, "Expected left to be a struct");
         }
         auto struct_ty = left_type->as<Struct>();
+        struct_ty->post_codegen(backend);
 
         auto right = this->get_right();
         if (!right->is<Identifier>())
@@ -108,8 +136,6 @@ namespace logia::AST
             throw_semantic_error(left, std::format("struct '{}' do not contains a property with name '{}'", struct_ty->get_name(), right_ident->identifier));
         }
 
-        // auto property_ty = (llvm::Type *)field->get_final_type()->codegen(backend);
-        // left_value = llvm_load_if_required(left_value, backend);
         auto gep = backend->builder->CreateStructGEP(struct_ty->ir_type, left_value, field->index);
         this->cg_value = gep;
 

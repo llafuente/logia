@@ -195,6 +195,42 @@ namespace logia::AST
         return nullptr;
     }
 
+    Node *Struct::get_property(const char *id)
+    {
+        // this are the types we can return
+        StructAlias *sa;
+        StructField *sf;
+        Function *fn;
+
+        uint32_t count = 0;
+        for (const auto &ptr : this->children)
+        {
+            if (ptr->try_cast<StructAlias>(&sa))
+            {
+                if (sa->get_from()->operator==(id))
+                {
+                    return this->get_field(id);
+                }
+            }
+            else if (ptr->try_cast<StructField>(&sf))
+            {
+                if (sf->get_name()->operator==(id))
+                {
+                    return sf;
+                }
+            }
+            else if (ptr->try_cast<Function>(&fn))
+            {
+                if (fn->get_identifier()->operator==(id))
+                {
+                    return fn;
+                }
+            }
+        }
+
+        return nullptr;
+    }
+
     Type *Struct::get_field_type(Identifier *id)
     {
         return this->get_field(id->identifier)->get_type();
@@ -247,11 +283,19 @@ namespace logia::AST
         this->__register_type(this->get_name());
     }
 
+    void Struct::pre_codegen(logia::Backend *backend)
+    {
+        // like functions we should generate the type asap
+        // we can fill it later!
+        this->ir_type = this->struct_type = llvm::StructType::create(backend->context, this->get_name());
+        Type::pre_codegen(backend);
+    }
+
     llvm::Value *Struct::post_codegen(logia::Backend *backend)
     {
         LOG(DBG, "{}", this->to_string());
         // cache, because type are unique and we will be visiting this a lot
-        if (this->ir_type)
+        if (this->is_post_codegen)
         {
             return (llvm::Value *)this->ir_type;
         }
@@ -267,11 +311,22 @@ namespace logia::AST
             }
         }
 
-        auto st = llvm::StructType::create(backend->context, this->get_name());
-        st->setBody(elements);
+        this->struct_type->setBody(elements);
 
-        this->ir_type = st;
-        return Type::post_codegen(backend);
+        // To avoid possible infinite recursions we should have the type defined before use
+        // that's why we generate methods after the struct has llvm type
+        Type::post_codegen(backend);
+
+        Function *fn;
+        for (auto &prop : this->children)
+        {
+            if (prop->try_cast(&fn))
+            {
+                fn->post_codegen(backend);
+            }
+        }
+
+        return this->cg_value;
     }
 
     void Struct::_pre_type_inference()
@@ -320,7 +375,7 @@ namespace logia::AST
         tdef->is_typed = true;
 
         fn->insert_parameter(0, new FunctionParameter(new Identifier({}, "this"), new Ref(tdef)));
-
+        fn->is_method = true;
         this->push_child(fn);
         ++this->method_count;
     }

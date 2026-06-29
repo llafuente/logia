@@ -60,6 +60,18 @@
         }                                               \
     } while (false)
 
+#define CST_VISIT_BRANCH2(retrieve_method, visit_method, type, block)            \
+    do                                                                           \
+    {                                                                            \
+        auto sub_context = context->retrieve_method();                           \
+        if (sub_context != nullptr)                                              \
+        {                                                                        \
+            auto node = ANY_VOIDP_CAST(type *, this->visit_method(sub_context)); \
+            block;                                                               \
+            return node;                                                         \
+        }                                                                        \
+    } while (false)
+
 #define CST_DEBUG_FUNCTION()                \
     do                                      \
     {                                       \
@@ -820,7 +832,6 @@ namespace logia
         CST_TODO_BRANCH(anonymousFunctionDef, visitAnonymousFunctionDef);
 
         auto fn = this->parseFunctionDef(context->functionDef());
-        this->program->push_child(fn);
 
         this->parseBlock(context->blockStmt(), fn->get_body());
 
@@ -946,6 +957,29 @@ namespace logia
         }
     }
 
+    std::any CST2AST::visitProgramStmt(LogiaParser::ProgramStmtContext *context)
+    {
+        auto functionDecl = context->functionDecl();
+        if (functionDecl != nullptr)
+        {
+            // TODO where we attach this function ?!
+            auto fn = ANY_VOIDP_CAST(AST::Function *, this->visitFunctionDecl(functionDecl));
+            this->program->push_child(fn);
+            return fn;
+        }
+
+        auto typeDecl = context->typeDecl();
+        if (typeDecl != nullptr)
+        {
+            // TODO where we attach this function ?!
+            auto ty = ANY_VOIDP_CAST(AST::Type *, this->visitTypeDecl(typeDecl));
+            this->program->push_child(ty);
+            return ty;
+        }
+
+        CST_UNREACHABLE();
+    }
+
     std::any CST2AST::visitStmt(LogiaParser::StmtContext *context)
     {
         CST_DEBUG_FUNCTION();
@@ -957,7 +991,18 @@ namespace logia
         CST_VISIT_BRANCH(blockStmt, visitBlockStmt);
         CST_VISIT_BRANCH(aliasDeclStmt, visitAliasDeclStmt);
         CST_VISIT_BRANCH(typeDecl, visitTypeDecl);
-        CST_VISIT_BRANCH(functionDecl, visitFunctionDecl);
+
+        // CST_VISIT_BRANCH2(functionDecl, visitFunctionDecl, AST::Function, this->program->push_child(node););
+
+        auto functionDecl = context->functionDecl();
+        if (functionDecl != nullptr)
+        {
+            // TODO where we attach this function ?!
+            auto fn = ANY_VOIDP_CAST(AST::Function *, this->visitFunctionDecl(functionDecl));
+            this->program->push_child(fn);
+            return fn;
+        }
+
         CST_VISIT_BRANCH(operatorFunctionDecl, visitOperatorFunctionDecl);
 
         CST_VISIT_BRANCH(selectionStmts, visitSelectionStmts);
@@ -1043,7 +1088,6 @@ namespace logia
         {
             auto structure = this->parseStructTypeDecl(type_name, context->structTypeDecl());
 
-            this->program->push_child(structure); // <-- TODO push to program atm :)
             return ANY_VOIDP_STORE(structure);
         }
 
@@ -1158,6 +1202,7 @@ namespace logia
         {
             auto fn = ANY_VOIDP_CAST(AST::Function *, this->visitFunctionDecl(functionDecl));
             structure->add_method(fn);
+            return;
         }
 
         CST_TODO_BRANCH(memoryFunctionDecl, MemoryFunctionDecl);

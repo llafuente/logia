@@ -46,9 +46,9 @@ namespace logia
         }
 
         // 2nd
-        for (size_t pass_id = 1; pass_id <= TYPE_INFERENCE_MAX; ++pass_id)
+        for (size_t current_pass_id = 1; current_pass_id <= TYPE_INFERENCE_MAX; ++current_pass_id)
         {
-            if (pass_id != 1)
+            if (current_pass_id != 1)
             {
                 // update after each pass!
                 all_nodes = node->get_post_descendant();
@@ -57,10 +57,15 @@ namespace logia
 
             for (auto node : all_nodes)
             {
-                node->type_inference(pass_id);
+                // if any node create more nodes, those fall behind!
+                // this is not really performant, but there is no way atm to try until "current_pass_id"
+                for (size_t pass_id = node->type_inference_pass_id + 1; pass_id <= current_pass_id; ++pass_id)
+                {
+                    node->type_inference(pass_id);
+                }
                 // pre_type_inference could be imposible to be done for some nodes (like Identifiers)
                 // it' may require that everyone around has pre_type_inference, so we need to introduce a way to delay retry this call again
-                if (node->type_inference_pass_id < pass_id)
+                if (node->type_inference_pass_id < current_pass_id)
                 {
                     LOG(DBG, "Node can't finish pre_type_inference queue: {}", node->to_string_tree());
                     pending.push_back(node);
@@ -76,10 +81,14 @@ namespace logia
                 auto before = pending.size();
 
                 pending.erase(std::remove_if(pending.begin(), pending.end(),
-                                             [pass_id](auto node)
+                                             [current_pass_id](auto node)
                                              {
-                                                 node->type_inference(pass_id);
-                                                 return node->type_inference_pass_id >= pass_id;
+                                                 for (size_t pass_id = node->type_inference_pass_id + 1; pass_id <= current_pass_id; ++pass_id)
+                                                 {
+                                                     node->type_inference(pass_id);
+                                                 }
+
+                                                 return node->type_inference_pass_id >= current_pass_id;
                                              }),
                               pending.end());
 
@@ -89,7 +98,7 @@ namespace logia
                     {
                         std::cerr << std::format("tree: {}\nlocation: {}", node->to_string_tree(), node->loc.get_debug_location());
                     }
-                    throw_compiler_error(std::format("Could not finish pass_id: {} for some nodes!", pass_id));
+                    throw_compiler_error(std::format("Could not finish pass_id: {} for some nodes!", current_pass_id));
                 }
             }
         }

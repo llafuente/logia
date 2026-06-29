@@ -200,7 +200,14 @@ namespace logia
         this->cst_tree = rule;
 
         // logia_log_level = logia_config.cst_log_level;
-        this->print_cst(logia_config.print_cst ? std::cerr : logia_log_file);
+        if (logia_config.print_cst)
+        {
+            this->print_cst(std::cerr);
+        }
+        else if (logia_log_level >= DBG)
+        {
+            this->print_cst(logia_log_file);
+        }
 
         if (is_program)
         {
@@ -222,8 +229,14 @@ namespace logia
         LOGIA_VERIFY(this->ast_tree->loc.file != nullptr);
         LOGIA_VERIFY(this->ast_tree->loc.text != nullptr);
 
-        // logia_log_level = logia_config.ast_log_level;
-        this->print_ast(logia_config.print_ast ? std::cerr : logia_log_file);
+        if (logia_config.print_cst)
+        {
+            this->print_ast(std::cerr);
+        }
+        else if (logia_log_level >= DBG)
+        {
+            this->print_ast(logia_log_file);
+        }
 
         return this->ast_tree;
     }

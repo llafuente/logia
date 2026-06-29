@@ -96,7 +96,7 @@ namespace logia
         llvm::Expected<llvm::TargetMachine *> createHostTargetMachine(llvm::Triple triple);
 
         /// @brief Applys LLVM optimizers to current module using  API PassBuilder
-        void applyLLVMOptimizers();
+        void applyLLVMOptimizers(llvm::OptimizationLevel level);
 
         /// @brief Generates LLVM IR file
         bool emitTargetLLVMIR(std::string fileName);

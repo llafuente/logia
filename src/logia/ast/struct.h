@@ -2,6 +2,11 @@
 
 #include "logia/ast/type.h"
 
+namespace llvm
+{
+    class StructType;
+}
+
 namespace logia::AST
 {
     struct Function;
@@ -81,6 +86,8 @@ namespace logia::AST
         /// @brief number of methods
         uint32_t setter_count = 0;
 
+        llvm::StructType *struct_type = nullptr;
+
         Struct(location loc, Identifier *name);
 
         /// @brief Retrives struct identifier name as C string
@@ -121,6 +128,8 @@ namespace logia::AST
         /// @return The field corresponding to the identifier
         StructField *get_field(const char *id);
 
+        Node *get_property(const char *id);
+
         /// @brief Retrieves the type of a field by its identifier
         /// @param id The identifier of the field
         /// @return The type of the field
@@ -135,7 +144,7 @@ namespace logia::AST
         void on_after_attach() override;
 
         void validate() override;
-
+        void pre_codegen(logia::Backend *backend) override;
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
     protected:

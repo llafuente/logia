@@ -7,6 +7,7 @@
 #include "logia/ast/cast.h"
 #include "logia/ast/identifier.h"
 #include "logia/ast/constexpr.h"
+#include "logia/ast/unaryexpr.h"
 
 #include "logia/type_system.h"
 
@@ -29,18 +30,22 @@ namespace logia::multiple_dispatch
 
         // sanity checks first
 
-        // arguments < parameters
+        // check: arguments < parameters
         if (callexpr->argument_count > func->get_parameter_count())
         {
             return make_match_error(std::format("LGERR_MD003 Invalid argument count. '{}' takes '{}' arguments but '{}' were given.", func->get_repr(), func->get_parameter_count(), callexpr->argument_count), {callexpr, type_system::type_compatibility::NO});
         }
 
-        // all names args are parameters
+        CallExpressionArgument *arg;
+        Identifier *arg_name;
+        Type *arg_type;
+
+        // check: all named arguments are valid parameter names
         for (size_t i = 1, j = 0; i < callexpr->children.size(); i += 2, ++j)
         {
-            auto arg = callexpr->children[i]->as<CallExpressionArgument>();
+            arg = callexpr->children[i]->as<CallExpressionArgument>();
 
-            auto arg_name = arg->get_name();
+            arg_name = arg->get_name();
             if (strlen(arg_name->identifier) > 0)
             {
                 if (!func->get_parameter_by_name(arg_name->identifier))
@@ -50,7 +55,7 @@ namespace logia::multiple_dispatch
             }
         }
 
-        // search all parameters by name in args, mark done if has a compatible type -> error otherwise
+        // search all parameters by name in arguments if types are compatible -> ok, error otherwise!
         size_t param_index = 0;
         for (auto param : params)
         {
@@ -58,11 +63,13 @@ namespace logia::multiple_dispatch
             auto param_type = param->get_final_type();
             if (!param_name->is_empty())
             {
-                auto arg = callexpr->get_argument_by_name(param_name->identifier);
+                arg = callexpr->get_argument_by_name(param_name->identifier);
 
                 if (arg != nullptr)
                 {
-                    auto arg_type = arg->get_final_type();
+                    arg_type = arg->get_final_type();
+                    LOG(SILLY, "found a parameter[{} of {}]/argument[{}] match by name", param_name->identifier, param_type->get_repr(), arg_type->get_repr());
+
                     auto compatibility = type_system::type_is_compatible(arg_type, param_type);
                     if (compatibility.is_success())
                     {
@@ -73,7 +80,7 @@ namespace logia::multiple_dispatch
                         used_args[arg->index] = true;
                         auto value = arg->get_value();
 
-                        if ((c & (uint32_t)type_system::type_compatibility::AUTOCAST_CAST) != 0)
+                        if (c.contains(type_system::type_compatibility::AUTOCAST_CAST))
                         {
                             // allow ConstExpression to be casted!
                             if (value->is<ConstExpression>())
@@ -93,6 +100,17 @@ namespace logia::multiple_dispatch
                                 points *= 0.5;
                             }
                         }
+                        else if (c.contains(type_system::type_compatibility::AUTOCAST_REF))
+                        {
+                            if (value->is<ConstExpression>())
+                            {
+                                return make_match_error(std::format("LGERR_MD006 Invalid argument {} of type {}. Cannot ref from a const-expr.\n{}", arg->index + 1, arg_type->get_repr(), compatibility.message), {arg, compatibility.unwrap_error()});
+                            }
+                            else
+                            {
+                                arguments.push_back(new UnaryExpression(arg->loc, Operators::PREFIX_REFERENCE, value));
+                            }
+                        }
                         else
                         {
                             if (change)
@@ -104,9 +122,6 @@ namespace logia::multiple_dispatch
                         goto next_parameter;
                     }
 
-                    // passing 'struct a' to parameter of incompatible type 'int'
-
-                    // return maybe_error<std::tuple<size_t, type_system::type_compatibility>>(std::format("Invalid named argument type: '{}' of type '{}'.\n{}", param_name->identifier, arg_type, compatibility.message), {param_index, compatibility.unsafe_unwrap()});
                     return make_match_error(std::format("{}", compatibility.message), {arg, compatibility.unwrap_error()});
 
                 } // this param should be check in the next round, by position
@@ -132,12 +147,19 @@ namespace logia::multiple_dispatch
             // fetch the first "non-named" argument
             for (size_t i = 0; i < callexpr->argument_count; ++i)
             {
-                auto arg = callexpr->get_argument_by_index(i);
-
-                auto arg_name = arg->get_name();
-                if (arg_name->is_empty() && !used_args[i])
+                if (used_args[i])
                 {
-                    auto arg_type = arg->get_final_type();
+                    continue;
+                }
+
+                arg = callexpr->get_argument_by_index(i);
+
+                arg_name = arg->get_name();
+                if (arg_name->is_empty())
+                {
+                    arg_type = arg->get_final_type();
+                    LOG(SILLY, "found a parameter[{} of {}]/argument[{}] match by position {}", param_name->identifier, param_type->get_repr(), arg_type->get_repr(), i);
+
                     auto compatibility = type_system::type_is_compatible(arg_type, param_type);
                     if (compatibility.is_success())
                     {
@@ -148,7 +170,7 @@ namespace logia::multiple_dispatch
                         used_args[arg->index] = true;
                         auto value = arg->get_value();
 
-                        if ((c & (uint32_t)type_system::type_compatibility::AUTOCAST_CAST) != 0)
+                        if (c.contains(type_system::type_compatibility::AUTOCAST_CAST))
                         {
                             if (!value->is<ConstExpression>())
                             {
@@ -165,6 +187,17 @@ namespace logia::multiple_dispatch
                                     value->set_type(param_type);
                                     arguments.push_back(value);
                                 }
+                            }
+                        }
+                        else if (c.contains(type_system::type_compatibility::AUTOCAST_REF))
+                        {
+                            if (value->is<ConstExpression>())
+                            {
+                                return make_match_error(std::format("LGERR_MD006 Invalid argument {} of type {}. Cannot ref from a const-expr.\n{}", arg->index + 1, arg_type->get_repr(), compatibility.message), {arg, compatibility.unwrap_error()});
+                            }
+                            else
+                            {
+                                arguments.push_back(new UnaryExpression(arg->loc, Operators::PREFIX_REFERENCE, value));
                             }
                         }
                         else
@@ -215,6 +248,14 @@ namespace logia::multiple_dispatch
 
             // target for nested for loops :)
         next_parameter:;
+        }
+
+        for (size_t i = 0; i < callexpr->argument_count; ++i)
+        {
+            if (!used_args[i])
+            {
+                return make_match_error(std::format("LGERR_MD005 Unused argument at position '{}'. Calling '{}'", i, func->get_repr()), {callexpr->get_argument_by_index(i), type_system::type_compatibility::NO});
+            }
         }
 
         if (change)
@@ -276,11 +317,18 @@ namespace logia::multiple_dispatch
                 Function *func;
                 if (node->try_cast<Function>(&func))
                 {
-                    debug_candidates += std::format("Candidate {} with: \n{}Declared {}\n", i++, func->get_repr(), func->loc.get_debug_location(0, 0));
+                    debug_candidates += std::format("Candidate {}:\n{}\n\nDeclared {}\n", i++, func->get_repr(), func->loc.get_debug_location(0, 0));
                 }
                 ++i;
             }
-            throw std::runtime_error(std::format("LGERR_MD001 No matching function found for call expression.\n{}\nPossible candidates:\n{}", callexpr->loc.get_debug_location(), debug_candidates));
+            std::string debug_arg_types = "";
+            for (uint32_t i = 0; i < callexpr->argument_count; ++i)
+            {
+                debug_arg_types += debug_arg_types.size() ? ", " : "";
+                debug_arg_types += callexpr->get_argument_by_index(i)->get_final_type()->get_repr();
+            }
+
+            throw std::runtime_error(std::format("LGERR_MD001 No matching function found for call expression: ({})\n{}\nPossible candidates:\n{}", debug_arg_types, callexpr->loc.get_debug_location(), debug_candidates));
         }
 
         if (candidates.size() == 1)

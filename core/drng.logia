@@ -1,0 +1,36 @@
+
+// Deterministic random number generator
+type drng = struct {
+    i64 seed = 1
+    i64 count = 0
+    i64 state = 1
+
+        // Generate next random number
+    function rand() i64 {
+        // TODO move at top!
+        // Linear Congruential Generator parameters (32-bit)
+        const i64 LCG_A = 1664525
+        const i64 LCG_C = 1013904223
+        const i64 LCG_M = 4294967296 // 2^32
+
+        this.state = (LCG_A * this.state + LCG_C)
+        this.count = this.count + 1
+        return this.state
+    }
+
+    function rand_range(i64 min, i64 max) i64 {
+        if min > max {
+            // Swap if range is inverted
+            var i64 temp = min
+            min = max
+            max = temp
+        }
+        var i64 range = max - min + 1
+        return min + (this.rand() % range)
+    }
+}
+
+function main() i64 {
+    var drng x = {100}
+    return x.rand()
+}

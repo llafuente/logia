@@ -1,5 +1,4 @@
 #include "logia/backend.h"
-#include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IRReader/IRReader.h"
 #include <optional>
 
@@ -324,7 +323,7 @@ namespace logia
     void Backend::load_intrinsics(char *filepath)
     {
         LOG(INF, "({})", filepath);
-        // START_INTRINSICS();
+        START_INTRINSICS();
         //  to find logia type from LLVM Type we need to codegen our types first!
         this->program->codegen_primitives(this);
 
@@ -411,7 +410,7 @@ namespace logia
             llvm::orc::absoluteSymbols(std::move(symbols)));
     }
 
-    void Backend::applyLLVMOptimizers()
+    void Backend::applyLLVMOptimizers(llvm::OptimizationLevel level)
     {
         // references
         // https://discourse.llvm.org/t/beginner-help-for-llvm-passes/76600/10
@@ -456,7 +455,8 @@ namespace logia
 
         // Create the pass manager.
         // This one corresponds to a typical -O2 optimization pipeline.
-        llvm::ModulePassManager MPM = PB.buildPerModuleDefaultPipeline(llvm::OptimizationLevel::O0);
+        llvm::ModulePassManager MPM = PB.buildPerModuleDefaultPipeline(level);
+
         MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
 
         // Simplify the control flow graph (deleting unreachable blocks, etc).
@@ -521,17 +521,7 @@ namespace logia
             return false;
         }
 
-        llvm::legacy::PassManager pass;
-
-        if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType))
-        {
-            llvm::errs() << "TargetMachine can't emit a file of this type";
-            return false;
-        }
-
-        pass.run(*module);
-        dest.flush();
-
+        module->print(dest, nullptr);
         return true;
     }
 
@@ -592,6 +582,8 @@ namespace logia
         // Specify the target and data layout;
         module->setDataLayout((*TheTargetMachine)->createDataLayout());
         module->setTargetTriple(triple);
+        // this->applyLLVMOptimizers(llvm::OptimizationLevel::O3);
+        // Assertion failed: (!F || F->getParent() == &M) && "Function not in current module!", file C:\Users\runneradmin\llvm\lib\Analysis\CallGraph.cpp, line 163
 
         return generateFile(fileName, llvm::CodeGenFileType::ObjectFile, &(*module), *TheTargetMachine);
     }
@@ -615,6 +607,7 @@ namespace logia
         // Specify the target and data layout;
         module->setDataLayout((*TheTargetMachine)->createDataLayout());
         module->setTargetTriple(triple);
+        // this->applyLLVMOptimizers(llvm::OptimizationLevel::O3);
 
         return generateFile(fileName, llvm::CodeGenFileType::AssemblyFile, &(*module), *TheTargetMachine);
     }

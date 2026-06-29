@@ -32,6 +32,7 @@ namespace logia
         CST2AST(logia::AST::Program *_program);
 
         std::any visitProgram(LogiaParser::ProgramContext *context) override;
+        std::any visitProgramStmt(LogiaParser::ProgramStmtContext *context) override;
 
         //
         // Expressions

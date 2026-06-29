@@ -139,6 +139,7 @@ namespace logia::AST
 
     protected:
         void _set_type(Type *type) override;
+        void _early_type_inference() override;
         void _pre_type_inference() override;
     };
 }

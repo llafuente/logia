@@ -25,8 +25,14 @@ namespace logia::AST
         std::string list;
         for (const auto &pair : this->scope)
         {
-            list += list.empty() ? "" : ", ";
-            list += pair.first;
+            if (list.empty())
+            {
+                list += std::format("{}[{}]", pair.first, pair.second.size());
+            }
+            else
+            {
+                list += std::format(",{}[{}]", pair.first, pair.second.size());
+            }
         }
         return std::format("scope[{}]{}", list, Node::to_string());
     }
@@ -124,9 +130,13 @@ namespace logia::AST
             p = p->parentScope;
         } while (p != nullptr);
 
+        LOG(DBG, "found {} items", out.size());
+
         // TODO this unique enforcement may be caused by other bug!
         std::sort(out.begin(), out.end());
         out.erase(std::unique(out.begin(), out.end()), out.end());
+
+        LOG(DBG, "found {} items", out.size());
 
         return logia::utils::make_success<std::vector<Node *>, bool>(out);
     }
