@@ -22,6 +22,50 @@
 
 namespace logia
 {
+    // helper functions
+    void logia_parse_print_cst(LogiaParser *parser, antlr4::ParserRuleContext *tree, std::ostream &out)
+    {
+        out << "cst:" << std::endl
+            << tree->toStringTree(parser, true) << std::endl;
+    }
+
+    void logia_parse_print_ast(AST::Node *node, std::ostream &out)
+    {
+        out << "ast:" << std::endl
+            << node->to_string_tree() << std::endl;
+    }
+
+    char *logia_file_read(const char *file_path)
+    {
+        FILE *file;
+        auto err = fopen_s(&file, file_path, "rb");
+        if (err)
+        {
+            throw_compiler_error(std::format("Error opening file: {}", file_path));
+        }
+
+        // Seek to the end to determine file size
+        fseek(file, 0, SEEK_END);
+        auto fileSize = ftell(file);
+        rewind(file);
+
+        // Allocate memory for the file content
+        char *buffer = (char *)malloc(fileSize + 2);
+        if (buffer == NULL)
+        {
+            fclose(file);
+            throw_compiler_error(std::format("Memory allocation failed: {}", file_path));
+        }
+
+        // Read the file into the buffer
+        fread(buffer, 1, fileSize, file);
+        buffer[fileSize] = '\n';     // Null-terminate the string
+        buffer[fileSize + 1] = '\0'; // Null-terminate the string
+
+        fclose(file);
+        return buffer;
+    }
+
     ErrorListener::ErrorListener(std::string inputFile, std::string input)
     {
         this->input = input;
@@ -79,15 +123,42 @@ namespace logia
     void ErrorListener::reportAttemptingFullContext(antlr4::Parser *recognizer, const antlr4::dfa::DFA &dfa, size_t startIndex, size_t stopIndex, const antlrcpp::BitSet &conflictingAlts, antlr4::atn::ATNConfigSet *configs) {}
     void ErrorListener::reportContextSensitivity(antlr4::Parser *recognizer, const antlr4::dfa::DFA &dfa, size_t startIndex, size_t stopIndex, size_t prediction, antlr4::atn::ATNConfigSet *configs) {}
 
-    ParseResult::ParseResult(const char *file_path)
+    // the real "parser"
+    template <class T>
+    T *logia_parse_file(const char *file_path)
     {
+        /// @brief Current working directory
+        char cwd[MAX_PATH];
+        /// @brief Main entry point file
+        char entry_point_fullpath[MAX_PATH];
+        /// @brief Absolute directory to entry point
+        char entry_point_absdir[MAX_PATH];
+        /// @brief Relative directory to entry point
+        char entry_point_reldir[MAX_PATH];
+        /// @brief entry point filename
+        char entry_point_filename[MAX_PATH];
+
+        // CST - antlr
+        LogiaParser *parser;
+        antlr4::ANTLRErrorListener *errorListener;
+        antlr4::CommonTokenStream *tokens;
+        LogiaLexer *lexer;
+        antlr4::ANTLRInputStream *input;
+        antlr4::ParserRuleContext *cst_tree;
+
+        // CODEGEN
+        Backend *backend;
+
+        // aux
+        char *text;
+
         LOG(DBG, "{}", logia_config.to_string());
 
         CHAR **lppPart = {NULL};
-        GetCurrentDirectoryA(MAX_PATH, this->cwd);
+        GetCurrentDirectoryA(MAX_PATH, cwd);
         auto retval = GetFullPathNameA(file_path,
                                        MAX_PATH,
-                                       this->entry_point_fullpath,
+                                       entry_point_fullpath,
                                        lppPart);
 
         if (retval == 0)
@@ -99,17 +170,17 @@ namespace logia
         do
         {
             --retval;
-        } while (retval > 0 && this->entry_point_fullpath[retval] != '\\' && this->entry_point_fullpath[retval] != '/');
+        } while (retval > 0 && entry_point_fullpath[retval] != '\\' && entry_point_fullpath[retval] != '/');
 
-        strcpy_s(this->entry_point_filename, &this->entry_point_fullpath[retval + 1]);
-        strcpy_s(this->entry_point_absdir, MAX_PATH, this->entry_point_fullpath);
-        this->entry_point_absdir[retval + 1] = '\0';
+        strcpy_s(entry_point_filename, &entry_point_fullpath[retval + 1]);
+        strcpy_s(entry_point_absdir, MAX_PATH, entry_point_fullpath);
+        entry_point_absdir[retval + 1] = '\0';
 
         BOOL success = PathRelativePathToA(
-            this->entry_point_reldir, // Output buffer
-            this->cwd,                // From path
+            entry_point_reldir,       // Output buffer
+            cwd,                      // From path
             FILE_ATTRIBUTE_DIRECTORY, // Base is a directory
-            this->entry_point_absdir, // To path
+            entry_point_absdir,       // To path
             FILE_ATTRIBUTE_DIRECTORY  // Target is a file
         );
 
@@ -119,151 +190,87 @@ namespace logia
         }
 
         LOG(DBG, "entry_point_fullpath = '{}'\nentry_point_absdir = '{}'\nentry_point_reldir = '{}'\nentry_point_filename = '{}'", entry_point_fullpath, entry_point_absdir, entry_point_reldir, entry_point_filename);
-    }
 
-    ParseResult::~ParseResult()
-    {
-        // parser will remove this
-        this->cst_tree = nullptr;
-
-        this->parser->removeErrorListeners();
-        delete this->errorListener;
-
-        delete this->parser;
-
-        delete this->tokens;
-        delete this->lexer;
-        delete this->input;
-        free(this->text);
-
-        delete this->ast_tree;
-    }
-
-    char *ParseResult::__file_read(const char *file_path)
-    {
-        FILE *file;
-        auto err = fopen_s(&file, file_path, "rb");
-        if (err)
-        {
-            throw_compiler_error(std::format("Error opening file: {}", file_path));
-        }
-
-        // Seek to the end to determine file size
-        fseek(file, 0, SEEK_END);
-        auto fileSize = ftell(file);
-        rewind(file);
-
-        // Allocate memory for the file content
-        char *buffer = (char *)malloc(fileSize + 2);
-        if (buffer == NULL)
-        {
-            fclose(file);
-            throw_compiler_error(std::format("Memory allocation failed: {}", file_path));
-        }
-
-        // Read the file into the buffer
-        fread(buffer, 1, fileSize, file);
-        buffer[fileSize] = '\n';     // Null-terminate the string
-        buffer[fileSize + 1] = '\0'; // Null-terminate the string
-
-        fclose(file);
-        return buffer;
-    }
-
-    AST::Program *ParseResult::parse(bool is_program)
-    {
-        if (this->entry_point_filename[0] == '\0') // empty?
+        if (entry_point_filename[0] == '\0') // empty?
         {
             throw_compiler_error("ParseResult: File not specified");
         }
         if (logia_config.verbose)
         {
-            std::cout << "parse(" << this->entry_point_fullpath << ")" << std::endl;
+            std::cout << "parse(" << entry_point_fullpath << ")" << std::endl;
         }
-        this->text = this->__file_read(this->entry_point_fullpath);
+        text = logia_file_read(entry_point_fullpath);
 
         if (logia_config.print)
         {
             std::cerr << "File Contents:" << std::endl
-                      << this->text << std::endl;
+                      << text << std::endl;
         }
 
-        this->input = new antlr4::ANTLRInputStream(text);
+        input = new antlr4::ANTLRInputStream(text);
 
-        this->lexer = new LogiaLexer(input);
-        this->tokens = new antlr4::CommonTokenStream(this->lexer);
-        this->parser = new LogiaParser(this->tokens);
-        this->errorListener = (antlr4::ANTLRErrorListener *)new ErrorListener(this->entry_point_fullpath, text);
-        this->parser->addErrorListener(this->errorListener);
+        lexer = new LogiaLexer(input);
+        tokens = new antlr4::CommonTokenStream(lexer);
+        parser = new LogiaParser(tokens);
+        errorListener = (antlr4::ANTLRErrorListener *)new ErrorListener(entry_point_fullpath, text);
+        parser->addErrorListener(errorListener);
 
-        auto rule = this->parser->program();
-        this->cst_tree = rule;
+        auto rule = parser->program();
+        cst_tree = rule;
 
         // logia_log_level = logia_config.cst_log_level;
         if (logia_config.print_cst)
         {
-            this->print_cst(std::cerr);
+            logia_parse_print_cst(parser, cst_tree, std::cerr);
         }
         else if (logia_log_level >= DBG)
         {
-            this->print_cst(logia_log_file);
+            logia_parse_print_cst(parser, cst_tree, logia_log_file);
         }
 
-        if (is_program)
-        {
-            this->ast_tree = new AST::Program({this->entry_point_fullpath, 0, 0, 0, 0, this->text}, this->entry_point_fullpath, this->text);
-        }
-        else
-        {
-            // TODO @llafuente invalid cast -> try no to use "package/program" staff inside CST2AST
-            this->ast_tree = (AST::Program *)new AST::Package({this->entry_point_fullpath, 0, 0, 0, 0, this->text}, this->entry_point_fullpath, this->text);
-        }
+        auto ast_tree = new T({entry_point_fullpath, 0, 0, 0, 0, text}, entry_point_fullpath, entry_point_reldir, text);
 
-        LOGIA_VERIFY(this->ast_tree->loc.file != nullptr);
-        LOGIA_VERIFY(this->ast_tree->loc.text != nullptr);
+        LOGIA_VERIFY(ast_tree->loc.file != nullptr);
+        LOGIA_VERIFY(ast_tree->loc.text != nullptr);
 
         LOG(DBG, "start CST2AST");
-        CST2AST *llvmVisitor = new CST2AST(this->ast_tree);
-        llvmVisitor->visit(this->cst_tree);
+        CST2AST *llvmVisitor = new CST2AST(ast_tree);
+        llvmVisitor->visit(cst_tree);
 
-        LOGIA_VERIFY(this->ast_tree->loc.file != nullptr);
-        LOGIA_VERIFY(this->ast_tree->loc.text != nullptr);
+        LOGIA_VERIFY(ast_tree->loc.file != nullptr);
+        LOGIA_VERIFY(ast_tree->loc.text != nullptr);
 
         if (logia_config.print_cst)
         {
-            this->print_ast(std::cerr);
+            logia_parse_print_ast(ast_tree, std::cerr);
         }
         else if (logia_log_level >= DBG)
         {
-            this->print_ast(logia_log_file);
+            logia_parse_print_ast(ast_tree, logia_log_file);
         }
 
-        return this->ast_tree;
+        // parser will remove this
+        cst_tree = nullptr;
+
+        parser->removeErrorListeners();
+        delete errorListener;
+
+        delete parser;
+
+        delete tokens;
+        delete lexer;
+        delete input;
+
+        return ast_tree;
     }
 
-    void ParseResult::print_cst(std::ostream &out)
+    LOGIA_LEND AST::Package *logia_parse_package(const char *file_path)
     {
-        out << "cst:" << std::endl
-            << this->cst_tree->toStringTree(this->parser, true) << std::endl;
+        return logia_parse_file<AST::Package>(file_path);
     }
 
-    void ParseResult::print_ast(std::ostream &out)
+    LOGIA_LEND AST::Program *logia_parse_program(const char *file_path)
     {
-        out << "ast:" << std::endl
-            << this->ast_tree->to_string_tree() << std::endl;
-    }
-
-    LOGIA_LEND ParseResult *logia_parse_package(const char *file_path)
-    {
-        auto parse_result = new ParseResult(file_path);
-        parse_result->parse(false);
-        return parse_result;
-    }
-
-    LOGIA_LEND ParseResult *logia_parse_program(const char *file_path)
-    {
-        auto parse_result = new ParseResult(file_path);
-        parse_result->parse(true);
-        return parse_result;
+        return logia_parse_file<AST::Program>(file_path);
     }
 }

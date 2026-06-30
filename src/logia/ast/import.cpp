@@ -106,8 +106,8 @@ namespace logia::AST
         package_path += ".logia";
 
         // parse
-        parse_result = logia_parse_package(package_path.c_str());
-        this->push_child(parse_result->ast_tree); // program attached? :P
+        auto x = logia_parse_package(package_path.c_str());
+        this->push_child(x); // program attached? :P
 
         // handle scope target
         if (target == nullptr)

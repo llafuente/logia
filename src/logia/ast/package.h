@@ -1,18 +1,15 @@
 #pragma once
 
-#include "logia/ast/scope.h"
+#include "logia/ast/program.h"
 
 namespace logia::AST
 {
     struct Identifier;
 
     /// @brief Represents a package, which is a collection of functions and variables. It is the top-level scope of a program.
-    struct Package : public Scope
+    struct Package : public File
     {
-        const char *entry_point_file = nullptr;
-        const char *file_contents = nullptr;
-
-        Package(location loc, const char *entry_point_file, const char *file_contents);
+        Package(location loc, const char *entry_point_file, const char *entry_point_reldir, const char *file_contents);
 
         std::string to_string() override;
 

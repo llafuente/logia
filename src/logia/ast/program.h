@@ -23,20 +23,27 @@ namespace logia::AST
     // the only node that requires backend early
     // Also note that LLVM Types are unique while Logia don't (at least not at this moment!)
 
+    struct File : public Scope
+    {
+        /// @brief The entry point file
+        const char *entry_point_file = nullptr;
+        /// @brief The entry point relative file
+        const char *entry_point_reldir = nullptr;
+        /// @brief The entry point file contents, used for error reporting and debugging
+        const char *file_contents = nullptr;
+
+        File(location loc, const char *entry_point_file, const char *entry_point_reldir, const char *file_contents);
+    };
+
     /// @brief Root of the AST, contains all the top level declarations, statements and imports
-    struct Program : public Scope
+    struct Program : public File
     {
     public:
         /// @brief Intrinsics are functions that are implemented directly in llvm ir
         /// @remarks Use a property to hide intrinsics tree from user
         Scope *intrinsics = nullptr;
 
-        /// @brief The entry point file
-        const char *entry_point_file = nullptr;
-        /// @brief The entry point file contents, used for error reporting and debugging
-        const char *file_contents = nullptr;
-
-        Program(location loc, const char *entry_point_file, const char *file_contents);
+        Program(location loc, const char *entry_point_file, const char *entry_point_reldir, const char *file_contents);
 
         std::string to_string() override;
 

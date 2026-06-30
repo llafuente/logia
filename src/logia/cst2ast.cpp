@@ -82,7 +82,7 @@
 #define ANY_VOIDP_CAST(type, expr) (type)(std::any_cast<void *>(expr))
 
 #define MAKE_LOCATION(context) \
-    {this->program->loc.file, context->start->getLine() - 1, context->start->getCharPositionInLine(), context->stop->getLine() - 1, context->stop->getCharPositionInLine(), this->program->loc.text}
+    {this->program->entry_point_file, context->start->getLine() - 1, context->start->getCharPositionInLine(), context->stop->getLine() - 1, context->stop->getCharPositionInLine(), this->program->file_contents}
 
 namespace logia
 {
@@ -146,7 +146,7 @@ namespace logia
         }
     }
 
-    CST2AST::CST2AST(logia::AST::Program *_program) : program(_program)
+    CST2AST::CST2AST(logia::AST::File *_file) : program(_file)
     {
     }
 

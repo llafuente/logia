@@ -87,9 +87,9 @@ namespace logia
         }
 
         // frontend starts
-        logia::ParseResult *parse_result = logia::logia_parse_program(argv[0]);
+        AST::Program *program = logia::logia_parse_program(argv[0]);
 
-        auto backend = new logia::Backend(parse_result);
+        auto backend = new logia::Backend(program);
         backend->load_intrinsics();
         if (logia_config.llfile != nullptr)
         {
@@ -111,7 +111,7 @@ namespace logia
         auto ret = backend->run_jit("main");
 
         delete backend;
-        delete parse_result;
+        delete program;
         logia_config.reset();
 
         return ret;

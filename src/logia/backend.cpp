@@ -45,7 +45,7 @@
 
 namespace logia
 {
-    Backend::Backend(ParseResult *parse_result) : parse_result(parse_result), program(parse_result->ast_tree), debug(logia_config.debug)
+    Backend::Backend(AST::Program *program) : program(program), debug(logia_config.debug)
     {
 #ifdef CODEGEN_NATIVE
         llvm::InitializeNativeTarget();
@@ -80,7 +80,7 @@ namespace logia
 
             // Create a file descriptor for the source file
             // TODO pass this variable, but it's not that easy atp, because could be an import, think about it!
-            this->dfile = this->dbuilder->createFile(parse_result->entry_point_filename, parse_result->entry_point_reldir);
+            this->dfile = this->dbuilder->createFile(program->entry_point_file, program->entry_point_reldir);
 
             // Create the compile unit
             this->dcompilation_unit = this->dbuilder->createCompileUnit(

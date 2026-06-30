@@ -13,7 +13,16 @@
 
 namespace logia::AST
 {
-    Program::Program(location loc, const char *entry_point_file, const char *file_contents) : Scope(loc), entry_point_file(entry_point_file), file_contents(file_contents)
+    File::File(location loc, const char *entry_point_file, const char *entry_point_reldir, const char *file_contents) : Scope(loc)
+    {
+        this->entry_point_file = _strdup(entry_point_file);
+        this->entry_point_reldir = _strdup(entry_point_reldir);
+        // do not duplicate this because ParseResult will led this "leak"
+        // this->file_contents = _strdup(file_contents);
+        this->file_contents = file_contents;
+    }
+
+    Program::Program(location loc, const char *entry_point_file, const char *entry_point_reldir, const char *file_contents) : File(loc, entry_point_file, entry_point_reldir, file_contents)
     {
         this->is_attached = true; // Program is obviously never attached to anything, it's the root -> manually set the flag
         intrinsics = new Scope(loc);

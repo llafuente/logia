@@ -27,9 +27,9 @@ namespace logia
     class CST2AST : public LogiaParserBaseVisitor
     {
     public:
-        logia::AST::Program *program;
+        logia::AST::File *program;
 
-        CST2AST(logia::AST::Program *_program);
+        CST2AST(logia::AST::File *_file);
 
         std::any visitProgram(LogiaParser::ProgramContext *context) override;
         std::any visitProgramStmt(LogiaParser::ProgramStmtContext *context) override;

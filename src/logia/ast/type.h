@@ -84,7 +84,7 @@ namespace logia::AST
     public:
         uint32_t bits;
         bool is_signed;
-        // NOTE Integer is a primitive, won't have rule
+
         Integer(bool is_signed, int bits);
         ~Integer();
 
@@ -105,7 +105,7 @@ namespace logia::AST
     {
     public:
         int bits;
-        // NOTE Integer is a primitive, won't have rule
+
         Float(int bits);
         ~Float();
 
@@ -125,7 +125,6 @@ namespace logia::AST
     struct Void : public Type
     {
     public:
-        // NOTE Integer is a primitive, won't have rule
         Void();
         ~Void();
 
@@ -144,7 +143,6 @@ namespace logia::AST
     struct Pointer : public Type
     {
     public:
-        // NOTE Integer is a primitive, won't have rule
         Pointer();
         ~Pointer();
 
@@ -165,11 +163,30 @@ namespace logia::AST
     public:
         Type *pointee;
 
-        // NOTE Integer is a primitive, won't have rule
         Ref(Type *pointee);
         ~Ref();
 
         Type *get_pointee();
+
+        std::string to_string() override;
+
+        std::string get_repr() override;
+
+        void pre_codegen(logia::Backend *backend) override;
+
+        void on_after_attach() override;
+
+        void validate() override;
+    };
+
+    struct Vec : public Ref
+    {
+    public:
+        Type *pointee;
+        size_t size = 0;
+
+        Vec(Type *pointee);
+        ~Vec();
 
         std::string to_string() override;
 

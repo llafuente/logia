@@ -43,9 +43,6 @@ namespace logia
     struct Backend
     {
     public:
-        /// @brief back pointer to fronted to avoid duplication
-        ParseResult *parse_result = nullptr;
-
         bool debug;
         /**
          * llvm context
@@ -80,7 +77,7 @@ namespace logia
         /**
          * Initialize LLVM
          */
-        Backend(ParseResult *parse_result);
+        Backend(AST::Program *program);
         /**
          *
          */
