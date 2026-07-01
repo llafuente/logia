@@ -138,19 +138,13 @@ namespace logia
         /// @brief entry point filename
         char entry_point_filename[MAX_PATH];
 
-        // CST - antlr
-        LogiaParser *parser;
-        antlr4::ANTLRErrorListener *errorListener;
-        antlr4::CommonTokenStream *tokens;
-        LogiaLexer *lexer;
-        antlr4::ANTLRInputStream *input;
-        antlr4::ParserRuleContext *cst_tree;
-
-        // CODEGEN
-        Backend *backend;
-
-        // aux
-        char *text;
+        // handle cstring ownership
+        struct FreeDeleter
+        {
+            void operator()(char *p) const noexcept { free(p); }
+        };
+        std::unique_ptr<char, FreeDeleter> textOwner;
+        char *text = nullptr;
 
         LOG(DBG, "{}", logia_config.to_string());
 
@@ -199,7 +193,8 @@ namespace logia
         {
             std::cout << "parse(" << entry_point_fullpath << ")" << std::endl;
         }
-        text = logia_file_read(entry_point_fullpath);
+        textOwner.reset(logia_file_read(entry_point_fullpath));
+        text = textOwner.get();
 
         if (logia_config.print)
         {
@@ -207,34 +202,34 @@ namespace logia
                       << text << std::endl;
         }
 
-        input = new antlr4::ANTLRInputStream(text);
+        // CST - antlr
+        auto input = std::make_unique<antlr4::ANTLRInputStream>(text);
+        auto lexer = std::make_unique<LogiaLexer>(input.get());
+        auto tokens = std::make_unique<antlr4::CommonTokenStream>(lexer.get());
+        auto parser = std::make_unique<LogiaParser>(tokens.get());
+        auto errorListener = std::make_unique<ErrorListener>(entry_point_fullpath, text);
+        parser->addErrorListener(errorListener.get());
 
-        lexer = new LogiaLexer(input);
-        tokens = new antlr4::CommonTokenStream(lexer);
-        parser = new LogiaParser(tokens);
-        errorListener = (antlr4::ANTLRErrorListener *)new ErrorListener(entry_point_fullpath, text);
-        parser->addErrorListener(errorListener);
-
-        auto rule = parser->program();
-        cst_tree = rule;
+        antlr4::ParserRuleContext *cst_tree = parser->program();
 
         // logia_log_level = logia_config.cst_log_level;
         if (logia_config.print_cst)
         {
-            logia_parse_print_cst(parser, cst_tree, std::cerr);
+            logia_parse_print_cst(parser.get(), cst_tree, std::cerr);
         }
         else if (logia_log_level >= DBG)
         {
-            logia_parse_print_cst(parser, cst_tree, logia_log_file);
+            logia_parse_print_cst(parser.get(), cst_tree, logia_log_file);
         }
 
-        auto ast_tree = new T({entry_point_fullpath, 0, 0, 0, 0, text}, entry_point_fullpath, entry_point_reldir, text);
+        auto ast_tree = std::make_unique<T>(({entry_point_fullpath, 0, 0, 0, 0, text}), entry_point_fullpath, entry_point_reldir, text);
+        textOwner.release(); // preserve previous ownership semantics (AST now owns/uses text)
 
         LOGIA_VERIFY(ast_tree->loc.file != nullptr);
         LOGIA_VERIFY(ast_tree->loc.text != nullptr);
 
         LOG(DBG, "start CST2AST");
-        CST2AST *llvmVisitor = new CST2AST(ast_tree);
+        auto llvmVisitor = std::make_unique<CST2AST>(ast_tree.get());
         llvmVisitor->visit(cst_tree);
 
         LOGIA_VERIFY(ast_tree->loc.file != nullptr);
@@ -242,26 +237,18 @@ namespace logia
 
         if (logia_config.print_cst)
         {
-            logia_parse_print_ast(ast_tree, std::cerr);
+            logia_parse_print_ast(ast_tree.get(), std::cerr);
         }
         else if (logia_log_level >= DBG)
         {
-            logia_parse_print_ast(ast_tree, logia_log_file);
+            logia_parse_print_ast(ast_tree.get(), logia_log_file);
         }
 
         // parser will remove this
         cst_tree = nullptr;
 
         parser->removeErrorListeners();
-        delete errorListener;
-
-        delete parser;
-
-        delete tokens;
-        delete lexer;
-        delete input;
-
-        return ast_tree;
+        return ast_tree.release();
     }
 
     LOGIA_LEND AST::Package *logia_parse_package(const char *file_path)
