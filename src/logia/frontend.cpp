@@ -208,7 +208,7 @@ namespace logia
         auto tokens = std::make_unique<antlr4::CommonTokenStream>(lexer.get());
         auto parser = std::make_unique<LogiaParser>(tokens.get());
         auto errorListener = std::make_unique<ErrorListener>(entry_point_fullpath, text);
-        parser->addErrorListener(errorListener.get());
+        parser->addErrorListener((antlr4::ANTLRErrorListener *)errorListener.get());
 
         antlr4::ParserRuleContext *cst_tree = parser->program();
 
@@ -222,7 +222,7 @@ namespace logia
             logia_parse_print_cst(parser.get(), cst_tree, logia_log_file);
         }
 
-        auto ast_tree = std::make_unique<T>(({entry_point_fullpath, 0, 0, 0, 0, text}), entry_point_fullpath, entry_point_reldir, text);
+        auto ast_tree = std::make_unique<T>((AST::location){entry_point_fullpath, 0, 0, 0, 0, text}, entry_point_fullpath, entry_point_reldir, text);
         textOwner.release(); // preserve previous ownership semantics (AST now owns/uses text)
 
         LOGIA_VERIFY(ast_tree->loc.file != nullptr);
