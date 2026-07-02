@@ -50,7 +50,7 @@ namespace logia::AST
         /// @param target The target scope
         void set_scope_target(Scope *target);
         /// @brief Throws if the import is not valid
-        void validate();
+        void validate() override;
         /// @brief Parses file at this stage, once attached we can parse and copy our scope if required
         void on_after_attach() override;
     };

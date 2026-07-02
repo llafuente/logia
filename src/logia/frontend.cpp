@@ -222,7 +222,7 @@ namespace logia
             logia_parse_print_cst(parser.get(), cst_tree, logia_log_file);
         }
 
-        auto ast_tree = std::make_unique<T>((AST::location){entry_point_fullpath, 0, 0, 0, 0, text}, entry_point_fullpath, entry_point_reldir, text);
+        auto ast_tree = std::make_unique<T>((AST::location){entry_point_fullpath, 0, 0, 0, 0, 0, 0, text}, entry_point_fullpath, entry_point_reldir, text);
         textOwner.release(); // preserve previous ownership semantics (AST now owns/uses text)
 
         LOGIA_VERIFY(ast_tree->loc.file != nullptr);

@@ -54,7 +54,7 @@ namespace logia::AST
         unsigned char is_constant : 1 = false;
 
         /// @brief location in code, used for error reporting and debugging
-        location loc = {nullptr, 0, 0, 0, 0, nullptr};
+        location loc = {nullptr, 0, 0, 0, 0, 0, 0, nullptr, ""};
 
         /// @brief backpointer to parent node to traverse to root(program)
         Node *parent_node = nullptr;

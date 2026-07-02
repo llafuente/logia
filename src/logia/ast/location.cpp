@@ -59,6 +59,39 @@ namespace logia::AST
         return std::format("at {}:{}:{}\n{}", this->file, err_start_line + 1, err_start_column + 1, snippet);
     }
 
+    std::string location::get_source_code()
+    {
+        if (this->preview.size())
+        {
+            return this->preview;
+        }
+        if (this->stop_index == 0 && this->start_index == 0)
+        {
+            return this->preview;
+        }
+
+        // newlines -> "\r\n"
+        this->preview.reserve(this->stop_index - this->start_index + 2 * (this->stop_line - this->start_line) + 1);
+
+        for (size_t i = this->start_index; i <= this->stop_index; ++i)
+        {
+            if (this->text[i] == '\r')
+            {
+                this->preview += "\\r";
+            }
+            else if (this->text[i] == '\n')
+            {
+                this->preview += "\\n";
+            }
+            else
+            {
+                this->preview += this->text[i];
+            }
+        }
+
+        return this->preview;
+    }
+
     std::vector<std::string> nodelist_get_debug(std::vector<Node *> list)
     {
         auto out = std::vector<std::string>(list.size(), "");

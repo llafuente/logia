@@ -116,6 +116,13 @@ namespace logia::AST
             }
         }
 
+        // show source code, but only if is a reasonable amount of code!
+        auto d = this->loc.stop_index - this->loc.start_index;
+        if (d > 0 && d < 64)
+        {
+            return std::format("| {} [@{}] ty={} [{},type_inference={}] {}", static_cast<void *>(this), static_cast<void *>(this->parent_node), ty, flags, this->type_inference_pass_id, this->loc.get_source_code());
+        }
+
         return std::format("| {} [@{}] ty={} [{},type_inference={}]", static_cast<void *>(this), static_cast<void *>(this->parent_node), ty, flags, this->type_inference_pass_id);
     }
 
@@ -365,7 +372,7 @@ namespace logia::AST
     //
     // NoOp
     //
-    NoOp::NoOp() : Node({})
+    NoOp::NoOp() : Node(location{nullptr, 0, 0, 0, 0, 0, 0, nullptr})
     {
         this->has_type = false;
         this->skip_codegen = true;

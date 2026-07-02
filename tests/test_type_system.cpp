@@ -22,7 +22,7 @@ TEST(logia_test_type_system, start)
     using namespace logia::AST;
     using namespace logia::type_system;
 
-    location loc = {"", 0, 0, 0, 0, ""};
+    location loc = {"", 0, 0, 0, 0, 0, 0, ""};
 
     auto i32 = new logia::AST::Integer(true, 32);
     auto u16 = new logia::AST::Integer(false, 16);
@@ -163,7 +163,7 @@ TEST(logia_test_type_system, function)
     using namespace logia::AST;
     using namespace logia::type_system;
 
-    location loc = {"", 0, 0, 0, 0, ""};
+    location loc = {"", 0, 0, 0, 0, 0, 0, ""};
     auto i16 = new logia::AST::Integer(true, 16);
     auto i32 = new logia::AST::Integer(true, 32);
     auto f32 = new logia::AST::Float(32);

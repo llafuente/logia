@@ -81,8 +81,16 @@
 #define ANY_VOIDP_STORE(expr) (void *)(expr)
 #define ANY_VOIDP_CAST(type, expr) (type)(std::any_cast<void *>(expr))
 
-#define MAKE_LOCATION(context) \
-    {this->program->entry_point_file, context->start->getLine() - 1, context->start->getCharPositionInLine(), context->stop->getLine() - 1, context->stop->getCharPositionInLine(), this->program->file_contents}
+#define MAKE_LOCATION(context)                                   \
+    {                                                            \
+        .file = this->program->entry_point_file,                 \
+        .start_line = context->start->getLine() - 1,             \
+        .start_column = context->start->getCharPositionInLine(), \
+        .start_index = context->start->getStartIndex(),          \
+        .stop_line = context->stop->getLine() - 1,               \
+        .stop_column = context->stop->getCharPositionInLine(),   \
+        .stop_index = context->stop->getStopIndex(),             \
+        .text = this->program->file_contents}
 
 namespace logia
 {
