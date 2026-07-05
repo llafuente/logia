@@ -15,6 +15,7 @@
 #include "logia/ast/returnstmt.h"
 #include "logia/ast/unaryexpr.h"
 #include "logia/ast/struct.h"
+#include "logia/type_inference.h"
 
 #include "gtest/gtest.h"
 #include <Windows.h>
@@ -286,6 +287,29 @@ TEST(test_type, type_inference_return_stmt_constexpr)
     auto ret = main_body->get_child<ReturnStmt>(1);
 
     EXPECT_EQ(ret->get_final_type(), i32);
+    EXPECT_EQ(ret->get_expr()->get_final_type(), i32);
+
+    LOGIA_UNIT_TEST_END();
+}
+
+TEST(test_type, type_inference_pass_check)
+{
+    LOGIA_UNIT_TEST();
+    using namespace logia::AST;
+    main_fn->is_attached = false; // avoid throw
+
+    // 0 - NoOp
+    auto ret = main_body->get_child<ReturnStmt>(1);
+
+    logia::type_inference_pass(program, program, TYPE_INFERENCE_EARLY);
+    EXPECT_EQ(ret->get_type(), nullptr);
+    EXPECT_EQ(ret->get_expr()->get_type(), i64);
+    EXPECT_EQ(ret->get_expr()->get_final_type(), i64);
+
+    logia::type_inference_pass(program, program, TYPE_INFERENCE_PRE);
+    EXPECT_EQ(ret->get_type(), i32);
+    EXPECT_EQ(ret->get_final_type(), i32);
+    EXPECT_EQ(ret->get_expr()->get_type(), i32);
     EXPECT_EQ(ret->get_expr()->get_final_type(), i32);
 
     LOGIA_UNIT_TEST_END();

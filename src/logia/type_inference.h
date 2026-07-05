@@ -26,5 +26,8 @@ namespace logia
     /// if not, the node is queued and it will retry at the end
     /// Once the pass ends, process the pending queue as many times as needed but each time we should have less nodes or throw
     /// Once all passes ended, we should have all typed and no modifications are allowed
-    void type_inference_node(AST::Program *program, AST::Node *node);
+    void type_inference_node(AST::Program *program, AST::Node *start_node);
+
+    /// @brief type inference given node / pass
+    void type_inference_pass(AST::Program *program, AST::Node *start_node, size_t pass_id);
 }

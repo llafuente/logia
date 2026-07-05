@@ -16,91 +16,91 @@ namespace logia
 {
     using namespace logia::AST;
 
-    void type_inference_node(AST::Program *program, AST::Node *node)
+    void type_inference_pass(AST::Program *program, AST::Node *start_node, size_t pass_id)
     {
-        // TODO cache
-        // auto program = node->first_parent<Program>();
-        auto default_integer = scope_look_one<Type>(program, "λi64");
-        auto default_float = scope_look_one<Type>(program, "λf64");
-
-        auto all_nodes = node->get_post_descendant();
-        all_nodes.push_back(node);
+        // update after each pass!
+        auto all_nodes = start_node->get_post_descendant();
+        all_nodes.push_back(start_node);
         std::vector<Node *> pending;
 
-        LOG(INF, "start pre_type_inference: found {} nodes", all_nodes.size());
+        LOG(INF, "start type_inference pass {}: found {} nodes", pass_id, all_nodes.size());
 
-        // 1st
-        for (auto node : all_nodes)
+        // 1st step, initialize literal types!
+        if (pass_id == TYPE_INFERENCE_EARLY)
         {
-            if (!node->is_typed)
+            // TODO cache
+            // auto program = node->first_parent<Program>();
+            auto default_integer = scope_look_one<Type>(program, "λi64");
+            auto default_float = scope_look_one<Type>(program, "λf64");
+            for (auto node : all_nodes)
             {
-                if (node->is<IntegerLiteral>())
+                if (!node->is_typed)
                 {
-                    node->set_type(default_integer);
-                }
-                else if (node->is<FloatLiteral>())
-                {
-                    node->set_type(default_float);
+                    if (node->is<IntegerLiteral>())
+                    {
+                        node->set_type(default_integer);
+                    }
+                    else if (node->is<FloatLiteral>())
+                    {
+                        node->set_type(default_float);
+                    }
                 }
             }
         }
 
-        // 2nd
+        for (auto node : all_nodes)
+        {
+            // if any node create more nodes, those fall behind!
+            // this is not really performant, but there is no way atm to try until "current_pass_id"
+            for (size_t current_pass_id = node->type_inference_pass_id + 1; current_pass_id <= pass_id; ++current_pass_id)
+            {
+                node->type_inference(pass_id);
+            }
+            // pre_type_inference could be imposible to be done for some nodes (like Identifiers)
+            // it' may require that everyone around has pre_type_inference, so we need to introduce a way to delay retry this call again
+            if (node->type_inference_pass_id < pass_id)
+            {
+                LOG(DBG, "Node can't finish pre_type_inference queue: {}", node->to_string_tree());
+                pending.push_back(node);
+            }
+        }
+
+        // process 2nd queue
+        LOG(INF, "end pre_type_inference: pending {} nodes", pending.size());
+        while (pending.size())
+        {
+            LOG(DBG, "start pre_type_inference pending with {} items", pending.size());
+
+            auto before = pending.size();
+
+            pending.erase(std::remove_if(pending.begin(), pending.end(),
+                                         [pass_id](auto node)
+                                         {
+                                             for (size_t pass_id = node->type_inference_pass_id + 1; pass_id <= pass_id; ++pass_id)
+                                             {
+                                                 node->type_inference(pass_id);
+                                             }
+
+                                             return node->type_inference_pass_id >= pass_id;
+                                         }),
+                          pending.end());
+
+            if (before == pending.size())
+            {
+                for (auto node : pending)
+                {
+                    std::cerr << std::format("tree: {}\nlocation: {}", node->to_string_tree(), node->loc.get_debug_location());
+                }
+                throw_compiler_error(std::format("Could not finish pass_id: {} for some nodes!", pass_id));
+            }
+        }
+    }
+
+    void type_inference_node(AST::Program *program, AST::Node *node)
+    {
         for (size_t current_pass_id = 1; current_pass_id <= TYPE_INFERENCE_MAX; ++current_pass_id)
         {
-            if (current_pass_id != 1)
-            {
-                // update after each pass!
-                all_nodes = node->get_post_descendant();
-                all_nodes.push_back(node);
-            }
-
-            for (auto node : all_nodes)
-            {
-                // if any node create more nodes, those fall behind!
-                // this is not really performant, but there is no way atm to try until "current_pass_id"
-                for (size_t pass_id = node->type_inference_pass_id + 1; pass_id <= current_pass_id; ++pass_id)
-                {
-                    node->type_inference(pass_id);
-                }
-                // pre_type_inference could be imposible to be done for some nodes (like Identifiers)
-                // it' may require that everyone around has pre_type_inference, so we need to introduce a way to delay retry this call again
-                if (node->type_inference_pass_id < current_pass_id)
-                {
-                    LOG(DBG, "Node can't finish pre_type_inference queue: {}", node->to_string_tree());
-                    pending.push_back(node);
-                }
-            }
-
-            // process 2nd queue
-            LOG(INF, "end pre_type_inference: pending {} nodes", pending.size());
-            while (pending.size())
-            {
-                LOG(DBG, "start pre_type_inference pending with {} items", pending.size());
-
-                auto before = pending.size();
-
-                pending.erase(std::remove_if(pending.begin(), pending.end(),
-                                             [current_pass_id](auto node)
-                                             {
-                                                 for (size_t pass_id = node->type_inference_pass_id + 1; pass_id <= current_pass_id; ++pass_id)
-                                                 {
-                                                     node->type_inference(pass_id);
-                                                 }
-
-                                                 return node->type_inference_pass_id >= current_pass_id;
-                                             }),
-                              pending.end());
-
-                if (before == pending.size())
-                {
-                    for (auto node : pending)
-                    {
-                        std::cerr << std::format("tree: {}\nlocation: {}", node->to_string_tree(), node->loc.get_debug_location());
-                    }
-                    throw_compiler_error(std::format("Could not finish pass_id: {} for some nodes!", current_pass_id));
-                }
-            }
+            type_inference_pass(program, node, current_pass_id);
         }
 
 #if _DEBUG
