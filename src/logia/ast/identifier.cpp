@@ -15,6 +15,14 @@ namespace logia::AST
     {
         this->identifier = _strdup(identifier);
     }
+    // copy constructor
+    Identifier::Identifier(const Identifier &other) : Expression(other)
+    {
+        this->resolve = other.resolve;
+        this->resolve_unique = other.resolve_unique;
+        this->identifier = _strdup(other.identifier);
+    }
+
     std::string Identifier::to_string()
     {
         // flags

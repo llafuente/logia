@@ -22,6 +22,7 @@ namespace logia::AST
         Node *decl = nullptr;
 
         Identifier(location loc, const char *identifier);
+        Identifier::Identifier(const Identifier &other);
         bool operator==(const char *id);
         bool operator==(const Identifier *id);
 

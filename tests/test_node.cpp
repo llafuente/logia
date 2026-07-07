@@ -23,6 +23,26 @@
 #include "test_utils.h"
 #include "logia/run.h"
 
+TEST(test_node, clone_identifier)
+{
+    LOGIA_UNIT_TEST();
+    using namespace logia::AST;
+
+    int size = program->children.size();
+    auto a = new Identifier(loc, "a");
+    EXPECT_EQ(a->parent_node, nullptr);
+
+    program->push_child(a);
+    EXPECT_NE(a->parent_node, nullptr);
+
+    a->type = (Type *)a; // xD
+    auto aclone = node_clone<Identifier>(a);
+    EXPECT_EQ(aclone->type, nullptr);        // type is removed
+    EXPECT_EQ(aclone->parent_node, nullptr); // parent_node is removed
+
+    LOGIA_UNIT_TEST_END();
+}
+
 TEST(test_node, test_1)
 {
     LOGIA_UNIT_TEST();

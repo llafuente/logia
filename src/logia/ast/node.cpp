@@ -55,10 +55,27 @@ namespace logia::AST
     }
 
     // impl
-
+    // constructor
     Node::Node(location loc) : loc(loc)
     {
     }
+    // copy constructor
+    Node::Node(const Node &other)
+    {
+        this->is_attached = other.is_attached;
+        this->is_validated = other.is_validated;
+        this->skip_codegen = other.skip_codegen;
+        this->is_pre_codegen = other.is_pre_codegen;
+        this->is_post_codegen = other.is_post_codegen;
+        this->has_type = other.has_type;
+        this->is_typed = other.is_typed;
+        this->is_constant = other.is_constant;
+        this->loc = other.loc;
+
+        // skip: parent_node, freezed, real_type, type_inference_pass_id, cg_value
+        // TODO children ???
+    }
+
     Node::~Node()
     {
         // TODO

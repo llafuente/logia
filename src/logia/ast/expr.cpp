@@ -16,6 +16,8 @@ namespace logia::AST
     //
 
     Expression::Expression(location loc) : Node(loc) {}
+    Expression::Expression(const Expression &other) : Node(other) {}
+
     std::string Expression::to_string()
     {
         return std::format("Expression{}", Node::to_string());

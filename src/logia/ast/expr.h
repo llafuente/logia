@@ -16,6 +16,7 @@ namespace logia::AST
     {
         // REVIEW strange  why do i need to declare this ?
         Expression(location loc);
+        Expression(const Expression &other);
 
         std::string to_string() override;
 

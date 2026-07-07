@@ -74,6 +74,9 @@ namespace logia::AST
         llvm::Value *cg_value = nullptr;
 
         Node(location loc);
+        // copy constructor to clone!
+        Node(const Node &other);
+
         ~Node();
 
         // TODO
@@ -438,5 +441,11 @@ namespace logia::AST
             }
         }
         return out;
+    }
+
+    template <class T>
+    T *node_clone(T *other)
+    {
+        return new T(*other);
     }
 }
