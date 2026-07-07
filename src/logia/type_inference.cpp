@@ -30,20 +30,19 @@ namespace logia
         {
             // TODO cache
             // auto program = node->first_parent<Program>();
-            auto default_integer = scope_look_one<Type>(program, "λi64");
-            auto default_float = scope_look_one<Type>(program, "λf64");
+            auto default_integer = scope_look_one<TypeDecl>(program, "λi64");
+            auto default_float = scope_look_one<TypeDecl>(program, "λf64");
             for (auto node : all_nodes)
             {
-                if (!node->is_typed)
+                if (node->is<IntegerLiteral>())
                 {
-                    if (node->is<IntegerLiteral>())
-                    {
-                        node->set_type(default_integer);
-                    }
-                    else if (node->is<FloatLiteral>())
-                    {
-                        node->set_type(default_float);
-                    }
+                    LOG(DBG, "set default type for IntegerLiteral: {}", (void *)node);
+                    node->set_type(default_integer);
+                }
+                else if (node->is<FloatLiteral>())
+                {
+                    LOG(DBG, "set default type for FloatLiteral: {}", (void *)node);
+                    node->set_type(default_float);
                 }
             }
         }
@@ -54,7 +53,8 @@ namespace logia
             // this is not really performant, but there is no way atm to try until "current_pass_id"
             for (size_t current_pass_id = node->type_inference_pass_id + 1; current_pass_id <= pass_id; ++current_pass_id)
             {
-                node->type_inference(pass_id);
+                LOG(SILLY, "type_inference({}, {})", (void *)node, pass_id);
+                node->type_inference(current_pass_id);
             }
             // pre_type_inference could be imposible to be done for some nodes (like Identifiers)
             // it' may require that everyone around has pre_type_inference, so we need to introduce a way to delay retry this call again
@@ -66,19 +66,20 @@ namespace logia
         }
 
         // process 2nd queue
-        LOG(INF, "end pre_type_inference: pending {} nodes", pending.size());
+        LOG(INF, "stop  type_inference pass {} pending {} nodes", pass_id, pending.size());
         while (pending.size())
         {
-            LOG(DBG, "start pre_type_inference pending with {} items", pending.size());
+            LOG(INF, "start type_inference(retry) pass {} pending {} nodes", pass_id, pending.size());
 
             auto before = pending.size();
 
             pending.erase(std::remove_if(pending.begin(), pending.end(),
                                          [pass_id](auto node)
                                          {
-                                             for (size_t pass_id = node->type_inference_pass_id + 1; pass_id <= pass_id; ++pass_id)
+                                             for (size_t current_pass_id = node->type_inference_pass_id + 1; current_pass_id <= pass_id; ++current_pass_id)
                                              {
-                                                 node->type_inference(pass_id);
+                                                 LOG(SILLY, "type_inference({}, {})", (void *)node, current_pass_id);
+                                                 node->type_inference(current_pass_id);
                                              }
 
                                              return node->type_inference_pass_id >= pass_id;
@@ -87,6 +88,7 @@ namespace logia
 
             if (before == pending.size())
             {
+                LOG(INF, "abort type_inference(retry) pass {} pending {} nodes", pass_id, pending.size());
                 for (auto node : pending)
                 {
                     std::cerr << std::format("tree: {}\nlocation: {}", node->to_string_tree(), node->loc.get_debug_location());
@@ -136,5 +138,12 @@ namespace logia
         type_inference_node(program, program);
 
         LOG(INF, "Tree after type_inference!\n{}", program->to_string_tree());
+    }
+
+    void type_inference_untype(AST::Node *node)
+    {
+        node->type_inference_pass_id = 0;
+        node->is_typed = false;
+        node->real_type = nullptr;
     }
 }

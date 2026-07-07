@@ -24,6 +24,6 @@ namespace logia::AST
 
     protected:
         /// @brief Forward type to return expression
-        void _set_type(Type *ty) override;
+        void _on_set_type(TypeDecl *ty) override;
     };
 }

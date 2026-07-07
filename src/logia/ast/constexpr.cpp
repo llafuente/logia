@@ -66,7 +66,7 @@ namespace logia::AST
 
         if (type != nullptr)
         {
-            this->set_type(type);
+            this->push_child(type);
         }
 
         // parse
@@ -98,11 +98,6 @@ namespace logia::AST
         }
     }
 
-    Type *IntegerLiteral::get_type()
-    {
-        return this->type;
-    }
-
     void IntegerLiteral::negate()
     {
         if (this->value_str[0] == '-')
@@ -122,9 +117,8 @@ namespace logia::AST
         return std::format("IntegerLiteral [{}]{}", this->value_str, Node::to_string());
     }
 
-    void IntegerLiteral::_set_type(Type *type)
+    void IntegerLiteral::_on_set_type(TypeDecl *type)
     {
-        this->type = type;
     }
 
     bool IntegerLiteral::is_valid_constant_operator(Operators op)
@@ -192,7 +186,7 @@ namespace logia::AST
     IntegerLiteral *do_int_operator(IntegerLiteral *lhs, IntegerLiteral *rhs)
     {
         // Build a copy-like result (same rule/type, own buffers)
-        auto result = new IntegerLiteral(lhs->loc, "0", lhs->type);
+        auto result = new IntegerLiteral(lhs->loc, "0", lhs->real_type);
 
         // Align bit width/signedness before add
         llvm::APSInt lhs_val = lhs->value;
@@ -259,7 +253,7 @@ namespace logia::AST
     llvm::Value *IntegerLiteral::post_codegen(logia::Backend *backend)
     {
         LOG(DBG, "{}", this->to_string());
-        auto type = this->get_final_type();
+        auto type = this->real_type == nullptr ? this->get_child<Type>(0)->get_final_type() : this->real_type;
         type->post_codegen(backend);
         auto llvm_type = type->ir_type;
 
@@ -332,6 +326,22 @@ namespace logia::AST
 
     void IntegerLiteral::validate() {}
 
+    void IntegerLiteral::_pre_type_inference()
+    {
+        if (this->children.size())
+        {
+            auto ty = this->get_child<Type>(0);
+            auto tyd = ty->get_final_type();
+            if (tyd == nullptr)
+            {
+                return;
+            }
+            this->set_type(tyd);
+        }
+
+        ConstExpression::_pre_type_inference();
+    }
+
     //
     // FloatLiteral
     //
@@ -350,7 +360,7 @@ namespace logia::AST
 
         if (type != nullptr)
         {
-            this->set_type(type);
+            this->push_child(type);
         }
         LOG(DBG, "{} as decimal", this->value_str);
         auto ref = llvm::StringRef(this->value_str);
@@ -391,11 +401,6 @@ namespace logia::AST
         }
     }
 
-    Type *FloatLiteral::get_type()
-    {
-        return this->type;
-    }
-
     bool FloatLiteral::is_valid_constant_operator(Operators op)
     {
         switch (op)
@@ -430,7 +435,7 @@ namespace logia::AST
         llvm::SmallString<32> str;
         sum.toString(str);
 
-        return new FloatLiteral(this->loc, str.c_str(), this->type);
+        return new FloatLiteral(this->loc, str.c_str(), this->real_type);
     }
 
     ConstExpression *FloatLiteral::operator-(ConstExpression *other)
@@ -445,7 +450,7 @@ namespace logia::AST
         llvm::SmallString<32> str;
         sum.toString(str);
 
-        return new FloatLiteral(this->loc, str.c_str(), this->type);
+        return new FloatLiteral(this->loc, str.c_str(), this->real_type);
     }
     ConstExpression *FloatLiteral::operator*(ConstExpression *other)
     {
@@ -459,7 +464,7 @@ namespace logia::AST
         llvm::SmallString<32> str;
         sum.toString(str);
 
-        return new FloatLiteral(this->loc, str.c_str(), this->type);
+        return new FloatLiteral(this->loc, str.c_str(), this->real_type);
     }
     ConstExpression *FloatLiteral::operator/(ConstExpression *other)
     {
@@ -474,7 +479,7 @@ namespace logia::AST
         llvm::SmallString<32> str;
         sum.toString(str);
 
-        return new FloatLiteral(this->loc, str.c_str(), this->type);
+        return new FloatLiteral(this->loc, str.c_str(), this->real_type);
     }
 
     std::string FloatLiteral::to_string()
@@ -513,9 +518,24 @@ namespace logia::AST
 
     void FloatLiteral::validate() {}
 
-    void FloatLiteral::_set_type(Type *type)
+    void FloatLiteral::_on_set_type(TypeDecl *type)
     {
-        this->type = type;
+    }
+
+    void FloatLiteral::_pre_type_inference()
+    {
+        if (this->children.size())
+        {
+            auto ty = this->get_child<Type>(0);
+            auto tyd = ty->get_final_type();
+            if (tyd == nullptr)
+            {
+                return;
+            }
+            this->set_type(tyd);
+        }
+
+        ConstExpression::_pre_type_inference();
     }
 
     //
@@ -540,14 +560,14 @@ namespace logia::AST
         return std::format("StringLiteral[{}]{}", this->text, Node::to_string());
     }
 
-    void StringLiteral::_set_type(Type *t)
+    void StringLiteral::_on_set_type(TypeDecl *t)
     {
         this->type = t;
     }
 
     void StringLiteral::_pre_type_inference()
     {
-        this->set_type(scope_lookup_one(this, "ptr")->as<Type>());
+        this->set_type(scope_lookup_one(this, "ptr")->as<TypeDecl>());
 
         ConstExpression::_pre_type_inference();
     }

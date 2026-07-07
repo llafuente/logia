@@ -21,13 +21,13 @@ namespace logia::AST
             Type *to);
         /// @brief Gets the source type of the cast
         /// @return The source type
-        Type *get_source_type();
+        TypeDecl *get_source_type();
         /// @brief Gets the expression being cast
         /// @return The expression being cast
         Expression *get_expr();
         /// @brief Gets the target type of the cast
         /// @return The target type
-        Type *get_target_type();
+        TypeDecl *get_target_type();
 
         std::string to_string() override;
 
@@ -42,7 +42,7 @@ namespace logia::AST
     protected:
         /// @brief Overrides current target type
         /// @param type The new target type
-        void _set_type(Type *type) override;
+        void _on_set_type(TypeDecl *type) override;
         void _post_type_inference() override;
     };
 }

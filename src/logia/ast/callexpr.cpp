@@ -69,15 +69,25 @@ namespace logia::AST
 
     void CallExpressionArgument::validate() {}
 
-    void CallExpressionArgument::_set_type(Type *type)
+    void CallExpressionArgument::_on_set_type(TypeDecl *tyd)
     {
-        return this->get_value()->set_type(type);
+        auto name = this->get_name();
+        if (name != nullptr)
+        {
+            name->set_type(tyd);
+        }
+        this->get_value()->set_type(tyd);
     }
 
-    void CallExpressionArgument::_post_type_inference()
+    void CallExpressionArgument::_pre_type_inference()
     {
-        this->is_typed = this->get_value()->is_typed;
-        Node::_post_type_inference();
+        // I'm ready when my value is ready!
+        auto value = this->get_value();
+        if (value->is_typed)
+        {
+            this->is_typed = true;
+            Node::_pre_type_inference();
+        }
     }
 
     //
@@ -213,9 +223,11 @@ namespace logia::AST
         return v;
     }
 
-    void CallExpression::_set_type(Type *type)
+    void CallExpression::_on_set_type(TypeDecl *type)
     {
-        // nothing!
+        // DO NOT FOWARD, becuse our type is in fact "the function return type"
+        // while our locator type is the function itself!
+        // !!this->get_locator()->set_type(type);
     }
 
     std::vector<Function *> CallExpression::find_candidates()
@@ -312,7 +324,7 @@ namespace logia::AST
         this->is_typed = true;
         this->callee = target;
 
-        locator->set_type((Type *)target);
+        locator->set_type(target);
         // fill the gaps, order arguments, etc.
         multiple_dispatch::match(this, target, true);
 
@@ -356,7 +368,7 @@ namespace logia::AST
         }
 
         // Look up the name in the global module table.
-        auto func = this->get_locator()->get_type()->as<Function>();
+        auto func = this->get_locator()->get_final_type()->as<Function>();
         llvm::Function *CalleeF = func->ir_func;
         if (!CalleeF)
         {

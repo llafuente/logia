@@ -15,6 +15,7 @@
 #include "logia/ast/returnstmt.h"
 #include "logia/ast/unaryexpr.h"
 #include "logia/ast/struct.h"
+#include "logia/ast/vardeclstmt.h"
 #include "logia/type_inference.h"
 
 #include "gtest/gtest.h"
@@ -35,9 +36,12 @@ TEST(test_node, clone_identifier)
     program->push_child(a);
     EXPECT_NE(a->parent_node, nullptr);
 
-    a->type = (Type *)a; // xD
+    a->real_type = (TypeDecl *)a; // xD
     auto aclone = node_clone<Identifier>(a);
-    EXPECT_EQ(aclone->type, nullptr);        // type is removed
+    // type is removed
+    EXPECT_EQ(aclone->is_typed, false);
+    EXPECT_EQ(aclone->real_type, nullptr);
+
     EXPECT_EQ(aclone->parent_node, nullptr); // parent_node is removed
 
     LOGIA_UNIT_TEST_END();
@@ -312,7 +316,7 @@ TEST(test_type, type_inference_return_stmt_constexpr)
     LOGIA_UNIT_TEST_END();
 }
 
-TEST(test_type, type_inference_pass_check)
+TEST(type_inference_pass_check, constant_return)
 {
     LOGIA_UNIT_TEST();
     using namespace logia::AST;
@@ -320,17 +324,109 @@ TEST(test_type, type_inference_pass_check)
 
     // 0 - NoOp
     auto ret = main_body->get_child<ReturnStmt>(1);
-
+    EXPECT_EQ(ret->get_type(), nullptr);
+    // nodes starts with default values
     logia::type_inference_pass(program, program, TYPE_INFERENCE_EARLY);
     EXPECT_EQ(ret->get_type(), nullptr);
     EXPECT_EQ(ret->get_expr()->get_type(), i64);
     EXPECT_EQ(ret->get_expr()->get_final_type(), i64);
 
+    // function narrow return types to i32 -> ret = i32 -> ret.expr = i32
     logia::type_inference_pass(program, program, TYPE_INFERENCE_PRE);
     EXPECT_EQ(ret->get_type(), i32);
     EXPECT_EQ(ret->get_final_type(), i32);
     EXPECT_EQ(ret->get_expr()->get_type(), i32);
     EXPECT_EQ(ret->get_expr()->get_final_type(), i32);
+
+    LOGIA_UNIT_TEST_END();
+}
+
+TEST(type_inference_pass_check, infer_vardecl_with_initialization)
+{
+    LOGIA_UNIT_TEST();
+    using namespace logia::AST;
+    main_fn->is_attached = false; // avoid throw
+
+    auto vardecl = new VarDeclStmt(loc, new Identifier(loc, "x"), new IntegerLiteral(loc, "15"));
+    main_body->unshift_child(vardecl);
+
+    EXPECT_EQ(vardecl->get_type(), nullptr);
+    EXPECT_EQ(vardecl->get_expr()->get_type(), nullptr);
+
+    // nodes starts with default values
+    logia::type_inference_pass(program, program, TYPE_INFERENCE_EARLY);
+    EXPECT_EQ(vardecl->get_type(), nullptr);
+    EXPECT_EQ(vardecl->get_expr()->get_type(), i64);
+
+    // function narrow return types to i32 -> ret = i32 -> ret.expr = i32
+    logia::type_inference_pass(program, program, TYPE_INFERENCE_PRE);
+    EXPECT_EQ(vardecl->get_type(), i64);
+    EXPECT_EQ(vardecl->get_expr()->get_type(), i64);
+
+    LOGIA_UNIT_TEST_END();
+}
+
+TEST(type_inference_pass_check, vardecl_with_constant_initialization)
+{
+    LOGIA_UNIT_TEST();
+    using namespace logia::AST;
+    main_fn->is_attached = false; // avoid throw
+
+    auto td_i16 = new TypeDef();
+    td_i16->add_locator(new Identifier(loc, "i16"));
+
+    auto vardecl = new VarDeclStmt(loc, new Identifier(loc, "x"), td_i16, new IntegerLiteral(loc, "15"));
+    main_body->unshift_child(vardecl);
+
+    EXPECT_EQ(vardecl->get_type(), td_i16);
+    EXPECT_EQ(vardecl->get_final_type(), i16);
+    EXPECT_EQ(vardecl->get_expr()->get_type(), nullptr);
+
+    // nodes starts with default values
+    logia::type_inference_pass(program, program, TYPE_INFERENCE_EARLY);
+    EXPECT_EQ(vardecl->get_type(), td_i16);
+    EXPECT_EQ(vardecl->get_final_type(), i16);
+    EXPECT_EQ(vardecl->get_expr()->get_type(), i64);
+
+    logia::type_inference_pass(program, program, TYPE_INFERENCE_PRE);
+    EXPECT_EQ(vardecl->get_type(), i16);
+    EXPECT_EQ(vardecl->get_expr()->get_type(), i16);
+
+    LOGIA_UNIT_TEST_END();
+}
+
+TEST(type_inference_pass_check, vardecl_with_expr_initialization)
+{
+    LOGIA_UNIT_TEST();
+    using namespace logia::AST;
+    main_fn->is_attached = false; // avoid throw
+
+    auto xxx_fn = new Function(loc, new Identifier(loc, "xxx"), i16, false);
+    program->unshift_child(xxx_fn);
+    auto xxx_call = new CallExpression(loc, new Identifier(loc, "xxx"), {});
+
+    auto td_i32 = new TypeDef();
+    td_i32->add_locator(new Identifier(loc, "i32"));
+    auto vardecl = new VarDeclStmt(loc, new Identifier(loc, "x"), td_i32, xxx_call);
+    main_body->unshift_child(vardecl);
+
+    EXPECT_EQ(vardecl->get_type(), td_i32);
+    EXPECT_EQ(vardecl->get_final_type(), i32);
+    EXPECT_EQ(vardecl->get_expr()->get_type(), nullptr);
+
+    // nodes starts with default values
+    logia::type_inference_pass(program, program, TYPE_INFERENCE_EARLY);
+    EXPECT_EQ(vardecl->get_type(), td_i32);
+    EXPECT_EQ(vardecl->get_final_type(), i32);
+    EXPECT_EQ(vardecl->get_expr()->get_type(), nullptr);
+
+    logia::type_inference_pass(program, program, TYPE_INFERENCE_PRE);
+    EXPECT_EQ(vardecl->get_type(), i32);
+    EXPECT_EQ(vardecl->get_expr()->get_type(), i16);
+
+    // TODO
+    // vardecl->get_expr()->is<BinaryExpression>()
+    // vardecl->get_expr()->get_right()->is<BinaryExpression>()
 
     LOGIA_UNIT_TEST_END();
 }

@@ -21,6 +21,7 @@ namespace logia::multiple_dispatch
 
     match_result match(CallExpression *callexpr, Function *func, bool change)
     {
+        LOG(DBG, "({}, {}, {})", (void *)callexpr, (void *)func, change);
         float points = 1;
         auto params = func->get_parameters();
         auto used_params = std::vector<bool>(params.size(), false);
@@ -38,7 +39,7 @@ namespace logia::multiple_dispatch
 
         CallExpressionArgument *arg;
         Identifier *arg_name;
-        Type *arg_type;
+        TypeDecl *arg_type;
 
         // check: all named arguments are valid parameter names
         for (size_t i = 1, j = 0; i < callexpr->children.size(); i += 2, ++j)
@@ -68,7 +69,7 @@ namespace logia::multiple_dispatch
                 if (arg != nullptr)
                 {
                     arg_type = arg->get_final_type();
-                    LOG(SILLY, "found a parameter[{} of {}]/argument[{}] match by name", param_name->identifier, param_type->get_repr(), arg_type->get_repr());
+                    LOG(SILLY, "found a parameter['{}' of '{}'] for argument['{}'] by name", param_name->identifier, param_type->get_repr(), arg_type->get_repr());
 
                     auto compatibility = type_system::type_is_compatible(arg_type, param_type);
                     if (compatibility.is_success())
@@ -158,7 +159,7 @@ namespace logia::multiple_dispatch
                 if (arg_name->is_empty())
                 {
                     arg_type = arg->get_final_type();
-                    LOG(SILLY, "found a parameter[{} of {}]/argument[{}] match by position {}", param_name->identifier, param_type->get_repr(), arg_type->get_repr(), i);
+                    LOG(SILLY, "found a parameter['{}' of '{}'] for argument['{}'] by position {}", param_name->identifier, param_type->get_repr(), arg_type->get_repr(), i);
 
                     auto compatibility = type_system::type_is_compatible(arg_type, param_type);
                     if (compatibility.is_success())
@@ -265,9 +266,14 @@ namespace logia::multiple_dispatch
             {
                 callexpr->remove_argument_at(0);
             }
+            size_t i = 0;
             for (auto expr : arguments)
             {
-                callexpr->push_positional_argument(expr);
+                // callexpr->push_positional_argument(expr);
+                auto param = params[i++];
+                auto nid = node_clone<Identifier>(param->get_name());
+                nid->set_type(param->get_final_type());
+                callexpr->push_named_argument(nid, expr);
             }
         }
 

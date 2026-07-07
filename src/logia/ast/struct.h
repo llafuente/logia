@@ -13,7 +13,7 @@ namespace logia::AST
 
     // REVIEW method aliasing ?
     /// @brief Defines a type alias, used for struct field alias
-    struct StructAlias : Type
+    struct StructAlias : Node
     {
     public:
         const char *docstring;
@@ -34,10 +34,13 @@ namespace logia::AST
         void on_after_attach() override;
 
         void validate() override;
+
+    protected:
+        void _on_set_type(TypeDecl *ty) override;
     };
 
     /// @brief Defines a field (something that is stored in memory) within a struct
-    struct StructField : Type
+    struct StructField : Node
     {
         const char *docstring;
 
@@ -62,6 +65,7 @@ namespace logia::AST
 
     protected:
         void _pre_type_inference() override;
+        void _on_set_type(TypeDecl *ty) override;
     };
 
     // TODO setter
@@ -70,7 +74,7 @@ namespace logia::AST
     // REVIEW type decl inside a struct ?
 
     /// @brief Defines a struct type, which is a collection of fields, alias, setters, getters and methods
-    struct LOGIA_EXPORT Struct : public Type
+    struct LOGIA_EXPORT Struct : public TypeDecl
     {
         char *docstring;
         // TODO remove!

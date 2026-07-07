@@ -138,7 +138,7 @@ namespace logia::AST
         scope_set(fn->get_name(), fn);
     }
 
-    Type *Program::get_ast_type(llvm::Type *type)
+    TypeDecl *Program::get_ast_type(llvm::Type *type)
     {
         // search in the scope, not in children
         for (const auto &it : scope)
@@ -146,7 +146,7 @@ namespace logia::AST
             auto vec = it.second;
             if (vec[0]->is<Type>())
             {
-                auto ltype = vec[0]->as<Type>();
+                auto ltype = vec[0]->as<TypeDecl>();
                 // DEBUG() << ltype->to_string() << std::endl;
                 if (ltype->ir_type == type)
                 {

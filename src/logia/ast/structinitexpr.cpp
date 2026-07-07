@@ -6,6 +6,7 @@
 #include "logia/ast/identifier.h"
 #include "logia/ast/constexpr.h"
 #include "logia/ast/struct.h"
+#include "utils.h"
 
 #include "llvm/IR/Constant.h"
 
@@ -21,7 +22,7 @@ namespace logia::AST
         return std::format("{}{}", "StructInitializer", Expression::to_string());
     }
 
-    void StructInitializer::_set_type(Type *type)
+    void StructInitializer::_on_set_type(TypeDecl *type)
     {
         Struct *struct_ty;
         if (!type->try_cast<Struct>(&struct_ty))
@@ -231,7 +232,8 @@ namespace logia::AST
             v.push_back(cir_item_value);
         }
 
-        auto ir_struct_ty = (llvm::StructType *)struct_ty->post_codegen(backend);
+        LOGIA_VERIFY(struct_ty->ir_type != nullptr);
+        auto ir_struct_ty = (llvm::StructType *)struct_ty->ir_type;
 
         // 1) Constant initializer (replace with your child constants)
         llvm::Constant *init = llvm::ConstantStruct::get(ir_struct_ty, v);

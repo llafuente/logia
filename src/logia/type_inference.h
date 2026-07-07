@@ -30,4 +30,7 @@ namespace logia
 
     /// @brief type inference given node / pass
     void type_inference_pass(AST::Program *program, AST::Node *start_node, size_t pass_id);
+
+    /// @brief remove type information from given node!
+    void type_inference_untype(AST::Node *node);
 }

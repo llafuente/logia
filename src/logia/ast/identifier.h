@@ -16,8 +16,6 @@ namespace logia::AST
         const char *identifier;
         /// @brief List of candidate declarations for this identifier
         std::vector<Node *> decl_candidates = {};
-        /// @brief Pointed type
-        Type *type = nullptr;
         /// @brief Pointed declaration
         Node *decl = nullptr;
 
@@ -37,8 +35,6 @@ namespace logia::AST
 
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
-        Type *get_type() override;
-
         void on_after_attach() override;
 
         void validate() override;
@@ -48,7 +44,7 @@ namespace logia::AST
         bool is_empty();
 
     protected:
-        void _set_type(Type *t) override;
+        void _on_set_type(TypeDecl *t) override;
         void _pre_type_inference() override;
     };
 

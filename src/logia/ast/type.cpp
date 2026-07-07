@@ -40,32 +40,15 @@ namespace logia::AST
     // Type
     //
 
-    Type::Type(location loc, Primitives prim) : Node(loc)
+    Type::Type(location loc) : Node(loc)
     {
-        this->primitive = prim;
     }
     Type::~Type()
     {
         // TODO
     }
 
-    std::string Type::to_string()
-    {
-        return std::format("Type[{}]{}", ast_primitives_to_string(this->primitive), Node::to_string());
-    }
-
-    std::string Type::get_repr()
-    {
-        return "not-def";
-    }
-
-    Type *Type::get_reference_to()
-    {
-        // return scope_lookup_all(this, "ptr").unwrap_success()[0]->as<Type>();
-        return new Ref(this); // <-- TODO this should be a factory
-    }
-
-    void Type::_set_type(Type *type)
+    void Type::_on_set_type(TypeDecl *type)
     {
         // REVIEW we should do something, makes sense to treat Types as "expressions" that should be the identifier right ?
         throw_compiler_error("set_type of a type ?");
@@ -78,25 +61,40 @@ namespace logia::AST
         scope->scope_set(name, this);
     }
 
-    llvm::Value *Type::post_codegen(logia::Backend *backend)
-    {
-        LOG(DBG, "{}", this->to_string());
-        // cache, because type are unique and we will be visiting this a lot
-        if (this->ir_type != nullptr)
-        {
-            this->cg_value = (llvm::Value *)this->ir_type;
-            return Node::post_codegen(backend);
-        }
+    //
+    // TypeDecl
+    //
 
-        // TODO
-        throw_compiler_error("to-do");
+    TypeDecl::TypeDecl(location loc, Primitives prim) : Type(loc)
+    {
+        this->primitive = prim;
+    }
+
+    TypeDecl::~TypeDecl() {}
+
+    TypeDecl *TypeDecl::get_reference_to()
+    {
+        // return scope_lookup_all(this, "ptr").unwrap_success()[0]->as<Type>();
+        return new Ref(this); // <-- TODO this should be a factory
+    }
+
+    std::string TypeDecl::to_string()
+    {
+        return std::format("TypeDecl[{}]{}", ast_primitives_to_string(this->primitive), Node::to_string());
+    }
+
+    void TypeDecl::pre_codegen(logia::Backend *backend)
+    {
+        LOGIA_VERIFY(this->ir_type != nullptr);
+        LOGIA_VERIFY(backend->debug ? this->di_type != nullptr : true);
+        Type::pre_codegen(backend);
     }
 
     //
     // Integer
     //
 
-    Integer::Integer(bool is_signed, int bits) : Type({}, Primitives::INTEGER_TY), is_signed(is_signed), bits(bits)
+    Integer::Integer(bool is_signed, int bits) : TypeDecl({}, Primitives::INTEGER_TY), is_signed(is_signed), bits(bits)
     {
         // TODO REVIEW type-system do not use: set_type atm
         this->real_type = this;
@@ -106,7 +104,7 @@ namespace logia::AST
 
     std::string Integer::to_string()
     {
-        return std::format("Type[{}]{}", this->get_repr(), Node::to_string());
+        return std::format("integer[{}]{}", this->get_repr(), Node::to_string());
     }
     std::string Integer::get_repr()
     {
@@ -164,14 +162,8 @@ namespace logia::AST
             throw std::runtime_error("Not supported number of bits");
         }
 
-        LOGIA_VERIFY(this->ir_type != nullptr);
-        if (backend->debug)
-        {
-            LOGIA_VERIFY(this->di_type != nullptr);
-        }
-
         this->cg_value = (llvm::Value *)this->ir_type;
-        Node::pre_codegen(backend);
+        TypeDecl::pre_codegen(backend);
     }
 
     void Integer::on_after_attach()
@@ -185,7 +177,7 @@ namespace logia::AST
     // Float
     //
 
-    Float::Float(int bits) : Type({}, Primitives::FLOATING_POINT_TY), bits(bits)
+    Float::Float(int bits) : TypeDecl({}, Primitives::FLOATING_POINT_TY), bits(bits)
     {
         // TODO REVIEW type-system do not use: set_type atm
         this->real_type = this;
@@ -195,7 +187,7 @@ namespace logia::AST
 
     std::string Float::to_string()
     {
-        return std::format("Type[{}]{}", this->get_repr(), Node::to_string());
+        return std::format("float[{}]{}", this->get_repr(), Node::to_string());
     }
     std::string Float::get_repr()
     {
@@ -259,7 +251,7 @@ namespace logia::AST
     // Void
     //
 
-    Void::Void() : Type({}, Primitives::VOID_TY)
+    Void::Void() : TypeDecl({}, Primitives::VOID_TY)
     {
         // TODO REVIEW type-system do not use: set_type atm
         this->real_type = this;
@@ -302,7 +294,7 @@ namespace logia::AST
     // Pointer
     //
 
-    Pointer::Pointer() : Type({}, Primitives::PTR_TY)
+    Pointer::Pointer() : TypeDecl({}, Primitives::PTR_TY)
     {
         // TODO REVIEW type-system do not use: set_type atm
         this->real_type = this;
@@ -352,10 +344,13 @@ namespace logia::AST
     // Ref
     //
 
-    Ref::Ref(Type *pointee) : Pointer()
+    Ref::Ref(TypeDecl *pointee) : Pointer()
     {
+        if (!pointee->is<TypeDecl>())
+        {
+            throw_compiler_error("wtf! not a typedecl!");
+        }
         this->pointee = pointee;
-        this->push_child(pointee);
     }
 
     Ref::~Ref() {}
@@ -370,24 +365,32 @@ namespace logia::AST
         return std::format("ref<{}>", this->get_pointee()->get_repr());
     }
 
-    Type *Ref::get_pointee()
+    TypeDecl *Ref::get_pointee()
     {
         return this->pointee;
     }
 
     void Ref::pre_codegen(logia::Backend *backend)
     {
-        this->ir_type = llvm::PointerType::get(backend->context, 0);
+        if (this->ir_type)
+        {
+            return;
+        }
+
+        auto pointee = this->get_pointee();
+        pointee->pre_codegen(backend);
+
+        this->ir_type = this->ir_ptype = llvm::PointerType::get(backend->context, 0);
         LOGIA_VERIFY(this->ir_type != nullptr);
 
         if (backend->debug)
         {
             this->di_type = backend->dbuilder->createPointerType(
-                this->get_pointee()->di_type, // DIType *PointeeTy, Pointee type
-                64,                           // uint64_t SizeInBits, Pointer size in bits
-                0,                            // uint32_t AlignInBits, Alignment in bit
-                std::nullopt,                 // std::optional<unsigned> DWARFAddressSpace
-                "void*"                       // StringRef Name, Optional name
+                pointee->di_type,                       // DIType *PointeeTy, Pointee type
+                this->ir_ptype->getScalarSizeInBits(),  // uint64_t SizeInBits, Pointer size in bits
+                0,                                      // uint32_t AlignInBits, Alignment in bit
+                std::nullopt,                           // std::optional<unsigned> DWARFAddressSpace
+                std::format("{}*", pointee->get_repr()) // StringRef Name, Optional name
             );
             LOGIA_VERIFY(this->di_type != nullptr);
         }
@@ -408,7 +411,7 @@ namespace logia::AST
     // TypeDef
     //
     // REVIEW, it's a type but it's definition, need to  distinguish both ?
-    TypeDef::TypeDef() : Type({}, Primitives::NONE)
+    TypeDef::TypeDef() : Type({})
     {
         this->has_type = true;
         this->is_typed = false;
@@ -469,7 +472,10 @@ namespace logia::AST
         // TODO nasty HACK this is a PIA because we need typedef so early for intrinsics...
         try
         {
-            this->_early_type_inference();
+            if (this->type_inference_pass_id == 0)
+            {
+                this->_early_type_inference();
+            }
         }
         catch (std::exception e)
         {
@@ -505,7 +511,7 @@ namespace logia::AST
         }
 
         // TODO REVIEW type-system do not use: set_type atm
-        this->real_type = list[0]->get_type();
+        this->real_type = list[0]->get_final_type();
         this->is_typed = true;
         Type::_early_type_inference();
     }
@@ -515,13 +521,13 @@ namespace logia::AST
     //
     // InferType
     //
-    InferType::InferType() : Type({}, Primitives::NONE) {}
+    InferType::InferType() : Type({}) {}
 
     InferType::~InferType() {}
 
-    void InferType::_set_type(Type *t)
+    void InferType::_on_set_type(TypeDecl *t)
     {
-        this->replace_self(t);
+        // this->replace_self(t);
     }
 
     std::string InferType::to_string()

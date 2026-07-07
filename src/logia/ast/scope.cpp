@@ -94,7 +94,7 @@ namespace logia::AST
         return nullptr;
     }
 
-    void Scope::_set_type(Type *ty) {}
+    void Scope::_on_set_type(TypeDecl *ty) {}
 
     LOGIA_API Scope *scope_closest(Node *node)
     {

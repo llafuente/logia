@@ -31,7 +31,6 @@ namespace logia::AST
         this->is_typed = true;
         name->skip_codegen = true;
         name->type_inference_pass_id = TYPE_INFERENCE_POST;
-        name->set_type(type);
 
         this->push_child(name);
         this->push_child(type);
@@ -52,11 +51,7 @@ namespace logia::AST
     {
         return this->get_child<Type>(1);
     }
-    void FunctionParameter::_set_type(Type *type)
-    {
-        // this will make sense when templates arrive!
-        throw_compiler_error("makes no sense");
-    }
+
     Expression *FunctionParameter::get_default_value()
     {
         return this->get_child<Expression>(2);
@@ -78,11 +73,30 @@ namespace logia::AST
     void FunctionParameter::on_after_attach() {}
 
     void FunctionParameter::validate() {}
+
+    void FunctionParameter::_on_set_type(TypeDecl *tyd)
+    {
+        this->get_name()->set_type(tyd);
+    }
+
+    void FunctionParameter::_pre_type_inference()
+    {
+        auto ty = this->get_child<Type>(1);
+
+        auto tyd = ty->get_final_type();
+        if (tyd == nullptr)
+        {
+            return;
+        }
+        this->set_type(tyd);
+
+        Node::_pre_type_inference();
+    }
     //
     // Function
     //
 
-    Function::Function(location loc, Identifier *name, Type *return_type, bool is_intrinsic) : Type(loc, Primitives::FUNCTION_TY)
+    Function::Function(location loc, Identifier *name, Type *return_type, bool is_intrinsic) : TypeDecl(loc, Primitives::FUNCTION_TY)
     {
         LOGIA_VERIFY(name != nullptr, "name parameter is required");
 

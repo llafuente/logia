@@ -60,7 +60,7 @@ namespace logia::AST
         Type *get_type() override;
 
     protected:
-        void _set_type(Type *t) override;
+        void _on_set_type(TypeDecl *t) override;
         void _pre_type_inference() override;
     };
 
@@ -74,9 +74,6 @@ namespace logia::AST
         // llvm::APFloat value = llvm::APFloat::IEEEdouble();
         llvm::APFloat value = llvm::APFloat((double)0.0);
 
-        /// @brief the type
-        Type *type = nullptr;
-
         FloatLiteral(location loc, LOGIA_CLONE const char *number_as_text, Type *type = nullptr);
 
         std::string to_string() override;
@@ -86,8 +83,6 @@ namespace logia::AST
         void on_after_attach() override;
 
         void validate() override;
-
-        Type *get_type() override;
 
         /// @brief Returns true if given op is valid for float
         bool is_valid_constant_operator(Operators op) override;
@@ -101,7 +96,8 @@ namespace logia::AST
         ConstExpression *operator/(ConstExpression *other) override;
 
     protected:
-        void _set_type(Type *t) override;
+        void _on_set_type(TypeDecl *t) override;
+        void _pre_type_inference() override;
     };
 
     /// @brief An integer literal constant expression
@@ -113,8 +109,6 @@ namespace logia::AST
         // Create the biggest APSInt possible, check if it fits into the target width, then truncate
         // TODO REVIEW 128 is possible ?!
         llvm::APSInt value = llvm::APSInt(64, /*isUnsigned=*/true);
-        /// @brief the type
-        Type *type = nullptr;
 
         IntegerLiteral(location loc, LOGIA_CLONE const char *number_as_text, Type *type = nullptr);
 
@@ -129,8 +123,6 @@ namespace logia::AST
 
         void validate() override;
 
-        Type *get_type() override;
-
         /// @brief Returns true if given op is valid for integers
         bool is_valid_constant_operator(Operators op) override;
         /// @brief Returns a new IntegerLiteral with this->value + rhs.value
@@ -143,6 +135,7 @@ namespace logia::AST
         ConstExpression *operator/(ConstExpression *other) override;
 
     protected:
-        void _set_type(Type *t) override;
+        void _on_set_type(TypeDecl *t) override;
+        void _pre_type_inference() override;
     };
 }

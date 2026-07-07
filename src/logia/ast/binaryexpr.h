@@ -22,8 +22,6 @@ namespace logia::AST
         Operators op = Operators::DEFAULT;
         /// @brief Replacement call expression for this binary expression, optional.
         CallExpression *call_expr = nullptr;
-        /// @brief Cached type of the binary expression (call expression return type)
-        Type *type = nullptr;
 
         BinaryExpression(location loc, Expression *left, Operators op, Expression *right);
 
@@ -43,8 +41,6 @@ namespace logia::AST
 
         std::string to_string() override;
 
-        Type *get_type() override;
-
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
         void on_after_attach() override;
@@ -52,11 +48,11 @@ namespace logia::AST
         void validate() override;
 
     protected:
-        void _set_type(Type *type) override;
+        void _on_set_type(TypeDecl *type) override;
         void _pre_type_inference() override;
         void _post_type_inference() override;
 
     private:
-        void __enforce_assignament_type(Type *left_ty, Type *right_ty);
+        void __enforce_assignament_type(TypeDecl *left_ty, TypeDecl *right_ty);
     };
 }

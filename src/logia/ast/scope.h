@@ -102,7 +102,7 @@ namespace logia::AST
 
     protected:
         /// @brief Do nothing
-        void _set_type(Type *ty) override;
+        void _on_set_type(TypeDecl *ty) override;
     };
 
     LOGIA_API Scope *scope_closest(Node *node);

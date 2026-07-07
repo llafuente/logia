@@ -16,9 +16,6 @@ namespace logia::AST
         /// @brief call expression that replace this unary expression -> operator
         CallExpression *call_expr;
 
-        /// @brief Unary expression type
-        Type *type = nullptr;
-
         /// @brief operator
         Operators op;
 
@@ -37,14 +34,12 @@ namespace logia::AST
 
         llvm::Value *post_codegen(logia::Backend *backend) override;
 
-        Type *get_type() override;
-
         void on_after_attach() override;
 
         void validate() override;
 
     protected:
-        void _set_type(Type *ty) override;
+        void _on_set_type(TypeDecl *ty) override;
         void _pre_type_inference() override;
     };
 }

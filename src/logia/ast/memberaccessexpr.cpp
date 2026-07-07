@@ -46,7 +46,7 @@ namespace logia::AST
     {
         return this->type == nullptr ? nullptr : this->type;
     }
-    void MemberAccessExpression::_set_type(Type *ty)
+    void MemberAccessExpression::_on_set_type(TypeDecl *ty)
     {
         this->type = ty;
     }
@@ -62,21 +62,23 @@ namespace logia::AST
         {
             return; // later...
         }
-        auto left_ty = left->get_type();
+        auto left_tyd = left->get_final_type();
 
         // autoderef ?
         Ref *left_ty_ref;
-        if (left_ty->try_cast<Ref>(&left_ty_ref))
+        if (left_tyd->try_cast<Ref>(&left_ty_ref))
         {
             // we will auto reference!
             auto deref = new UnaryExpression(left->loc, Operators::PREFIX_DEREFERENCE, left);
+            LOG(DBG, "new node: UnaryExpression {}", (void *)deref);
             this->set_child(deref, 0);
-            left_ty = left_ty_ref->get_pointee()->get_final_type();
+            left_tyd = left_ty_ref->get_pointee()->get_final_type();
+            deref->set_type(left_tyd);
         }
 
         Struct *left_ty_stuct;
 
-        if (left_ty->try_cast<Struct>(&left_ty_stuct))
+        if (left_tyd->try_cast<Struct>(&left_ty_stuct))
         {
             auto right = this->get_right()->as<Identifier>(); // TODO
             auto prop = left_ty_stuct->get_property(right->identifier);
@@ -90,7 +92,7 @@ namespace logia::AST
             return Node::_pre_type_inference();
         }
 
-        throw_semantic_error(this, std::format(LGERR_MAEXPR001, left_ty->get_repr()));
+        throw_semantic_error(this, std::format(LGERR_MAEXPR001, left_tyd->get_repr()));
     }
 
     std::string MemberAccessExpression::to_string()

@@ -13,9 +13,9 @@ namespace logia::AST
 {
 
     //
-    // Struct
+    // StructAlias
     //
-    StructAlias::StructAlias(location loc, Identifier *from, Identifier *to, const char *_docstring) : docstring(_docstring), Type(loc, Primitives::NONE)
+    StructAlias::StructAlias(location loc, Identifier *from, Identifier *to, const char *_docstring) : docstring(_docstring), Node(loc)
     {
         this->push_child(from);
         from->has_type = false;
@@ -65,19 +65,26 @@ namespace logia::AST
         return this->target == nullptr ? nullptr : this->target->get_type();
     }
 
+    void StructAlias::_on_set_type(TypeDecl *ty)
+    {
+    }
+
+    //
+    // StructField
+    //
+
     StructField::StructField(location loc,
                              uint32_t index,
                              Identifier *name,
                              Type *type,
                              Expression *default_value,
-                             const char *docstring) : docstring(docstring), Type(loc, Primitives::NONE), index(index)
+                             const char *docstring) : docstring(docstring), Node(loc), index(index)
     {
         this->is_typed = true;
 
         this->push_child(name); // 0
         name->skip_codegen = true;
         name->type_inference_pass_id = TYPE_INFERENCE_MAX;
-        name->set_type(type);
 
         this->push_child(type); // 1
         if (default_value != nullptr)
@@ -89,10 +96,12 @@ namespace logia::AST
     {
         return this->get_child<Identifier>(0);
     }
+
     Type *StructField::get_type()
     {
-        return this->get_child<Type>(1)->get_final_type();
+        return this->get_child<Type>(1);
     }
+
     Expression *StructField::get_default_value()
     {
         return this->children.size() == 2 ? nullptr : this->get_child<Expression>(2);
@@ -110,19 +119,30 @@ namespace logia::AST
     void StructField::_pre_type_inference()
     {
         auto ty = this->get_type();
+        auto tyd = ty->get_final_type();
+        if (tyd == nullptr)
+        {
+            return;
+        }
+
+        this->set_type(tyd);
+        Node::_pre_type_inference();
+    }
+    void StructField::_on_set_type(TypeDecl *tyd)
+    {
+        this->get_name()->set_type(tyd);
         auto default_value = this->get_default_value();
         if (default_value != nullptr)
         {
-            default_value->set_type(ty);
+            default_value->set_type(tyd);
         }
-        Type::_pre_type_inference();
     }
 
     //
     // Struct
     //
 
-    Struct::Struct(location loc, Identifier *name) : Type(loc, Primitives::STRUCT_TY)
+    Struct::Struct(location loc, Identifier *name) : TypeDecl(loc, Primitives::STRUCT_TY)
     {
         // TODO REVIEW type-system do not use: set_type atm
         this->real_type = this;
@@ -288,6 +308,24 @@ namespace logia::AST
         // like functions we should generate the type asap
         // we can fill it later!
         this->ir_type = this->struct_type = llvm::StructType::create(backend->context, this->get_name());
+
+        std::vector<llvm::Type *> elements;
+        elements.reserve(this->field_count);
+        StructField *field;
+        for (auto &prop : this->children)
+        {
+            if (prop->try_cast(&field))
+            {
+                auto tyd = field->get_final_type();
+                tyd->pre_codegen(backend);
+                LOGIA_VERIFY(tyd->ir_type);
+
+                elements.push_back(tyd->ir_type);
+            }
+        }
+
+        this->struct_type->setBody(elements);
+
         Type::pre_codegen(backend);
     }
 
@@ -299,19 +337,6 @@ namespace logia::AST
         {
             return (llvm::Value *)this->ir_type;
         }
-
-        std::vector<llvm::Type *> elements;
-        elements.reserve(this->field_count);
-        StructField *field;
-        for (auto &prop : this->children)
-        {
-            if (prop->try_cast(&field))
-            {
-                elements.push_back((llvm::Type *)field->get_final_type()->post_codegen(backend));
-            }
-        }
-
-        this->struct_type->setBody(elements);
 
         // To avoid possible infinite recursions we should have the type defined before use
         // that's why we generate methods after the struct has llvm type
@@ -326,7 +351,7 @@ namespace logia::AST
             }
         }
 
-        return this->cg_value;
+        return nullptr; // this is a type, should not return a value, right ?
     }
 
     void Struct::_pre_type_inference()
@@ -367,14 +392,7 @@ namespace logia::AST
 
     void Struct::add_method(Function *fn)
     {
-        // add "this"
-        auto tdef = new TypeDef();
-        tdef->add_locator(new Identifier(this->loc, this->get_name()));
-        // note set_type in TypeDef is an infinite recursion... manually set
-        tdef->real_type = this;
-        tdef->is_typed = true;
-
-        fn->insert_parameter(0, new FunctionParameter(new Identifier({}, "this"), new Ref(tdef)));
+        fn->insert_parameter(0, new FunctionParameter(new Identifier({}, "this"), new Ref(this)));
         fn->is_method = true;
         this->push_child(fn);
         ++this->method_count;

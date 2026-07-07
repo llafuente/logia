@@ -7,6 +7,7 @@ namespace logia::AST
     // forward declaration
     struct Block;
     struct Type;
+    struct TypeDef;
     struct Expression;
     struct Identifier;
 
@@ -45,7 +46,7 @@ namespace logia::AST
 
     protected:
         /// @brief Do nothing
-        void _set_type(Type *ty) override;
+        void _on_set_type(TypeDecl *ty) override;
     };
 
 }

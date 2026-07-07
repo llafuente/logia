@@ -92,14 +92,8 @@ namespace logia::AST
 
     void Identifier::validate() {}
 
-    Type *Identifier::get_type()
+    void Identifier::_on_set_type(TypeDecl *t)
     {
-        return this->type == nullptr ? nullptr : this->type;
-    }
-
-    void Identifier::_set_type(Type *t)
-    {
-        this->type = t;
     }
 
     bool Identifier::is_empty()

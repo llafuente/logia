@@ -62,11 +62,12 @@ namespace logia::AST
         Type *get_type() override;
 
     protected:
-        void _set_type(Type *type) override;
+        void _on_set_type(TypeDecl *type) override;
+        void _pre_type_inference() override;
     };
 
     /// @brief Defines a function type, which is a collection of parameters, a body and a return type
-    struct LOGIA_EXPORT Function : public Type
+    struct LOGIA_EXPORT Function : public TypeDecl
     {
     public:
         char *docstring = nullptr;

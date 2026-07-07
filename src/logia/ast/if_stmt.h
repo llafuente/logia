@@ -38,6 +38,6 @@ namespace logia::AST
 
     protected:
         void _post_type_inference() override;
-        void _set_type(Type *t) override;
+        void _on_set_type(TypeDecl *t) override;
     };
 }

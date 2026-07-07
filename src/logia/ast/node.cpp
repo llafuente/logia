@@ -62,11 +62,11 @@ namespace logia::AST
     // copy constructor
     Node::Node(const Node &other)
     {
-        this->is_attached = other.is_attached;
-        this->is_validated = other.is_validated;
+        // this->is_attached = other.is_attached;
+        // this->is_validated = other.is_validated;
         this->skip_codegen = other.skip_codegen;
-        this->is_pre_codegen = other.is_pre_codegen;
-        this->is_post_codegen = other.is_post_codegen;
+        // this->is_pre_codegen = other.is_pre_codegen;
+        // this->is_post_codegen = other.is_post_codegen;
         this->has_type = other.has_type;
         this->is_typed = other.is_typed;
         this->is_constant = other.is_constant;
@@ -137,10 +137,10 @@ namespace logia::AST
         auto d = this->loc.stop_index - this->loc.start_index;
         if (d > 0 && d < 64)
         {
-            return std::format("| {} [@{}] ty={} [{},type_inference={}] {}", static_cast<void *>(this), static_cast<void *>(this->parent_node), ty, flags, this->type_inference_pass_id, this->loc.get_source_code());
+            return std::format("| {} [@{}] ty={} [{},ti_pass_id={}] {}", static_cast<void *>(this), static_cast<void *>(this->parent_node), ty, flags, this->type_inference_pass_id, this->loc.get_source_code());
         }
 
-        return std::format("| {} [@{}] ty={} [{},type_inference={}]", static_cast<void *>(this), static_cast<void *>(this->parent_node), ty, flags, this->type_inference_pass_id);
+        return std::format("| {} [@{}] ty={} [{},ti_pass_id={}]", static_cast<void *>(this), static_cast<void *>(this->parent_node), ty, flags, this->type_inference_pass_id);
     }
 
     void Node::push_child(Node *child)
@@ -160,6 +160,8 @@ namespace logia::AST
 
     void Node::set_child(Node *child, size_t position)
     {
+        LOG(DBG, "{}, {}", (void *)child, position);
+
         if (freezed)
         {
             throw std::exception("Node is freezed");
@@ -236,24 +238,26 @@ namespace logia::AST
 
         return out;
     }
-    void Node::set_type(Type *ty)
+    void Node::set_type(TypeDecl *tyd)
     {
+        LOG(DBG, "{} <- {}", (void *)this, (void *)tyd);
+
         if (!this->has_type)
         {
             // REVIEW can we do anything ?!
         }
 
-        if (this->real_type != ty)
+        if (this->real_type != tyd)
         {
             // TODO we should check this ? we may not
             // throw_compiler_error("Type already set");
-            LOG(WRN, "Type already set / Type change!");
+            LOG(WRN, "{} Type already set / Type change!", (void *)this);
         }
 
-        this->real_type = ty;
+        this->real_type = tyd;
         this->is_typed = true;
 
-        this->_set_type(ty);
+        this->_on_set_type(tyd);
     }
     /*
         void Node::_set_type(Type *ty)
@@ -298,26 +302,33 @@ namespace logia::AST
         this->type_inference_pass_id = TYPE_INFERENCE_POST;
     }
 
-    Type *Node::get_final_type()
+    TypeDecl *Node::get_final_type()
     {
+
         // this resolve types in the following manner
         // TypeDef -> get referenced type
         // Struct
         // * has one field with "λ" as name -> return the "λ" type
         // * return the struct
         // AnyOther -> return
+        TypeDecl *tyd;
+        Struct *s;
 
         auto type = this->get_type();
+        if (this->real_type != nullptr)
+        {
+            type = this->real_type;
+        }
+
         int MAX = 10;
         for (; MAX > 0; --MAX)
         {
             if (type->is<TypeDef>())
             {
-                type = type->get_type();
+                type = type->get_final_type();
             }
-            else if (type->is<Struct>())
+            else if (type->try_cast(&s))
             {
-                auto s = type->as<Struct>();
                 if (s->field_count == 1)
                 {
                     auto field = s->get_field("λ");
@@ -333,11 +344,16 @@ namespace logia::AST
                         }
                     }
                 }
-                return type;
+                return s;
+            }
+            else if (type->try_cast(&tyd))
+            {
+                return tyd;
             }
             else
             {
-                return type;
+                // throw_compiler_error("wtf!");
+                return nullptr;
             }
         }
 
@@ -400,5 +416,5 @@ namespace logia::AST
     Type *NoOp::get_type() { return nullptr; };
     void NoOp::on_after_attach() {}
     void NoOp::validate() {}
-    void NoOp::_set_type(Type *) {};
+    void NoOp::_on_set_type(TypeDecl *) {};
 }

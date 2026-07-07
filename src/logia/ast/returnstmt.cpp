@@ -27,7 +27,7 @@ namespace logia::AST
 
     void ReturnStmt::validate() {}
 
-    void ReturnStmt::_set_type(Type *ty)
+    void ReturnStmt::_on_set_type(TypeDecl *ty)
     {
         this->get_expr()->set_type(ty);
     }

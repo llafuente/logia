@@ -22,6 +22,7 @@ namespace logia
 namespace logia::AST
 {
     struct Type;
+    struct TypeDecl;
     struct Block;
     struct Prorgam;
 
@@ -62,7 +63,7 @@ namespace logia::AST
         /// @brief Avoids children modification (from API / direct access, you know :)
         bool freezed = false;
 
-        Type *real_type = nullptr;
+        TypeDecl *real_type = nullptr;
 
         /// @brief Last/Current type inference pass id
         size_t type_inference_pass_id = 0;
@@ -116,12 +117,12 @@ namespace logia::AST
         /// @brief retrieves/calculate the type of this node
         /// @remarks this may be available only after type inference pass
         /// @return
-        virtual Type *get_type() { return this->real_type; }
+        virtual Type *get_type() { return (Type *)((void *)this->real_type); }
 
         /// @brief override node type, it's only allowed in a few node. by default throws atm!
         /// @remarks this may be available only after type inference pass
         /// @return
-        void set_type(Type *ty);
+        void set_type(TypeDecl *ty);
 
         /// @brief called after the node is attached to a program
         virtual void on_after_attach() = 0;
@@ -133,7 +134,7 @@ namespace logia::AST
         /// @return
         void type_inference(size_t pass_id);
 
-        virtual Type *get_final_type();
+        virtual TypeDecl *get_final_type();
 
         std::vector<Node *> get_pre_descendant();
 
@@ -359,7 +360,7 @@ namespace logia::AST
         virtual void _early_type_inference();
         virtual void _pre_type_inference();
         virtual void _post_type_inference();
-        virtual void _set_type(Type *ty) = 0;
+        virtual void _on_set_type(TypeDecl *ty) = 0;
     };
 
     /// @brief A node that does nothing
@@ -374,7 +375,7 @@ namespace logia::AST
         void validate() override;
 
     protected:
-        void _set_type(Type *) override;
+        void _on_set_type(TypeDecl *) override;
     };
 
     /// @brief Throws if node is not of given type

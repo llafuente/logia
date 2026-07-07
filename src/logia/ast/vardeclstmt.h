@@ -15,9 +15,11 @@ namespace logia::AST
         /// @brief AllocaInst for this variable, populated at pre_codegen and cached for later use
         llvm::AllocaInst *alloca_inst;
         /// @brief Cached type
-        Type *type;
-
-        VarDeclStmt(location loc, Identifier *id, Type *type, Expression *expr);
+        TypeDef *type;
+        /// @brief Variable declaration without type, expr is mandatory
+        VarDeclStmt(location loc, Identifier *id, Expression *expr);
+        /// @brief Variable declaration with type, expr is optional
+        VarDeclStmt(location loc, Identifier *id, TypeDef *type, Expression *expr);
 
         /// @brief Returns initializer expression
         /// @return
@@ -48,6 +50,6 @@ namespace logia::AST
         /// @brief Sets type based on declaration or expression type
         void _pre_type_inference() override;
         /// @brief Sets type
-        void _set_type(Type *ty) override;
+        void _on_set_type(TypeDecl *ty) override;
     };
 } // namespace logia::AST

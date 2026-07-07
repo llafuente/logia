@@ -20,9 +20,9 @@ namespace logia::AST
         this->push_child(to);
     }
 
-    Type *Cast::get_source_type()
+    TypeDecl *Cast::get_source_type()
     {
-        return this->get_expr()->get_type();
+        return this->get_expr()->get_final_type();
     }
 
     Expression *Cast::get_expr()
@@ -30,7 +30,7 @@ namespace logia::AST
         return this->get_child<Expression>(0);
     }
 
-    Type *Cast::get_target_type()
+    TypeDecl *Cast::get_target_type()
     {
         return this->get_child<Type>(1)->get_final_type();
     }
@@ -45,7 +45,7 @@ namespace logia::AST
         return this->get_target_type();
     }
 
-    void Cast::_set_type(Type *type)
+    void Cast::_on_set_type(TypeDecl *type)
     {
         this->children[1] = type;
     }
@@ -53,8 +53,8 @@ namespace logia::AST
     void Cast::_post_type_inference()
     {
         Expression *expr = this->get_expr();
-        Type *from_type = this->get_source_type();
-        Type *to_type = this->get_target_type();
+        auto from_type = this->get_source_type();
+        auto to_type = this->get_target_type();
 
         if (!from_type)
         {
@@ -90,8 +90,8 @@ namespace logia::AST
 
     llvm::Value *Cast::post_codegen(logia::Backend *backend)
     {
-        Type *from_type = this->get_source_type();
-        Type *to_type = this->get_target_type();
+        auto from_type = this->get_source_type();
+        auto to_type = this->get_target_type();
 
         auto value = llvm_load_if_required(this->get_expr()->post_codegen(backend), backend);
 

@@ -104,5 +104,5 @@ namespace logia::AST
 
     void GotoStmt::validate() {}
 
-    void GotoStmt::_set_type(Type *ty) {}
+    void GotoStmt::_on_set_type(TypeDecl *ty) {}
 }

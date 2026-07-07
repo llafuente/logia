@@ -30,7 +30,7 @@ namespace logia::AST
         void validate() override;
 
     protected:
-        void _set_type(Type *type) override;
+        void _on_set_type(TypeDecl *type) override;
         void _pre_type_inference() override;
     };
     /*

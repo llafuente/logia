@@ -5,6 +5,7 @@
 
 namespace llvm
 {
+    class PointerType;
     class DIType; // #include "llvm/DIType.h"
     class Type;
 }
@@ -53,33 +54,44 @@ namespace logia::AST
     struct LOGIA_EXPORT Type : public Node
     {
     public:
-        Primitives primitive = Primitives::VOID_TY;
         // modifiers
         bool readonly = false;
 
-        llvm::Type *ir_type = nullptr;
-        llvm::DIType *di_type = nullptr;
-
-        Type(location loc, Primitives prim);
+        Type(location loc);
         ~Type();
 
-        std::string to_string() override;
-        virtual std::string get_repr(); // TODO do it pure virtual asap :)
-
-        llvm::Value *post_codegen(logia::Backend *backend) override;
-
-        virtual Type *get_reference_to();
+        virtual std::string get_repr() = 0;
 
     protected:
-        void _set_type(Type *type) override;
+        void _on_set_type(TypeDecl *type) override;
         /// @brief registers this type into block
         /// @param name
         void __register_type(const char *name);
     };
 
+    /// @brief Defines a type declaration
+    /// @details NOTE that TypeDecl can't be child of another TypeDecl
+    struct TypeDecl : public Type
+    {
+        Primitives primitive = Primitives::VOID_TY;
+
+        llvm::Type *ir_type = nullptr;
+        llvm::DIType *di_type = nullptr;
+
+        TypeDecl(location loc, Primitives prim);
+        ~TypeDecl();
+
+        std::string to_string() override;
+        // TODO virtual ?
+        TypeDecl *get_reference_to();
+
+        /// @brief Checks that after this pass we have ir_type & di_type
+        void pre_codegen(logia::Backend *backend) override;
+    };
+
     /// @brief Represents an integer
     /// @remarks llvm is created at pre_codegen, so it will be available anytime!
-    struct Integer : public Type
+    struct Integer : public TypeDecl
     {
     public:
         uint32_t bits;
@@ -101,7 +113,7 @@ namespace logia::AST
 
     /// @brief Represents an floating point number
     /// @remarks llvm is created at pre_codegen, so it will be available anytime!
-    struct Float : public Type
+    struct Float : public TypeDecl
     {
     public:
         int bits;
@@ -122,7 +134,7 @@ namespace logia::AST
 
     /// @brief Represents void aka no-type
     /// @remarks llvm is created at pre_codegen, so it will be available anytime!
-    struct Void : public Type
+    struct Void : public TypeDecl
     {
     public:
         Void();
@@ -140,9 +152,11 @@ namespace logia::AST
 
     /// @brief Represents an opaque pointer
     /// @remarks llvm is created at pre_codegen, so it will be available anytime!
-    struct Pointer : public Type
+    struct Pointer : public TypeDecl
     {
     public:
+        llvm::PointerType *ir_ptype;
+
         Pointer();
         ~Pointer();
 
@@ -161,12 +175,12 @@ namespace logia::AST
     struct Ref : public Pointer
     {
     public:
-        Type *pointee;
+        TypeDecl *pointee;
 
-        Ref(Type *pointee);
+        Ref(TypeDecl *pointee);
         ~Ref();
 
-        Type *get_pointee();
+        TypeDecl *get_pointee();
 
         std::string to_string() override;
 
@@ -259,6 +273,6 @@ namespace logia::AST
         void validate() override;
 
     protected:
-        void _set_type(Type *t) override;
+        void _on_set_type(TypeDecl *t) override;
     };
 }

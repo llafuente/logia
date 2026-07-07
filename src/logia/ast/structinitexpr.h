@@ -48,7 +48,7 @@ namespace logia::AST
         Type *get_type() override;
 
     protected:
-        void _set_type(Type *type) override;
+        void _on_set_type(TypeDecl *type) override;
     };
 
 } // namespace logia::AST

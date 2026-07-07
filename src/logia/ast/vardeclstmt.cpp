@@ -10,16 +10,27 @@
 
 namespace logia::AST
 {
-    VarDeclStmt::VarDeclStmt(location loc, Identifier *id, Type *type, Expression *expr) : Stmt(loc), alloca_inst(nullptr)
+    VarDeclStmt::VarDeclStmt(location loc, Identifier *id, Expression *expr) : Stmt(loc), alloca_inst(nullptr)
     {
+        LOGIA_VERIFY(expr != nullptr);
+
         this->push_child(id); // 0
         // we will set the type based on expr / type
         id->type_inference_pass_id = TYPE_INFERENCE_MAX;
         this->push_child(expr); // 1
-        if (type != nullptr)
-        {
-            this->set_type(type);
-        }
+    }
+
+    VarDeclStmt::VarDeclStmt(location loc, Identifier *id, TypeDef *type, Expression *expr) : Stmt(loc), alloca_inst(nullptr)
+    {
+        LOGIA_VERIFY(type != nullptr);
+        LOGIA_VERIFY(expr != nullptr);
+
+        this->push_child(id); // 0
+        // we will set the type based on expr / type
+        id->type_inference_pass_id = TYPE_INFERENCE_MAX;
+        this->push_child(expr); // 1
+
+        this->push_child(type); // 2
     }
 
     const char *VarDeclStmt::get_name()
@@ -120,18 +131,41 @@ namespace logia::AST
     {
         if (children.size() == 3)
         {
-            return this->get_child<Type>(2)->get_final_type();
+            return this->get_child<Type>(2);
         }
         return nullptr;
     }
+
     void VarDeclStmt::_pre_type_inference()
     {
-        // VarDeclStmt --> expression
-        if (this->is_typed)
+        auto ty = this->get_type();
+        // if I don't have a type -> my type is in the initialization!
+        if (ty == nullptr)
         {
-            this->get_expr()->set_type(this->get_type());
-            return Stmt::_pre_type_inference();
+            auto tyd = this->get_expr()->get_final_type();
+            if (tyd != nullptr)
+            {
+                this->set_type(tyd);
+                return Stmt::_pre_type_inference();
+            }
+            return;
         }
+        // my type is not ready? -> wait
+        if (ty->type_inference_pass_id < TYPE_INFERENCE_PRE)
+        {
+            return;
+        }
+        // set and foward to the initialization
+        auto tyd = ty->get_final_type();
+        if (tyd == nullptr)
+        {
+            return;
+        }
+        this->set_type(tyd);
+        this->get_expr()->set_type(tyd);
+        return Stmt::_pre_type_inference();
+
+        /*
         // expression --> VarDeclStmt
         auto type = this->get_expr()->get_final_type();
         if (type != nullptr)
@@ -140,9 +174,10 @@ namespace logia::AST
             return Stmt::_pre_type_inference();
         }
         // cannot determine type, "try later"
+        */
     }
 
-    void VarDeclStmt::_set_type(Type *ty)
+    void VarDeclStmt::_on_set_type(TypeDecl *ty)
     {
         if (children.size() == 3)
         {

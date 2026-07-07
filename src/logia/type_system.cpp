@@ -21,7 +21,7 @@ namespace logia::type_system
     constexpr auto make_success = logia::utils::make_success<type_compatibility, type_compatibility>;
     constexpr auto make_chained_error = logia::utils::make_chained_error<type_compatibility, type_compatibility>;
 
-    type_compatibility_result type_is_compatible(Type *lhs, Type *rhs)
+    type_compatibility_result type_is_compatible(TypeDecl *lhs, TypeDecl *rhs)
     {
         // if rhs is infer, it's compatible with everything
         if (rhs->is<InferType>() || rhs == nullptr)

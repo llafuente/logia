@@ -79,6 +79,6 @@ namespace logia::type_system
     /// @param lhs
     /// @param rhs
     /// @return
-    type_compatibility_result type_is_compatible(::logia::AST::Type *lhs, ::logia::AST::Type *rhs);
+    type_compatibility_result type_is_compatible(::logia::AST::TypeDecl *lhs, ::logia::AST::TypeDecl *rhs);
 
 }

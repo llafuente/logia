@@ -122,5 +122,5 @@ namespace logia::AST
         throw_semantic_error(condition, std::format("LGERR_IF001 Expected contition type to be 'bool' but found: '{}'", ty->get_repr()));
     }
 
-    void IfStmt::_set_type(Type *t) {}
+    void IfStmt::_on_set_type(TypeDecl *t) {}
 }

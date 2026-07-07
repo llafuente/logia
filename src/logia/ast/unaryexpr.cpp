@@ -47,11 +47,6 @@ namespace logia::AST
         return this->get_child<Expression>(0);
     }
 
-    Type *UnaryExpression::get_type()
-    {
-        return this->type;
-    }
-
     void UnaryExpression::on_after_attach() {}
 
     void UnaryExpression::validate() {}
@@ -97,16 +92,15 @@ namespace logia::AST
             LOGIA_VERIFY(this->call_expr->type_inference_pass_id == TYPE_INFERENCE_PRE);
             LOGIA_VERIFY(this->call_expr->callee != nullptr);
 
-            this->set_type(this->call_expr->get_type());
+            this->set_type(this->call_expr->get_final_type());
         }
         }
         return Expression::_pre_type_inference();
     }
 
-    void UnaryExpression::_set_type(Type *ty)
+    void UnaryExpression::_on_set_type(TypeDecl *ty)
     {
         LOG(DBG, "{}", ty->get_repr());
-        this->type = ty;
 
         // foward the type depending on the operator
         switch (op)
@@ -117,7 +111,7 @@ namespace logia::AST
         case Operators::PREFIX_DECREMENT:
         case Operators::PREFIX_INCREMENT:
         case Operators::PREFIX_NEGATION:
-            this->get_operand()->set_type(type);
+            this->get_operand()->set_type(ty);
 
         case Operators::PREFIX_DEREFERENCE:
             this->get_operand()->set_type(ty->get_reference_to());

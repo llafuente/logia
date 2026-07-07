@@ -901,7 +901,7 @@ namespace logia
             {
                 break;
             }
-            auto type_def = ANY_VOIDP_CAST(AST::Type *, this->visitTypeDefinition(param->typeDefinition()));
+            auto type_def = ANY_VOIDP_CAST(AST::TypeDef *, this->visitTypeDefinition(param->typeDefinition()));
             auto name = ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(param->identifier()));
             auto rhs = param->rhsExpr();
             AST::Expression *param_default = nullptr;
@@ -1051,7 +1051,7 @@ namespace logia
             expr = ANY_VOIDP_CAST(AST::Expression *, this->visitRhsExpr(rhs));
         }
 
-        return ANY_VOIDP_STORE(new AST::VarDeclStmt(MAKE_LOCATION(context), ident, nullptr, expr));
+        return ANY_VOIDP_STORE(new AST::VarDeclStmt(MAKE_LOCATION(context), ident, expr));
     }
     std::any CST2AST::visitTypedVariableDeclStmt(LogiaParser::TypedVariableDeclStmtContext *context)
     {
@@ -1077,7 +1077,7 @@ namespace logia
             CST_UNREACHABLE();
         }
 
-        auto type_def = ANY_VOIDP_CAST(AST::Type *, this->visitTypeDefinition(context->typeDefinition()));
+        auto type_def = ANY_VOIDP_CAST(AST::TypeDef *, this->visitTypeDefinition(context->typeDefinition()));
 
         return ANY_VOIDP_STORE(new AST::VarDeclStmt(MAKE_LOCATION(context), ident, type_def, expr));
     }

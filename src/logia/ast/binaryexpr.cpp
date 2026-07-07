@@ -51,14 +51,8 @@ namespace logia::AST
         this->push_child(right);
     }
 
-    Type *BinaryExpression::get_type()
+    void BinaryExpression::_on_set_type(TypeDecl *ty)
     {
-        return this->type;
-    }
-
-    void BinaryExpression::_set_type(Type *ty)
-    {
-        this->type = ty;
     }
 
     Expression *BinaryExpression::get_left()
@@ -71,7 +65,7 @@ namespace logia::AST
         return this->get_child<Expression>(1);
     }
 
-    void BinaryExpression::__enforce_assignament_type(Type *left_ty, Type *right_ty)
+    void BinaryExpression::__enforce_assignament_type(TypeDecl *left_ty, TypeDecl *right_ty)
     {
         auto right = this->get_right();
         auto err = type_system::type_is_compatible(left_ty, right_ty);
@@ -155,7 +149,7 @@ namespace logia::AST
         }
         else if (is_logical_operator(this->op))
         {
-            this->set_type(scope_lookup_first(this, "bool")->as<Type>());
+            this->set_type(scope_lookup_first(this, "bool")->as<TypeDecl>());
         }
 
         switch (op)
@@ -165,18 +159,12 @@ namespace logia::AST
         case Operators::BINARY_LOGICAL_OR:
             break;
         default:
-            auto locator = new Identifier(this->loc, ast_operator_to_function_name(op));
-
-            this->call_expr = new CallExpression(this->loc, locator, {left, right});
-            LOG(DBG, "transform binaryexpr into function call: {}", (void *)this->call_expr);
-            // makes no sense but need to keep this node attached
-            this->push_child(this->call_expr);
-
-            this->call_expr->type_inference(TYPE_INFERENCE_PRE);
-            LOGIA_VERIFY(this->call_expr->type_inference_pass_id == TYPE_INFERENCE_PRE); // ensure it's done!
-            LOGIA_VERIFY(this->call_expr->callee != nullptr);
-
-            this->set_type(this->call_expr->get_type());
+            // call it's not ready ? -> later!
+            if (this->call_expr->type_inference_pass_id != TYPE_INFERENCE_PRE)
+            {
+                return;
+            }
+            this->set_type(this->call_expr->get_final_type());
         }
 
         Expression::_pre_type_inference();
@@ -257,7 +245,7 @@ namespace logia::AST
             backend->builder->CreateBr(phi_bb);
 
             backend->builder->SetInsertPoint(phi_bb);
-            auto i1 = scope_lookup_first(this, "bool")->as<Type>();
+            auto i1 = scope_lookup_first(this, "bool")->as<TypeDecl>();
             auto phi = backend->builder->CreatePHI(i1->ir_type, 2);
 
             phi->addIncoming((new AST::IntegerLiteral({}, "0", i1))->post_codegen(backend), start_bb);
@@ -289,7 +277,7 @@ namespace logia::AST
             backend->builder->CreateBr(phi_bb);
 
             backend->builder->SetInsertPoint(phi_bb);
-            auto i1 = scope_lookup_first(this, "bool")->as<Type>();
+            auto i1 = scope_lookup_first(this, "bool")->as<TypeDecl>();
             auto phi = backend->builder->CreatePHI(i1->ir_type, 2);
 
             phi->addIncoming((new AST::IntegerLiteral({}, "1", i1))->post_codegen(backend), start_bb);
@@ -309,7 +297,23 @@ namespace logia::AST
 
     void BinaryExpression::on_after_attach() {}
 
-    void BinaryExpression::validate() {}
+    void BinaryExpression::validate()
+    {
+        switch (op)
+        {
+        case Operators::BINARY_ASSIGN:
+        case Operators::BINARY_LOGICAL_AND:
+        case Operators::BINARY_LOGICAL_OR:
+            break;
+        default:
+            auto locator = new Identifier(this->loc, ast_operator_to_function_name(op));
+
+            this->call_expr = new CallExpression(this->loc, locator, {this->get_left(), this->get_right()});
+            LOG(DBG, "transform binaryexpr into function call: {}", (void *)this->call_expr);
+            // makes no sense but need to keep this node attached
+            this->push_child(this->call_expr);
+        }
+    }
 
     maybe_semantic_error BinaryExpression::can_execute()
     {

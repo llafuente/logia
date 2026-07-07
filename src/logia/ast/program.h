@@ -54,7 +54,7 @@ namespace logia::AST
         /// @brief Given an LLVM type retrieves the logia counterpart
         /// @remarks Should be used only with primitives because LLVM types are unique but logia's not
         /// @return
-        Type *get_ast_type(llvm::Type *type);
+        TypeDecl *get_ast_type(llvm::Type *type);
 
         /// @brief Adds an intrinsic function to the program
         void add_intrinsic(Intrinsic *fn);
