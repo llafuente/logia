@@ -396,10 +396,9 @@ namespace logia::AST
     {
         this->is_pre_codegen = true;
     }
-    llvm::Value *Node::post_codegen(logia::Backend *backend)
+    void Node::post_codegen(logia::Backend *backend)
     {
         this->is_post_codegen = true;
-        return this->cg_value;
     }
 
     //
@@ -412,7 +411,7 @@ namespace logia::AST
         this->type_inference_pass_id = TYPE_INFERENCE_MAX;
     }
     std::string NoOp::to_string() { return "NoOp"; };
-    llvm::Value *NoOp::post_codegen(logia::Backend *backend) { return nullptr; }
+    void NoOp::post_codegen(logia::Backend *backend) {}
     Type *NoOp::get_type() { return nullptr; };
     void NoOp::on_after_attach() {}
     void NoOp::validate() {}

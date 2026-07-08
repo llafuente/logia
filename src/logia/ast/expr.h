@@ -28,6 +28,20 @@ namespace logia::AST
         /// @return Returns the result of the expression execution
         virtual ConstExpression *execute();
 
-        llvm::Value *post_codegen(logia::Backend *backend) override;
+        void post_codegen(logia::Backend *backend) override;
+
+        /// @brief Retrieves codegen value
+        /// @details
+        /// Should be called inside post_codegen stage, before it's expected to fail.
+        llvm::Value *get_codegen_value(logia::Backend *backend);
+        /// @brief Sets codegen value and attach debug information to the instruction
+        /// @details
+        /// Disallow reentry
+        /// @param(backend) send nullptr if you don't want debug information (required for constants!)
+        void set_codegen_value(logia::Backend *backend, llvm::Value *value);
+
+    private:
+        /// @brief codegen result
+        llvm::Value *cg_value = nullptr;
     };
 }

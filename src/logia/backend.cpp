@@ -533,6 +533,9 @@ namespace logia
         {
             LOG(INF, "start codegen");
             this->program->codegen(this);
+            LOG(INF, "stop codegen");
+
+            // module->print(llvm::errs(), nullptr);
         }
 
         if (logia_config.debug)
@@ -789,8 +792,12 @@ namespace logia
     {
         if (logia_config.debug)
         {
-            // value->setDebugLoc(llvm::DebugLoc::get(1, 0, this->dfile));
-            value->setDebugLoc(llvm::DILocation::get(this->context, loc.start_line, loc.start_column, this->dscopes[this->dscopes.size() - 1]));
+            // value->dump();
+            auto dbgLoc = value->getDebugLoc();
+            if (!dbgLoc)
+            {
+                value->setDebugLoc(llvm::DILocation::get(this->context, loc.start_line, loc.start_column, this->dscopes[this->dscopes.size() - 1]));
+            }
         }
     }
 

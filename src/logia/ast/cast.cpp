@@ -88,12 +88,12 @@ namespace logia::AST
         Expression::_post_type_inference();
     }
 
-    llvm::Value *Cast::post_codegen(logia::Backend *backend)
+    void Cast::post_codegen(logia::Backend *backend)
     {
         auto from_type = this->get_source_type();
         auto to_type = this->get_target_type();
 
-        auto value = llvm_load_if_required(this->get_expr()->post_codegen(backend), backend);
+        auto value = llvm_load_if_required(this->get_expr()->get_codegen_value(backend), backend);
 
         // integer to integer
         if (from_type->primitive == Primitives::INTEGER_TY && to_type->primitive == Primitives::INTEGER_TY)
@@ -107,18 +107,18 @@ namespace logia::AST
                 if (from_int_ty->bits < to_int_ty->bits)
                 {
                     // iM (M < N) -> iN. i32 to i64. upcast integer with sign
-                    this->cg_value = backend->builder->CreateSExt(value, to_int_ty->ir_type);
+                    this->set_codegen_value(backend, backend->builder->CreateSExt(value, to_int_ty->ir_type));
                 }
                 else if (from_int_ty->bits > to_int_ty->bits)
                 {
                     // iM (M > N) -> iN. i64 to i32. downcast integer with sign
-                    this->cg_value = backend->builder->CreateTrunc(value, to_int_ty->ir_type);
+                    this->set_codegen_value(backend, backend->builder->CreateTrunc(value, to_int_ty->ir_type));
                 }
                 else
                 {
                     // i32 to i32
                     // this->cg_value = builder->CreateBitCast(value, to_int_ty->ir_type);
-                    this->cg_value = value;
+                    this->set_codegen_value(backend, value);
                 }
                 return Expression::post_codegen(backend);
             }
@@ -128,18 +128,18 @@ namespace logia::AST
                 if (from_int_ty->bits < to_int_ty->bits)
                 {
                     // uM (M < N) -> uN. u32 to u64. upcast integer without sign
-                    this->cg_value = backend->builder->CreateZExt(value, to_int_ty->ir_type);
+                    this->set_codegen_value(backend, backend->builder->CreateZExt(value, to_int_ty->ir_type));
                 }
                 else if (from_int_ty->bits > to_int_ty->bits)
                 {
                     // uM (M > N) -> uN. u64 to u32. downcast integer without sign
-                    this->cg_value = backend->builder->CreateTrunc(value, to_int_ty->ir_type);
+                    this->set_codegen_value(backend, backend->builder->CreateTrunc(value, to_int_ty->ir_type));
                 }
                 else
                 {
                     // same size, one signed one unsigned, just return
                     // this->cg_value = builder->CreateBitCast(value, to_int_ty->ir_type);
-                    this->cg_value = value;
+                    this->set_codegen_value(backend, value);
                 }
                 return Expression::post_codegen(backend);
             }
@@ -150,17 +150,17 @@ namespace logia::AST
                 if (from_int_ty->bits < to_int_ty->bits)
                 {
                     // iM (M < N) -> uN. i32 to u64. upcast signed integer to unsigned
-                    this->cg_value = backend->builder->CreateZExt(value, to_int_ty->ir_type);
+                    this->set_codegen_value(backend, backend->builder->CreateZExt(value, to_int_ty->ir_type));
                 }
                 else if (from_int_ty->bits > to_int_ty->bits)
                 {
                     // iM (M > N) -> uN. i64 to u32. downcast signed integer to unsigned
-                    this->cg_value = backend->builder->CreateTrunc(value, to_int_ty->ir_type);
+                    this->set_codegen_value(backend, backend->builder->CreateTrunc(value, to_int_ty->ir_type));
                 }
                 else
                 {
                     // Reinterpret bits, no numeric conversion
-                    this->cg_value = backend->builder->CreateBitCast(value, to_int_ty->ir_type);
+                    this->set_codegen_value(backend, backend->builder->CreateBitCast(value, to_int_ty->ir_type));
                 }
                 return Expression::post_codegen(backend);
             }
@@ -170,17 +170,17 @@ namespace logia::AST
                 if (from_int_ty->bits < to_int_ty->bits)
                 {
                     // uM (M < N) -> iN. u32 to i64. upcast unsigned integer to signed
-                    this->cg_value = backend->builder->CreateZExt(value, to_int_ty->ir_type);
+                    this->set_codegen_value(backend, backend->builder->CreateZExt(value, to_int_ty->ir_type));
                 }
                 else if (from_int_ty->bits > to_int_ty->bits)
                 {
                     // uM (M > N) -> iN. u64 to i32. downcast unsigned integer to signed
-                    this->cg_value = backend->builder->CreateTrunc(value, to_int_ty->ir_type);
+                    this->set_codegen_value(backend, backend->builder->CreateTrunc(value, to_int_ty->ir_type));
                 }
                 else
                 {
                     // Reinterpret bits, no numeric conversion
-                    this->cg_value = backend->builder->CreateBitCast(value, to_int_ty->ir_type);
+                    this->set_codegen_value(backend, backend->builder->CreateBitCast(value, to_int_ty->ir_type));
                 }
                 return Expression::post_codegen(backend);
             }
@@ -195,17 +195,17 @@ namespace logia::AST
             if (from_flt_ty->bits < to_flt_ty->bits)
             {
                 // fM (M < N) -> fN. f32 to f64. upcast float
-                this->cg_value = backend->builder->CreateFPExt(value, to_type->ir_type);
+                this->set_codegen_value(backend, backend->builder->CreateFPExt(value, to_type->ir_type));
             }
             else if (from_flt_ty->bits > to_flt_ty->bits)
             {
                 // fM (M > N) -> fN. f64 to f32. downcast float
-                this->cg_value = backend->builder->CreateFPTrunc(value, to_type->ir_type);
+                this->set_codegen_value(backend, backend->builder->CreateFPTrunc(value, to_type->ir_type));
             }
             else
             {
                 // same size, just return
-                this->cg_value = value;
+                this->set_codegen_value(backend, value);
             }
             return Expression::post_codegen(backend);
         }
@@ -219,11 +219,11 @@ namespace logia::AST
             // int to float
             if (from_int_ty->is_signed)
             {
-                this->cg_value = backend->builder->CreateSIToFP(value, to_flt_ty->ir_type);
+                this->set_codegen_value(backend, backend->builder->CreateSIToFP(value, to_flt_ty->ir_type));
             }
             else
             {
-                this->cg_value = backend->builder->CreateUIToFP(value, to_flt_ty->ir_type);
+                this->set_codegen_value(backend, backend->builder->CreateUIToFP(value, to_flt_ty->ir_type));
             }
             return Expression::post_codegen(backend);
         }
@@ -236,11 +236,11 @@ namespace logia::AST
             // float to int
             if (to_int_ty->is_signed)
             {
-                this->cg_value = backend->builder->CreateFPToSI(value, to_int_ty->ir_type);
+                this->set_codegen_value(backend, backend->builder->CreateFPToSI(value, to_int_ty->ir_type));
             }
             else
             {
-                this->cg_value = backend->builder->CreateFPToUI(value, to_int_ty->ir_type);
+                this->set_codegen_value(backend, backend->builder->CreateFPToUI(value, to_int_ty->ir_type));
             }
             return Expression::post_codegen(backend);
         }

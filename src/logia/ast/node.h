@@ -71,9 +71,6 @@ namespace logia::AST
         /// @brief My beautiful children, and some not so beautiful.
         std::vector<Node *> children = {};
 
-        /// @brief codegen result
-        llvm::Value *cg_value = nullptr;
-
         Node(location loc);
         // copy constructor to clone!
         Node(const Node &other);
@@ -112,7 +109,7 @@ namespace logia::AST
         virtual void pre_codegen(logia::Backend *backend);
 
         /// @brief generates LLVM IR for this node
-        virtual llvm::Value *post_codegen(logia::Backend *backend);
+        virtual void post_codegen(logia::Backend *backend);
 
         /// @brief retrieves/calculate the type of this node
         /// @remarks this may be available only after type inference pass
@@ -369,7 +366,7 @@ namespace logia::AST
     {
         NoOp();
         std::string to_string() override;
-        llvm::Value *post_codegen(logia::Backend *backend) override;
+        void post_codegen(logia::Backend *backend) override;
         Type *get_type() override;
         void on_after_attach() override;
         void validate() override;

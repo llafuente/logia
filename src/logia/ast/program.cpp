@@ -10,6 +10,7 @@
 #include "logia/ast/identifier.h"
 #include "logia/ast/function.h"
 #include "logia/ast/llvm.h"
+#include "logia/ast/constexpr.h"
 
 namespace logia::AST
 {
@@ -30,6 +31,7 @@ namespace logia::AST
 
         // special case i1 (not signed!)
         auto i1 = new Integer(false, 1);
+        bool_type = i1;
         intrinsics->push_child(i1);
 
         // we know declare all primitives
@@ -108,6 +110,9 @@ namespace logia::AST
         intrinsics->scope_copy_all(this);
         this->children.pop_back(); // safe to remove now
 
+        this->false_value = new IntegerLiteral({}, "0", i1);
+        this->true_value = new IntegerLiteral({}, "1", i1);
+
         LOG(DBG, "intrinsics = {}", intrinsics->to_string_tree());
         STOP_INTRINSICS();
     }
@@ -119,6 +124,8 @@ namespace logia::AST
             it->pre_codegen(backend);
             it->post_codegen(backend);
         }
+        this->false_value->pre_codegen(backend);
+        this->true_value->pre_codegen(backend);
     }
 
     Type *Program::get_type()
@@ -169,7 +176,7 @@ namespace logia::AST
         return Scope::pre_codegen(backend);
     }
 
-    llvm::Value *Program::post_codegen(logia::Backend *backend)
+    void Program::post_codegen(logia::Backend *backend)
     {
         LOG(DBG, "{}", this->to_string());
 
@@ -183,8 +190,6 @@ namespace logia::AST
 
             n->post_codegen(backend);
         }
-
-        this->cg_value = nullptr; // nobody need program return type!
 
         // NOTE: overwrite - no override!
         // Block::post_codegen(backend);

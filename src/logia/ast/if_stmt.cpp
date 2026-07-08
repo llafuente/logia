@@ -51,11 +51,12 @@ namespace logia::AST
         return std::string(std::format("IfStmt{} ", Node::to_string()));
     }
 
-    llvm::Value *IfStmt::post_codegen(logia::Backend *backend)
+    void IfStmt::post_codegen(logia::Backend *backend)
     {
         LOG(DBG, "{}", this->to_string());
 
-        auto condition = this->get_condition()->post_codegen(backend);
+        auto condition = this->get_condition();
+        auto condition_value = condition->get_codegen_value(backend);
         auto then_body = this->get_then();
         auto else_body = this->get_else();
         auto continue_body = this->get_continue_block();
@@ -67,7 +68,8 @@ namespace logia::AST
         auto continue_block = continue_body->ir_basicblock;
 
         // NOTE create before codegen each block so the blocks are attached to function before codegen
-        auto v = backend->builder->CreateCondBr(condition, then_block, else_block);
+        auto v = backend->builder->CreateCondBr(condition_value, then_block, else_block);
+        backend->set_debug_loc(v, condition->loc);
         auto func = backend->builder->GetInsertBlock()->getParent();
 
         bool continue_block_required = false;
@@ -92,11 +94,9 @@ namespace logia::AST
         if (continue_block_required)
         {
             continue_body->post_codegen(backend);
-            this->cg_value = continue_block;
             return Node::post_codegen(backend);
         }
 
-        this->cg_value = else_block;
         return Node::post_codegen(backend);
     }
 

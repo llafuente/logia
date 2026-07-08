@@ -162,7 +162,6 @@ namespace logia::AST
             throw std::runtime_error("Not supported number of bits");
         }
 
-        this->cg_value = (llvm::Value *)this->ir_type;
         TypeDecl::pre_codegen(backend);
     }
 
@@ -236,7 +235,6 @@ namespace logia::AST
             LOGIA_VERIFY(this->di_type != nullptr);
         }
 
-        this->cg_value = (llvm::Value *)this->ir_type;
         Node::pre_codegen(backend);
     }
 
@@ -279,7 +277,6 @@ namespace logia::AST
             LOGIA_VERIFY(this->di_type != nullptr);
         }
 
-        this->cg_value = (llvm::Value *)this->ir_type;
         Node::pre_codegen(backend);
     }
 
@@ -329,7 +326,6 @@ namespace logia::AST
             LOGIA_VERIFY(this->di_type != nullptr);
         }
 
-        this->cg_value = (llvm::Value *)this->ir_type;
         Node::pre_codegen(backend);
     }
 
@@ -395,7 +391,6 @@ namespace logia::AST
             LOGIA_VERIFY(this->di_type != nullptr);
         }
 
-        this->cg_value = (llvm::Value *)this->ir_type;
         Node::pre_codegen(backend);
     }
 
@@ -461,9 +456,9 @@ namespace logia::AST
         return "not-yet";
     }
 
-    llvm::Value *TypeDef::post_codegen(logia::Backend *backend)
+    void TypeDef::post_codegen(logia::Backend *backend)
     {
-        this->cg_value = this->get_type()->post_codegen(backend);
+        this->get_type()->post_codegen(backend);
         return Node::post_codegen(backend);
     }
 
@@ -545,7 +540,7 @@ namespace logia::AST
         throw std::runtime_error("InferType cannot be codegen!");
     }
 
-    llvm::Value *InferType::post_codegen(logia::Backend *backend)
+    void InferType::post_codegen(logia::Backend *backend)
     {
         throw std::runtime_error("InferType cannot be codegen!");
     }

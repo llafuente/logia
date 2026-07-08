@@ -32,19 +32,21 @@ namespace logia::AST
         this->get_expr()->set_type(ty);
     }
 
-    llvm::Value *ReturnStmt::post_codegen(logia::Backend *backend)
+    void ReturnStmt::post_codegen(logia::Backend *backend)
     {
         LOG(DBG, "{}", this->to_string());
         auto expr = this->get_expr();
+        llvm::ReturnInst *ret;
         if (!expr)
         {
-            this->cg_value = backend->builder->CreateRetVoid();
+            ret = backend->builder->CreateRetVoid();
         }
         else
         {
-            auto value = llvm_load_if_required(expr->post_codegen(backend), backend);
-            this->cg_value = backend->builder->CreateRet(value);
+            auto value = llvm_load_if_required(expr->get_codegen_value(backend), backend);
+            ret = backend->builder->CreateRet(value);
         }
+        backend->set_debug_loc(ret, this->loc);
 
         return Stmt::post_codegen(backend);
     }

@@ -329,13 +329,13 @@ namespace logia::AST
         Type::pre_codegen(backend);
     }
 
-    llvm::Value *Struct::post_codegen(logia::Backend *backend)
+    void Struct::post_codegen(logia::Backend *backend)
     {
         LOG(DBG, "{}", this->to_string());
         // cache, because type are unique and we will be visiting this a lot
         if (this->is_post_codegen)
         {
-            return (llvm::Value *)this->ir_type;
+            return;
         }
 
         // To avoid possible infinite recursions we should have the type defined before use
@@ -350,8 +350,6 @@ namespace logia::AST
                 fn->post_codegen(backend);
             }
         }
-
-        return nullptr; // this is a type, should not return a value, right ?
     }
 
     void Struct::_pre_type_inference()

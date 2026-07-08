@@ -26,16 +26,6 @@ namespace logia::AST
         return this->real_type;
     }
 
-    llvm::Value *Stmt::post_codegen(logia::Backend *backend)
-    {
-        if (this->cg_value != nullptr)
-        {
-            LOG(DBG, "{}", this->to_string());
-            backend->set_debug_loc((llvm::Instruction *)this->cg_value, this->loc);
-        }
-        return Node::post_codegen(backend);
-    }
-
     ///
     /// GotoStmt
     ///
@@ -66,7 +56,7 @@ namespace logia::AST
         return std::format("GotoStmt[{}]{}", this->get_name(), Node::to_string());
     }
 
-    llvm::Value *GotoStmt::post_codegen(logia::Backend *backend)
+    void GotoStmt::post_codegen(logia::Backend *backend)
     {
         LOG(DBG, "{}", this->to_string());
         // find label and jump to it
@@ -96,7 +86,8 @@ namespace logia::AST
         }
         block->pre_codegen(backend);
         LOGIA_VERIFY(block->ir_basicblock != nullptr); // should be generated in pre_codegen!
-        this->cg_value = backend->builder->CreateBr(block->ir_basicblock);
+        auto inst = backend->builder->CreateBr(block->ir_basicblock);
+        backend->set_debug_loc(inst, this->loc);
         return Stmt::post_codegen(backend);
     }
 

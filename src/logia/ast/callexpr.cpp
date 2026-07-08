@@ -358,7 +358,7 @@ namespace logia::AST
         return std::format("CallExpression[args = {}, target = {}]{}", arguments.size(), (void *)this->callee, Node::to_string());
     }
 
-    llvm::Value *CallExpression::post_codegen(logia::Backend *backend)
+    void CallExpression::post_codegen(logia::Backend *backend)
     {
         LOG(DBG, "{}", this->to_string());
 
@@ -390,7 +390,7 @@ namespace logia::AST
             LOG(DBG, "argument[{}]", i);
 
             auto argument = arguments[i];
-            auto ir_argument = llvm_load_if_required(argument->post_codegen(backend), backend);
+            auto ir_argument = llvm_load_if_required(argument->get_codegen_value(backend), backend);
             auto ir_argument_ty = ir_argument->getType();
 
             auto ir_parameter = CalleeF->getArg(i);
@@ -407,20 +407,20 @@ namespace logia::AST
             ArgsV.push_back(ir_argument);
             if (!ArgsV.back())
             {
-                return nullptr;
+                return;
             }
         }
 
         // @llafuente remove name or we got duplications (same if strategy ?)
         if (is_indirect_call)
         {
-            auto value = this->get_locator()->post_codegen(backend);
+            auto value = this->get_locator()->get_codegen_value(backend);
             value = llvm_load_if_required(value, backend);
-            this->cg_value = (llvm::Value *)backend->builder->CreateCall(func->ir_functy, value, ArgsV);
+            this->set_codegen_value(backend, backend->builder->CreateCall(func->ir_functy, value, ArgsV));
         }
         else if (is_direct_call)
         {
-            this->cg_value = (llvm::Value *)backend->builder->CreateCall(CalleeF, ArgsV);
+            this->set_codegen_value(backend, backend->builder->CreateCall(CalleeF, ArgsV));
         }
         else
         {

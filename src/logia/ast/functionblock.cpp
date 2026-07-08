@@ -30,7 +30,7 @@ namespace logia::AST
         function->ir_func->insert(function->ir_func->end(), this->ir_basicblock);
     }
 
-    llvm::Value *FunctionBlock::post_codegen(logia::Backend *backend)
+    void FunctionBlock::post_codegen(logia::Backend *backend)
     {
         LOG(DBG, "");
         backend->builder->SetInsertPoint(this->ir_basicblock);
@@ -38,7 +38,6 @@ namespace logia::AST
 
         Block::post_codegen_children(backend);
 
-        this->cg_value = this->ir_basicblock;
         return Node::post_codegen(backend);
     }
 

@@ -38,7 +38,7 @@ namespace logia::AST
 
         void pre_codegen(logia::Backend *codegen) override;
         /// @brief Inserts block into parent Function, add a jump if needed and codegen children
-        llvm::Value *post_codegen(logia::Backend *backend) override;
+        void post_codegen(logia::Backend *backend) override;
 
         /// @brief Codegen children without touching block insertion and jump, used for continue block and if stmt codegen
         /// @param backend

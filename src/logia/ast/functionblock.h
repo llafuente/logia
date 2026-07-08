@@ -22,7 +22,7 @@ namespace logia::AST
 
         /// @brief Sets current block and codegen children
         /// @param backend The backend used for code generation
-        llvm::Value *post_codegen(logia::Backend *backend) override;
+        void post_codegen(logia::Backend *backend) override;
 
         /// @remarks while FunctionBlock is a Block, we should ignore it's post_attach
         void on_after_attach() override;

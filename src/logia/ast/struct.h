@@ -149,7 +149,7 @@ namespace logia::AST
 
         void validate() override;
         void pre_codegen(logia::Backend *backend) override;
-        llvm::Value *post_codegen(logia::Backend *backend) override;
+        void post_codegen(logia::Backend *backend) override;
 
     protected:
         void _pre_type_inference() override;

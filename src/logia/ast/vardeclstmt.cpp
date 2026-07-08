@@ -52,11 +52,11 @@ namespace logia::AST
         return std::format("VarDeclStmt[{}]{}", this->get_name(), Node::to_string());
     }
 
-    llvm::Value *VarDeclStmt::post_codegen(logia::Backend *backend)
+    void VarDeclStmt::post_codegen(logia::Backend *backend)
     {
         if (this->alloca_inst != nullptr)
         {
-            return this->alloca_inst;
+            return;
         }
         auto type = this->get_final_type();
         auto expr = this->get_expr();
@@ -69,9 +69,10 @@ namespace logia::AST
         // type->codegen(backend);
 
         auto name = this->get_name();
-        auto init_value = expr->post_codegen(backend);
+        auto init_value = expr->get_codegen_value(backend);
 
-        this->cg_value = this->alloca_inst = backend->builder->CreateAlloca(type->ir_type, 0, nullptr, name);
+        this->alloca_inst = backend->builder->CreateAlloca(type->ir_type, 0, nullptr, name);
+        backend->set_debug_loc(this->alloca_inst, this->loc);
 
         // TODO this should be handled by "binaryExpression" ?
         // that said ->

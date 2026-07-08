@@ -244,7 +244,7 @@ namespace logia::AST
 
         std::string get_repr() override;
 
-        llvm::Value *post_codegen(logia::Backend *backend) override;
+        void post_codegen(logia::Backend *backend) override;
 
         void on_after_attach() override;
 
@@ -266,7 +266,7 @@ namespace logia::AST
 
         void pre_codegen(logia::Backend *backend) override;
 
-        llvm::Value *post_codegen(logia::Backend *backend) override;
+        void post_codegen(logia::Backend *backend) override;
 
         void on_after_attach() override;
 

@@ -26,9 +26,8 @@ namespace logia::AST
         return nullptr;
     }
 
-    llvm::Value *Package::post_codegen(logia::Backend *backend)
+    void Package::post_codegen(logia::Backend *backend)
     {
-        this->cg_value = nullptr;
         return Node::post_codegen(backend);
     }
 

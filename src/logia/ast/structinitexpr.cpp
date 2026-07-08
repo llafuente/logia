@@ -195,7 +195,7 @@ namespace logia::AST
         throw_compiler_error("TODO!");
     }
 
-    llvm::Value *StructInitializer::post_codegen(logia::Backend *backend)
+    void StructInitializer::post_codegen(logia::Backend *backend)
     {
         if (!this->is_constant)
         {
@@ -221,7 +221,7 @@ namespace logia::AST
             auto item_ty = item->get_final_type();
             item_ty->post_codegen(backend);
 
-            auto ir_item_value = item->post_codegen(backend);
+            auto ir_item_value = item->get_codegen_value(backend);
             auto cir_item_value = (llvm::Constant *)(ir_item_value);
 
             if (field_ty->ir_type != item_ty->ir_type)
@@ -243,7 +243,7 @@ namespace logia::AST
         auto p = this->parent_node;
         if (p->is<StructInitializer>())
         {
-            this->cg_value = init;
+            this->set_codegen_value(nullptr, init);
             return Node::post_codegen(backend);
         }
         // if (p->is<Stmt>() || p->is<Block>())
@@ -261,7 +261,7 @@ namespace logia::AST
         // srcGlobal->setAlignment(llvm::Align(8));
         srcGlobal->setAlignment(abiAlign);
 
-        this->cg_value = srcGlobal;
+        this->set_codegen_value(nullptr, srcGlobal);
         // skip to Node -> LLVM crashes
         return Node::post_codegen(backend);
     }

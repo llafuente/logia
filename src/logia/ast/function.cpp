@@ -64,9 +64,10 @@ namespace logia::AST
     {
         return std::format("Parameter[{}][{}]{}", this->get_name()->identifier, this->get_type()->to_string(), Node::to_string());
     }
-    llvm::Value *FunctionParameter::post_codegen(logia::Backend *backend)
+    void FunctionParameter::post_codegen(logia::Backend *backend)
     {
-        this->cg_value = this->alloca_inst = backend->builder->CreateAlloca((llvm::Type *)this->get_final_type()->post_codegen(backend), 0, nullptr, this->get_name()->identifier);
+
+        this->alloca_inst = backend->builder->CreateAlloca(this->get_final_type()->ir_type, 0, nullptr, this->get_name()->identifier);
         return Node::post_codegen(backend);
     }
 
@@ -354,7 +355,7 @@ namespace logia::AST
         Node::pre_codegen(backend);
     }
 
-    llvm::Value *Function::post_codegen(logia::Backend *backend)
+    void Function::post_codegen(logia::Backend *backend)
     {
         // Create a basic block and insert a return
         LOGIA_VERIFY(this->is_pre_codegen == true);
@@ -508,7 +509,7 @@ namespace logia::AST
         this->type_inference_pass_id = TYPE_INFERENCE_MAX;   // ignore type inference, but no skip
         this->is_post_codegen = this->is_pre_codegen = true; // ignore codegen, but no skip
         // set codegen result
-        this->cg_value = this->ir_func = ir;
+        this->ir_func = ir;
         this->ir_functy = (llvm::FunctionType *)ir->getType();
     }
 
@@ -517,7 +518,7 @@ namespace logia::AST
         return std::format("Type.Function.Intrinsic[{}] {}", this->real_name, Node::to_string());
     }
 
-    llvm::Value *Intrinsic::post_codegen(logia::Backend *backend)
+    void Intrinsic::post_codegen(logia::Backend *backend)
     {
         // skip Function::post_codegen, because we dont have a body block!
         return Type::post_codegen(backend);

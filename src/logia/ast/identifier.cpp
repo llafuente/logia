@@ -41,27 +41,27 @@ namespace logia::AST
         return std::format("Identifier[{}]{}{}", this->identifier, flags, Node::to_string());
     }
 
-    llvm::Value *Identifier::post_codegen(logia::Backend *backend)
+    void Identifier::post_codegen(logia::Backend *backend)
     {
         LOGIA_VERIFY(this->decl != nullptr);
 
         if (this->decl->is<VarDeclStmt>())
         {
             LOG(DBG, "{} points to a var declaration {}", (void *)this->decl, this->to_string());
-            this->cg_value = this->decl->as<VarDeclStmt>()->alloca_inst;
+            this->set_codegen_value(backend, this->decl->as<VarDeclStmt>()->alloca_inst);
             return Expression::post_codegen(backend);
         }
         if (this->decl->is<FunctionParameter>())
         {
             LOG(DBG, "{} points to a function parameter {}", (void *)this->decl, this->to_string());
-            this->cg_value = this->decl->as<FunctionParameter>()->alloca_inst;
+            this->set_codegen_value(backend, this->decl->as<FunctionParameter>()->alloca_inst);
             return Expression::post_codegen(backend);
         }
         if (this->decl->is<Function>())
         {
             LOG(DBG, "{} points to a function {}", (void *)this->decl, this->to_string());
-            // return the function itself
-            this->cg_value = (llvm::Value *)this->decl->as<Function>()->ir_func;
+            // return the function itself - it's considered a constant so no debug information!
+            this->set_codegen_value(nullptr, this->decl->as<Function>()->ir_func);
             // NOTE do not use Expression::post_codegen because it will set debug information on the real function -> wrong and also SEH
             return Node::post_codegen(backend);
         }

@@ -52,7 +52,7 @@ namespace logia::AST
 
         std::string to_string() override;
 
-        llvm::Value *post_codegen(logia::Backend *backend) override;
+        void post_codegen(logia::Backend *backend) override;
 
         void on_after_attach() override;
 
@@ -157,7 +157,7 @@ namespace logia::AST
         /// @brief generate parameters alloca. Used at FunctionBlock
         void codegen_parameters(logia::Backend *backend);
         void pre_codegen(logia::Backend *backend) override;
-        llvm::Value *post_codegen(logia::Backend *backend) override;
+        void post_codegen(logia::Backend *backend) override;
 
     protected:
         void _pre_type_inference() override;
@@ -189,7 +189,7 @@ namespace logia::AST
         ~Intrinsic();
 
         std::string to_string() override;
-        llvm::Value *post_codegen(logia::Backend *backend) override;
+        void post_codegen(logia::Backend *backend) override;
     };
     /*
         /// @brief Defines an intrinsic function that will be resolved as operator overloading
@@ -208,7 +208,7 @@ namespace logia::AST
             ~OperatorIntrinsic();
 
             std::string to_string() override;
-            llvm::Value *post_codegen(logia::Backend *backend) override;
+            void post_codegen(logia::Backend *backend) override;
         };
     */
 }

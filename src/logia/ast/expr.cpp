@@ -1,5 +1,6 @@
 #include "logia/ast/expr.h"
 
+#include "utils.h"
 #include "logia/log.h"
 #include "logia/backend.h"
 #include "logia/type_system.h"
@@ -32,13 +33,35 @@ namespace logia::AST
         throw_compiler_error("need to be implemented!");
     }
 
-    llvm::Value *Expression::post_codegen(logia::Backend *backend)
+    void Expression::post_codegen(logia::Backend *backend)
     {
-        if (this->cg_value != nullptr)
-        {
-            LOG(DBG, "{}", this->to_string());
-            backend->set_debug_loc((llvm::Instruction *)this->cg_value, this->loc);
-        }
+        LOGIA_VERIFY(this->cg_value != nullptr, "An expression should codegen a value!");
+
         return Node::post_codegen(backend);
     }
+
+    llvm::Value *Expression::get_codegen_value(logia::Backend *backend)
+    {
+        // do not allow to call get_codegen_value in pre_codegen pass, makes no sense!
+        LOGIA_VERIFY(this->is_pre_codegen == true);
+
+        if (!this->is_post_codegen)
+        {
+            this->post_codegen(backend);
+        }
+
+        LOGIA_VERIFY(this->cg_value != nullptr);
+        return this->cg_value;
+    }
+
+    void Expression::set_codegen_value(logia::Backend *backend, llvm::Value *value)
+    {
+        LOGIA_VERIFY(this->cg_value == nullptr);
+        this->cg_value = value;
+        if (backend != nullptr)
+        {
+            backend->set_debug_loc((llvm::Instruction *)this->cg_value, this->loc);
+        }
+    }
+
 }

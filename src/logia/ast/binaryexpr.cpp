@@ -202,27 +202,28 @@ namespace logia::AST
         }
         Expression::_post_type_inference();
     }
-    llvm::Value *BinaryExpression::post_codegen(logia::Backend *backend)
+    void BinaryExpression::post_codegen(logia::Backend *backend)
     {
         auto left = this->get_left();
         auto right = this->get_right();
+        auto i1 = backend->program->bool_type;
 
         switch (this->op)
         {
         case Operators::BINARY_ASSIGN:
         {
             // auto left_ty = left->get_final_type();
-            auto left_value = left->post_codegen(backend);
+            auto left_value = left->get_codegen_value(backend);
             // auto right_ty = right->get_final_type();
-            auto right_value = right->post_codegen(backend);
+            auto right_value = right->get_codegen_value(backend);
 
             right_value = llvm_load_if_required(right_value, backend);
 
             auto store = backend->builder->CreateStore(right_value, left_value, false);
             backend->set_debug_loc((llvm::Instruction *)store, this->loc);
-            this->cg_value = left_value;
 
-            return left_value;
+            this->set_codegen_value(backend, left_value);
+            return Expression::post_codegen(backend);
         }
         case Operators::BINARY_LOGICAL_AND:
         {
@@ -235,26 +236,24 @@ namespace logia::AST
             llvm::BasicBlock *phi_bb = llvm::BasicBlock::Create(backend->context, phi_bb_name, func->ir_func);
             ++expr_logical_count;
 
-            auto left_value = left->post_codegen(backend);
+            auto left_value = left->get_codegen_value(backend);
             left_value = llvm_load_if_required(left_value, backend);
             backend->builder->CreateCondBr(left_value, test_rhs, phi_bb);
             backend->builder->SetInsertPoint(test_rhs);
 
-            auto right_value = right->post_codegen(backend);
+            auto right_value = right->get_codegen_value(backend);
             right_value = llvm_load_if_required(right_value, backend);
             backend->builder->CreateBr(phi_bb);
 
             backend->builder->SetInsertPoint(phi_bb);
-            auto i1 = scope_lookup_first(this, "bool")->as<TypeDecl>();
+
             auto phi = backend->builder->CreatePHI(i1->ir_type, 2);
 
-            phi->addIncoming((new AST::IntegerLiteral({}, "0", i1))->post_codegen(backend), start_bb);
+            phi->addIncoming(backend->program->false_value->get_codegen_value(backend), start_bb);
             phi->addIncoming(right_value, test_rhs);
 
-            backend->set_debug_loc((llvm::Instruction *)phi, this->loc);
-            this->cg_value = phi;
-
-            return phi;
+            this->set_codegen_value(backend, phi);
+            return Expression::post_codegen(backend);
         }
         case Operators::BINARY_LOGICAL_OR:
         {
@@ -267,31 +266,28 @@ namespace logia::AST
             llvm::BasicBlock *phi_bb = llvm::BasicBlock::Create(backend->context, phi_bb_name, func->ir_func);
             ++expr_logical_count;
 
-            auto left_value = left->post_codegen(backend);
+            auto left_value = left->get_codegen_value(backend);
             left_value = llvm_load_if_required(left_value, backend);
             backend->builder->CreateCondBr(left_value, phi_bb, test_rhs);
             backend->builder->SetInsertPoint(test_rhs);
 
-            auto right_value = right->post_codegen(backend);
+            auto right_value = right->get_codegen_value(backend);
             right_value = llvm_load_if_required(right_value, backend);
             backend->builder->CreateBr(phi_bb);
 
             backend->builder->SetInsertPoint(phi_bb);
-            auto i1 = scope_lookup_first(this, "bool")->as<TypeDecl>();
+
             auto phi = backend->builder->CreatePHI(i1->ir_type, 2);
 
-            phi->addIncoming((new AST::IntegerLiteral({}, "1", i1))->post_codegen(backend), start_bb);
+            phi->addIncoming(backend->program->true_value->get_codegen_value(backend), start_bb);
             phi->addIncoming(right_value, test_rhs);
 
-            backend->set_debug_loc((llvm::Instruction *)phi, this->loc);
-            this->cg_value = phi;
-
-            return phi;
+            this->set_codegen_value(backend, phi);
+            return Expression::post_codegen(backend);
         }
         }
 
-        this->cg_value = this->call_expr->post_codegen(backend);
-
+        this->set_codegen_value(backend, this->call_expr->get_codegen_value(backend));
         return Expression::post_codegen(backend);
     }
 

@@ -26,12 +26,6 @@ namespace logia::AST
         return std::format("ConstExpression{}", Node::to_string());
     }
 
-    llvm::Value *ConstExpression::post_codegen(logia::Backend *backend)
-    {
-        // skip expression, as we couldn't generate debug information, it crash!
-        return Node::post_codegen(backend);
-    }
-
     ConstExpression *ConstExpression::operator+(ConstExpression *other)
     {
         throw_compiler_error("operator+ not available, call is_valid_constant_operator before!");
@@ -250,7 +244,7 @@ namespace logia::AST
         return do_int_operator<llvm::APSInt, &llvm::APSInt::operator/ >(this, rhs);
     }
 
-    llvm::Value *IntegerLiteral::post_codegen(logia::Backend *backend)
+    void IntegerLiteral::post_codegen(logia::Backend *backend)
     {
         LOG(DBG, "{}", this->to_string());
         auto type = this->real_type == nullptr ? this->get_child<Type>(0)->get_final_type() : this->real_type;
@@ -290,7 +284,7 @@ namespace logia::AST
                 throw_semantic_error(this, std::format("LGERR_CEXPR002b Integer literal '{}' is too big for type '{}' required at least {} bits", this->value_str, type->get_repr(), required_bits));
             }
 
-            this->cg_value = llvm::ConstantInt::get(llvm_type, value);
+            this->set_codegen_value(nullptr, llvm::ConstantInt::get(llvm_type, value));
         }
         else if (type->is<Float>())
         {
@@ -299,16 +293,16 @@ namespace logia::AST
             switch (ftype->bits)
             {
             case 32:
-                this->cg_value = llvm::ConstantFP::get(
-                    llvm_type,
-                    // this->value_str
-                    llvm::APFloat(static_cast<float>(this->value.getSExtValue())));
+                this->set_codegen_value(nullptr, llvm::ConstantFP::get(
+                                                     llvm_type,
+                                                     // this->value_str
+                                                     llvm::APFloat(static_cast<float>(this->value.getSExtValue()))));
                 break;
             case 64:
-                this->cg_value = llvm::ConstantFP::get(
-                    llvm_type,
-                    // this->value_str
-                    llvm::APFloat(static_cast<double>(this->value.getSExtValue())));
+                this->set_codegen_value(nullptr, llvm::ConstantFP::get(
+                                                     llvm_type,
+                                                     // this->value_str
+                                                     llvm::APFloat(static_cast<double>(this->value.getSExtValue()))));
                 break;
             default:
                 throw_compiler_error("Invalid number of bits for float type");
@@ -487,7 +481,7 @@ namespace logia::AST
         return std::format("FloatLiteral[{}]{}", this->value_str, Node::to_string());
     }
 
-    llvm::Value *FloatLiteral::post_codegen(logia::Backend *backend)
+    void FloatLiteral::post_codegen(logia::Backend *backend)
     {
         auto type = this->get_final_type();
         Float *float_type;
@@ -505,10 +499,10 @@ namespace logia::AST
             // Assertion failed: isRepresentableBy(getSemantics(), semIEEEsingle) && "Float semantics is not representable by IEEEsingle", file C:\Users\runneradmin\llvm\lib\Support\APFloat.cpp, line 5595
             // this->cg_value = llvm::ConstantFP::get(type->ir_type, this->value);
             // Assertion failed: C->getType() == Ty->getScalarType() && "ConstantFP type doesn't match the type implied by its value!", file C:\Users\runneradmin\llvm\lib\IR\Constants.cpp, line 1004
-            this->cg_value = llvm::ConstantFP::get(type->ir_type, this->value_str);
+            this->set_codegen_value(nullptr, llvm::ConstantFP::get(type->ir_type, this->value_str));
             break;
         case 64:
-            this->cg_value = llvm::ConstantFP::get(type->ir_type, this->value_str);
+            this->set_codegen_value(nullptr, llvm::ConstantFP::get(type->ir_type, this->value_str));
             break;
         }
         return ConstExpression::post_codegen(backend);
@@ -609,12 +603,12 @@ namespace logia::AST
         return result;
     }
 
-    llvm::Value *StringLiteral::post_codegen(logia::Backend *backend)
+    void StringLiteral::post_codegen(logia::Backend *backend)
     {
         LOG(DBG, "{}", this->to_string());
         // NOTE module is required or 0xc0000005
         // !getType()->isVoidTy() && "Cannot assign a name to void values!"??
-        this->cg_value = backend->builder->CreateGlobalString(this->text, ".str", 0, backend->module.get(), true);
+        this->set_codegen_value(nullptr, backend->builder->CreateGlobalString(this->text, ".str", 0, backend->module.get(), true));
         return ConstExpression::post_codegen(backend);
 
         /*

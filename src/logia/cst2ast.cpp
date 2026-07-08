@@ -652,6 +652,7 @@ namespace logia
         switch (context->start->getType())
         {
         case LogiaParser::TRUE_TK:
+            // TODO PERF could be possible to use? this->program->bool_type
             return ANY_VOIDP_STORE(new AST::IntegerLiteral(MAKE_LOCATION(context), "1", scope_look_one<AST::Type>(this->program, "bool")));
         case LogiaParser::FALSE_TK:
             return ANY_VOIDP_STORE(new AST::IntegerLiteral(MAKE_LOCATION(context), "0", scope_look_one<AST::Type>(this->program, "bool")));

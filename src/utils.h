@@ -17,6 +17,31 @@
 
 void print_stack_trace();
 
+#include <csignal>
+#include <cstdlib>
+
+// Cross-platform debug break
+inline void debug_break()
+{
+#if defined(_MSC_VER)
+    __debugbreak(); // MSVC intrinsic
+#elif defined(__clang__) || defined(__GNUC__)
+#if defined(__i386__) || defined(__x86_64__)
+    __asm__ volatile("int3");
+#elif defined(__aarch64__)
+    __asm__ volatile(".inst 0xd4200000"); // ARM64 BRK instruction
+#elif defined(__arm__)
+    __asm__ volatile(".inst 0xe7f001f0"); // ARM BKPT instruction
+#else
+    // Fallback: send SIGTRAP
+    raise(SIGTRAP);
+#endif
+#else
+    // Last resort
+    raise(SIGTRAP);
+#endif
+}
+
 // Custom assert macro with stack trace
 
 // Helper macros to detect if an argument is provided
@@ -34,6 +59,7 @@ void print_stack_trace();
             std::cerr << "Assertion failed: " << #expr                         \
                       << "\nAt file: " << __FILE__ << ":" << __LINE__ << "\n"; \
             print_stack_trace();                                               \
+            debug_break();                                                     \
             std::abort();                                                      \
         }                                                                      \
     } while (0)
@@ -47,6 +73,7 @@ void print_stack_trace();
                       << message                                            \
                       << "\nFile: " << __FILE__ << ":" << __LINE__ << "\n"; \
             print_stack_trace();                                            \
+            debug_break();                                                  \
             std::abort();                                                   \
         }                                                                   \
     } while (0)

@@ -125,12 +125,12 @@ namespace logia::AST
         }
     }
 
-    llvm::Value *UnaryExpression::post_codegen(logia::Backend *backend)
+    void UnaryExpression::post_codegen(logia::Backend *backend)
     {
         LOG(DBG, "{}", this->to_string());
 
         auto operand = this->get_operand();
-        auto ir_value = operand->post_codegen(backend);
+        auto ir_value = operand->get_codegen_value(backend);
         auto ir_ty = ir_value->getType();
 
         switch (this->op)
@@ -138,7 +138,7 @@ namespace logia::AST
         case Operators::PREFIX_DEREFERENCE:
         {
             // This reads the value from the pointer.
-            this->cg_value = backend->builder->CreateLoad(ir_ty, ir_value);
+            this->set_codegen_value(backend, backend->builder->CreateLoad(ir_ty, ir_value));
             return Expression::post_codegen(backend);
         }
         break;
@@ -147,17 +147,17 @@ namespace logia::AST
         {
             // deprecated
             // auto ptr = this->cg_value = backend->builder->CreateAlloca(llvm::PointerType::get(ir_ty, 0), nullptr, "deref");
-            auto ptr = this->cg_value = backend->builder->CreateAlloca(llvm::PointerType::get(backend->context, 0), 0, nullptr);
-            backend->set_debug_loc((llvm::Instruction *)ptr, this->loc);
+            auto alloca = backend->builder->CreateAlloca(llvm::PointerType::get(backend->context, 0), 0, nullptr);
+            this->set_codegen_value(backend, alloca);
 
-            auto store = backend->builder->CreateStore(ir_value, ptr);
+            auto store = backend->builder->CreateStore(ir_value, alloca);
             backend->set_debug_loc((llvm::Instruction *)store, this->loc);
 
             // this->cg_value = backend->builder->CreateLoad(operandType->getPointerTo(), ptr);
             return Expression::post_codegen(backend);
         }
         default:
-            this->cg_value = this->call_expr->post_codegen(backend);
+            this->set_codegen_value(backend, this->call_expr->get_codegen_value(backend));
             return Expression::post_codegen(backend);
         }
     }

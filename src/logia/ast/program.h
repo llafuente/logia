@@ -11,8 +11,10 @@ namespace llvm
 namespace logia::AST
 {
     struct Type;
+    struct TypeDecl;
     struct Identifier;
     struct Intrinsic;
+    struct IntegerLiteral;
 
     // Design/Implementation notes
     // bootstraping need a little back and forth to make it work
@@ -42,6 +44,10 @@ namespace logia::AST
         /// @brief Intrinsics are functions that are implemented directly in llvm ir
         /// @remarks Use a property to hide intrinsics tree from user
         Scope *intrinsics = nullptr;
+
+        IntegerLiteral *false_value;
+        IntegerLiteral *true_value;
+        TypeDecl *bool_type;
 
         Program(location loc, const char *entry_point_file, const char *entry_point_reldir, const char *file_contents);
 
@@ -77,7 +83,7 @@ namespace logia::AST
         /// @brief codegen all children
         /// @param backend
         /// @return nullptr
-        llvm::Value *post_codegen(logia::Backend *backend) override;
+        void post_codegen(logia::Backend *backend) override;
 
         /// @brief do nothing
         void on_after_attach() override;

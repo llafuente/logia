@@ -19,6 +19,6 @@ namespace logia::AST
         void pre_codegen(logia::Backend *backend) override;
 
         /// @brief Sets current block and codegen children
-        llvm::Value *post_codegen(logia::Backend *backend) override;
+        void post_codegen(logia::Backend *backend) override;
     };
 }

@@ -21,8 +21,6 @@ namespace logia::AST
         /// @return
         virtual bool is_valid_constant_operator(Operators op) = 0;
 
-        llvm::Value *post_codegen(logia::Backend *backend) override;
-
         virtual ConstExpression *operator+(ConstExpression *other);
         virtual ConstExpression *operator-(ConstExpression *other);
         virtual ConstExpression *operator*(ConstExpression *other);
@@ -43,7 +41,7 @@ namespace logia::AST
         std::string to_string() override;
 
         // TODO generate our string data not cstring
-        llvm::Value *post_codegen(logia::Backend *backend) override;
+        void post_codegen(logia::Backend *backend) override;
 
         void on_after_attach() override;
 
@@ -78,7 +76,7 @@ namespace logia::AST
 
         std::string to_string() override;
 
-        llvm::Value *post_codegen(logia::Backend *backend) override;
+        void post_codegen(logia::Backend *backend) override;
 
         void on_after_attach() override;
 
@@ -117,7 +115,7 @@ namespace logia::AST
 
         std::string to_string() override;
 
-        llvm::Value *post_codegen(logia::Backend *backend) override;
+        void post_codegen(logia::Backend *backend) override;
 
         void on_after_attach() override;
 

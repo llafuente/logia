@@ -95,12 +95,11 @@ namespace logia::AST
         Node::pre_codegen(backend);
     }
 
-    llvm::Value *Block::post_codegen(logia::Backend *backend)
+    void Block::post_codegen(logia::Backend *backend)
     {
-        if (this->cg_value)
+        if (is_post_codegen)
         {
-            LOG(WRN, "Why??");
-            return this->cg_value;
+            throw_compiler_error("retry ?");
         }
 
         LOG(DBG, "{}", this->to_string());
@@ -120,7 +119,6 @@ namespace logia::AST
 
         this->post_codegen_children(backend);
 
-        this->cg_value = this->ir_basicblock;
         return Node::post_codegen(backend);
     }
     void Block::post_codegen_children(logia::Backend *backend)
@@ -146,7 +144,7 @@ namespace logia::AST
             Node *n = this->children[i];
             LOG(DBG, "codegen.statement[{}] = {}", i, n->to_string());
 
-            auto inst = n->post_codegen(backend);
+            n->post_codegen(backend);
 
             // if the current block has a terminator and we continue we run into multiple problems like:
             // fix: All predecessors must be dead!

@@ -100,21 +100,20 @@ namespace logia::AST
         return std::format("MemberAccessExpression {}", Node::to_string());
     }
 
-    llvm::Value *MemberAccessExpression::post_codegen(logia::Backend *backend)
+    void MemberAccessExpression::post_codegen(logia::Backend *backend)
     {
         LOG(DBG, "{}", this->to_string_tree());
         auto ty = this->get_type();
         Function *fn;
         if (ty->try_cast<Function>(&fn))
         {
-            this->cg_value = fn->ir_func;
-
+            this->set_codegen_value(backend, fn->ir_func);
             return Expression::post_codegen(backend);
         }
         // TODO handle left side to be a pointer to struct or struct itself, for now we assume it's always a pointer
         auto left = this->get_left();
         auto left_type = left->get_final_type();
-        auto left_value = left->post_codegen(backend);
+        auto left_value = left->get_codegen_value(backend);
 
         if (!left_type->is<Struct>())
         {
@@ -139,7 +138,7 @@ namespace logia::AST
         }
 
         auto gep = backend->builder->CreateStructGEP(struct_ty->ir_type, left_value, field->index);
-        this->cg_value = gep;
+        this->set_codegen_value(backend, gep);
 
         return Expression::post_codegen(backend);
     }
