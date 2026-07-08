@@ -25,6 +25,9 @@ typedef long double f128;
 #include <stddef.h>
 #include <cstdio>
 
+// NOTE do not use inline, or the function dissapears!
+#define LOGIA_INTRINSICS_FUNCTION(NAME) extern "C" [[clang::annotate("logia=" NAME)]] __attribute__((always_inline))
+
 extern "C" _iobuf *logia_get_stdout()
 {
     return stdout;
