@@ -122,6 +122,8 @@ namespace logia
 
         llvm::Align getDefaultAlignament(llvm::Type *type);
 
+        uint64_t getPointerSizeInBits();
+
     private:
         /// @brief prepare AST for codegen
         /// first pass -> validation (mostly semantic validation)

@@ -387,7 +387,7 @@ namespace logia::AST
         {
             this->di_type = backend->dbuilder->createPointerType(
                 pointee->di_type,                       // DIType *PointeeTy, Pointee type
-                this->ir_ptype->getScalarSizeInBits(),  // uint64_t SizeInBits, Pointer size in bits
+                backend->getPointerSizeInBits(),        // uint64_t SizeInBits, Pointer size in bits
                 0,                                      // uint32_t AlignInBits, Alignment in bit
                 std::nullopt,                           // std::optional<unsigned> DWARFAddressSpace
                 std::format("{}*", pointee->get_repr()) // StringRef Name, Optional name

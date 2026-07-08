@@ -671,16 +671,14 @@ namespace logia
         auto dylib = session->getJITDylibByName("<main>");
 
         auto data_layout = JIT_builder.getDefaultDataLayoutForTarget();
+        // alternative get from module ?
+        // auto data_layout = llvm_module->getDataLayout();
         if (!data_layout)
         {
             llvm::errs() << data_layout.takeError();
             throw std::exception("Error creating DefaultDataLayoutForTarget");
         }
         auto mangle = llvm::orc::MangleAndInterner(*session, *data_layout);
-        /*
-    auto data_layout = llvm_module->getDataLayout();
-    auto mangle = llvm::orc::MangleAndInterner(*session, data_layout);
-    */
 
         auto objectLayer = llvm::orc::RTDyldObjectLinkingLayer(*session,
                                                                [](const llvm::MemoryBuffer &)
@@ -818,5 +816,12 @@ namespace logia
         auto v = llvm::Align(dl.getABITypeAlign(type).value());
         LOG(DBG, "{} {}", AST::llvm_type_to_string(type), v.value());
         return v;
+    }
+
+    uint64_t Backend::getPointerSizeInBits()
+    {
+        // alternative? this->ir_ptype->getScalarSizeInBits(),
+        const llvm::DataLayout &dl = this->module->getDataLayout();
+        return dl.getPointerSizeInBits();
     }
 }
