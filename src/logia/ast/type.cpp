@@ -67,6 +67,7 @@ namespace logia::AST
 
     TypeDecl::TypeDecl(location loc, Primitives prim) : Type(loc)
     {
+        this->real_type = this;
         this->primitive = prim;
     }
 
@@ -108,7 +109,7 @@ namespace logia::AST
     }
     std::string Integer::get_repr()
     {
-        return std::format("{}{}", (this->is_signed || this->bits == 1 ? "i" : "u"), this->bits);
+        return std::format("λ{}{}", (this->is_signed || this->bits == 1 ? "i" : "u"), this->bits);
     }
 
     void Integer::pre_codegen(logia::Backend *backend)
@@ -167,7 +168,7 @@ namespace logia::AST
 
     void Integer::on_after_attach()
     {
-        this->__register_type(std::format("λ{}", this->get_repr()).c_str());
+        this->__register_type(std::format("{}", this->get_repr()).c_str());
     }
 
     void Integer::validate() {}
@@ -190,7 +191,7 @@ namespace logia::AST
     }
     std::string Float::get_repr()
     {
-        return std::format("f{}", this->bits);
+        return std::format("λf{}", this->bits);
     }
 
     void Float::pre_codegen(logia::Backend *backend)
@@ -240,7 +241,7 @@ namespace logia::AST
 
     void Float::on_after_attach()
     {
-        this->__register_type(std::format("λ{}", this->get_repr()).c_str());
+        this->__register_type(std::format("{}", this->get_repr()).c_str());
     }
 
     void Float::validate() {}

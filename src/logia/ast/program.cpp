@@ -29,10 +29,13 @@ namespace logia::AST
         intrinsics = new Scope(loc);
         this->push_child(intrinsics);
 
+        std::vector<TypeDecl *> primitives = {};
+
         // special case i1 (not signed!)
         auto i1 = new Integer(false, 1);
         bool_type = i1;
         intrinsics->push_child(i1);
+        primitives.push_back(i1);
 
         // we know declare all primitives
         // any type in the language should use those
@@ -47,6 +50,10 @@ namespace logia::AST
         intrinsics->push_child(i16);
         intrinsics->push_child(i32);
         intrinsics->push_child(i64);
+        primitives.push_back(i8);
+        primitives.push_back(i16);
+        primitives.push_back(i32);
+        primitives.push_back(i64);
 
         auto u8 = new Integer(false, 8);
         auto u16 = new Integer(false, 16);
@@ -57,9 +64,14 @@ namespace logia::AST
         intrinsics->push_child(u16);
         intrinsics->push_child(u32);
         intrinsics->push_child(u64);
+        primitives.push_back(u8);
+        primitives.push_back(u16);
+        primitives.push_back(u32);
+        primitives.push_back(u64);
 
         auto the_void = new Void(); // starcraft reference is mandatory :)
         intrinsics->push_child(the_void);
+
         auto ptr = new Pointer();
         intrinsics->push_child(ptr);
 
@@ -69,28 +81,15 @@ namespace logia::AST
         // TODO f128?
         intrinsics->push_child(f32);
         intrinsics->push_child(f64);
+        primitives.push_back(f32);
+        primitives.push_back(f64);
 
         // declare references to every primitive, to load intrintics!
-        auto ref_i8 = new Ref(i8);
-        auto ref_i16 = new Ref(i16);
-        auto ref_i32 = new Ref(i32);
-        auto ref_i64 = new Ref(i64);
-        auto ref_u8 = new Ref(u8);
-        auto ref_u16 = new Ref(u16);
-        auto ref_u32 = new Ref(u32);
-        auto ref_u64 = new Ref(u64);
-        auto ref_f32 = new Ref(f32);
-        auto ref_f64 = new Ref(f64);
-        intrinsics->push_child(ref_i8);
-        intrinsics->push_child(ref_i16);
-        intrinsics->push_child(ref_i32);
-        intrinsics->push_child(ref_i64);
-        intrinsics->push_child(ref_u8);
-        intrinsics->push_child(ref_u16);
-        intrinsics->push_child(ref_u32);
-        intrinsics->push_child(ref_u64);
-        intrinsics->push_child(ref_f32);
-        intrinsics->push_child(ref_f64);
+        for (auto prim : primitives)
+        {
+            auto ref_prim = new Ref(prim);
+            intrinsics->push_child(ref_prim);
+        }
 
         // aliases
         intrinsics->scope[(char *)"int"] = intrinsics->scope[(char *)"λi64"];
