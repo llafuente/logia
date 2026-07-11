@@ -23,7 +23,7 @@ for (let o of operators) {
         console.log(`
 extern "C"
 [[clang::annotate("logia=${o.logia_fn}")]]
-${type} ${o.func}_${type}([[clang::annotate("logia=ref<${type}>")]] ${type} a) {
+${type} ${o.func}_${type}([[clang::annotate("logia=ref<λ${type}>")]] ${type} a) {
     return ${o.operator}a;
 }`);
     }

@@ -22,7 +22,7 @@ ${type} ${o.func}_${type}_${type}([[clang::annotate("logia=λ${type}")]] ${type}
             console.log(`
 extern "C"
 [[clang::annotate("logia=${o.logia_fn}")]]
-${type} ${o.func}_${type}_${type}([[clang::annotate("logia=ref<${type}>")]] ${type} *a, [[clang::annotate("logia=λ${type}")]] ${type} b){
+${type} ${o.func}_${type}_${type}([[clang::annotate("logia=ref<λ${type}>")]] ${type} *a, [[clang::annotate("logia=λ${type}")]] ${type} b){
     *a ${o.operator} b;
     return *a;
 }`);

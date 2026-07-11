@@ -17,7 +17,8 @@ func: "logia_intrinsics_deref"
   {
     name: "BITWISE_NOT",
     operator: "~",
-    func: "logia_intrinsics_prefix_bitwise_not"
+    func: "logia_intrinsics_prefix_bitwise_not",
+    logia_fn: "__logia_prefix_bitwise_not"
   }
 ].forEach((o) => {
   for (let type of types) {
@@ -65,7 +66,7 @@ bool ${o.func}_${type}([[clang::annotate("logia=λ${type}")]] ${type} a) {
       console.log(`
 extern "C"
 [[clang::annotate("logia=${o.logia_fn}")]]
-${type} ${o.func}_${type}([[clang::annotate("logia=ref<${type}>")]] ${type}* a) {
+${type} ${o.func}_${type}([[clang::annotate("logia=ref<λ${type}>")]] ${type}* a) {
     return ${o.operator}(*a);
 }`);
     }
