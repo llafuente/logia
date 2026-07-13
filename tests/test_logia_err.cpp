@@ -21,7 +21,7 @@ TEST(logia_run_error_file, semantic_error_LGER031)
     auto msg = test_file_with_semantic_error(".\\tests\\logia-errors\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "err-LGER031-001");
     // std::cerr << "???" << msg << "????" << std::endl;
     //  EXPECT_NE(strstr(err.what(), "semantic error"), NULL);
-    EXPECT_THAT(msg, testing::HasSubstr("LGER031 Missing initializer for field 'y' at position '2' of type 'struct point {x i64, y i64}"));
+    EXPECT_THAT(msg, testing::HasSubstr("LGER031 Missing initializer for field 'y' at position '2' of type 'struct point {λi64 x, λi64 y}"));
     EXPECT_THAT(msg, testing::HasSubstr("err-LGER031-001.logia:8:19"));
 }
 TEST(logia_run_error_file, semantic_error_LGER032)
@@ -66,7 +66,7 @@ TEST(logia_run_error_file, semantic_error_LGERR_IF001)
 {
     {
         auto msg = test_file_with_semantic_error(".\\tests\\logia-errors\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "err-LGERR_IF001-001");
-        EXPECT_THAT(msg, testing::HasSubstr("LGERR_IF001 Expected contition type to be 'bool' but found: 'f64'"));
+        EXPECT_THAT(msg, testing::HasSubstr("LGERR_IF001 Expected contition type to be 'bool' but found: 'λf64'"));
         EXPECT_THAT(msg, testing::HasSubstr("err-LGERR_IF001-001.logia:9:9"));
     }
 }

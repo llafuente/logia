@@ -22,7 +22,7 @@ namespace logia::AST
 
     TypeDecl *Cast::get_source_type()
     {
-        return this->get_expr()->get_final_type();
+        return this->get_expr()->get_type_decl();
     }
 
     Expression *Cast::get_expr()
@@ -32,7 +32,7 @@ namespace logia::AST
 
     TypeDecl *Cast::get_target_type()
     {
-        return this->get_child<Type>(1)->get_final_type();
+        return this->get_child<Type>(1)->get_type_decl();
     }
 
     std::string Cast::to_string()
@@ -53,8 +53,8 @@ namespace logia::AST
     void Cast::_post_type_inference()
     {
         Expression *expr = this->get_expr();
-        auto from_type = this->get_source_type();
-        auto to_type = this->get_target_type();
+        auto from_type = this->get_source_type()->get_type_decl()->get_effective_type_decl();
+        auto to_type = this->get_target_type()->get_type_decl()->get_effective_type_decl();
 
         if (!from_type)
         {
@@ -81,7 +81,7 @@ namespace logia::AST
         {
             // we cast using a function
             // this->callexpr = new CallExpression(this->loc, new Identifier(this->loc, "cast"), {this->get_expr()});
-            throw_compiler_error("todo");
+            throw_compiler_error("to-do");
             // this need to be resolved with arguments
         }
 
@@ -90,8 +90,8 @@ namespace logia::AST
 
     void Cast::post_codegen(logia::Backend *backend)
     {
-        auto from_type = this->get_source_type();
-        auto to_type = this->get_target_type();
+        auto from_type = this->get_source_type()->get_type_decl()->get_effective_type_decl();
+        auto to_type = this->get_target_type()->get_type_decl()->get_effective_type_decl();
 
         auto value = llvm_load_if_required(this->get_expr()->get_codegen_value(backend), backend);
 

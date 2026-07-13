@@ -67,7 +67,7 @@ namespace logia::AST
     void FunctionParameter::post_codegen(logia::Backend *backend)
     {
 
-        this->alloca_inst = backend->builder->CreateAlloca(this->get_final_type()->ir_type, 0, nullptr, this->get_name()->identifier);
+        this->alloca_inst = backend->builder->CreateAlloca(this->get_type_decl()->get_effective_type_decl()->ir_type, 0, nullptr, this->get_name()->identifier);
         return Node::post_codegen(backend);
     }
 
@@ -84,7 +84,7 @@ namespace logia::AST
     {
         auto ty = this->get_child<Type>(1);
 
-        auto tyd = ty->get_final_type();
+        auto tyd = ty->get_type_decl();
         if (tyd == nullptr)
         {
             return;
@@ -254,7 +254,7 @@ namespace logia::AST
 
             if (backend->debug)
             {
-                auto ty = param->get_final_type();
+                auto ty = param->get_type_decl()->get_effective_type_decl();
                 auto name = param->get_name();
                 // Create a debug descriptor for the variable.
                 llvm::DILocalVariable *D = backend->dbuilder->createParameterVariable(
@@ -283,7 +283,7 @@ namespace logia::AST
     {
         LOG(SILLY, "{}", this->to_string());
         // generate return type, as it's the first in metada
-        auto rtype = this->get_return_type()->get_final_type();
+        auto rtype = this->get_return_type()->get_type_decl()->get_effective_type_decl();
         rtype->pre_codegen(backend);
         LOGIA_VERIFY(rtype->ir_type != nullptr);
 
@@ -298,7 +298,7 @@ namespace logia::AST
         for (size_t i = 0; i < pcount; ++i)
         {
             // IR Type
-            auto param_type = this->get_parameter(i)->get_final_type();
+            auto param_type = this->get_parameter(i)->get_type_decl()->get_effective_type_decl();
             param_type->pre_codegen(backend);
             LOGIA_VERIFY(param_type->ir_type != nullptr);
             // LOGIA_VERIFY(param_type->di_type != nullptr);
@@ -376,7 +376,7 @@ namespace logia::AST
 
     void Function::_pre_type_inference()
     {
-        auto return_ty = this->get_return_type()->get_final_type();
+        auto return_ty = this->get_return_type()->get_type_decl();
         this->foreach_descendant<ReturnStmt>([return_ty](auto rstmt, auto deep)
                                              {
                                                 LOG(DBG, "enforece return type: {}", rstmt->to_string());

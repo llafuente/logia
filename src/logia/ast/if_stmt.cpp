@@ -108,7 +108,7 @@ namespace logia::AST
     {
         // condition should have bool type!
         auto condition = this->get_condition();
-        auto ty = condition->get_final_type();
+        auto ty = condition->get_type_decl();
         Integer *int_ty;
         if (ty->try_cast<Integer>(&int_ty))
         {

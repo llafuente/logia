@@ -131,7 +131,7 @@ namespace logia::AST
         /// @return
         void type_inference(size_t pass_id);
 
-        virtual TypeDecl *get_final_type();
+        virtual TypeDecl *get_type_decl();
 
         std::vector<Node *> get_pre_descendant();
 

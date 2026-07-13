@@ -9,6 +9,8 @@
 namespace logia::AST
 {
     struct Node;
+    struct Program;
+
 #define LGERR_ID001 "LGERR_ID001 Identifier '{}' not found in current scope"
 #define LGERR_ID002 "LGERR_ID002 Found '{}' elements in current scope matching identifier '{}' but expected one:\n{}"
 #define LGERR_SCOPE003 "LGERR_SCOPE003 Found '{}' of type '{}' but expected type '{}'"
@@ -68,15 +70,17 @@ namespace logia::AST
         std::string format_message(Node *node, const std::string &message, const std::string &trace, const char *function, const char *file, int line);
     };
 
+    void dump_program(Node *program);
+
 #define throw_semantic_error(node, message)                                                                                                    \
     do                                                                                                                                         \
     {                                                                                                                                          \
         auto ___e = ::logia::AST::semantic_error(node, message, std::to_string(std::stacktrace::current()), __FUNCTION__, __FILE__, __LINE__); \
         LOG_ERR("{}", ___e.what());                                                                                                            \
+        dump_program(node);                                                                                                                    \
         throw ___e;                                                                                                                            \
     } while (false)
 }
-
 // resolve cyclic dependency
 
 #include "logia/maybe_error.h"

@@ -6,6 +6,7 @@
 #include "logia/ast/import.h"
 #include "logia/ast/struct.h"
 #include "logia/ast/program.h"
+#include "utils.h"
 
 #include <format>
 #include <iostream> // std::cerr
@@ -122,7 +123,7 @@ namespace logia::AST
         }
         else if (is_typed && is_attached)
         {
-            auto fty = this->get_final_type();
+            auto fty = this->get_type_decl();
             if (fty != nullptr)
             {
                 ty = fty->get_repr();
@@ -145,6 +146,8 @@ namespace logia::AST
 
     void Node::push_child(Node *child)
     {
+        LOGIA_VERIFY(child != nullptr);
+
         if (freezed)
         {
             throw std::exception("Node is freezed");
@@ -302,22 +305,23 @@ namespace logia::AST
         this->type_inference_pass_id = TYPE_INFERENCE_POST;
     }
 
-    TypeDecl *Node::get_final_type()
+    TypeDecl *Node::get_type_decl()
     {
-
-        // this resolve types in the following manner
-        // TypeDef -> get referenced type
-        // Struct
-        // * has one field with "λ" as name -> return the "λ" type
-        // * return the struct
-        // AnyOther -> return
         TypeDecl *tyd;
         Struct *s;
 
-        auto type = this->get_type();
         if (this->real_type != nullptr)
         {
-            type = this->real_type;
+            return this->real_type;
+        }
+        auto type = this->get_type();
+        if (type == nullptr)
+        {
+            return nullptr;
+        }
+        if (type->try_cast(&tyd))
+        {
+            return tyd;
         }
 
         int MAX = 10;
@@ -325,34 +329,10 @@ namespace logia::AST
         {
             if (type->is<TypeDef>())
             {
-                type = type->get_final_type();
-            }
-            else if (type->try_cast(&s))
-            {
-                if (s->field_count == 1)
-                {
-                    auto field = s->get_field("λ");
-                    if (field != nullptr)
-                    {
-                        if (field->is_typed)
-                        {
-                            return field->get_final_type();
-                        }
-                        else
-                        {
-                            return nullptr;
-                        }
-                    }
-                }
-                return s;
-            }
-            else if (type->try_cast(&tyd))
-            {
-                return tyd;
+                return type->get_type_decl();
             }
             else
             {
-                // throw_compiler_error("wtf!");
                 return nullptr;
             }
         }

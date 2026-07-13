@@ -653,9 +653,9 @@ namespace logia
         {
         case LogiaParser::TRUE_TK:
             // TODO PERF could be possible to use? this->program->bool_type
-            return ANY_VOIDP_STORE(new AST::IntegerLiteral(MAKE_LOCATION(context), "1", scope_look_one<AST::Type>(this->program, "bool")));
+            return ANY_VOIDP_STORE(new AST::IntegerLiteral(MAKE_LOCATION(context), "1", scope_look_one<AST::TypeDecl>(this->program, "λi1")));
         case LogiaParser::FALSE_TK:
-            return ANY_VOIDP_STORE(new AST::IntegerLiteral(MAKE_LOCATION(context), "0", scope_look_one<AST::Type>(this->program, "bool")));
+            return ANY_VOIDP_STORE(new AST::IntegerLiteral(MAKE_LOCATION(context), "0", scope_look_one<AST::TypeDecl>(this->program, "λi1")));
         case LogiaParser::NULL_TK:
             throw std::runtime_error(TOSTRING(__FUNCTION__) " todo");
         case LogiaParser::DEFAULT_TK:

@@ -148,7 +148,7 @@ namespace logia::AST
         {
             // just one candidate, we can resolve it right now
             this->set_declaration(this->decl_candidates[0]);
-            auto ty = this->decl->get_final_type();
+            auto ty = this->decl->get_type_decl();
             if (ty == nullptr)
             {
                 LOG(WRN, "skip._pre_type_inference (target no type) {}", this->to_string());

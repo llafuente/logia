@@ -6,6 +6,7 @@
 #include "logia/ast/identifier.h"
 #include "logia/ast/constexpr.h"
 #include "logia/ast/struct.h"
+#include "logia/ast/llvm.h"
 #include "utils.h"
 
 #include "llvm/IR/Constant.h"
@@ -30,8 +31,6 @@ namespace logia::AST
             throw_semantic_error(this, std::format("LGER030 incompatible type '{}', expected a struct", type->get_repr()));
         }
 
-        this->type = type;
-
         // TODO defaults!
         // search struct by name, if not found use the next position that should match the type, continue until defaults
         auto named_values = this->children;
@@ -39,6 +38,7 @@ namespace logia::AST
 
         // reset
         this->values = 0;
+        auto children_cpy = this->children;
         this->children.clear(); // we will reorder children to match struct fields order, so we need to clear them first
         this->children.reserve(struct_ty->field_count * 2);
 
@@ -113,6 +113,7 @@ namespace logia::AST
             }
             if (!found)
             {
+                this->children = children_cpy; // avoid crashes because it contains nulls!
                 throw_semantic_error(value_node, std::format("Too many initializers. Expected {}", struct_ty->field_count));
             }
         }
@@ -129,6 +130,7 @@ namespace logia::AST
                 auto field_default_value = field->get_default_value();
                 if (field_default_value == nullptr)
                 {
+                    this->children = children_cpy; // avoid crashes because it contains nulls!
                     throw_semantic_error(this, std::format("LGER031 Missing initializer for field '{}' at position '{}' of type '{}'", field_name->identifier, i + 1, struct_ty->get_repr()));
                 }
                 this->set_named_property(field_name, field_default_value, field->index);
@@ -139,7 +141,7 @@ namespace logia::AST
         int constant_count = 0;
         for (auto i = 0; i < struct_ty->field_count; ++i)
         {
-            auto field_ty = struct_ty->get_field_by_index(i)->get_final_type();
+            auto field_ty = struct_ty->get_field_by_index(i)->get_type_decl();
             auto value = this->get_value_by_index(i);
             value->set_type(field_ty); // TODO check type compatibility ?
 
@@ -214,17 +216,17 @@ namespace logia::AST
 
         for (auto field_index = 0, i = 0; i < this->children.size(); i += 2, ++field_index)
         {
-            auto field_ty = struct_ty->get_field_by_index(field_index)->get_final_type();
+            auto field_ty = struct_ty->get_field_by_index(field_index)->get_type_decl()->get_effective_type_decl();
             field_ty->post_codegen(backend);
 
             auto item = this->get_child<Expression>(i + 1);
-            auto item_ty = item->get_final_type();
+            auto item_ty = item->get_type_decl()->get_effective_type_decl();
             item_ty->post_codegen(backend);
 
             auto ir_item_value = item->get_codegen_value(backend);
             auto cir_item_value = (llvm::Constant *)(ir_item_value);
-
-            if (field_ty->ir_type != item_ty->ir_type)
+            LOG(DBG, "field[{}]={} init[{}]={}", field_index, llvm_type_to_string(field_ty->ir_type), field_index, llvm_type_to_string(ir_item_value->getType()));
+            if (field_ty->ir_type != ir_item_value->getType())
             {
                 throw_semantic_error(item, std::format("Expected type {} found type {}", field_ty->get_repr(), item_ty->get_repr()));
             }
@@ -233,10 +235,10 @@ namespace logia::AST
         }
 
         LOGIA_VERIFY(struct_ty->ir_type != nullptr);
-        auto ir_struct_ty = (llvm::StructType *)struct_ty->ir_type;
 
         // 1) Constant initializer (replace with your child constants)
-        llvm::Constant *init = llvm::ConstantStruct::get(ir_struct_ty, v);
+        LOG(DBG, "init.llvm.type = {}", llvm_type_to_string(struct_ty->ir_struct));
+        llvm::Constant *init = llvm::ConstantStruct::get(struct_ty->ir_struct, v);
 
         // 2a) If parent is a StructInitializer, means is a nested initialization
         // do not create the global variable
@@ -251,13 +253,13 @@ namespace logia::AST
         // 2b) Materialize constant in read-only global memory (memcpy source must be an address)
         auto *srcGlobal = new llvm::GlobalVariable(
             *backend->module,
-            ir_struct_ty,
+            struct_ty->ir_struct,
             true, // isConstant
             llvm::GlobalValue::PrivateLinkage,
             init,
             ".struct.init");
 
-        auto abiAlign = llvm::Align(dl.getABITypeAlign(ir_struct_ty).value());
+        auto abiAlign = llvm::Align(dl.getABITypeAlign(struct_ty->ir_struct).value());
         // srcGlobal->setAlignment(llvm::Align(8));
         srcGlobal->setAlignment(abiAlign);
 
@@ -270,8 +272,4 @@ namespace logia::AST
 
     void StructInitializer::validate() {}
 
-    Type *StructInitializer::get_type()
-    {
-        return this->type; // TODO InferType
-    }
 } // namespace logia::AST

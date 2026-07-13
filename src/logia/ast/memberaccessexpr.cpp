@@ -62,7 +62,7 @@ namespace logia::AST
         {
             return; // later...
         }
-        auto left_tyd = left->get_final_type();
+        auto left_tyd = left->get_type_decl();
 
         // autoderef ?
         Ref *left_ty_ref;
@@ -72,7 +72,7 @@ namespace logia::AST
             auto deref = new UnaryExpression(left->loc, Operators::PREFIX_DEREFERENCE, left);
             LOG(DBG, "new node: UnaryExpression {}", (void *)deref);
             this->set_child(deref, 0);
-            left_tyd = left_ty_ref->get_pointee()->get_final_type();
+            left_tyd = left_ty_ref->get_pointee()->get_type_decl();
             deref->set_type(left_tyd);
         }
 
@@ -83,7 +83,7 @@ namespace logia::AST
             auto right = this->get_right()->as<Identifier>(); // TODO
             auto prop = left_ty_stuct->get_property(right->identifier);
 
-            auto ty = prop->get_final_type();
+            auto ty = prop->get_type_decl();
 
             right->set_type(ty);
             this->set_type(ty);
@@ -112,7 +112,7 @@ namespace logia::AST
         }
         // TODO handle left side to be a pointer to struct or struct itself, for now we assume it's always a pointer
         auto left = this->get_left();
-        auto left_type = left->get_final_type();
+        auto left_type = left->get_type_decl();
         auto left_value = left->get_codegen_value(backend);
 
         if (!left_type->is<Struct>())

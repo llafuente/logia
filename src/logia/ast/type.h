@@ -81,6 +81,8 @@ namespace logia::AST
         TypeDecl(location loc, Primitives prim);
         ~TypeDecl();
 
+        virtual TypeDecl *get_effective_type_decl();
+
         std::string to_string() override;
         // TODO virtual ?
         TypeDecl *get_reference_to();

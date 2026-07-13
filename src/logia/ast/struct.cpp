@@ -119,7 +119,7 @@ namespace logia::AST
     void StructField::_pre_type_inference()
     {
         auto ty = this->get_type();
-        auto tyd = ty->get_final_type();
+        auto tyd = ty->get_type_decl();
         if (tyd == nullptr)
         {
             return;
@@ -290,12 +290,25 @@ namespace logia::AST
                 {
                     list += ", ";
                 }
-                auto ty = field->get_final_type();
-                list += std::format("{} {}", field->get_name()->identifier, ty == nullptr ? "??" : ty->get_repr());
+                auto ty = field->get_type_decl();
+                list += std::format("{} {}", ty == nullptr ? "??" : ty->get_repr(), field->get_name()->identifier);
             }
         }
 
         return std::format("struct {} {{{}}}", this->get_name(), list);
+    }
+
+    TypeDecl *Struct::get_effective_type_decl()
+    {
+        if (this->field_count == 1)
+        {
+            auto field = this->get_field("λ");
+            if (field != nullptr)
+            {
+                return field->get_type_decl()->get_effective_type_decl(); // recurse!
+            }
+        }
+        return this;
     }
 
     void Struct::on_after_attach()
@@ -307,7 +320,7 @@ namespace logia::AST
     {
         // like functions we should generate the type asap
         // we can fill it later!
-        this->ir_type = this->struct_type = llvm::StructType::create(backend->context, this->get_name());
+        this->ir_type = this->ir_struct = llvm::StructType::create(backend->context, this->get_name());
 
         std::vector<llvm::Type *> elements;
         elements.reserve(this->field_count);
@@ -316,7 +329,7 @@ namespace logia::AST
         {
             if (prop->try_cast(&field))
             {
-                auto tyd = field->get_final_type();
+                auto tyd = field->get_type_decl()->get_effective_type_decl();
                 tyd->pre_codegen(backend);
                 LOGIA_VERIFY(tyd->ir_type);
 
@@ -324,7 +337,7 @@ namespace logia::AST
             }
         }
 
-        this->struct_type->setBody(elements);
+        this->ir_struct->setBody(elements);
 
         Type::pre_codegen(backend);
     }

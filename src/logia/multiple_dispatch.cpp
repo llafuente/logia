@@ -61,14 +61,15 @@ namespace logia::multiple_dispatch
         for (auto param : params)
         {
             auto param_name = param->get_name();
-            auto param_type = param->get_final_type();
+            auto param_type = param->get_type_decl()->get_effective_type_decl();
             if (!param_name->is_empty())
             {
                 arg = callexpr->get_argument_by_name(param_name->identifier);
 
                 if (arg != nullptr)
                 {
-                    arg_type = arg->get_final_type();
+                    arg_type = arg->get_type_decl()->get_effective_type_decl();
+                    ;
                     LOG(SILLY, "found a parameter['{}' of '{}'] for argument['{}'] by name", param_name->identifier, param_type->get_repr(), arg_type->get_repr());
 
                     auto compatibility = type_system::type_is_compatible(arg_type, param_type);
@@ -158,7 +159,16 @@ namespace logia::multiple_dispatch
                 arg_name = arg->get_name();
                 if (arg_name->is_empty())
                 {
-                    arg_type = arg->get_final_type();
+                    arg_type = arg->get_type_decl()->get_effective_type_decl();
+                    ;
+#ifdef _DEBUG
+                    if (arg_type == nullptr)
+                    {
+                        arg->get_type_decl()->get_effective_type_decl();
+                        ;
+                        std::cout << arg_type->to_string_tree() << std::endl;
+                    }
+#endif
                     LOG(SILLY, "found a parameter['{}' of '{}'] for argument['{}'] by position {}", param_name->identifier, param_type->get_repr(), arg_type->get_repr(), i);
 
                     auto compatibility = type_system::type_is_compatible(arg_type, param_type);
@@ -272,7 +282,7 @@ namespace logia::multiple_dispatch
                 // callexpr->push_positional_argument(expr);
                 auto param = params[i++];
                 auto nid = node_clone<Identifier>(param->get_name());
-                nid->set_type(param->get_final_type());
+                nid->set_type(param->get_type_decl()->get_effective_type_decl());
                 callexpr->push_named_argument(nid, expr);
             }
         }
@@ -310,7 +320,8 @@ namespace logia::multiple_dispatch
             }
             else
             {
-                LOG(DBG, "Candidate is not a function?! {}", node->to_string());
+                LOG_ERR("Candidate is not a function?! {}", node->to_string());
+                throw_compiler_error("unexpected type found");
             }
         }
 
@@ -331,7 +342,7 @@ namespace logia::multiple_dispatch
             for (uint32_t i = 0; i < callexpr->argument_count; ++i)
             {
                 debug_arg_types += debug_arg_types.size() ? ", " : "";
-                debug_arg_types += callexpr->get_argument_by_index(i)->get_final_type()->get_repr();
+                debug_arg_types += callexpr->get_argument_by_index(i)->get_type_decl()->get_repr();
             }
 
             throw std::runtime_error(std::format("LGERR_MD001 No matching function found for call expression: ({})\n{}\nPossible candidates:\n{}", debug_arg_types, callexpr->loc.get_debug_location(), debug_candidates));

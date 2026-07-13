@@ -90,5 +90,7 @@ namespace logia::AST
 
         /// @brief validates and type inferences the program
         void semantic_analysis();
+
+        void dump();
     };
 }

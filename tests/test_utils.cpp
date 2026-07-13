@@ -4,6 +4,8 @@
 
 #include "logia/run.h"
 #include "logia/ast/semantic_error.h"
+#include "logia/ast/type.h"
+#include "logia/ast/identifier.h"
 
 #include "gtest/gtest.h"
 
@@ -252,4 +254,12 @@ const char *test_file_with_semantic_error(const char *logia_folder, const char *
     }
 
     throw std::runtime_error(std::format("expected file: {} to throw", file));
+}
+
+logia::AST::TypeDef *new_typedef(const char *type)
+{
+    auto td = new logia::AST::TypeDef();
+    td->add_locator(new logia::AST::Identifier({}, "i32"));
+
+    return td;
 }

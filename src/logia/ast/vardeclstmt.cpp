@@ -58,7 +58,7 @@ namespace logia::AST
         {
             return;
         }
-        auto type = this->get_final_type();
+        auto type = this->get_type_decl()->get_effective_type_decl();
         auto expr = this->get_expr();
         LOG(SILLY, "type = {}", type->to_string());
         LOG(SILLY, "expr = {}", expr->to_string());
@@ -143,7 +143,7 @@ namespace logia::AST
         // if I don't have a type -> my type is in the initialization!
         if (ty == nullptr)
         {
-            auto tyd = this->get_expr()->get_final_type();
+            auto tyd = this->get_expr()->get_type_decl();
             if (tyd != nullptr)
             {
                 this->set_type(tyd);
@@ -157,7 +157,7 @@ namespace logia::AST
             return;
         }
         // set and foward to the initialization
-        auto tyd = ty->get_final_type();
+        auto tyd = ty->get_type_decl();
         if (tyd == nullptr)
         {
             return;
@@ -180,11 +180,8 @@ namespace logia::AST
 
     void VarDeclStmt::_on_set_type(TypeDecl *ty)
     {
-        if (children.size() == 3)
-        {
-            this->children[2] = ty;
-        }
-        else
+        // TODO WHY? -> get_type could be nullptr always otherwise
+        if (children.size() < 3)
         {
             this->push_child(ty);
         }

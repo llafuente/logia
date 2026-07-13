@@ -52,11 +52,6 @@ namespace logia::AST
         /// @brief Returns a new StringLiteral with this->text + rhs.text
         ConstExpression *operator+(ConstExpression *other) override;
 
-        // TODO return out type!!
-        /// @brief Retrieves the type of the string literal
-        /// @return
-        Type *get_type() override;
-
     protected:
         void _on_set_type(TypeDecl *t) override;
         void _pre_type_inference() override;
@@ -72,7 +67,7 @@ namespace logia::AST
         // llvm::APFloat value = llvm::APFloat::IEEEdouble();
         llvm::APFloat value = llvm::APFloat((double)0.0);
 
-        FloatLiteral(location loc, LOGIA_CLONE const char *number_as_text, Type *type = nullptr);
+        FloatLiteral(location loc, LOGIA_CLONE const char *number_as_text, TypeDecl *type = nullptr);
 
         std::string to_string() override;
 
@@ -108,7 +103,7 @@ namespace logia::AST
         // TODO REVIEW 128 is possible ?!
         llvm::APSInt value = llvm::APSInt(64, /*isUnsigned=*/true);
 
-        IntegerLiteral(location loc, LOGIA_CLONE const char *number_as_text, Type *type = nullptr);
+        IntegerLiteral(location loc, LOGIA_CLONE const char *number_as_text, TypeDecl *type = nullptr);
 
         /// @brief negates current value and value_str
         void negate();

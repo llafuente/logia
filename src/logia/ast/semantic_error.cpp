@@ -19,6 +19,13 @@ namespace logia::AST
 
         return std::format("semantic error:\n    \033[31m{}\033[0m\nat: {}\nExpcetion thrown at {} {}:{}\n\nstacktrace:\n{}", message, code_location, function, file, file_line, trace);
     }
+
+    void dump_program(Node *node)
+    {
+        auto program = node->first_parent<Program>();
+        LOG_ERR("{}", program->intrinsics->to_string_tree());
+        LOG_ERR("{}", program->to_string_tree());
+    }
 }
 /*
     semantic_error::semantic_error(location loc, const std::string &message)

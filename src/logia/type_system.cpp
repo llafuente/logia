@@ -23,6 +23,9 @@ namespace logia::type_system
 
     type_compatibility_result type_is_compatible(TypeDecl *lhs, TypeDecl *rhs)
     {
+        lhs = lhs->get_effective_type_decl();
+        rhs = rhs->get_effective_type_decl();
+
         // if rhs is infer, it's compatible with everything
         if (rhs->is<InferType>() || rhs == nullptr)
         {
@@ -42,7 +45,7 @@ namespace logia::type_system
                 // NOTE: while pointee can be autocasted the pointer itself DONT!
                 auto lhs_ptr = lhs->as<Ref>();
                 auto rhs_ptr = rhs->as<Ref>();
-                auto result = type_is_compatible(lhs_ptr->get_pointee()->get_final_type(), rhs_ptr->get_pointee()->get_final_type());
+                auto result = type_is_compatible(lhs_ptr->get_pointee()->get_type_decl(), rhs_ptr->get_pointee()->get_type_decl());
                 if (result.is_error())
                 {
                     return make_chained_error(std::format(LGERR_TS_PTR001, lhs->get_repr(), rhs->get_repr()), result);
@@ -121,8 +124,8 @@ namespace logia::type_system
                 for (int i = 0; i < lhs_st->field_count; ++i)
                 {
                     // test one by one, DO NOT ALLOW BIANRY COMPATIBILITY: i32, i32 is not i64! <-- no UNION!
-                    auto left = lhs_st->get_field_by_index(i)->get_final_type();
-                    auto right = rhs_st->get_field_by_index(i)->get_final_type();
+                    auto left = lhs_st->get_field_by_index(i)->get_type_decl();
+                    auto right = rhs_st->get_field_by_index(i)->get_type_decl();
 
                     auto x = type_is_compatible(left, right);
                     if (x.is_error())
@@ -171,8 +174,8 @@ namespace logia::type_system
                 }
 
                 {
-                    auto l = lhs_fn->get_return_type()->get_final_type();
-                    auto r = rhs_fn->get_return_type()->get_final_type();
+                    auto l = lhs_fn->get_return_type()->get_type_decl()->get_effective_type_decl();
+                    auto r = rhs_fn->get_return_type()->get_type_decl()->get_effective_type_decl();
                     // now from return type to each arguments, all shall be compatible 100%
                     auto result = type_is_compatible(l, r);
                     if (result.is_error())
@@ -188,8 +191,8 @@ namespace logia::type_system
 
                 for (auto i = 0; i < lhs_fn->get_parameter_count(); ++i)
                 {
-                    auto l = lhs_fn->get_parameter(i)->get_final_type();
-                    auto r = rhs_fn->get_parameter(i)->get_final_type();
+                    auto l = lhs_fn->get_parameter(i)->get_type_decl()->get_effective_type_decl();
+                    auto r = rhs_fn->get_parameter(i)->get_type_decl()->get_effective_type_decl();
 
                     auto result = type_is_compatible(l, r);
                     if (result.is_error())
@@ -215,7 +218,7 @@ namespace logia::type_system
             // NOTE: while pointee can be autocasted the pointer itself DONT!
             auto rhs_ptr = rhs->as<Ref>();
 
-            auto result = type_is_compatible(lhs, rhs_ptr->get_pointee()->get_final_type());
+            auto result = type_is_compatible(lhs, rhs_ptr->get_pointee()->get_type_decl());
             if (result.is_error())
             {
                 return make_chained_error(std::format(LGERR_TS_PTR001, lhs->get_repr(), rhs->get_repr()), result);
@@ -233,7 +236,7 @@ namespace logia::type_system
             // NOTE: while pointee can be autocasted the pointer itself DONT!
             auto lhs_ptr = lhs->as<Ref>();
 
-            auto result = type_is_compatible(lhs_ptr->get_pointee()->get_final_type(), rhs);
+            auto result = type_is_compatible(lhs_ptr->get_pointee()->get_type_decl(), rhs);
             if (result.is_error())
             {
                 return make_chained_error(std::format(LGERR_TS_PTR001, lhs->get_repr(), rhs->get_repr()), result);

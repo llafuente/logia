@@ -47,7 +47,7 @@ namespace logia::AST
     // IntegerLiteral
     //
 
-    IntegerLiteral::IntegerLiteral(location loc, const char *number_as_text, Type *type) : ConstExpression(loc)
+    IntegerLiteral::IntegerLiteral(location loc, const char *number_as_text, TypeDecl *type) : ConstExpression(loc)
     {
         LOGIA_VERIFY(number_as_text != nullptr);
         // TODO number literals with dashes need to be cleaned right ?
@@ -60,7 +60,7 @@ namespace logia::AST
 
         if (type != nullptr)
         {
-            this->push_child(type);
+            this->set_type(type);
         }
 
         // parse
@@ -246,10 +246,11 @@ namespace logia::AST
 
     void IntegerLiteral::post_codegen(logia::Backend *backend)
     {
-        LOG(DBG, "{}", this->to_string());
-        auto type = this->real_type == nullptr ? this->get_child<Type>(0)->get_final_type() : this->real_type;
+        auto type = this->get_type_decl()->get_effective_type_decl();
         type->post_codegen(backend);
         auto llvm_type = type->ir_type;
+
+        LOG(DBG, "{} llvm_type={}", this->to_string(), llvm_type_to_string(llvm_type));
 
         if (type->is<Integer>())
         {
@@ -325,7 +326,7 @@ namespace logia::AST
         if (this->children.size())
         {
             auto ty = this->get_child<Type>(0);
-            auto tyd = ty->get_final_type();
+            auto tyd = ty->get_type_decl();
             if (tyd == nullptr)
             {
                 return;
@@ -340,7 +341,7 @@ namespace logia::AST
     // FloatLiteral
     //
 
-    FloatLiteral::FloatLiteral(location loc, const char *number_as_text, Type *type) : ConstExpression(loc)
+    FloatLiteral::FloatLiteral(location loc, const char *number_as_text, TypeDecl *type) : ConstExpression(loc)
     {
         LOGIA_VERIFY(number_as_text != nullptr);
         // TODO number literals with dashes need to be cleaned right ?
@@ -354,7 +355,7 @@ namespace logia::AST
 
         if (type != nullptr)
         {
-            this->push_child(type);
+            this->set_type(type);
         }
         LOG(DBG, "{} as decimal", this->value_str);
         auto ref = llvm::StringRef(this->value_str);
@@ -483,7 +484,7 @@ namespace logia::AST
 
     void FloatLiteral::post_codegen(logia::Backend *backend)
     {
-        auto type = this->get_final_type();
+        auto type = this->get_type_decl()->get_effective_type_decl();
         Float *float_type;
         LOG(DBG, "'{}' of type '{}' with value {}!", this->value_str, type->get_repr(), this->value.convertToDouble());
 
@@ -521,7 +522,7 @@ namespace logia::AST
         if (this->children.size())
         {
             auto ty = this->get_child<Type>(0);
-            auto tyd = ty->get_final_type();
+            auto tyd = ty->get_type_decl();
             if (tyd == nullptr)
             {
                 return;
@@ -544,11 +545,6 @@ namespace logia::AST
         this->text = _strdup(text);
     }
 
-    Type *StringLiteral::get_type()
-    {
-        return this->type;
-    }
-
     std::string StringLiteral::to_string()
     {
         return std::format("StringLiteral[{}]{}", this->text, Node::to_string());
@@ -556,7 +552,6 @@ namespace logia::AST
 
     void StringLiteral::_on_set_type(TypeDecl *t)
     {
-        this->type = t;
     }
 
     void StringLiteral::_pre_type_inference()
@@ -599,7 +594,8 @@ namespace logia::AST
         combined[lhs_len + rhs_len] = '\0';
 
         auto result = new StringLiteral(this->loc, combined);
-        result->type = this->type;
+        result->real_type = this->real_type;
+        result->is_typed = this->is_typed;
         return result;
     }
 

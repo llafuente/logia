@@ -73,6 +73,11 @@ namespace logia::AST
 
     TypeDecl::~TypeDecl() {}
 
+    TypeDecl *TypeDecl::get_effective_type_decl()
+    {
+        return this;
+    }
+
     TypeDecl *TypeDecl::get_reference_to()
     {
         // return scope_lookup_all(this, "ptr").unwrap_success()[0]->as<Type>();
@@ -450,11 +455,18 @@ namespace logia::AST
 
     std::string TypeDef::get_repr()
     {
-        if (is_attached && is_typed)
+        std::string t;
+        Identifier *ident;
+        for (auto node : this->children)
         {
-            return this->get_final_type()->get_repr();
+            if (node->try_cast(&ident))
+            {
+                t += (t.size() ? "." : "");
+                t += ident->identifier;
+            }
         }
-        return "not-yet";
+
+        return t;
     }
 
     void TypeDef::post_codegen(logia::Backend *backend)
@@ -507,7 +519,7 @@ namespace logia::AST
         }
 
         // TODO REVIEW type-system do not use: set_type atm
-        this->real_type = list[0]->get_final_type();
+        this->real_type = list[0]->get_type_decl();
         this->is_typed = true;
         Type::_early_type_inference();
     }

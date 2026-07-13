@@ -32,16 +32,20 @@ TEST(logia_test_multiple_dispatch, match001)
     auto i32_v2 = new IntegerLiteral(loc, "10", i32);
     auto i64_v = new IntegerLiteral(loc, "10", i64);
 
-    auto xxx_fn = new Function(loc, new Identifier(loc, "xxx"), i32, false);
-    xxx_fn->push_parameter(new FunctionParameter(new Identifier(loc, "a"), i32, nullptr));
+    auto xxx_fn = new Function(loc, new Identifier(loc, "xxx"), new_typedef("i32"), false);
+    xxx_fn->push_parameter(new FunctionParameter(new Identifier(loc, "a"), new_typedef("i32"), nullptr));
     program->unshift_child(xxx_fn);
 
-    auto xxx2_fn = new Function(loc, new Identifier(loc, "xxx"), i32, false);
-    xxx2_fn->push_parameter(new FunctionParameter(new Identifier(loc, "a"), i32, nullptr));
-    xxx2_fn->push_parameter(new FunctionParameter(new Identifier(loc, "b"), i32, i32_v2));
+    EXPECT_STREQ(xxx_fn->get_repr().c_str(), "function xxx (i32 a) i32");
+
+    auto xxx2_fn = new Function(loc, new Identifier(loc, "xxx"), new_typedef("i32"), false);
+    xxx2_fn->push_parameter(new FunctionParameter(new Identifier(loc, "a"), new_typedef("i32"), nullptr));
+    xxx2_fn->push_parameter(new FunctionParameter(new Identifier(loc, "b"), new_typedef("i32"), i32_v2));
     program->unshift_child(xxx2_fn);
 
-    logia::type_inference_program(program);
+    EXPECT_STREQ(xxx2_fn->get_repr().c_str(), "function xxx (i32 a, i32 b = ?) i32");
+
+    program->semantic_analysis();
 
     CallExpression *prev_callexpr = nullptr;
     {
@@ -86,7 +90,7 @@ TEST(logia_test_multiple_dispatch, match001)
         // function xxx(i32 a)
         auto x = match(callexpr, xxx_fn, false);
         EXPECT_TRUE(x.is_error());
-        EXPECT_STREQ(x.message.c_str(), "LGERR_MD001 Invalid argument type at position '1' of type 'i16', expected to match parameter 'a' of type: 'i32'\nLGERR_TS_INT002 Incompatible types 'i16' -> 'i32'. Explicit cast is required, conversion loses integer precision.");
+        EXPECT_STREQ(x.message.c_str(), "LGERR_MD001 Invalid argument type at position '1' of type 'λi16', expected to match parameter 'a' of type: 'λi32'\nLGERR_TS_INT002 Incompatible types 'λi16' -> 'λi32'. Explicit cast is required, conversion loses integer precision.");
         // std::cerr << x.message << std::endl;
     }
 
@@ -140,7 +144,7 @@ TEST(logia_test_multiple_dispatch, find001)
     using namespace logia::type_system;
 
     auto i16_v = new IntegerLiteral(loc, "10", i16);
-    EXPECT_EQ(i16_v->get_type(), nullptr); // even if we sent the type, type_inference is not started and it's not a typedecl!
+    EXPECT_EQ(i16_v->get_type(), i16);
     auto i32_v = new IntegerLiteral(loc, "10", i32);
     auto i32_v2 = new IntegerLiteral(loc, "10", i32);
     auto i64_v = new IntegerLiteral(loc, "10", i64);

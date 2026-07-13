@@ -104,10 +104,10 @@ namespace logia::AST
     {
         auto left = this->get_left();
         // left->pre_type_inference();
-        auto left_ty = left->get_final_type();
+        auto left_ty = left->get_type_decl();
 
         auto right = this->get_right();
-        auto right_ty = right->get_final_type();
+        auto right_ty = right->get_type_decl();
 
         if (left_ty == nullptr)
         {
@@ -164,7 +164,7 @@ namespace logia::AST
             {
                 return;
             }
-            this->set_type(this->call_expr->get_final_type());
+            this->set_type(this->call_expr->get_type_decl());
         }
 
         Expression::_pre_type_inference();
@@ -179,7 +179,7 @@ namespace logia::AST
         {
             Integer *int_ty;
             auto left = this->get_left();
-            if (!left->get_final_type()->try_cast<Integer>(&int_ty))
+            if (!left->get_type_decl()->get_effective_type_decl()->try_cast<Integer>(&int_ty))
             {
                 throw_semantic_error(left, LGERR_BINEXPR003);
             }
@@ -189,7 +189,7 @@ namespace logia::AST
             }
 
             auto right = this->get_right();
-            if (!right->get_final_type()->try_cast<Integer>(&int_ty))
+            if (!right->get_type_decl()->get_effective_type_decl()->try_cast<Integer>(&int_ty))
             {
                 throw_semantic_error(right, LGERR_BINEXPR004);
             }

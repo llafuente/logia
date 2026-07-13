@@ -53,7 +53,7 @@ namespace logia::AST
 
     void UnaryExpression::_pre_type_inference()
     {
-        auto operand_ty = this->get_operand()->get_final_type();
+        auto operand_ty = this->get_operand()->get_type_decl();
         if (operand_ty == nullptr)
         {
             return; // try again later!
@@ -92,7 +92,7 @@ namespace logia::AST
             LOGIA_VERIFY(this->call_expr->type_inference_pass_id == TYPE_INFERENCE_PRE);
             LOGIA_VERIFY(this->call_expr->callee != nullptr);
 
-            this->set_type(this->call_expr->get_final_type());
+            this->set_type(this->call_expr->get_type_decl());
         }
         }
         return Expression::_pre_type_inference();

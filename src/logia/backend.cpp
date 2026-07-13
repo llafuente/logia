@@ -365,7 +365,7 @@ namespace logia
                         {
                             auto type = scope_look_one<AST::Type>(this->program, parameter_names[i]);
                             LOG(DBG, "found type: {}", (void *)type);
-                            auto ftype = type->get_final_type();
+                            auto ftype = type->get_type_decl();
                             {
                             }
                             LOGIA_VERIFY(ftype != nullptr);

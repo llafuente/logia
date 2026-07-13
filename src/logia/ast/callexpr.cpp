@@ -272,7 +272,7 @@ namespace logia::AST
             auto decl = nlist[0];
             // cg to get the alloca value!
             ident->set_declaration(decl);
-            auto ty = decl->get_final_type();
+            auto ty = decl->get_type_decl();
             if (!ty->is<Function>())
             {
                 throw_semantic_error(locator, std::format(LGERR_CALLEXPR001, ty->get_repr()));
@@ -333,7 +333,7 @@ namespace logia::AST
 
     Type *CallExpression::get_type()
     {
-        return this->callee == nullptr ? nullptr : this->callee->get_return_type()->get_final_type();
+        return this->callee == nullptr ? nullptr : this->callee->get_return_type()->get_type_decl();
     }
 
     void CallExpression::on_after_attach() {}
@@ -368,7 +368,7 @@ namespace logia::AST
         }
 
         // Look up the name in the global module table.
-        auto func = this->get_locator()->get_final_type()->as<Function>();
+        auto func = this->get_locator()->get_type_decl()->as<Function>();
         llvm::Function *CalleeF = func->ir_func;
         if (!CalleeF)
         {

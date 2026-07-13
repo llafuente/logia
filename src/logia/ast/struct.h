@@ -90,7 +90,7 @@ namespace logia::AST
         /// @brief number of methods
         uint32_t setter_count = 0;
 
-        llvm::StructType *struct_type = nullptr;
+        llvm::StructType *ir_struct = nullptr;
 
         Struct(location loc, Identifier *name);
 
@@ -141,15 +141,18 @@ namespace logia::AST
 
         StructField *get_field_by_index(uint32_t index);
 
+        // Node
         std::string to_string() override;
-
-        std::string get_repr() override;
-
         void on_after_attach() override;
-
         void validate() override;
         void pre_codegen(logia::Backend *backend) override;
         void post_codegen(logia::Backend *backend) override;
+
+        // Type
+        std::string get_repr() override;
+
+        // typeDecl
+        TypeDecl *get_effective_type_decl() override;
 
     protected:
         void _pre_type_inference() override;

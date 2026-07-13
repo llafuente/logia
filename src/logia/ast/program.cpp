@@ -247,4 +247,11 @@ namespace logia::AST
         }
     }
 
+    void Program::dump()
+    {
+        // dump all info like crazy!
+        std::cout << this->intrinsics->to_string_tree() << std::endl;
+        std::cout << this->to_string_tree() << std::endl;
+    }
+
 }

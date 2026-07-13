@@ -34,15 +34,18 @@ namespace logia
             auto default_float = scope_look_one<TypeDecl>(program, "λf64");
             for (auto node : all_nodes)
             {
-                if (node->is<IntegerLiteral>())
+                if (!node->is_typed)
                 {
-                    LOG(DBG, "set default type for IntegerLiteral: {}", (void *)node);
-                    node->set_type(default_integer);
-                }
-                else if (node->is<FloatLiteral>())
-                {
-                    LOG(DBG, "set default type for FloatLiteral: {}", (void *)node);
-                    node->set_type(default_float);
+                    if (node->is<IntegerLiteral>())
+                    {
+                        LOG(DBG, "set default type for IntegerLiteral: {}", (void *)node);
+                        node->set_type(default_integer);
+                    }
+                    else if (node->is<FloatLiteral>())
+                    {
+                        LOG(DBG, "set default type for FloatLiteral: {}", (void *)node);
+                        node->set_type(default_float);
+                    }
                 }
             }
         }

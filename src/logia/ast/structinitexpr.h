@@ -11,7 +11,6 @@ namespace logia::AST
     {
     public:
         uint32_t values = 0;
-        Type *type = nullptr;
 
         StructInitializer(location loc);
 
@@ -44,8 +43,6 @@ namespace logia::AST
         void on_after_attach() override;
 
         void validate() override;
-
-        Type *get_type() override;
 
     protected:
         void _on_set_type(TypeDecl *type) override;

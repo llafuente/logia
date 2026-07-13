@@ -36,7 +36,7 @@ ${type} ${o.func}_${type}([[clang::annotate("logia=λ${type}")]] ${type} a) {
     name: "LOGICAL_NOT",
     operator: "!",
     func: "logia_intrinsics_prefix_logical_not",
-    logia_fn: "__logia_prefix_bitwise_not"
+    logia_fn: "__logia_prefix_logical_not"
   }
 ].forEach((o) => {
   for (let type of types) {
