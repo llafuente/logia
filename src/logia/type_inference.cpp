@@ -113,44 +113,41 @@ namespace logia
         }
     }
 
-    void type_inference_node(AST::Program *program, AST::Node *node)
+    void type_inference_node(AST::Program *program, AST::Node *node, size_t pass_id)
     {
-        for (size_t current_pass_id = 1; current_pass_id <= TYPE_INFERENCE_MAX; ++current_pass_id)
+        for (size_t current_pass_id = 1; current_pass_id <= pass_id; ++current_pass_id)
         {
             type_inference_pass(program, node, current_pass_id);
         }
 
 #if _DEBUG
-        // do not use: all_nodes, as many node could create new ones, this is a check of those new nodes too!
-        node->foreach_post_descendant([program](Node *node, int deep)
-                                      { if (node->has_type && !node->is_typed) {
+        if (pass_id == TYPE_INFERENCE_LAST)
+        {
+            // do not use: all_nodes, as many node could create new ones, this is a check of those new nodes too!
+            node->foreach_post_descendant([program](Node *node, int deep)
+                                          { if (node->has_type && !node->is_typed) {
                                             //std::cerr << program->to_string_tree() << std::endl;
             std::cerr << node->parent_node->to_string_tree() << std::endl;
                                             std::cerr << node->loc.get_debug_location() << std::endl;
                                             throw_compiler_error(std::format("Not able to find type, no error: {}", node->to_string()));
                                             } });
+        }
 #endif
     }
 
-    void type_inference_program(AST::Program *program)
+    void type_inference_program(AST::Program *program, size_t pass_id)
     {
-        // guard!
-        if (program->is_typed)
-        {
-            LOG(DBG, "skip type_inference, program is already typed!");
-            return;
-        }
-        program->is_typed = true;
+        LOG(INF, "({}, {})", (void *)program, pass_id);
 
         LOG(INF, "Tree before type_inference!\n{}", program->to_string_tree());
 
         START_INTRINSICS();
         LOG(INF, "type_inference -> intrinsics!");
-        type_inference_node(program, program->intrinsics);
+        type_inference_node(program, program->intrinsics, pass_id == -1 ? TYPE_INFERENCE_MAX : pass_id);
         STOP_INTRINSICS();
 
         LOG(INF, "type_inference -> program!");
-        type_inference_node(program, program);
+        type_inference_node(program, program, pass_id == -1 ? TYPE_INFERENCE_MAX : pass_id);
 
         LOG(INF, "Tree after type_inference!\n{}", program->to_string_tree());
     }

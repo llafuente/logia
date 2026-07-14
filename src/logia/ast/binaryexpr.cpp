@@ -86,7 +86,7 @@ namespace logia::AST
         if (result.contains(type_system::type_compatibility::AUTOCAST_CAST))
         {
             this->replace(right, new Cast(right->loc, right, left_ty));
-            type_inference_node(this->first_parent<Program>(), this->get_right());
+            type_inference_node(this->first_parent<Program>(), this->get_right(), TYPE_INFERENCE_PRE);
             LOG(DBG, "\n\n\n\n\n{}", this->to_string_tree());
             return;
         }

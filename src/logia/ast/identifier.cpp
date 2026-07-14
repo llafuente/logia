@@ -3,6 +3,7 @@
 #include "utils.h"
 #include "logia/ast/vardeclstmt.h"
 #include "logia/ast/block.h"
+#include "logia/ast/callexpr.h"
 #include "logia/ast/function.h"
 #include "logia/ast/semantic_error.h"
 #include "logia/type_inference.h"
@@ -102,6 +103,33 @@ namespace logia::AST
         return this->identifier == nullptr || strlen(this->identifier) == 0;
     }
 
+    std::vector<Node *> Identifier::scope_search(bool allow_multiple)
+    {
+        auto err = scope_lookup_all(this, this->identifier);
+        if (err.is_error())
+        {
+            throw_semantic_error(this, err.message);
+        }
+        this->decl_candidates = err.unwrap_success();
+        // even success could be a problem :)
+        if (this->decl_candidates.size() == 0)
+        {
+            throw_semantic_error(this, std::format(LGERR_ID001, this->identifier));
+        }
+        if (!allow_multiple && this->decl_candidates.size() > 1)
+        {
+            std::string debug_candidates = "";
+            int i = 1;
+            for (const auto &node : this->decl_candidates)
+            {
+                debug_candidates += std::format("Candidate {} declared {}\n", i++, node->loc.get_debug_location(0, 0));
+                ++i;
+            }
+            throw_semantic_error(this, std::format(LGERR_ID002, this->decl_candidates.size(), this->identifier, debug_candidates));
+        }
+        return this->decl_candidates;
+    }
+
     bool Identifier::type_inference(size_t pass_id)
     {
         switch (pass_id)
@@ -117,55 +145,31 @@ namespace logia::AST
                 LOG(DBG, "skip pre_type_inference resolve = false");
                 return true;
             }
-            // this if could be removed ? why re-entry ?
-            if (this->decl_candidates.size() == 0)
-            {
-                auto err = scope_lookup_all(this, this->identifier);
-                if (err.is_error())
-                {
-                    throw_semantic_error(this, err.message);
-                }
-                this->decl_candidates = err.unwrap_success();
-                // even success could be a problem :)
-                if (this->decl_candidates.size() == 0)
-                {
-                    throw_semantic_error(this, std::format(LGERR_ID001, this->identifier));
-                }
-                if (this->decl_candidates.size() > 1)
-                {
-                    if (this->resolve_unique)
-                    {
-                        std::string debug_candidates = "";
-                        int i = 1;
-                        for (const auto &node : this->decl_candidates)
-                        {
-                            debug_candidates += std::format("Candidate {} declared {}\n", i++, node->loc.get_debug_location(0, 0));
-                            ++i;
-                        }
-                        throw_semantic_error(this, std::format(LGERR_ID002, this->decl_candidates.size(), this->identifier, debug_candidates));
-                    }
-                    // the Identifier itself cannot determine which declaration is the right one, we will check it at codegen when we will have more information about the context (member access, function call, etc.)
-                    return true;
-                }
-            }
 
-            if (this->decl_candidates.size() != 1)
-            {
-                throw_compiler_error("unreachable code");
-            }
+            this->scope_search(!resolve_unique);
 
-            // just one candidate, we can resolve it right now
-            this->set_declaration(this->decl_candidates[0]);
-            auto ty = this->decl->get_type_decl();
-            if (ty == nullptr)
+            // just one -> go!
+            if (this->decl_candidates.size() == 1)
             {
-                LOG(WRN, "skip._pre_type_inference (target no type) {}", this->to_string());
-                return false;
+                // just one candidate, we can resolve it right now
+                this->set_declaration(this->decl_candidates[0]);
+                auto tyd = this->decl->get_type_decl();
+                if (tyd == nullptr)
+                {
+                    return false;
+                }
+
+                this->set_type(tyd);
             }
-            this->set_type(ty);
+            else
+            {
+                // my parent will type me and shoyuld be a CallExpression
+                LOGIA_VERIFY(this->parent_node->is<CallExpression>() == true);
+            }
         }
         break;
         }
+
         return true;
     }
 

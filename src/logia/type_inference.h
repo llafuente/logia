@@ -16,7 +16,7 @@ namespace logia
         struct Program;
     }
     /// @brief type inference the entire program
-    void type_inference_program(AST::Program *program);
+    void type_inference_program(AST::Program *program, size_t pass_id = -1);
     /// @brief type inference just given node, should be used only on those AST that are created while type_inference
     /// @details
     /// first it will assign default types for constants
@@ -27,7 +27,7 @@ namespace logia
     /// if not, the node is queued and it will retry at the end
     /// Once the pass ends, process the pending queue as many times as needed but each time we should have less nodes or throw
     /// Once all passes ended, we should have all typed and no modifications are allowed
-    void type_inference_node(AST::Program *program, AST::Node *start_node);
+    void type_inference_node(AST::Program *program, AST::Node *start_node, size_t pass_id);
 
     /// @brief type inference given node / pass
     void type_inference_pass(AST::Program *program, AST::Node *start_node, size_t pass_id);

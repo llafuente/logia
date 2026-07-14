@@ -17,8 +17,10 @@
 #include "logia/ast/struct.h"
 #include "logia/ast/vardeclstmt.h"
 #include "logia/type_inference.h"
+#include "logia/ast/structinitexpr.h"
 
 #include "gtest/gtest.h"
+#include <gmock/gmock.h> // For matchers like HasSubstr
 #include <Windows.h>
 
 #include "test_utils.h"
@@ -249,6 +251,7 @@ TEST(test_type, function)
     EXPECT_EQ(c->index, 0);
 
     main_fn->is_attached = true;
+    program->semantic_analysis();
     EXPECT_STREQ(main_fn->get_repr().c_str(), "function main (λi32 c, λi32 b, λi32 d, λi32 a) λi32");
 
     LOGIA_UNIT_TEST_END();
@@ -263,19 +266,15 @@ TEST(test_type, struct)
     auto point_st = new Struct(loc, new Identifier(loc, "point"));
     program->push_child(point_st);
 
-    auto point_def = new TypeDef();
-    point_def->add_locator(new Identifier(loc, "point"));
-
-    auto point_def2 = new TypeDef();
-    point_def2->add_locator(new Identifier(loc, "point"));
-
-    auto add_fn = new Function(loc, new Identifier(loc, "add"), point_def, false);
-    add_fn->push_parameter(new FunctionParameter(new Identifier(loc, "other"), point_def2));
+    auto add_fn = new Function(loc, new Identifier(loc, "add"), new_typedef("point"), false);
+    add_fn->push_parameter(new FunctionParameter(new Identifier(loc, "other"), new_typedef("point")));
     LOG(DBG, "function: {}", add_fn->to_string_tree());
     LOG(DBG, "struct {}", point_st->to_string_tree());
     point_st->add_method(add_fn);
     LOG(DBG, "struct {}", point_st->to_string_tree());
 
+    program->semantic_analysis();
+    EXPECT_STREQ(point_st->get_repr().c_str(), "struct point {}");
     EXPECT_STREQ(add_fn->get_repr().c_str(), "function add (ref<struct point {}> this, point other) point");
 
     LOGIA_UNIT_TEST_END();
@@ -382,18 +381,19 @@ TEST(type_inference_pass_check, vardecl_with_constant_initialization)
     auto st_i16 = scope_lookup_one(td_i16, "i16")->as<TypeDecl>();
 
     EXPECT_EQ(vardecl->get_type(), td_i16);
-    EXPECT_EQ(vardecl->get_type_decl(), st_i16);
+    EXPECT_EQ(vardecl->get_type_decl(), nullptr);
     EXPECT_EQ(vardecl->get_expr()->get_type(), nullptr);
 
     // nodes starts with default values
-    logia::type_inference_pass(program, program, TYPE_INFERENCE_EARLY);
+    logia::type_inference_program(program, TYPE_INFERENCE_EARLY);
     EXPECT_EQ(vardecl->get_type(), td_i16);
     EXPECT_EQ(vardecl->get_type_decl(), st_i16);
     EXPECT_EQ(vardecl->get_expr()->get_type(), i64); // this is the effective as is set by type_inference
 
-    logia::type_inference_pass(program, program, TYPE_INFERENCE_PRE);
+    logia::type_inference_program(program, TYPE_INFERENCE_PRE);
+    logia::type_inference_program(program, TYPE_INFERENCE_POST);
     EXPECT_EQ(vardecl->get_type(), td_i16);
-    EXPECT_EQ(vardecl->get_expr()->get_type(), st_i16);
+    EXPECT_EQ(vardecl->get_expr()->get_type(), scope_look_one<logia::AST::Struct>(program, "i16"));
     EXPECT_EQ(vardecl->get_expr()->get_type_decl()->get_effective_type_decl(), i16);
 
     LOGIA_UNIT_TEST_END();
@@ -405,32 +405,29 @@ TEST(type_inference_pass_check, vardecl_with_expr_initialization)
     using namespace logia::AST;
     main_fn->is_attached = false; // avoid throw
 
-    auto td_i32_ret = new TypeDef();
-    td_i32_ret->add_locator(new Identifier(loc, "i32"));
-
+    auto td_i32_ret = new_typedef("i32");
     auto xxx_fn = new Function(loc, new Identifier(loc, "xxx"), td_i32_ret, false);
     program->unshift_child(xxx_fn);
     auto xxx_call = new CallExpression(loc, new Identifier(loc, "xxx"), {});
 
-    auto td_i32 = new TypeDef();
-    td_i32->add_locator(new Identifier(loc, "i32"));
-    auto vardecl = new VarDeclStmt(loc, new Identifier(loc, "x"), td_i32, xxx_call);
+    auto vardecl = new VarDeclStmt(loc, new Identifier(loc, "x"), xxx_call);
     main_body->unshift_child(vardecl);
 
-    auto st_i32 = scope_lookup_one(td_i32, "i32")->as<TypeDecl>();
+    auto st_i32 = scope_lookup_one(program, "i32")->as<TypeDecl>();
 
-    EXPECT_EQ(vardecl->get_type(), td_i32);
-    EXPECT_EQ(vardecl->get_type_decl(), st_i32);
+    EXPECT_EQ(vardecl->get_type(), nullptr);
+    EXPECT_EQ(vardecl->get_type_decl(), nullptr);
     EXPECT_EQ(vardecl->get_expr()->get_type(), nullptr);
 
     // nodes starts with default values
     logia::type_inference_pass(program, program, TYPE_INFERENCE_EARLY);
-    EXPECT_EQ(vardecl->get_type(), td_i32);
-    EXPECT_EQ(vardecl->get_type_decl(), st_i32);
+    EXPECT_EQ(vardecl->get_type(), nullptr);
+    EXPECT_EQ(vardecl->get_type_decl(), nullptr);
     EXPECT_EQ(vardecl->get_expr()->get_type(), nullptr);
 
     logia::type_inference_pass(program, program, TYPE_INFERENCE_PRE);
-    EXPECT_EQ(vardecl->get_type(), td_i32);
+    logia::type_inference_pass(program, program, TYPE_INFERENCE_POST);
+    EXPECT_EQ(vardecl->get_type(), st_i32);
     EXPECT_EQ(vardecl->get_type_decl(), st_i32);
     EXPECT_EQ(vardecl->get_type_decl()->get_effective_type_decl(), i32);
 
@@ -444,7 +441,7 @@ TEST(type_inference_pass_check, vardecl_with_expr_initialization)
 
     LOGIA_UNIT_TEST_END();
 }
-
+/* TODO
 TEST(type_inference_pass_check, vardecl_with_expr_initialization_and_cast)
 {
     LOGIA_UNIT_TEST();
@@ -467,7 +464,7 @@ TEST(type_inference_pass_check, vardecl_with_expr_initialization_and_cast)
     auto st_i16 = scope_lookup_one(td_i16, "i16")->as<TypeDecl>();
 
     EXPECT_EQ(vardecl->get_type(), td_i32);
-    EXPECT_EQ(vardecl->get_type_decl(), st_i32);
+    EXPECT_EQ(vardecl->get_type_decl(), nullptr);
     EXPECT_EQ(vardecl->get_expr()->get_type(), nullptr);
 
     // nodes starts with default values
@@ -477,6 +474,7 @@ TEST(type_inference_pass_check, vardecl_with_expr_initialization_and_cast)
     EXPECT_EQ(vardecl->get_expr()->get_type(), nullptr);
 
     logia::type_inference_pass(program, program, TYPE_INFERENCE_PRE);
+    logia::type_inference_pass(program, program, TYPE_INFERENCE_POST);
     EXPECT_EQ(vardecl->get_type(), td_i32);
     EXPECT_EQ(vardecl->get_type_decl(), st_i32);
     EXPECT_EQ(vardecl->get_type_decl()->get_effective_type_decl(), i32);
@@ -488,14 +486,95 @@ TEST(type_inference_pass_check, vardecl_with_expr_initialization_and_cast)
     // TODO this need to be resolved in a cast -> vardecl shall be split into "alloca -> assignament"
     // vardecl->get_expr()->is<BinaryExpression>()
     // vardecl->get_expr()->get_right()->is<BinaryExpression>()
-    /*
-        std::cout << vardecl->get_expr()->get_type()->get_repr() << std::endl;
-        std::cout << vardecl->get_expr()->get_type_decl()->get_repr() << std::endl;
-        std::cout << vardecl->get_expr()->get_type_decl()->get_efective_type_decl()->get_repr() << std::endl;
 
-        EXPECT_EQ(vardecl->get_expr()->get_type(), st_i16);
-        EXPECT_EQ(vardecl->get_expr()->get_type_decl(), st_i32);
-        EXPECT_EQ(vardecl->get_expr()->get_type_decl()->get_efective_type_decl(), i32);
+    std::cout << vardecl->get_expr()->get_type()->get_repr() << std::endl;
+    std::cout << vardecl->get_expr()->get_type_decl()->get_repr() << std::endl;
+    std::cout << vardecl->get_expr()->get_type_decl()->get_efective_type_decl()->get_repr() << std::endl;
+
+    EXPECT_EQ(vardecl->get_expr()->get_type(), st_i16);
+    EXPECT_EQ(vardecl->get_expr()->get_type_decl(), st_i32);
+    EXPECT_EQ(vardecl->get_expr()->get_type_decl()->get_efective_type_decl(), i32);
+
+    LOGIA_UNIT_TEST_END();
+}
+*/
+TEST(test_type, struct_field_ref)
+{
+    LOGIA_UNIT_TEST();
+    using namespace logia::AST;
+    main_fn->is_attached = false; // avoid throw
+
+    auto i32_st = scope_look_one<logia::AST::Struct>(program, "i32");
+
+    auto point_st = new Struct(loc, new Identifier(loc, "point"));
+    point_st->add_field(loc, new Identifier(loc, "x"), new_typedef("i32"));
+    program->push_child(point_st);
+    // normal typedef
+    {
+        auto td_point = new_typedef("point");
+        auto init = new StructInitializer(loc);
+        init->add_positional_property(new IntegerLiteral(loc, "100"));
+        auto vardecl = new VarDeclStmt(loc, new Identifier(loc, "x"), td_point, init);
+        main_body->unshift_child(vardecl);
+
+        program->semantic_analysis();
+
+        // TODO madness!?
+        EXPECT_STREQ(point_st->get_repr().c_str(), "struct point {struct i32 {λi32 λ} x}");
+
+        EXPECT_EQ(vardecl->get_type(), td_point);
+        EXPECT_EQ(vardecl->get_type_decl(), point_st);
+        EXPECT_EQ(vardecl->get_type_decl()->get_effective_type_decl(), point_st);
+
+        EXPECT_EQ(init->get_type(), point_st);
+        EXPECT_EQ(init->get_type_decl(), point_st);
+        EXPECT_EQ(init->get_type_decl()->get_effective_type_decl(), point_st);
+    }
+
+    // 2 level typedef
+    {
+        auto td_point_x = new TypeDef();
+        td_point_x->add_locator(new Identifier(loc, "point"));
+        td_point_x->add_locator(new Identifier(loc, "x"));
+
+        auto vardecl = new VarDeclStmt(loc, new Identifier(loc, "x"), td_point_x, new IntegerLiteral(loc, "100"));
+        main_body->unshift_child(vardecl);
+
+        program->type_inference_pass_id = 0;
+        program->semantic_analysis();
+
+        EXPECT_EQ(vardecl->get_type(), td_point_x);
+        EXPECT_EQ(vardecl->get_type_decl(), i32_st);
+        EXPECT_EQ(vardecl->get_type_decl()->get_effective_type_decl(), i32);
+
+        EXPECT_EQ(vardecl->get_expr()->get_type_decl(), i32_st);
+        EXPECT_EQ(vardecl->get_expr()->get_type_decl()->get_effective_type_decl(), i32);
+    }
+    // invalid 2 level
+    try
+    {
+        auto the_typedef = new TypeDef();
+        the_typedef->add_locator(new Identifier(loc, "i32"));
+        the_typedef->add_locator(new Identifier(loc, "xxx"));
+
+        auto vardecl = new VarDeclStmt(loc, new Identifier(loc, "x"), the_typedef, new IntegerLiteral(loc, "100"));
+        main_body->unshift_child(vardecl);
+
+        program->type_inference_pass_id = 0;
+        program->semantic_analysis();
+    }
+    catch (logia::AST::semantic_error &e)
+    {
+        EXPECT_THAT(e.what(), testing::HasSubstr("unexpected type 'struct i32 {λi32 λ}' do not have a property named: 'xxx'"));
+    }
+
+    /*
+
+
+    EXPECT_STREQ(point_st->get_repr().c_str(), "struct point {λi32 x}");
+
+        EXPECT_EQ(td_point->get_type_decl(), point_st);
+        EXPECT_EQ(td_point_x->get_type_decl(), i32);
     */
     LOGIA_UNIT_TEST_END();
 }

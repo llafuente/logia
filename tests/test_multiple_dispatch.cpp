@@ -54,8 +54,8 @@ TEST(logia_test_multiple_dispatch, match001)
         // now one by one we type each node!
         main_body->unshift_child(callexpr); // attach before type_inference! "Cannot search from a detached node"
 
-        logia::type_inference_node(program, callexpr->get_locator());
-        logia::type_inference_node(program, callexpr->get_argument_by_index(0));
+        logia::type_inference_node(program, callexpr->get_locator(), TYPE_INFERENCE_MAX);
+        logia::type_inference_node(program, callexpr->get_argument_by_index(0), TYPE_INFERENCE_MAX);
         {
             // function xxx(i32 a)
             // xxx(i32)
@@ -84,8 +84,8 @@ TEST(logia_test_multiple_dispatch, match001)
         prev_callexpr->replace_self(callexpr);
         prev_callexpr = callexpr;
 
-        logia::type_inference_node(program, callexpr->get_locator());
-        logia::type_inference_node(program, callexpr->get_argument_by_index(0));
+        logia::type_inference_node(program, callexpr->get_locator(), TYPE_INFERENCE_MAX);
+        logia::type_inference_node(program, callexpr->get_argument_by_index(0), TYPE_INFERENCE_MAX);
 
         // function xxx(i32 a)
         auto x = match(callexpr, xxx_fn, false);

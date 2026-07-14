@@ -43,6 +43,8 @@ namespace logia::AST
 
         void set_declaration(Node *node);
 
+        std::vector<Node *> scope_search(bool allow_multiple);
+
         bool is_empty();
 
     protected:

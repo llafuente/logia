@@ -9,6 +9,7 @@
 #include "logia/ast/functionblock.h"
 #include "logia/ast/returnstmt.h"
 #include "logia/ast/scope.h"
+#include "logia/ast/struct.h"
 
 #include "llvm/IR/Type.h"              // Type
 #include "llvm/IR/DebugInfoMetadata.h" // dwarf
@@ -422,8 +423,8 @@ namespace logia::AST
     void TypeDef::add_locator(Identifier *name)
     {
         name->skip_codegen = true;
-        name->resolve = true;
-        name->resolve_unique = false;
+        name->resolve = false;
+
         this->push_child(name);
     }
 
@@ -440,12 +441,14 @@ namespace logia::AST
 
     std::string TypeDef::to_string()
     {
-        if (this->children.size())
+        std::string dot_locatots;
+        for (auto ident : this->children)
         {
-            auto id = (Identifier *)this->children[0];
-            return std::format("TypeDef[{}]{}", id->identifier, Node::to_string());
+            dot_locatots += dot_locatots.size() ? "," : "";
+            dot_locatots += ident->as<Identifier>()->identifier;
         }
-        return std::format("TypeDef[?]{}", Node::to_string());
+
+        return std::format("TypeDef[{}]{}", dot_locatots, Node::to_string());
     }
 
     std::string TypeDef::get_repr()
@@ -472,17 +475,6 @@ namespace logia::AST
 
     void TypeDef::on_after_attach()
     {
-        // TODO nasty HACK this is a PIA because we need typedef so early for intrinsics...
-        try
-        {
-            if (this->type_inference_pass_id == 0)
-            {
-                this->type_inference(TYPE_INFERENCE_EARLY);
-            }
-        }
-        catch (std::exception e)
-        {
-        }
     }
 
     bool TypeDef::type_inference(size_t pass_id)
@@ -491,34 +483,75 @@ namespace logia::AST
         {
         case TYPE_INFERENCE_EARLY:
         {
-            LOG(DBG, "");
-            // TODO support more than one!?
-            LOGIA_VERIFY(this->children.size() == 1, "TO-DO: single resolve atm");
-            // search children!
-            auto id = this->get_child<Identifier>(0);
-            // TODO this could be removed ?
-            id->type_inference(TYPE_INFERENCE_PRE);
-            id->type_inference(TYPE_INFERENCE_POST);
-
-            auto list = id->decl_candidates;
-            if (list.size() == 0)
+            LOG(DBG, "resolve({})", this->children.size());
+            LOG(DBG, "{}", this->to_string_tree());
+            Identifier *ident;
+            TypeDecl *current_type = nullptr;
+            for (auto node : this->children)
             {
-                throw_semantic_error(this, std::format(LGERR_ID001, id->identifier));
-            }
-            if (list.size() > 1)
-            {
-                std::string debug_candidates = "";
-                int i = 1;
-                for (const auto &node : list)
+                if (node->try_cast(&ident))
                 {
-                    debug_candidates += std::format("Candidate {} declared {}\n", i++, node->loc.get_debug_location(1, 1));
-                    ++i;
-                }
-                throw_semantic_error(this, std::format(LGERR_ID002, list.size(), id->identifier, debug_candidates));
-            }
+                    if (current_type == nullptr)
+                    {
+                        auto list = ident->scope_search(true);
 
+                        if (list.size() == 0)
+                        {
+                            throw_semantic_error(this, std::format(LGERR_ID001, ident->identifier));
+                        }
+                        // TODO this is something i don't know how to deal atm
+                        // I expect the "next step" could filter this!
+                        if (list.size() > 1)
+                        {
+                            std::string debug_candidates = "";
+                            int i = 1;
+                            for (const auto &node : list)
+                            {
+                                debug_candidates += std::format("Candidate {} declared {}\n", i++, node->loc.get_debug_location(1, 1));
+                                ++i;
+                            }
+                            throw_semantic_error(this, std::format(LGERR_ID002, list.size(), ident->identifier, debug_candidates));
+                        }
+                        current_type = list[0]->get_type_decl();
+                        ident->set_type(current_type);
+                    }
+                    else
+                    {
+                        // go deeper in the type!
+                        Struct *st;
+                        if (current_type->try_cast(&st))
+                        {
+                            auto field = st->get_field(ident->identifier);
+                            if (field == nullptr)
+                            {
+                                throw_semantic_error(this, std::format("unexpected type '{}' do not have a property named: '{}'", current_type->get_repr(), ident->identifier));
+                            }
+                            if (field->real_type == nullptr)
+                            {
+                                field->type_inference(TYPE_INFERENCE_EARLY);
+                            }
+                            current_type = field->get_type_decl();
+                            if (current_type == nullptr)
+                            {
+                                return false;
+                            }
+                            ident->set_type(current_type);
+                        }
+                        else
+                        {
+                            throw_semantic_error(this, std::format("unexpected type '{}' do not have a property named: '{}'", current_type->get_repr(), ident->identifier));
+                        }
+                    }
+                }
+                else
+                {
+                    LOG_ERR("{}", node->to_string());
+                    throw_compiler_error("unsupported child node type found");
+                }
+            }
+            LOGIA_VERIFY(current_type != nullptr);
             // TODO REVIEW type-system do not use: set_type atm
-            this->real_type = list[0]->get_type_decl();
+            this->real_type = current_type;
             this->is_typed = true;
         }
         break;
@@ -535,7 +568,7 @@ namespace logia::AST
 
     InferType::~InferType() {}
 
-    void InferType::_on_set_type(TypeDecl *t)
+    void InferType::_on_set_type(TypeDecl *tyd)
     {
         // this->replace_self(t);
     }
