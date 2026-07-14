@@ -80,19 +80,26 @@ namespace logia::AST
         this->get_name()->set_type(tyd);
     }
 
-    void FunctionParameter::_pre_type_inference()
+    bool FunctionParameter::type_inference(size_t pass_id)
     {
-        auto ty = this->get_child<Type>(1);
-
-        auto tyd = ty->get_type_decl();
-        if (tyd == nullptr)
+        switch (pass_id)
         {
-            return;
-        }
-        this->set_type(tyd);
+        case TYPE_INFERENCE_PRE:
+        {
+            auto ty = this->get_child<Type>(1);
 
-        Node::_pre_type_inference();
+            auto tyd = ty->get_type_decl();
+            if (tyd == nullptr)
+            {
+                return false;
+            }
+            this->set_type(tyd);
+        }
+        break;
+        }
+        return true;
     }
+
     //
     // Function
     //
@@ -374,20 +381,28 @@ namespace logia::AST
         return Type::post_codegen(backend);
     }
 
-    void Function::_pre_type_inference()
+    bool Function::type_inference(size_t pass_id)
     {
-        auto return_ty = this->get_return_type()->get_type_decl();
-        this->foreach_descendant<ReturnStmt>([return_ty](auto rstmt, auto deep)
-                                             {
+
+        switch (pass_id)
+        {
+        case TYPE_INFERENCE_PRE:
+        {
+            // forward our return type to all return stmts
+            auto return_ty = this->get_return_type()->get_type_decl();
+            this->foreach_descendant<ReturnStmt>([return_ty](auto rstmt, auto deep)
+                                                 {
                                                 LOG(DBG, "enforece return type: {}", rstmt->to_string());
                                                 rstmt->set_type(return_ty);
                                                 return false; });
-        Type::_pre_type_inference();
+        }
+        break;
+        }
+        return true;
     }
 
     void Function::push_parameter(FunctionParameter *param)
     {
-
         // LOGIA_VERIFY(this->is_attached == false, "Function type should be created before attached");
         param->index = this->get_parameter_count();
         this->push_child(param);

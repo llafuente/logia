@@ -7,6 +7,7 @@
 #include "logia/ast/callexpr.h"
 #include "logia/ast/semantic_error.h"
 #include "logia/ast/llvm.h"
+#include "logia/type_inference.h"
 
 namespace logia::AST
 {
@@ -50,42 +51,51 @@ namespace logia::AST
         this->children[1] = type;
     }
 
-    void Cast::_post_type_inference()
+    bool Cast::type_inference(size_t pass_id)
     {
         Expression *expr = this->get_expr();
-        auto from_type = this->get_source_type()->get_type_decl()->get_effective_type_decl();
-        auto to_type = this->get_target_type()->get_type_decl()->get_effective_type_decl();
+        auto from_type = this->get_source_type();
+        auto to_type = this->get_target_type();
 
-        if (!from_type)
+        switch (pass_id)
         {
-            return; // wait!
-        }
+        case TYPE_INFERENCE_POST:
+        {
+            if (!from_type->is_typed)
+            {
+                return false;
+            }
 
-        if (from_type->primitive == Primitives::VOID_TY)
-        {
-            // void to any type is not allowed
-            throw_semantic_error(expr, "LGERR_CAST001 Cannot cast void to any type");
-        }
-        if (to_type->primitive == Primitives::VOID_TY)
-        {
-            // any type to void is not allowed
-            throw_semantic_error(to_type, "LGERR_CAST001 Cannot cast any type to void");
-        }
-        // integer(s) to float(s) ?
-        if ((from_type->primitive == Primitives::INTEGER_TY || from_type->primitive == Primitives::FLOATING_POINT_TY) &&
-            (to_type->primitive == Primitives::INTEGER_TY || to_type->primitive == Primitives::FLOATING_POINT_TY))
-        {
-            // we cast in LLVM
-        }
-        else
-        {
-            // we cast using a function
-            // this->callexpr = new CallExpression(this->loc, new Identifier(this->loc, "cast"), {this->get_expr()});
-            throw_compiler_error("to-do");
-            // this need to be resolved with arguments
-        }
+            auto from_tyd = from_type->get_type_decl()->get_effective_type_decl();
+            auto to_tyd = to_type->get_type_decl()->get_effective_type_decl();
 
-        Expression::_post_type_inference();
+            if (from_tyd->primitive == Primitives::VOID_TY)
+            {
+                // void to any type is not allowed
+                throw_semantic_error(expr, "LGERR_CAST001 Cannot cast void to any type");
+            }
+            if (to_tyd->primitive == Primitives::VOID_TY)
+            {
+                // any type to void is not allowed
+                throw_semantic_error(to_type, "LGERR_CAST001 Cannot cast any type to void");
+            }
+            // integer(s) to float(s) ?
+            if ((from_tyd->primitive == Primitives::INTEGER_TY || from_tyd->primitive == Primitives::FLOATING_POINT_TY) &&
+                (to_tyd->primitive == Primitives::INTEGER_TY || to_tyd->primitive == Primitives::FLOATING_POINT_TY))
+            {
+                // we cast in LLVM
+            }
+            else
+            {
+                // we cast using a function
+                // this->callexpr = new CallExpression(this->loc, new Identifier(this->loc, "cast"), {this->get_expr()});
+                throw_compiler_error("to-do");
+                // this need to be resolved with arguments
+            }
+        }
+        break;
+        }
+        return true;
     }
 
     void Cast::post_codegen(logia::Backend *backend)

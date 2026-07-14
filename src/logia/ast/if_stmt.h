@@ -36,8 +36,12 @@ namespace logia::AST
 
         void validate() override;
 
+        /// @brief (TYPE_INFERENCE_LAST) Enforce condition expression type to bool
+        /// @param pass_id
+        /// @return
+        bool type_inference(size_t pass_id) override;
+
     protected:
-        void _post_type_inference() override;
         void _on_set_type(TypeDecl *t) override;
     };
 }

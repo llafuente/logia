@@ -252,9 +252,7 @@ namespace logia::AST
 
         void validate() override;
 
-    protected:
-        void _early_type_inference() override;
-        void _pre_type_inference() override;
+        bool type_inference(size_t pass_id) override;
     };
 
     struct InferType : Type

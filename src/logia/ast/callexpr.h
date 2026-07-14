@@ -40,9 +40,10 @@ namespace logia::AST
 
         void validate() override;
 
+        bool type_inference(size_t pass_id) override;
+
     protected:
         void _on_set_type(TypeDecl *type) override;
-        void _pre_type_inference() override;
     };
 
     // TODO REVIEW It uses multiple dispatch, but while usefull maybe it's better to have single dispatch for "non-operator" functions
@@ -137,9 +138,9 @@ namespace logia::AST
 
         void validate() override;
 
+        bool type_inference(size_t pass_id) override;
+
     protected:
         void _on_set_type(TypeDecl *type) override;
-        void _early_type_inference() override;
-        void _pre_type_inference() override;
     };
 }

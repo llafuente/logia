@@ -128,8 +128,8 @@ namespace logia::AST
         virtual void validate() = 0;
 
         /// @brief Calls _pre_type_inference if this node required to be typed
-        /// @return
-        void type_inference(size_t pass_id);
+        /// @returns if pass is done!
+        virtual bool type_inference(size_t pass_id);
 
         virtual TypeDecl *get_type_decl();
 
@@ -354,9 +354,6 @@ namespace logia::AST
         }
 
     protected:
-        virtual void _early_type_inference();
-        virtual void _pre_type_inference();
-        virtual void _post_type_inference();
         virtual void _on_set_type(TypeDecl *ty) = 0;
     };
 

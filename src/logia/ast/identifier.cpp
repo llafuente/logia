@@ -5,6 +5,7 @@
 #include "logia/ast/block.h"
 #include "logia/ast/function.h"
 #include "logia/ast/semantic_error.h"
+#include "logia/type_inference.h"
 
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/DerivedTypes.h"
@@ -101,64 +102,71 @@ namespace logia::AST
         return this->identifier == nullptr || strlen(this->identifier) == 0;
     }
 
-    void Identifier::_pre_type_inference()
+    bool Identifier::type_inference(size_t pass_id)
     {
-        if (is_empty())
+        switch (pass_id)
         {
-            throw_compiler_error("try to type an empty identifier!");
-        }
-        if (!this->resolve)
+        case TYPE_INFERENCE_PRE:
         {
-            LOG(DBG, "skip pre_type_inference resolve = false");
-            return Node::_pre_type_inference();
-        }
-
-        if (this->decl_candidates.size() == 0)
-        {
-            auto err = scope_lookup_all(this, this->identifier);
-            if (err.is_error())
+            if (is_empty())
             {
-                throw_semantic_error(this, err.message);
+                throw_compiler_error("try to type an empty identifier!");
             }
-            this->decl_candidates = err.unwrap_success();
-            // even success could be a problem :)
+            if (!this->resolve)
+            {
+                LOG(DBG, "skip pre_type_inference resolve = false");
+                return true;
+            }
+            // this if could be removed ? why re-entry ?
             if (this->decl_candidates.size() == 0)
             {
-                throw_semantic_error(this, std::format(LGERR_ID001, this->identifier));
-            }
-            if (this->decl_candidates.size() > 1)
-            {
-                if (this->resolve_unique)
+                auto err = scope_lookup_all(this, this->identifier);
+                if (err.is_error())
                 {
-                    std::string debug_candidates = "";
-                    int i = 1;
-                    for (const auto &node : this->decl_candidates)
-                    {
-                        debug_candidates += std::format("Candidate {} declared {}\n", i++, node->loc.get_debug_location(0, 0));
-                        ++i;
-                    }
-                    throw_semantic_error(this, std::format(LGERR_ID002, this->decl_candidates.size(), this->identifier, debug_candidates));
+                    throw_semantic_error(this, err.message);
                 }
-                // the Identifier itself cannot determine which declaration is the right one, we will check it at codegen when we will have more information about the context (member access, function call, etc.)
-                return Node::_pre_type_inference();
+                this->decl_candidates = err.unwrap_success();
+                // even success could be a problem :)
+                if (this->decl_candidates.size() == 0)
+                {
+                    throw_semantic_error(this, std::format(LGERR_ID001, this->identifier));
+                }
+                if (this->decl_candidates.size() > 1)
+                {
+                    if (this->resolve_unique)
+                    {
+                        std::string debug_candidates = "";
+                        int i = 1;
+                        for (const auto &node : this->decl_candidates)
+                        {
+                            debug_candidates += std::format("Candidate {} declared {}\n", i++, node->loc.get_debug_location(0, 0));
+                            ++i;
+                        }
+                        throw_semantic_error(this, std::format(LGERR_ID002, this->decl_candidates.size(), this->identifier, debug_candidates));
+                    }
+                    // the Identifier itself cannot determine which declaration is the right one, we will check it at codegen when we will have more information about the context (member access, function call, etc.)
+                    return true;
+                }
             }
-        }
 
-        if (this->decl_candidates.size() == 1)
-        {
+            if (this->decl_candidates.size() != 1)
+            {
+                throw_compiler_error("unreachable code");
+            }
+
             // just one candidate, we can resolve it right now
             this->set_declaration(this->decl_candidates[0]);
             auto ty = this->decl->get_type_decl();
             if (ty == nullptr)
             {
                 LOG(WRN, "skip._pre_type_inference (target no type) {}", this->to_string());
-                return; // skip for later!
+                return false;
             }
             this->set_type(ty);
-            return Node::_pre_type_inference();
         }
-
-        throw_compiler_error("unreachable code");
+        break;
+        }
+        return true;
     }
 
     void Identifier::set_declaration(Node *node)

@@ -116,18 +116,26 @@ namespace logia::AST
         return std::format("StructField{}", Node::to_string());
     }
 
-    void StructField::_pre_type_inference()
+    bool StructField::type_inference(size_t pass_id)
     {
-        auto ty = this->get_type();
-        auto tyd = ty->get_type_decl();
-        if (tyd == nullptr)
+        switch (pass_id)
         {
-            return;
-        }
+        case TYPE_INFERENCE_PRE:
+        {
+            auto ty = this->get_type();
+            auto tyd = ty->get_type_decl();
+            if (tyd == nullptr)
+            {
+                return false;
+            }
 
-        this->set_type(tyd);
-        Node::_pre_type_inference();
+            this->set_type(tyd);
+        }
+        break;
+        }
+        return true;
     }
+
     void StructField::_on_set_type(TypeDecl *tyd)
     {
         this->get_name()->set_type(tyd);
@@ -277,6 +285,7 @@ namespace logia::AST
     {
         return std::format("Type.Struct {}", Node::to_string());
     }
+
     std::string Struct::get_repr()
     {
         std::string list = "";
@@ -363,11 +372,6 @@ namespace logia::AST
                 fn->post_codegen(backend);
             }
         }
-    }
-
-    void Struct::_pre_type_inference()
-    {
-        return Type::_pre_type_inference();
     }
 
     void Struct::add_field(

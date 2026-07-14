@@ -49,34 +49,15 @@ namespace logia::AST
 
     void UnaryExpression::on_after_attach() {}
 
-    void UnaryExpression::validate() {}
-
-    void UnaryExpression::_pre_type_inference()
+    void UnaryExpression::validate()
     {
-        auto operand_ty = this->get_operand()->get_type_decl();
-        if (operand_ty == nullptr)
-        {
-            return; // try again later!
-        }
-
         switch (this->op)
         {
         case Operators::PREFIX_DEREFERENCE:
-        {
-            Ref *ty_ref;
-            if (!operand_ty->try_cast(&ty_ref))
-            {
-                throw_semantic_error(this, std::format("LGERR_UNARYEXPR001", operand_ty->get_repr()));
-            }
-            this->set_type(ty_ref->get_pointee());
-        }
-        break;
         case Operators::PREFIX_REFERENCE:
         {
-            this->set_type(operand_ty->get_reference_to());
-
-            break;
         }
+        break;
         default:
         {
             /// replace with callexpr!
@@ -87,15 +68,56 @@ namespace logia::AST
             LOG(DBG, "transform unaryexpr into function call: {}", (void *)this->call_expr);
             // makes no sense but need to keep this node attached
             this->push_child(this->call_expr);
-
-            this->call_expr->type_inference(TYPE_INFERENCE_PRE);
-            LOGIA_VERIFY(this->call_expr->type_inference_pass_id == TYPE_INFERENCE_PRE);
-            LOGIA_VERIFY(this->call_expr->callee != nullptr);
-
-            this->set_type(this->call_expr->get_type_decl());
         }
         }
-        return Expression::_pre_type_inference();
+    }
+
+    bool UnaryExpression::type_inference(size_t pass_id)
+    {
+        switch (pass_id)
+        {
+        case TYPE_INFERENCE_PRE:
+        {
+            auto operand_ty = this->get_operand()->get_type_decl();
+            if (operand_ty == nullptr)
+            {
+                return false;
+            }
+
+            switch (this->op)
+            {
+            case Operators::PREFIX_DEREFERENCE:
+            {
+                Ref *ty_ref;
+                if (!operand_ty->try_cast(&ty_ref))
+                {
+                    throw_semantic_error(this, std::format("LGERR_UNARYEXPR001", operand_ty->get_repr()));
+                }
+                this->set_type(ty_ref->get_pointee());
+            }
+            break;
+            case Operators::PREFIX_REFERENCE:
+            {
+                this->set_type(operand_ty->get_reference_to());
+            }
+            break;
+            default:
+            {
+                if (this->call_expr != nullptr)
+                {
+                    auto tyd = this->call_expr->get_type_decl();
+                    if (tyd == nullptr)
+                    {
+                        return false;
+                    }
+                    this->set_type(tyd);
+                }
+            }
+            } // switch (this->op)
+        }
+        break; // TYPE_INFERENCE_PRE
+        }
+        return true;
     }
 
     void UnaryExpression::_on_set_type(TypeDecl *ty)

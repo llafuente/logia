@@ -41,14 +41,15 @@ namespace logia::AST
 
         void validate() override;
 
+        /// @brief (PRE) Sets type based on declaration or expression type
+        bool type_inference(size_t pass_id) override;
+
         /// @brief Returns the type of the variable
         /// @remarks While not necessary (logia do not support chained vardecl) could be usefull when referencing the variable
         /// @return Type of the variable
         Type *get_type() override;
 
     protected:
-        /// @brief Sets type based on declaration or expression type
-        void _pre_type_inference() override;
         /// @brief Sets type
         void _on_set_type(TypeDecl *ty) override;
     };

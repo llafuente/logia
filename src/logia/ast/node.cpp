@@ -270,39 +270,9 @@ namespace logia::AST
         };
     */
 
-    void Node::type_inference(size_t pass_id)
+    bool Node::type_inference(size_t pass_id)
     {
-        // skip ?
-        if (this->type_inference_pass_id >= pass_id)
-        {
-            return;
-        }
-
-        switch (pass_id)
-        {
-        case TYPE_INFERENCE_EARLY:
-            return this->_early_type_inference();
-        case TYPE_INFERENCE_PRE:
-            return this->_pre_type_inference();
-        case TYPE_INFERENCE_POST:
-            return this->_post_type_inference();
-        }
-
-        throw_compiler_error("unreachable!");
-    }
-    void Node::_early_type_inference()
-    {
-        this->type_inference_pass_id = TYPE_INFERENCE_EARLY;
-    }
-
-    void Node::_pre_type_inference()
-    {
-        this->type_inference_pass_id = TYPE_INFERENCE_PRE;
-    }
-
-    void Node::_post_type_inference()
-    {
-        this->type_inference_pass_id = TYPE_INFERENCE_POST;
+        return true;
     }
 
     TypeDecl *Node::get_type_decl()

@@ -7,6 +7,7 @@
 #include "logia/ast/identifier.h"
 #include "logia/ast/block.h"
 #include "logia/ast/type.h"
+#include "logia/type_inference.h"
 
 namespace logia::AST
 {
@@ -104,22 +105,30 @@ namespace logia::AST
 
     void IfStmt::validate() {}
 
-    void IfStmt::_post_type_inference()
+    bool IfStmt::type_inference(size_t pass_id)
     {
-        // condition should have bool type!
-        auto condition = this->get_condition();
-        auto ty = condition->get_type_decl();
-        Integer *int_ty;
-        if (ty->try_cast<Integer>(&int_ty))
+        switch (pass_id)
         {
-            if (int_ty->bits == 1)
+        case TYPE_INFERENCE_LAST:
+        {
+            // condition should have bool type!
+            auto condition = this->get_condition();
+            auto ty = condition->get_type_decl();
+            Integer *int_ty;
+            if (ty->try_cast<Integer>(&int_ty))
             {
-                // ok !
-                return Stmt::_post_type_inference();
+                if (int_ty->bits == 1)
+                {
+                    // ok !
+                    return true;
+                }
             }
-        }
 
-        throw_semantic_error(condition, std::format("LGERR_IF001 Expected contition type to be 'bool' but found: '{}'", ty->get_repr()));
+            throw_semantic_error(condition, std::format("LGERR_IF001 Expected contition type to be 'bool' but found: '{}'", ty->get_repr()));
+        }
+        break;
+        }
+        return true;
     }
 
     void IfStmt::_on_set_type(TypeDecl *t) {}

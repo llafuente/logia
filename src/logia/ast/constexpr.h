@@ -33,8 +33,6 @@ namespace logia::AST
     {
         /// @brief The string value (utf-8), non-null
         char *text = nullptr;
-        /// @brief string type, atm a false type cstring
-        Type *type = nullptr;
 
         StringLiteral(location loc, LOGIA_CLONE const char *text);
 
@@ -45,16 +43,15 @@ namespace logia::AST
 
         void on_after_attach() override;
 
-        void validate() override;
-
         bool is_valid_constant_operator(Operators op) override;
+
+        void validate() override;
 
         /// @brief Returns a new StringLiteral with this->text + rhs.text
         ConstExpression *operator+(ConstExpression *other) override;
 
     protected:
         void _on_set_type(TypeDecl *t) override;
-        void _pre_type_inference() override;
     };
 
     /// @brief A floating point literal constant expression
@@ -90,7 +87,6 @@ namespace logia::AST
 
     protected:
         void _on_set_type(TypeDecl *t) override;
-        void _pre_type_inference() override;
     };
 
     /// @brief An integer literal constant expression
@@ -129,6 +125,5 @@ namespace logia::AST
 
     protected:
         void _on_set_type(TypeDecl *t) override;
-        void _pre_type_inference() override;
     };
 }

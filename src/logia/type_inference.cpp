@@ -32,6 +32,7 @@ namespace logia
             // auto program = node->first_parent<Program>();
             auto default_integer = scope_look_one<TypeDecl>(program, "λi64");
             auto default_float = scope_look_one<TypeDecl>(program, "λf64");
+            auto default_string = scope_look_one<TypeDecl>(program, "ptr");
             for (auto node : all_nodes)
             {
                 if (!node->is_typed)
@@ -46,6 +47,11 @@ namespace logia
                         LOG(DBG, "set default type for FloatLiteral: {}", (void *)node);
                         node->set_type(default_float);
                     }
+                    else if (node->is<StringLiteral>())
+                    {
+                        LOG(DBG, "set default type for StringLiteral: {}", (void *)node);
+                        node->set_type(default_string);
+                    }
                 }
             }
         }
@@ -57,7 +63,10 @@ namespace logia
             for (size_t current_pass_id = node->type_inference_pass_id + 1; current_pass_id <= pass_id; ++current_pass_id)
             {
                 LOG(SILLY, "type_inference({}, {})", (void *)node, pass_id);
-                node->type_inference(current_pass_id);
+                if (node->type_inference_pass_id < current_pass_id && node->type_inference(current_pass_id))
+                {
+                    node->type_inference_pass_id = current_pass_id;
+                }
             }
             // pre_type_inference could be imposible to be done for some nodes (like Identifiers)
             // it' may require that everyone around has pre_type_inference, so we need to introduce a way to delay retry this call again
@@ -82,7 +91,10 @@ namespace logia
                                              for (size_t current_pass_id = node->type_inference_pass_id + 1; current_pass_id <= pass_id; ++current_pass_id)
                                              {
                                                  LOG(SILLY, "type_inference({}, {})", (void *)node, current_pass_id);
-                                                 node->type_inference(current_pass_id);
+                                                 if (node->type_inference_pass_id < current_pass_id && node->type_inference(current_pass_id))
+                                                 {
+                                                     node->type_inference_pass_id = current_pass_id;
+                                                 }
                                              }
 
                                              return node->type_inference_pass_id >= pass_id;

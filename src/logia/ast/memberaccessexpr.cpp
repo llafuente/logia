@@ -55,44 +55,52 @@ namespace logia::AST
 
     void MemberAccessExpression::validate() {}
 
-    void MemberAccessExpression::_pre_type_inference()
+    bool MemberAccessExpression::type_inference(size_t pass_id)
     {
-        auto left = this->get_left();
-        if (left->type_inference_pass_id != TYPE_INFERENCE_PRE)
+        switch (pass_id)
         {
-            return; // later...
-        }
-        auto left_tyd = left->get_type_decl();
-
-        // autoderef ?
-        Ref *left_ty_ref;
-        if (left_tyd->try_cast<Ref>(&left_ty_ref))
+        case TYPE_INFERENCE_PRE:
         {
-            // we will auto reference!
-            auto deref = new UnaryExpression(left->loc, Operators::PREFIX_DEREFERENCE, left);
-            LOG(DBG, "new node: UnaryExpression {}", (void *)deref);
-            this->set_child(deref, 0);
-            left_tyd = left_ty_ref->get_pointee()->get_type_decl();
-            deref->set_type(left_tyd);
+            auto left = this->get_left();
+            if (left->type_inference_pass_id != TYPE_INFERENCE_PRE)
+            {
+                return false;
+            }
+            auto left_tyd = left->get_type_decl();
+
+            // autoderef ?
+            Ref *left_ty_ref;
+            if (left_tyd->try_cast<Ref>(&left_ty_ref))
+            {
+                // we will auto reference!
+                auto deref = new UnaryExpression(left->loc, Operators::PREFIX_DEREFERENCE, left);
+                LOG(DBG, "new node: UnaryExpression {}", (void *)deref);
+                this->set_child(deref, 0);
+                left_tyd = left_ty_ref->get_pointee()->get_type_decl();
+                deref->set_type(left_tyd);
+            }
+
+            Struct *left_ty_stuct;
+
+            if (left_tyd->try_cast<Struct>(&left_ty_stuct))
+            {
+                auto right = this->get_right()->as<Identifier>(); // TODO
+                auto prop = left_ty_stuct->get_property(right->identifier);
+
+                auto ty = prop->get_type_decl();
+
+                right->set_type(ty);
+                this->set_type(ty);
+                // TODO support multiple-dispatch
+
+                return true;
+            }
+
+            throw_semantic_error(this, std::format(LGERR_MAEXPR001, left_tyd->get_repr()));
         }
-
-        Struct *left_ty_stuct;
-
-        if (left_tyd->try_cast<Struct>(&left_ty_stuct))
-        {
-            auto right = this->get_right()->as<Identifier>(); // TODO
-            auto prop = left_ty_stuct->get_property(right->identifier);
-
-            auto ty = prop->get_type_decl();
-
-            right->set_type(ty);
-            this->set_type(ty);
-            // TODO support multiple-dispatch
-
-            return Node::_pre_type_inference();
+        break;
         }
-
-        throw_semantic_error(this, std::format(LGERR_MAEXPR001, left_tyd->get_repr()));
+        return true;
     }
 
     std::string MemberAccessExpression::to_string()

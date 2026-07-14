@@ -100,108 +100,119 @@ namespace logia::AST
         throw_compiler_error("unreable");
     }
 
-    void BinaryExpression::_pre_type_inference()
+    bool BinaryExpression::type_inference(size_t pass_id)
     {
-        auto left = this->get_left();
-        // left->pre_type_inference();
-        auto left_ty = left->get_type_decl();
-
-        auto right = this->get_right();
-        auto right_ty = right->get_type_decl();
-
-        if (left_ty == nullptr)
+        switch (pass_id)
         {
-            LOG(DBG, "lhs is not ready {}", this->to_string_tree());
-            return; // next time!
-        }
-        if (right_ty == nullptr)
+        case TYPE_INFERENCE_PRE:
         {
-            LOG(DBG, "rhs is not ready {}", this->to_string_tree());
-            return; // next time!
-        }
-
-        if (op == Operators::BINARY_ASSIGN)
-        {
-            // same/comptible types ?!
-            if (left->is<ConstExpression>())
-            {
-                throw_semantic_error(this, LGERR_BINEXPR002);
-            }
-
-            this->__enforce_assignament_type(left_ty, right_ty);
-            this->set_type(left_ty);
-        }
-        else if (is_assignament_operator(this->op))
-        {
-            if (left->is<ConstExpression>())
-            {
-                throw_semantic_error(this, LGERR_BINEXPR002);
-            }
-
-            // right_ty should be a ref!
-            Ref *ref_left_ty;
-            if (!left_ty->try_cast<Ref>(&ref_left_ty))
-            {
-                LOG_ERR("{}", this->to_string_tree());
-                throw_semantic_error(right, std::format(LGERR_BINEXPR001, left_ty->get_repr()));
-            }
-            this->__enforce_assignament_type(ref_left_ty->get_pointee(), right_ty);
-        }
-        else if (is_logical_operator(this->op))
-        {
-            this->set_type(scope_lookup_first(this, "bool")->as<TypeDecl>());
-        }
-
-        switch (op)
-        {
-        case Operators::BINARY_ASSIGN:
-        case Operators::BINARY_LOGICAL_AND:
-        case Operators::BINARY_LOGICAL_OR:
-            break;
-        default:
-            // call it's not ready ? -> later!
-            if (this->call_expr->type_inference_pass_id != TYPE_INFERENCE_PRE)
-            {
-                return;
-            }
-            this->set_type(this->call_expr->get_type_decl());
-        }
-
-        Expression::_pre_type_inference();
-    }
-
-    void BinaryExpression::_post_type_inference()
-    {
-        switch (this->op)
-        {
-        case Operators::BINARY_LOGICAL_AND:
-        case Operators::BINARY_LOGICAL_OR:
-        {
-            Integer *int_ty;
             auto left = this->get_left();
-            if (!left->get_type_decl()->get_effective_type_decl()->try_cast<Integer>(&int_ty))
-            {
-                throw_semantic_error(left, LGERR_BINEXPR003);
-            }
-            if (int_ty->bits != 1)
-            {
-                throw_semantic_error(left, LGERR_BINEXPR003);
-            }
+            auto left_ty = left->get_type_decl();
 
             auto right = this->get_right();
-            if (!right->get_type_decl()->get_effective_type_decl()->try_cast<Integer>(&int_ty))
+            auto right_ty = right->get_type_decl();
+
+            if (left_ty == nullptr)
             {
-                throw_semantic_error(right, LGERR_BINEXPR004);
+                LOG(DBG, "lhs is not ready {}", this->to_string_tree());
+                return false;
             }
-            if (int_ty->bits != 1)
+            if (right_ty == nullptr)
             {
-                throw_semantic_error(right, LGERR_BINEXPR004);
+                LOG(DBG, "rhs is not ready {}", this->to_string_tree());
+                return false;
+            }
+
+            if (op == Operators::BINARY_ASSIGN)
+            {
+                // same/comptible types ?!
+                if (left->is<ConstExpression>())
+                {
+                    throw_semantic_error(this, LGERR_BINEXPR002);
+                }
+
+                this->__enforce_assignament_type(left_ty, right_ty);
+                this->set_type(left_ty);
+
+                return true;
+            }
+
+            if (is_assignament_operator(this->op))
+            {
+                if (left->is<ConstExpression>())
+                {
+                    throw_semantic_error(this, LGERR_BINEXPR002);
+                }
+
+                // right_ty should be a ref!
+                Ref *ref_left_ty;
+                if (!left_ty->try_cast<Ref>(&ref_left_ty))
+                {
+                    LOG_ERR("{}", this->to_string_tree());
+                    throw_semantic_error(right, std::format(LGERR_BINEXPR001, left_ty->get_repr()));
+                }
+                this->__enforce_assignament_type(ref_left_ty->get_pointee(), right_ty);
+                this->set_type(ref_left_ty);
+                return true;
+            }
+
+            // TODO why enforce type here ? make sense but it's redundant, the function call should return bool
+            if (is_logical_operator(this->op))
+            {
+                this->set_type(scope_lookup_first(this, "λi1")->as<TypeDecl>());
+                return true;
+            }
+
+            // call it's not ready ? -> later!
+            // this call expression is defined, fordward the type!
+            if (this->call_expr != nullptr)
+            {
+                auto tyd = this->call_expr->get_type_decl();
+                if (tyd == nullptr)
+                {
+                    return false;
+                }
+                this->set_type(tyd);
+                return true;
+            }
+        }
+        break;
+        case TYPE_INFERENCE_POST:
+        {
+            switch (this->op)
+            {
+            case Operators::BINARY_LOGICAL_AND:
+            case Operators::BINARY_LOGICAL_OR:
+            {
+                Integer *int_ty;
+                auto left = this->get_left();
+                if (!left->get_type_decl()->get_effective_type_decl()->try_cast<Integer>(&int_ty))
+                {
+                    throw_semantic_error(left, LGERR_BINEXPR003);
+                }
+                if (int_ty->bits != 1)
+                {
+                    throw_semantic_error(left, LGERR_BINEXPR003);
+                }
+
+                auto right = this->get_right();
+                if (!right->get_type_decl()->get_effective_type_decl()->try_cast<Integer>(&int_ty))
+                {
+                    throw_semantic_error(right, LGERR_BINEXPR004);
+                }
+                if (int_ty->bits != 1)
+                {
+                    throw_semantic_error(right, LGERR_BINEXPR004);
+                }
             }
             break;
+            }
         }
+        break;
         }
-        Expression::_post_type_inference();
+        return true;
     }
+
     void BinaryExpression::post_codegen(logia::Backend *backend)
     {
         auto left = this->get_left();

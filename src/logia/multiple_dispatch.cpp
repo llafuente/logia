@@ -21,7 +21,7 @@ namespace logia::multiple_dispatch
 
     match_result match(CallExpression *callexpr, Function *func, bool change)
     {
-        LOG(DBG, "({}, {}, {})", (void *)callexpr, (void *)func, change);
+        LOG(INF, "({}, {}, {})", (void *)callexpr, (void *)func, change);
         float points = 1;
         auto params = func->get_parameters();
         auto used_params = std::vector<bool>(params.size(), false);
@@ -160,12 +160,11 @@ namespace logia::multiple_dispatch
                 if (arg_name->is_empty())
                 {
                     arg_type = arg->get_type_decl()->get_effective_type_decl();
-                    ;
+
 #ifdef _DEBUG
                     if (arg_type == nullptr)
                     {
                         arg->get_type_decl()->get_effective_type_decl();
-                        ;
                         std::cout << arg_type->to_string_tree() << std::endl;
                     }
 #endif

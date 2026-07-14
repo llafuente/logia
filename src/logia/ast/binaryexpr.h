@@ -47,10 +47,10 @@ namespace logia::AST
 
         void validate() override;
 
+        bool type_inference(size_t pass_id) override;
+
     protected:
         void _on_set_type(TypeDecl *type) override;
-        void _pre_type_inference() override;
-        void _post_type_inference() override;
 
     private:
         void __enforce_assignament_type(TypeDecl *left_ty, TypeDecl *right_ty);

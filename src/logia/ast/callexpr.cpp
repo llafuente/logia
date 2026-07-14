@@ -79,15 +79,22 @@ namespace logia::AST
         this->get_value()->set_type(tyd);
     }
 
-    void CallExpressionArgument::_pre_type_inference()
+    bool CallExpressionArgument::type_inference(size_t pass_id)
     {
-        // I'm ready when my value is ready!
-        auto value = this->get_value();
-        if (value->is_typed)
+        switch (pass_id)
         {
+        case TYPE_INFERENCE_PRE:
+        {
+            // I'm ready when my value is ready!
+            if (!this->get_value()->is_typed)
+            {
+                return false;
+            }
             this->is_typed = true;
-            Node::_pre_type_inference();
         }
+        break;
+        }
+        return true;
     }
 
     //
@@ -285,50 +292,55 @@ namespace logia::AST
         throw_compiler_error("unreachable!");
     }
 
-    void CallExpression::_early_type_inference()
+    bool CallExpression::type_inference(size_t pass_id)
     {
-        // rebalance the tree
-        auto locator = this->get_locator();
-        MemberAccessExpression *mae;
-        if (locator->try_cast<MemberAccessExpression>(&mae) && !this->is_method_call)
+        switch (pass_id)
         {
-            LOG(DBG, "start transforming tree {}", this->to_string_tree());
-
-            this->set_child(mae->get_right(), 0);
-            this->insert_positional_argument(0, mae->get_left());
-
-            // ?? delete mae;
-            LOG(DBG, "stop transforming tree {}", this->to_string_tree());
-            this->is_method_call = true;
-        }
-        Expression::_early_type_inference();
-    }
-
-    void CallExpression::_pre_type_inference()
-    {
-        // type inference at this point need to "rebalance" the tree if found a MemberAccessExpression
-        // because the lhs is the first parameter and rhs is the function to call
-        auto locator = this->get_locator();
-
-        // find a proper target or throws!
-        auto list = this->find_candidates();
-        auto result = multiple_dispatch::find_one(list, this);
-        if (result.is_error())
+        case TYPE_INFERENCE_EARLY:
         {
-            throw_semantic_error(this, result.message);
+            // rebalance the tree
+            auto locator = this->get_locator();
+            MemberAccessExpression *mae;
+            if (locator->try_cast<MemberAccessExpression>(&mae) && !this->is_method_call)
+            {
+                LOG(DBG, "start transforming tree {}", this->to_string_tree());
+
+                this->set_child(mae->get_right(), 0);
+                this->insert_positional_argument(0, mae->get_left());
+
+                // ?? delete mae;
+                LOG(DBG, "stop transforming tree {}", this->to_string_tree());
+                this->is_method_call = true;
+            }
         }
+        break;
+        case TYPE_INFERENCE_PRE:
+        {
+            // type inference at this point need to "rebalance" the tree if found a MemberAccessExpression
+            // because the lhs is the first parameter and rhs is the function to call
+            auto locator = this->get_locator();
 
-        Function *target = result.unwrap_success();
+            // find a proper target or throws!
+            auto list = this->find_candidates();
+            auto result = multiple_dispatch::find_one(list, this);
+            if (result.is_error())
+            {
+                throw_semantic_error(this, result.message);
+            }
 
-        // NOTE don't use set_type, just set the flag
-        this->is_typed = true;
-        this->callee = target;
+            Function *target = result.unwrap_success();
 
-        locator->set_type(target);
-        // fill the gaps, order arguments, etc.
-        multiple_dispatch::match(this, target, true);
+            // NOTE don't use set_type, just set the flag
+            this->is_typed = true;
+            this->callee = target;
 
-        Expression::_pre_type_inference();
+            locator->set_type(target);
+            // fill the gaps, order arguments, etc.
+            multiple_dispatch::match(this, target, true);
+        }
+        break;
+        }
+        return true;
     }
 
     Type *CallExpression::get_type()

@@ -8,6 +8,7 @@
 #include "logia/compiler_error.h"
 #include "logia/ast/type.h"
 #include "logia/ast/llvm.h"
+#include "logia/type_inference.h"
 
 #include "llvm/IR/Constant.h"
 
@@ -321,22 +322,6 @@ namespace logia::AST
 
     void IntegerLiteral::validate() {}
 
-    void IntegerLiteral::_pre_type_inference()
-    {
-        if (this->children.size())
-        {
-            auto ty = this->get_child<Type>(0);
-            auto tyd = ty->get_type_decl();
-            if (tyd == nullptr)
-            {
-                return;
-            }
-            this->set_type(tyd);
-        }
-
-        ConstExpression::_pre_type_inference();
-    }
-
     //
     // FloatLiteral
     //
@@ -517,22 +502,6 @@ namespace logia::AST
     {
     }
 
-    void FloatLiteral::_pre_type_inference()
-    {
-        if (this->children.size())
-        {
-            auto ty = this->get_child<Type>(0);
-            auto tyd = ty->get_type_decl();
-            if (tyd == nullptr)
-            {
-                return;
-            }
-            this->set_type(tyd);
-        }
-
-        ConstExpression::_pre_type_inference();
-    }
-
     //
     // StringLiteral
     //
@@ -552,13 +521,6 @@ namespace logia::AST
 
     void StringLiteral::_on_set_type(TypeDecl *t)
     {
-    }
-
-    void StringLiteral::_pre_type_inference()
-    {
-        this->set_type(scope_lookup_one(this, "ptr")->as<TypeDecl>());
-
-        ConstExpression::_pre_type_inference();
     }
 
     bool StringLiteral::is_valid_constant_operator(Operators op)
@@ -594,8 +556,7 @@ namespace logia::AST
         combined[lhs_len + rhs_len] = '\0';
 
         auto result = new StringLiteral(this->loc, combined);
-        result->real_type = this->real_type;
-        result->is_typed = this->is_typed;
+        result->set_type(this->real_type);
         return result;
     }
 

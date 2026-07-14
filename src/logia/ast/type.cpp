@@ -438,11 +438,6 @@ namespace logia::AST
         return this->real_type;
     }
 
-    void TypeDef::_pre_type_inference()
-    {
-        Type::_pre_type_inference();
-    }
-
     std::string TypeDef::to_string()
     {
         if (this->children.size())
@@ -482,7 +477,7 @@ namespace logia::AST
         {
             if (this->type_inference_pass_id == 0)
             {
-                this->_early_type_inference();
+                this->type_inference(TYPE_INFERENCE_EARLY);
             }
         }
         catch (std::exception e)
@@ -490,38 +485,45 @@ namespace logia::AST
         }
     }
 
-    void TypeDef::_early_type_inference()
+    bool TypeDef::type_inference(size_t pass_id)
     {
-        LOG(DBG, "");
-        // TODO support more than one!?
-        LOGIA_VERIFY(this->children.size() == 1, "TO-DO: single resolve atm");
-        // search children!
-        auto id = this->get_child<Identifier>(0);
-        // TODO this could be removed ?
-        id->type_inference(TYPE_INFERENCE_PRE);
-        id->type_inference(TYPE_INFERENCE_POST);
+        switch (pass_id)
+        {
+        case TYPE_INFERENCE_EARLY:
+        {
+            LOG(DBG, "");
+            // TODO support more than one!?
+            LOGIA_VERIFY(this->children.size() == 1, "TO-DO: single resolve atm");
+            // search children!
+            auto id = this->get_child<Identifier>(0);
+            // TODO this could be removed ?
+            id->type_inference(TYPE_INFERENCE_PRE);
+            id->type_inference(TYPE_INFERENCE_POST);
 
-        auto list = id->decl_candidates;
-        if (list.size() == 0)
-        {
-            throw_semantic_error(this, std::format(LGERR_ID001, id->identifier));
-        }
-        if (list.size() > 1)
-        {
-            std::string debug_candidates = "";
-            int i = 1;
-            for (const auto &node : list)
+            auto list = id->decl_candidates;
+            if (list.size() == 0)
             {
-                debug_candidates += std::format("Candidate {} declared {}\n", i++, node->loc.get_debug_location(1, 1));
-                ++i;
+                throw_semantic_error(this, std::format(LGERR_ID001, id->identifier));
             }
-            throw_semantic_error(this, std::format(LGERR_ID002, list.size(), id->identifier, debug_candidates));
-        }
+            if (list.size() > 1)
+            {
+                std::string debug_candidates = "";
+                int i = 1;
+                for (const auto &node : list)
+                {
+                    debug_candidates += std::format("Candidate {} declared {}\n", i++, node->loc.get_debug_location(1, 1));
+                    ++i;
+                }
+                throw_semantic_error(this, std::format(LGERR_ID002, list.size(), id->identifier, debug_candidates));
+            }
 
-        // TODO REVIEW type-system do not use: set_type atm
-        this->real_type = list[0]->get_type_decl();
-        this->is_typed = true;
-        Type::_early_type_inference();
+            // TODO REVIEW type-system do not use: set_type atm
+            this->real_type = list[0]->get_type_decl();
+            this->is_typed = true;
+        }
+        break;
+        }
+        return true;
     }
 
     void TypeDef::validate() {}

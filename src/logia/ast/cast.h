@@ -39,10 +39,11 @@ namespace logia::AST
 
         void validate() override;
 
+        bool type_inference(size_t pass_id) override;
+
     protected:
         /// @brief Overrides current target type
         /// @param type The new target type
         void _on_set_type(TypeDecl *type) override;
-        void _post_type_inference() override;
     };
 }

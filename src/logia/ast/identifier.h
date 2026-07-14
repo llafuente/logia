@@ -39,13 +39,14 @@ namespace logia::AST
 
         void validate() override;
 
+        bool type_inference(size_t pass_id) override;
+
         void set_declaration(Node *node);
 
         bool is_empty();
 
     protected:
         void _on_set_type(TypeDecl *t) override;
-        void _pre_type_inference() override;
     };
 
 } // namespace logia::AST

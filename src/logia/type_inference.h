@@ -6,6 +6,7 @@ namespace logia
 #define TYPE_INFERENCE_EARLY 1
 #define TYPE_INFERENCE_PRE 2
 #define TYPE_INFERENCE_POST 3
+#define TYPE_INFERENCE_LAST 3
 
 #define TYPE_INFERENCE_MAX 3
 

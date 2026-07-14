@@ -137,45 +137,52 @@ namespace logia::AST
         return nullptr;
     }
 
-    void VarDeclStmt::_pre_type_inference()
+    bool VarDeclStmt::type_inference(size_t pass_id)
     {
-        auto ty = this->get_type();
-        // if I don't have a type -> my type is in the initialization!
-        if (ty == nullptr)
+        switch (pass_id)
         {
-            auto tyd = this->get_expr()->get_type_decl();
-            if (tyd != nullptr)
+        case TYPE_INFERENCE_PRE:
+        {
+            auto ty = this->get_type();
+            // if I don't have a type -> my type is in the initialization!
+            if (ty == nullptr)
             {
-                this->set_type(tyd);
+                auto tyd = this->get_expr()->get_type_decl();
+                if (tyd != nullptr)
+                {
+                    this->set_type(tyd);
+                    return true;
+                }
+                return false;
+            }
+            // my type is not ready? -> wait
+            if (ty->type_inference_pass_id < TYPE_INFERENCE_PRE)
+            {
+                return false;
+            }
+            // set and foward to the initialization
+            auto tyd = ty->get_type_decl();
+            if (tyd == nullptr)
+            {
+                return false;
+            }
+            this->set_type(tyd);
+            this->get_expr()->set_type(tyd);
+
+            /*
+            // expression --> VarDeclStmt
+            auto type = this->get_expr()->get_final_type();
+            if (type != nullptr)
+            {
+                this->set_type(type);
                 return Stmt::_pre_type_inference();
             }
-            return;
+            // cannot determine type, "try later"
+            */
         }
-        // my type is not ready? -> wait
-        if (ty->type_inference_pass_id < TYPE_INFERENCE_PRE)
-        {
-            return;
+        break;
         }
-        // set and foward to the initialization
-        auto tyd = ty->get_type_decl();
-        if (tyd == nullptr)
-        {
-            return;
-        }
-        this->set_type(tyd);
-        this->get_expr()->set_type(tyd);
-        return Stmt::_pre_type_inference();
-
-        /*
-        // expression --> VarDeclStmt
-        auto type = this->get_expr()->get_final_type();
-        if (type != nullptr)
-        {
-            this->set_type(type);
-            return Stmt::_pre_type_inference();
-        }
-        // cannot determine type, "try later"
-        */
+        return true;
     }
 
     void VarDeclStmt::_on_set_type(TypeDecl *ty)

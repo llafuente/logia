@@ -58,12 +58,13 @@ namespace logia::AST
 
         void validate() override;
 
+        bool type_inference(size_t pass_id) override;
+
         /// @brief Retrieves function type (self)
         Type *get_type() override;
 
     protected:
         void _on_set_type(TypeDecl *type) override;
-        void _pre_type_inference() override;
     };
 
     /// @brief Defines a function type, which is a collection of parameters, a body and a return type
@@ -154,13 +155,11 @@ namespace logia::AST
         std::string get_repr() override;
         void on_after_attach() override;
         void validate() override;
+        bool type_inference(size_t pass_id) override;
         /// @brief generate parameters alloca. Used at FunctionBlock
         void codegen_parameters(logia::Backend *backend);
         void pre_codegen(logia::Backend *backend) override;
         void post_codegen(logia::Backend *backend) override;
-
-    protected:
-        void _pre_type_inference() override;
     };
 
     /// @brief Defines an operator, which is a special kind of function a name based on given operator
