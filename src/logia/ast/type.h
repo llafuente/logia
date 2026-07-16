@@ -201,7 +201,7 @@ namespace logia::AST
         Type *pointee;
         size_t size = 0;
 
-        Vec(Type *pointee);
+        Vec(Type *pointee, size_t size = 0);
         ~Vec();
 
         std::string to_string() override;
