@@ -6,7 +6,7 @@
 #include "logia/frontend.h"
 #include "logia/backend.h"
 #include "logia/ast/program.h"
-#include "logia/ast/function.h"
+#include "logia/ast/types.h"
 #include "logia/ast/block.h"
 
 bool start_stdout_capture();
@@ -35,4 +35,4 @@ char *end_stdout_capture();
 int test_single_file(const char *logia_folder, const char *ir_folder, const char *obj_folder, const char *file);
 const char *test_file_with_semantic_error(const char *logia_folder, const char *ir_folder, const char *obj_folder, const char *file);
 
-logia::AST::TypeDef *new_typedef(const char *type);
+logia::AST::TypeDef *test_make_typdef(const char *type);

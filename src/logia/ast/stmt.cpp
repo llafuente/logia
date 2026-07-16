@@ -6,7 +6,7 @@
 #include "logia/ast/llvm.h"
 #include "logia/ast/identifier.h"
 #include "logia/ast/block.h"
-#include "logia/ast/function.h"
+#include "logia/ast/types/function.h"
 #include "logia/ast/semantic_error.h"
 
 namespace logia::AST

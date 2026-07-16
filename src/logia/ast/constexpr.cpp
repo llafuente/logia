@@ -1,12 +1,17 @@
 #include "logia/ast/constexpr.h"
 
 #include "utils.h"
+
+#include "logia/ast/types/type.h"
+#include "logia/ast/types/typedecl.h"
+#include "logia/ast/types/integer.h"
+#include "logia/ast/types/float.h"
+
 #include "logia/log.h"
 #include "logia/backend.h"
 #include "logia/ast/scope.h"
 #include "logia/ast/identifier.h"
 #include "logia/compiler_error.h"
-#include "logia/ast/type.h"
 #include "logia/ast/llvm.h"
 #include "logia/type_inference.h"
 

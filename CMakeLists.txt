@@ -61,9 +61,20 @@ set(LOGIA_SOURCE_FILES
   src/logia/ast/location.cpp
   src/logia/ast/node.cpp
   src/logia/ast/semantic_error.cpp
-  src/logia/ast/type.cpp
-  src/logia/ast/struct.cpp
-  src/logia/ast/function.cpp
+
+  src/logia/ast/types/primitives.cpp
+  src/logia/ast/types/type.cpp
+  src/logia/ast/types/typedecl.cpp
+  src/logia/ast/types/void.cpp
+  src/logia/ast/types/typedef.cpp
+  src/logia/ast/types/templatedef.cpp
+  src/logia/ast/types/struct.cpp
+  src/logia/ast/types/function.cpp
+  src/logia/ast/types/integer.cpp
+  src/logia/ast/types/float.cpp
+  src/logia/ast/types/pointer.cpp
+  src/logia/ast/types/ref.cpp
+  src/logia/ast/types/vec.cpp
 
   src/logia/ast/cast.cpp
 

@@ -5,7 +5,8 @@
 #include "logia/backend.h"
 #include "logia/ast/identifier.h"
 #include "logia/ast/callexpr.h"
-#include "logia/ast/type.h"
+#include "logia/ast/types/type.h"
+#include "logia/ast/types/ref.h"
 
 #include "llvm/IR/DerivedTypes.h"
 

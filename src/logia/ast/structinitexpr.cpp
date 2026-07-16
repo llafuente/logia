@@ -1,11 +1,11 @@
 #include "logia/ast/structinitexpr.h"
 
+#include "logia/ast/types/struct.h"
 #include "logia/type_inference.h"
 #include "logia/backend.h"
 #include "logia/ast/expr.h"
 #include "logia/ast/identifier.h"
 #include "logia/ast/constexpr.h"
-#include "logia/ast/struct.h"
 #include "logia/ast/llvm.h"
 #include "utils.h"
 

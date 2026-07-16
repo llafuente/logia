@@ -5,7 +5,7 @@
 #include "logia/backend.h"
 #include "logia/ast/node.h"
 #include "logia/ast/if_stmt.h"
-#include "logia/ast/type.h"
+#include "logia/ast/types/type.h"
 #include "logia/ast/expr.h"
 #include "logia/ast/constexpr.h"
 #include "logia/ast/stmt.h"

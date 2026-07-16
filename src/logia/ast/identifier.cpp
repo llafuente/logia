@@ -4,7 +4,7 @@
 #include "logia/ast/vardeclstmt.h"
 #include "logia/ast/block.h"
 #include "logia/ast/callexpr.h"
-#include "logia/ast/function.h"
+#include "logia/ast/types/function.h"
 #include "logia/ast/semantic_error.h"
 #include "logia/type_inference.h"
 
@@ -103,7 +103,7 @@ namespace logia::AST
         return this->identifier == nullptr || strlen(this->identifier) == 0;
     }
 
-    std::vector<Node *> Identifier::scope_search(bool allow_multiple)
+    std::vector<Node *> Identifier::scope_search(bool allow_empty, bool allow_multiple)
     {
         auto err = scope_lookup_all(this, this->identifier);
         if (err.is_error())
@@ -111,11 +111,12 @@ namespace logia::AST
             throw_semantic_error(this, err.message);
         }
         this->decl_candidates = err.unwrap_success();
-        // even success could be a problem :)
-        if (this->decl_candidates.size() == 0)
+
+        if (!allow_empty && this->decl_candidates.size() == 0)
         {
             throw_semantic_error(this, std::format(LGERR_ID001, this->identifier));
         }
+
         if (!allow_multiple && this->decl_candidates.size() > 1)
         {
             std::string debug_candidates = "";
@@ -146,7 +147,7 @@ namespace logia::AST
                 return true;
             }
 
-            this->scope_search(!resolve_unique);
+            this->scope_search(false, !resolve_unique);
 
             // just one -> go!
             if (this->decl_candidates.size() == 1)

@@ -3,9 +3,11 @@
 #include "utils.h"
 #include "logia/type_inference.h"
 #include "logia/ast/identifier.h"
-#include "logia/ast/struct.h"
+#include "logia/ast/types/typedef.h"
+#include "logia/ast/types/struct.h"
 #include "logia/ast/block.h"
 #include "logia/backend.h"
+
 #include "llvm/IR/Instructions.h"
 
 namespace logia::AST

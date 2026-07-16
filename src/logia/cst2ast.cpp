@@ -1,7 +1,7 @@
 #include "logia/cst2ast.h"
 
 #include "utils.h"
-#include "logia/ast/type.h"
+#include "logia/ast/types.h"
 #include "logia/ast/constexpr.h"
 #include "logia/ast/if_stmt.h"
 #include "logia/ast/import.h"
@@ -1284,7 +1284,9 @@ namespace logia
         }
         else if (context->loc2 != nullptr)
         {
-            CST_THROW("todo");
+            tdef->add_type_def(ANY_VOIDP_CAST(AST::TypeDef *, this->visitTypeLocator(context->loc2)));
+            tdef->add_template_def(ANY_VOIDP_CAST(AST::TemplateDef *, this->visitTemplateId(context->templateId())));
+            return;
         }
         else if (context->loc3 != nullptr)
         {
@@ -1304,12 +1306,41 @@ namespace logia
         }
         else if (context->loc7 != nullptr)
         {
-            tdef->add_locator(ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(context->loc7)));
+            tdef->add_identifier(ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(context->loc7)));
             return;
         }
 
         CST_UNREACHABLE();
     }
+
+    std::any CST2AST::visitTemplateId(LogiaParser::TemplateIdContext *context)
+    {
+        CST_DEBUG_FUNCTION();
+        auto tids = new AST::TemplateDef(MAKE_LOCATION(context));
+
+        for (int i = 0;; ++i)
+        {
+            auto arg = context->templateArgument(i);
+            if (arg == nullptr)
+            {
+                break;
+            }
+
+            if (arg->dollarIdentifier() != nullptr)
+            {
+                CST_THROW("to-do dollarIdentifier");
+                // TODO dollar ?!
+                auto ident = ANY_VOIDP_CAST(AST::Identifier *, this->visitIdentifier(arg->dollarIdentifier()->identifier()));
+            }
+            else
+            {
+                tids->push_child(this->parseTypeDefinition(arg->typeDefinition()));
+            }
+        }
+
+        return ANY_VOIDP_STORE(tids);
+    }
+
     std::any CST2AST::visitType(LogiaParser::TypeContext *context)
     {
         CST_DEBUG_FUNCTION();

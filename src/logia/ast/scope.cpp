@@ -3,11 +3,11 @@
 #include "utils.h"
 
 #include "logia/ast/block.h"
-#include "logia/ast/type.h"
+#include "logia/ast/types/type.h"
 #include "logia/ast/stmt.h"
 #include "logia/ast/identifier.h"
 #include "logia/ast/vardeclstmt.h"
-#include "logia/ast/function.h"
+#include "logia/ast/types/function.h"
 #include "logia/ast/llvm.h"
 #include "logia/ast/semantic_error.h"
 #include "logia/ast/functionblock.h"

@@ -1,11 +1,12 @@
-#include "logia/ast/struct.h"
+#include "logia/ast/types/struct.h"
 
 #include "utils.h"
 #include "logia/type_inference.h"
 #include "logia/backend.h"
 #include "logia/ast/identifier.h"
 #include "logia/ast/expr.h"
-#include "logia/ast/function.h"
+#include "logia/ast/types/function.h"
+#include "logia/ast/types/ref.h"
 
 #include "llvm/IR/DerivedTypes.h" // StructType
 

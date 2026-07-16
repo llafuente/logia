@@ -9,7 +9,7 @@
 #include "logia/ast/llvm.h"
 #include "logia/ast/memberaccessexpr.h"
 #include "logia/ast/identifier.h"
-#include "logia/ast/function.h"
+#include "logia/ast/types/function.h"
 #include "logia/ast/unaryexpr.h"
 
 #include "logia/multiple_dispatch.h"

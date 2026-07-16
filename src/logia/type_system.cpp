@@ -1,7 +1,6 @@
 #include "logia/type_system.h"
 
-#include "logia/ast/struct.h"
-#include "logia/ast/function.h"
+#include "logia/ast/types.h"
 #include "logia/ast/semantic_error.h"
 
 namespace logia::type_system

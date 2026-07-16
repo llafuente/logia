@@ -2,9 +2,10 @@
 
 #include "logia/log.h"
 #include "logia/type_inference.h"
-#include "logia/ast/type.h"
+#include "logia/ast/types/type.h"
+#include "logia/ast/types/typedef.h"
 #include "logia/ast/import.h"
-#include "logia/ast/struct.h"
+#include "logia/ast/types/struct.h"
 #include "logia/ast/program.h"
 #include "utils.h"
 

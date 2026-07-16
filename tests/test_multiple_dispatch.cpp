@@ -1,7 +1,7 @@
 // ./build-debug/bin/Debug/logia_test_suite.exe --gtest_break_on_failure
 
 #include "logia/ast/node.h"
-#include "logia/ast/type.h"
+#include "logia/ast/types/type.h"
 #include "logia/ast/expr.h"
 #include "logia/ast/constexpr.h"
 #include "logia/ast/callexpr.h"
@@ -32,15 +32,15 @@ TEST(logia_test_multiple_dispatch, match001)
     auto i32_v2 = new IntegerLiteral(loc, "10", i32);
     auto i64_v = new IntegerLiteral(loc, "10", i64);
 
-    auto xxx_fn = new Function(loc, new Identifier(loc, "xxx"), new_typedef("i32"), false);
-    xxx_fn->push_parameter(new FunctionParameter(new Identifier(loc, "a"), new_typedef("i32"), nullptr));
+    auto xxx_fn = new Function(loc, new Identifier(loc, "xxx"), test_make_typdef("i32"), false);
+    xxx_fn->push_parameter(new FunctionParameter(new Identifier(loc, "a"), test_make_typdef("i32"), nullptr));
     program->unshift_child(xxx_fn);
 
     EXPECT_STREQ(xxx_fn->get_repr().c_str(), "function xxx (i32 a) i32");
 
-    auto xxx2_fn = new Function(loc, new Identifier(loc, "xxx"), new_typedef("i32"), false);
-    xxx2_fn->push_parameter(new FunctionParameter(new Identifier(loc, "a"), new_typedef("i32"), nullptr));
-    xxx2_fn->push_parameter(new FunctionParameter(new Identifier(loc, "b"), new_typedef("i32"), i32_v2));
+    auto xxx2_fn = new Function(loc, new Identifier(loc, "xxx"), test_make_typdef("i32"), false);
+    xxx2_fn->push_parameter(new FunctionParameter(new Identifier(loc, "a"), test_make_typdef("i32"), nullptr));
+    xxx2_fn->push_parameter(new FunctionParameter(new Identifier(loc, "b"), test_make_typdef("i32"), i32_v2));
     program->unshift_child(xxx2_fn);
 
     EXPECT_STREQ(xxx2_fn->get_repr().c_str(), "function xxx (i32 a, i32 b = ?) i32");

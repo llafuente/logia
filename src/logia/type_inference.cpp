@@ -3,11 +3,11 @@
 #include "logia/log.h"
 #include "logia/ast/semantic_error.h"
 #include "logia/ast/program.h"
-#include "logia/ast/type.h"
+#include "logia/ast/types/type.h"
 #include "logia/ast/stmt.h"
 #include "logia/ast/constexpr.h"
 #include "logia/ast/callexpr.h"
-#include "logia/ast/struct.h"
+#include "logia/ast/types/struct.h"
 #include "logia/ast/structinitexpr.h"
 
 #include <iostream>

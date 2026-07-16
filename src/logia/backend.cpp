@@ -36,8 +36,8 @@
 #include "logia/frontend.h"
 #include "logia/type_inference.h"
 #include "logia/ast/program.h"
-#include "logia/ast/type.h"
-#include "logia/ast/function.h"
+#include "logia/ast/types/type.h"
+#include "logia/ast/types/function.h"
 #include "logia/ast/llvm.h"
 
 // cross compile support ?

@@ -8,9 +8,9 @@
 #include "LogiaParserBaseVisitor.h"
 
 #include "logia/ast/program.h"
-#include "logia/ast/type.h"
-#include "logia/ast/function.h"
-#include "logia/ast/struct.h"
+#include "logia/ast/types.h"
+#include "logia/ast/types/function.h"
+#include "logia/ast/types/struct.h"
 
 #include <vector>
 
@@ -114,6 +114,7 @@ namespace logia
         std::any visitTypeDefinition(LogiaParser::TypeDefinitionContext *context) override;
         std::any visitTypeLocator(LogiaParser::TypeLocatorContext *context) override;
         void parseTypeLocator(LogiaParser::TypeLocatorContext *context, AST::TypeDef *tdef);
+        std::any visitTemplateId(LogiaParser::TemplateIdContext *context) override;
         std::any visitType(LogiaParser::TypeContext *context) override;
 
         // Fallback: delegate to children

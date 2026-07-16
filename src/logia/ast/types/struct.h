@@ -1,6 +1,7 @@
 #pragma once
 
-#include "logia/ast/type.h"
+#include "logia/ast/types/type.h"
+#include "logia/ast/types/typedecl.h"
 
 namespace llvm
 {

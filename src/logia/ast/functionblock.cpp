@@ -1,7 +1,7 @@
 #include "logia/ast/functionblock.h"
 
-#include "logia/ast/type.h"
-#include "logia/ast/function.h"
+#include "logia/ast/types/type.h"
+#include "logia/ast/types/function.h"
 #include "logia/backend.h"
 
 namespace logia::AST

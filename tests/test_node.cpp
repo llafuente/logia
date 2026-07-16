@@ -14,7 +14,7 @@
 #include "logia/ast/binaryexpr.h"
 #include "logia/ast/returnstmt.h"
 #include "logia/ast/unaryexpr.h"
-#include "logia/ast/struct.h"
+#include "logia/ast/types.h"
 #include "logia/ast/vardeclstmt.h"
 #include "logia/type_inference.h"
 #include "logia/ast/structinitexpr.h"
@@ -266,8 +266,8 @@ TEST(test_type, struct)
     auto point_st = new Struct(loc, new Identifier(loc, "point"));
     program->push_child(point_st);
 
-    auto add_fn = new Function(loc, new Identifier(loc, "add"), new_typedef("point"), false);
-    add_fn->push_parameter(new FunctionParameter(new Identifier(loc, "other"), new_typedef("point")));
+    auto add_fn = new Function(loc, new Identifier(loc, "add"), test_make_typdef("point"), false);
+    add_fn->push_parameter(new FunctionParameter(new Identifier(loc, "other"), test_make_typdef("point")));
     LOG(DBG, "function: {}", add_fn->to_string_tree());
     LOG(DBG, "struct {}", point_st->to_string_tree());
     point_st->add_method(add_fn);
@@ -373,7 +373,7 @@ TEST(type_inference_pass_check, vardecl_with_constant_initialization)
     main_fn->is_attached = false; // avoid throw
 
     auto td_i16 = new TypeDef();
-    td_i16->add_locator(new Identifier(loc, "i16"));
+    td_i16->add_identifier(new Identifier(loc, "i16"));
 
     auto vardecl = new VarDeclStmt(loc, new Identifier(loc, "x"), td_i16, new IntegerLiteral(loc, "15"));
     main_body->unshift_child(vardecl);
@@ -405,7 +405,7 @@ TEST(type_inference_pass_check, vardecl_with_expr_initialization)
     using namespace logia::AST;
     main_fn->is_attached = false; // avoid throw
 
-    auto td_i32_ret = new_typedef("i32");
+    auto td_i32_ret = test_make_typdef("i32");
     auto xxx_fn = new Function(loc, new Identifier(loc, "xxx"), td_i32_ret, false);
     program->unshift_child(xxx_fn);
     auto xxx_call = new CallExpression(loc, new Identifier(loc, "xxx"), {});
@@ -507,11 +507,11 @@ TEST(test_type, struct_field_ref)
     auto i32_st = scope_look_one<logia::AST::Struct>(program, "i32");
 
     auto point_st = new Struct(loc, new Identifier(loc, "point"));
-    point_st->add_field(loc, new Identifier(loc, "x"), new_typedef("i32"));
+    point_st->add_field(loc, new Identifier(loc, "x"), test_make_typdef("i32"));
     program->push_child(point_st);
     // normal typedef
     {
-        auto td_point = new_typedef("point");
+        auto td_point = test_make_typdef("point");
         auto init = new StructInitializer(loc);
         init->add_positional_property(new IntegerLiteral(loc, "100"));
         auto vardecl = new VarDeclStmt(loc, new Identifier(loc, "x"), td_point, init);
@@ -534,8 +534,8 @@ TEST(test_type, struct_field_ref)
     // 2 level typedef
     {
         auto td_point_x = new TypeDef();
-        td_point_x->add_locator(new Identifier(loc, "point"));
-        td_point_x->add_locator(new Identifier(loc, "x"));
+        td_point_x->add_identifier(new Identifier(loc, "point"));
+        td_point_x->add_identifier(new Identifier(loc, "x"));
 
         auto vardecl = new VarDeclStmt(loc, new Identifier(loc, "x"), td_point_x, new IntegerLiteral(loc, "100"));
         main_body->unshift_child(vardecl);
@@ -554,8 +554,8 @@ TEST(test_type, struct_field_ref)
     try
     {
         auto the_typedef = new TypeDef();
-        the_typedef->add_locator(new Identifier(loc, "i32"));
-        the_typedef->add_locator(new Identifier(loc, "xxx"));
+        the_typedef->add_identifier(new Identifier(loc, "i32"));
+        the_typedef->add_identifier(new Identifier(loc, "xxx"));
 
         auto vardecl = new VarDeclStmt(loc, new Identifier(loc, "x"), the_typedef, new IntegerLiteral(loc, "100"));
         main_body->unshift_child(vardecl);

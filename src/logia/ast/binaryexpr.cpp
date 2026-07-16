@@ -1,6 +1,11 @@
 #include "logia/ast/binaryexpr.h"
 
 #include "utils.h"
+
+#include "logia/ast/types/function.h"
+#include "logia/ast/types/ref.h"
+#include "logia/ast/types/integer.h"
+
 #include "logia/log.h"
 #include "logia/type_system.h"
 #include "logia/type_inference.h"
@@ -13,7 +18,6 @@
 #include "logia/ast/cast.h"
 #include "logia/ast/llvm.h"
 #include "logia/ast/program.h"
-#include "logia/ast/function.h"
 
 #include <format>
 

@@ -5,7 +5,7 @@
 
 #include "logia/backend.h"
 #include "logia/ast/llvm.h"
-#include "logia/ast/type.h"
+#include "logia/ast/types/type.h"
 #include "logia/ast/stmt.h"
 #include "logia/ast/identifier.h"
 #include "logia/ast/semantic_error.h"

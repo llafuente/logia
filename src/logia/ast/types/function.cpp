@@ -1,4 +1,6 @@
-#include "logia/ast/function.h"
+#include "logia/ast/types/function.h"
+
+#include "logia/ast/types/void.h"
 
 #include "utils.h"
 #include "logia/backend.h"

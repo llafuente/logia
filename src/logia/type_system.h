@@ -1,7 +1,7 @@
 #pragma once
 
 #include "logia/maybe_error.h"
-#include "logia/ast/type.h"
+#include "logia/ast/types/type.h"
 #include <cstdio>
 
 namespace logia::type_system
