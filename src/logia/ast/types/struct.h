@@ -2,6 +2,7 @@
 
 #include "logia/ast/types/type.h"
 #include "logia/ast/types/typedecl.h"
+#include "logia/ast/scope.h"
 
 namespace llvm
 {
@@ -78,8 +79,12 @@ namespace logia::AST
     /// @brief Defines a struct type, which is a collection of fields, alias, setters, getters and methods
     struct LOGIA_EXPORT Struct : public TypeDecl
     {
-        char *docstring;
-        // TODO remove!
+        char *docstring = nullptr;
+        /// @brief struct name
+        Identifier *name = nullptr;
+        /// @brief struct declare everything in the scope to easy
+        Scope *scope = nullptr;
+        /// @brief Shortcut
         std::vector<Type *> methods;
         /// @brief number of fields
         uint32_t field_count = 0;

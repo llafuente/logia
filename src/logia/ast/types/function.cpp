@@ -11,6 +11,7 @@
 #include "logia/ast/program.h"
 #include "logia/ast/functionblock.h"
 #include "logia/ast/llvm.h"
+#include "logia/ast/types/struct.h"
 
 #include "llvm/IR/Instructions.h" // AllocaInst
 #include "llvm/IR/Metadata.h"     // Metadata
@@ -212,7 +213,17 @@ namespace logia::AST
     // register myself into closest block
     void Function::on_after_attach()
     {
-        logia::AST::scope_set(this, this->get_name(), this, false);
+        auto scope = scope_closest(this);
+        // methods inside the struct should register in "higher" scope
+        if (scope->parent_node->is<Struct>())
+        {
+            logia::AST::scope_set(scope, this->get_name(), this, false);
+            logia::AST::scope_set(scope->parent_node, this->get_name(), this, false);
+        }
+        else
+        {
+            logia::AST::scope_set(scope, this->get_name(), this, false);
+        }
         // this->__register_type(this->get_name());
     }
 

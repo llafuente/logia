@@ -43,7 +43,10 @@ namespace logia::AST
     void StructAlias::validate()
     {
         // check target exists!
-        auto st = this->parent_node->as<Struct>();
+        LOGIA_VERIFY(this->parent_node->is<Scope>());
+        LOGIA_VERIFY(this->parent_node->parent_node->is<Struct>());
+
+        auto st = this->parent_node->parent_node->as<Struct>();
         auto ident = this->get_to();
 
         // TODO we may want to support method aliasing too... maybe another search here is enough!
@@ -159,26 +162,26 @@ namespace logia::AST
 
         LOGIA_VERIFY(name != nullptr);
 
-        name->skip_codegen = true;
-        name->type_inference_pass_id = TYPE_INFERENCE_MAX;
-        // NOTE the following stmt order is important :)
-        this->push_child(name);
+        this->scope = new Scope(loc);
+        this->push_child(this->scope);
+
+        this->name = name;
         name->set_type(this);
     }
 
     const char *Struct::get_name()
     {
-        return get_identifier()->identifier;
+        return this->name->identifier;
     }
 
     Identifier *Struct::get_identifier()
     {
-        return this->get_child<Identifier>(0);
+        return this->name;
     }
 
     Identifier *Struct::get_alias_to(const char *from)
     {
-        for (const auto &ptr : this->children)
+        for (const auto &ptr : this->scope->children)
         {
             if (auto alias = dynamic_cast<StructAlias *>(ptr))
             {
@@ -211,7 +214,7 @@ namespace logia::AST
         }
 
         uint32_t count = 0;
-        for (const auto &ptr : this->children)
+        for (const auto &ptr : this->scope->children)
         {
             if (auto field = dynamic_cast<StructField *>(ptr))
             {
@@ -232,7 +235,7 @@ namespace logia::AST
         Function *fn;
 
         uint32_t count = 0;
-        for (const auto &ptr : this->children)
+        for (const auto &ptr : this->scope->children)
         {
             if (ptr->try_cast<StructAlias>(&sa))
             {
@@ -268,7 +271,7 @@ namespace logia::AST
     StructField *Struct::get_field_by_index(uint32_t index)
     {
         StructField *field;
-        for (const auto &ptr : this->children)
+        for (const auto &ptr : this->scope->children)
         {
             if (ptr->try_cast<StructField>(&field))
             {
@@ -292,7 +295,7 @@ namespace logia::AST
         std::string list = "";
 
         StructField *field;
-        for (const auto &ptr : this->children)
+        for (const auto &ptr : this->scope->children)
         {
             if (ptr->try_cast<StructField>(&field))
             {
@@ -335,7 +338,7 @@ namespace logia::AST
         std::vector<llvm::Type *> elements;
         elements.reserve(this->field_count);
         StructField *field;
-        for (auto &prop : this->children)
+        for (auto &prop : this->scope->children)
         {
             if (prop->try_cast(&field))
             {
@@ -366,7 +369,7 @@ namespace logia::AST
         Type::post_codegen(backend);
 
         Function *fn;
-        for (auto &prop : this->children)
+        for (auto &prop : this->scope->children)
         {
             if (prop->try_cast(&fn))
             {
@@ -391,7 +394,7 @@ namespace logia::AST
             throw_compiler_error("name is required for fields");
         }
 
-        this->push_child(new StructField(loc, this->field_count++, name, type, default_value, docstring));
+        this->scope->push_child(new StructField(loc, this->field_count++, name, type, default_value, docstring));
     }
 
     void Struct::add_alias(location loc, Identifier *from, Identifier *to, const char *docstring)
@@ -402,7 +405,7 @@ namespace logia::AST
         // TODO exists to ?
         // TODO exists from ?
 
-        this->push_child(new StructAlias(loc, from, to, docstring));
+        this->scope->push_child(new StructAlias(loc, from, to, docstring));
         ++this->alias_count;
     }
 
@@ -410,7 +413,7 @@ namespace logia::AST
     {
         fn->insert_parameter(0, new FunctionParameter(new Identifier({}, "this"), new Ref(this)));
         fn->is_method = true;
-        this->push_child(fn);
+        this->scope->push_child(fn);
         ++this->method_count;
     }
 
@@ -421,11 +424,11 @@ namespace logia::AST
         // check ailas do not collide with fields!
         StructAlias *first_alias, *second_alias;
         StructField *first_field, *second_field;
-        for (const auto &first : this->children)
+        for (const auto &first : this->scope->children)
         {
             if (first->try_cast<StructField>(&first_field))
             {
-                for (const auto &second : this->children)
+                for (const auto &second : this->scope->children)
                 {
                     if (first == second)
                         continue; // skip self!
@@ -449,7 +452,7 @@ namespace logia::AST
             else if (first->try_cast<StructAlias>(&first_alias))
             {
                 // duplication?
-                for (const auto &second : this->children)
+                for (const auto &second : this->scope->children)
                 {
                     if (first == second)
                         continue; // skip self!
@@ -470,7 +473,7 @@ namespace logia::AST
                 }
                 // target is valid
                 auto found = false;
-                for (const auto &second : this->children)
+                for (const auto &second : this->scope->children)
                 {
                     if (second->try_cast<StructField>(&second_field))
                     {
