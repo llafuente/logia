@@ -7,17 +7,23 @@
 
 namespace logia::AST
 {
+    Vec::Vec() : Ref(), size(0) {}
 
     Vec::Vec(TypeDecl *pointee, size_t size) : Ref(pointee), size(size) {}
+
     Vec::~Vec() {}
 
     std::string Vec::to_string()
     {
-        return std::format("vec<{}, {}> {}", this->get_pointee()->get_repr(), this->size, Node::to_string());
+        return std::format("{}", this->get_repr(), Node::to_string());
     }
 
     std::string Vec::get_repr()
     {
+        if (this->pointee == nullptr)
+        {
+            return std::format("vec<null, {}>", this->size);
+        }
         return std::format("vec<{}, {}>", this->get_pointee()->get_repr(), this->size);
     }
 

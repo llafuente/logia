@@ -8,6 +8,8 @@ namespace logia::AST
     {
         switch (prim)
         {
+        case Primitives::ANY_TY:
+            return _strdup("any");
         case Primitives::VOID_TY:
             return _strdup("void");
         case Primitives::INTEGER_TY:

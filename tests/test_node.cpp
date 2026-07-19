@@ -372,7 +372,7 @@ TEST(type_inference_pass_check, vardecl_with_constant_initialization)
     using namespace logia::AST;
     main_fn->is_attached = false; // avoid throw
 
-    auto td_i16 = new TypeDef();
+    auto td_i16 = new TypeDef(loc);
     td_i16->add_identifier(new Identifier(loc, "i16"));
 
     auto vardecl = new VarDeclStmt(loc, new Identifier(loc, "x"), td_i16, new IntegerLiteral(loc, "15"));
@@ -533,7 +533,7 @@ TEST(test_type, struct_field_ref)
 
     // 2 level typedef
     {
-        auto td_point_x = new TypeDef();
+        auto td_point_x = new TypeDef(loc);
         td_point_x->add_identifier(new Identifier(loc, "point"));
         td_point_x->add_identifier(new Identifier(loc, "x"));
 
@@ -553,7 +553,7 @@ TEST(test_type, struct_field_ref)
     // invalid 2 level
     try
     {
-        auto the_typedef = new TypeDef();
+        auto the_typedef = new TypeDef(loc);
         the_typedef->add_identifier(new Identifier(loc, "i32"));
         the_typedef->add_identifier(new Identifier(loc, "xxx"));
 
@@ -577,4 +577,47 @@ TEST(test_type, struct_field_ref)
         EXPECT_EQ(td_point_x->get_type_decl(), i32);
     */
     LOGIA_UNIT_TEST_END();
+}
+
+TEST(test_type, struct_tpl_1)
+{
+    LOGIA_UNIT_TEST();
+    using namespace logia::AST;
+    main_fn->is_attached = false; // avoid throw
+
+    auto st = new Struct(loc, new Identifier(loc, "v2"));
+    EXPECT_EQ(st->scope->scope.size(), 1); // self
+    EXPECT_TRUE(st->scope->scope_contains("self"));
+
+    EXPECT_EQ(st->base, nullptr);
+    EXPECT_EQ(st->tpl_params.size(), 0);
+
+    st->add_template_parameter(new TemplateParameter(loc, new Identifier(loc, "$t")));
+    EXPECT_EQ(st->tpl_params.size(), 1);
+    EXPECT_EQ(st->scope->children.size(), 1);
+
+    EXPECT_STREQ(st->get_repr().c_str(), "struct v2<$t> {}");
+
+    st->add_field(loc, new Identifier(loc, "x"), test_make_typdef("$t"));
+    EXPECT_STREQ(st->get_repr().c_str(), "struct v2<$t> {?? x}");
+    EXPECT_EQ(st->children.size(), 1);
+    EXPECT_EQ(st->scope->children.size(), 2);
+
+    st->add_field(loc, new Identifier(loc, "y"), test_make_typdef("$t"));
+    EXPECT_STREQ(st->get_repr().c_str(), "struct v2<$t> {?? x, ?? y}");
+
+    EXPECT_EQ(st->scope->children.size(), 3);
+
+    program->unshift_child(st);
+    // check scope here, as it's attached
+    EXPECT_EQ(st->scope->scope.size(), 2);
+    EXPECT_TRUE(st->scope->scope_contains("$t"));
+
+    program->semantic_analysis();
+
+    auto f0 = st->get_field_by_index(0);
+    auto f0_td = f0->get_type()->as<TypeDef>();
+    f0_td->get_type_decl();
+
+    EXPECT_STREQ(st->get_repr().c_str(), "struct v2<$t> {$t x, $t y}");
 }

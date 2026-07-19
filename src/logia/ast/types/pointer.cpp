@@ -9,10 +9,8 @@ namespace logia::AST
 {
     Pointer::Pointer() : TypeDecl({}, Primitives::PTR_TY)
     {
-        // TODO REVIEW type-system do not use: set_type atm
-        this->real_type = this;
-        this->is_typed = true;
     }
+
     Pointer::~Pointer() {}
 
     std::string Pointer::to_string()

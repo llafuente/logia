@@ -10,10 +10,8 @@ namespace logia::AST
 {
     Float::Float(int bits) : TypeDecl({}, Primitives::FLOATING_POINT_TY), bits(bits)
     {
-        // TODO REVIEW type-system do not use: set_type atm
-        this->real_type = this;
-        this->is_typed = true;
     }
+
     Float::~Float() {}
 
     std::string Float::to_string()

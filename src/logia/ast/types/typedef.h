@@ -2,10 +2,10 @@
 
 #include "logia/ast/types/type.h"
 
-#include "logia/ast/types/templatedef.h"
-
 namespace logia::AST
 {
+    // #include "logia/ast/types/templatedef.h"
+    struct TemplateDef;
 
     /// @brief Node to resolve a type by name(s)
     /// @remarks Due to some implementation collisions, TypeDef need to be resolved asap, this means
@@ -24,7 +24,7 @@ namespace logia::AST
         /// @brief Type is optional / null / undefined is a valid value.
         unsigned char is_optional : 1 = false;
 
-        TypeDef();
+        TypeDef(location loc);
         ~TypeDef();
 
         void add_identifier(Identifier *name);
@@ -44,6 +44,12 @@ namespace logia::AST
         void on_after_attach() override;
 
         void validate() override;
+
+        /// @brief searches in the scope for given ident
+        TypeDecl *resolve_identifier(Identifier *ident);
+
+        /// @brief searches in thegiven type a property by name
+        TypeDecl *resolve_property(TypeDecl *tyd, Identifier *ident);
 
         bool type_inference(size_t pass_id) override;
     };

@@ -258,7 +258,7 @@ const char *test_file_with_semantic_error(const char *logia_folder, const char *
 
 logia::AST::TypeDef *test_make_typdef(const char *type)
 {
-    auto td = new logia::AST::TypeDef();
+    auto td = new logia::AST::TypeDef({});
     td->add_identifier(new logia::AST::Identifier({}, type));
 
     return td;

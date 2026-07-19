@@ -9,8 +9,11 @@ namespace logia::AST
     {
     public:
         size_t size = 0;
-
+        /// @brief Vector to an unkown type
+        Vec();
+        /// @brief Vector to a kown type
         Vec(TypeDecl *pointee, size_t size = 0);
+
         ~Vec();
 
         std::string to_string() override;

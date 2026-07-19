@@ -68,6 +68,7 @@ set(LOGIA_SOURCE_FILES
   src/logia/ast/types/void.cpp
   src/logia/ast/types/typedef.cpp
   src/logia/ast/types/templatedef.cpp
+  src/logia/ast/types/templateparameter.cpp
   src/logia/ast/types/struct.cpp
   src/logia/ast/types/function.cpp
   src/logia/ast/types/integer.cpp

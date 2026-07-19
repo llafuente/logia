@@ -111,10 +111,6 @@ namespace logia::AST
     {
         LOGIA_VERIFY(name != nullptr, "name parameter is required");
 
-        // TODO REVIEW type-system do not use: set_type atm
-        this->real_type = this;
-        this->is_typed = true;
-
         name->skip_codegen = true;
         name->type_inference_pass_id = TYPE_INFERENCE_MAX;
         name->set_type(this);

@@ -1075,6 +1075,7 @@ namespace logia
         }
         else
         {
+            // TODO change VarDeclStmt to allocate only, then add binary expr assignament
             CST_UNREACHABLE();
         }
 
@@ -1223,7 +1224,7 @@ namespace logia
     std::any CST2AST::visitTypeDefinition(LogiaParser::TypeDefinitionContext *context)
     {
         CST_DEBUG_FUNCTION();
-        auto tdef = new AST::TypeDef();
+        auto tdef = new AST::TypeDef(MAKE_LOCATION(context));
 
         for (int i = 0;; ++i)
         {
@@ -1267,7 +1268,7 @@ namespace logia
     std::any CST2AST::visitTypeLocator(LogiaParser::TypeLocatorContext *context)
     {
         CST_DEBUG_FUNCTION();
-        auto tdef = new AST::TypeDef();
+        auto tdef = new AST::TypeDef(MAKE_LOCATION(context));
 
         this->parseTypeLocator(context, tdef);
 

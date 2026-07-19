@@ -8,6 +8,8 @@
 
 namespace logia::AST
 {
+    Ref::Ref() : Pointer() {}
+
     Ref::Ref(TypeDecl *pointee) : Pointer()
     {
         if (!pointee->is<TypeDecl>())
@@ -21,11 +23,15 @@ namespace logia::AST
 
     std::string Ref::to_string()
     {
-        return std::format("ref<{}> {}", this->get_pointee()->get_repr(), Node::to_string());
+        return std::format("{} {}", this->get_repr(), Node::to_string());
     }
 
     std::string Ref::get_repr()
     {
+        if (this->pointee == nullptr)
+        {
+            return std::format("ref<null>");
+        }
         return std::format("ref<{}>", this->get_pointee()->get_repr());
     }
 
@@ -36,6 +42,11 @@ namespace logia::AST
 
     void Ref::pre_codegen(logia::Backend *backend)
     {
+        if (this->pointee == nullptr)
+        {
+            throw_compiler_error("At codegen ref is expected to have pointee defined! Ref should not be used as opaque pointer.");
+        }
+
         if (this->ir_type)
         {
             return;

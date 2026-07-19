@@ -11,9 +11,13 @@ namespace logia::AST
     struct Ref : public Pointer
     {
     public:
-        TypeDecl *pointee;
-
+        TypeDecl *pointee = nullptr;
+        /// @brief Reference to an unkown type
+        Ref();
+        /// @brief Reference to a kown type!
+        /// @param pointee
         Ref(TypeDecl *pointee);
+
         ~Ref();
 
         TypeDecl *get_pointee();

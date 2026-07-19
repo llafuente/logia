@@ -8,7 +8,10 @@ namespace logia::AST
 {
     TypeDecl::TypeDecl(location loc, Primitives prim) : Type(loc)
     {
+        // NOTE set_type of type makes no sense, but type_inference requires real_type
         this->real_type = this;
+        this->is_typed = true;
+
         this->primitive = prim;
     }
 

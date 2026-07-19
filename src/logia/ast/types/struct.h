@@ -3,6 +3,7 @@
 #include "logia/ast/types/type.h"
 #include "logia/ast/types/typedecl.h"
 #include "logia/ast/scope.h"
+#include "logia/ast/types/templateparameter.h"
 
 namespace llvm
 {
@@ -86,6 +87,11 @@ namespace logia::AST
         Scope *scope = nullptr;
         /// @brief Shortcut
         std::vector<Type *> methods;
+
+        Struct *base = nullptr;
+        /// @brief list of template parameters
+        std::vector<TemplateParameter *> tpl_params = {};
+
         /// @brief number of fields
         uint32_t field_count = 0;
         /// @brief number of aliases
@@ -123,6 +129,8 @@ namespace logia::AST
         /// @brief Adds given function to the method
         /// @remarks It will add "this" as first parameter
         void add_method(Function *fn);
+
+        void add_template_parameter(TemplateParameter *param);
 
         /// @brief Retrieves the target identifier of an alias
         /// @param from The source identifier of the alias

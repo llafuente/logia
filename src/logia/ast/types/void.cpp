@@ -9,10 +9,8 @@ namespace logia::AST
 {
     Void::Void() : TypeDecl({}, Primitives::VOID_TY)
     {
-        // TODO REVIEW type-system do not use: set_type atm
-        this->real_type = this;
-        this->is_typed = true;
     }
+
     Void::~Void() {}
 
     std::string Void::to_string()

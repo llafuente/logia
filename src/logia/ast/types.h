@@ -1,6 +1,10 @@
 #include "logia/ast/types/type.h"
+
 #include "logia/ast/types/typedef.h"
+#include "logia/ast/types/templatedef.h"
+
 #include "logia/ast/types/typedecl.h"
+#include "logia/ast/types/templateparameter.h"
 #include "logia/ast/types/struct.h"
 #include "logia/ast/types/function.h"
 #include "logia/ast/types/integer.h"

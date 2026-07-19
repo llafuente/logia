@@ -53,6 +53,11 @@ namespace logia::AST
         }
     }
 
+    bool Scope::scope_contains(const char *name)
+    {
+        return this->scope.contains(name);
+    }
+
     void Scope::scope_copy(std::vector<Identifier *> list, Scope *target)
     {
         for (const auto &it : list)

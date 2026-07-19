@@ -18,10 +18,8 @@ namespace logia::AST
 {
     Integer::Integer(bool is_signed, int bits) : TypeDecl({}, Primitives::INTEGER_TY), is_signed(is_signed), bits(bits)
     {
-        // TODO REVIEW type-system do not use: set_type atm
-        this->real_type = this;
-        this->is_typed = true;
     }
+
     Integer::~Integer() {}
 
     std::string Integer::to_string()

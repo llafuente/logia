@@ -77,3 +77,42 @@ inline void debug_break()
             std::abort();                                                   \
         }                                                                   \
     } while (0)
+
+namespace logia
+{
+    template <class T>
+    class EnumPure
+    {
+    public:
+        uint32_t value = 0;
+
+        constexpr EnumPure() = default;
+        constexpr EnumPure(uint32_t v) : value(v) {}
+
+        // Allow switch and comparisons.
+        constexpr operator uint32_t() const { return value; }
+
+        // Prevent usage: if(fruit)
+        explicit operator bool() const = delete;
+
+        constexpr bool operator==(T a) const { return value == a.value; }
+        constexpr bool operator==(uint32_t v) const { return value == v; }
+
+        constexpr bool is(T a) const { return value == a.value; }
+        constexpr bool is(uint32_t v) const { return value == v; }
+
+        constexpr bool operator!=(T a) const { return value != a.value; }
+        constexpr T operator|(T a) const { return T((uint32_t)((uint32_t)value | (uint32_t)a.value)); }
+    };
+
+    template <typename T>
+    class EnumFlags : EnumPure<T>
+    {
+    public:
+        constexpr EnumFlags() = default;
+        constexpr EnumFlags(uint32_t v) : EnumPure<T>(v) {}
+
+        constexpr bool contains(T v) const { return ((uint32_t)value & (uint32_t)v.value) != 0; }
+        constexpr EnumFlags add(T v) const { return ((uint32_t)value & (uint32_t)v.value) != 0; }
+    };
+}

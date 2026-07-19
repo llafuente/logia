@@ -30,6 +30,9 @@ namespace logia::AST
         /// @brief Register a name in the scope
         void scope_set(const char *name, Node *node);
 
+        /// @brief Checks if given name is registered
+        bool scope_contains(const char *name);
+
         /// @brief Copy given identifiers into target
         void scope_copy(std::vector<Identifier *> list, Scope *target);
 

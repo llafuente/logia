@@ -156,13 +156,10 @@ namespace logia::AST
 
     Struct::Struct(location loc, Identifier *name) : TypeDecl(loc, Primitives::STRUCT_TY)
     {
-        // TODO REVIEW type-system do not use: set_type atm
-        this->real_type = this;
-        this->is_typed = true;
-
         LOGIA_VERIFY(name != nullptr);
 
         this->scope = new Scope(loc);
+        this->scope->scope_set("self", this);
         this->push_child(this->scope);
 
         this->name = name;
@@ -292,6 +289,19 @@ namespace logia::AST
 
     std::string Struct::get_repr()
     {
+        std::string template_decl = "";
+        if (this->tpl_params.size())
+        {
+            for (const auto &tpl : this->tpl_params)
+            {
+                if (!template_decl.empty())
+                {
+                    template_decl += ", ";
+                }
+                template_decl += tpl->get_repr();
+            }
+            template_decl = std::format("<{}>", template_decl);
+        }
         std::string list = "";
 
         StructField *field;
@@ -308,7 +318,7 @@ namespace logia::AST
             }
         }
 
-        return std::format("struct {} {{{}}}", this->get_name(), list);
+        return std::format("struct {}{} {{{}}}", this->get_name(), template_decl, list);
     }
 
     TypeDecl *Struct::get_effective_type_decl()
@@ -407,6 +417,12 @@ namespace logia::AST
 
         this->scope->push_child(new StructAlias(loc, from, to, docstring));
         ++this->alias_count;
+    }
+
+    void Struct::add_template_parameter(TemplateParameter *param)
+    {
+        this->tpl_params.push_back(param);
+        this->scope->push_child(param);
     }
 
     void Struct::add_method(Function *fn)

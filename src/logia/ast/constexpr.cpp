@@ -253,7 +253,8 @@ namespace logia::AST
     void IntegerLiteral::post_codegen(logia::Backend *backend)
     {
         auto type = this->get_type_decl()->get_effective_type_decl();
-        type->post_codegen(backend);
+        type->pre_codegen(backend);
+        LOGIA_VERIFY(type->ir_type != nullptr);
         auto llvm_type = type->ir_type;
 
         LOG(DBG, "{} llvm_type={}", this->to_string(), llvm_type_to_string(llvm_type));
