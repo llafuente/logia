@@ -54,6 +54,7 @@ TEST(logia_test_multiple_dispatch, match001)
         // now one by one we type each node!
         main_body->unshift_child(callexpr); // attach before type_inference! "Cannot search from a detached node"
 
+        // NOTE do not use: program->semantic_analysis();
         logia::type_inference_node(program, callexpr->get_locator(), TYPE_INFERENCE_MAX);
         logia::type_inference_node(program, callexpr->get_argument_by_index(0), TYPE_INFERENCE_MAX);
         {
@@ -84,6 +85,7 @@ TEST(logia_test_multiple_dispatch, match001)
         prev_callexpr->replace_self(callexpr);
         prev_callexpr = callexpr;
 
+        // NOTE do not use: program->semantic_analysis();
         logia::type_inference_node(program, callexpr->get_locator(), TYPE_INFERENCE_MAX);
         logia::type_inference_node(program, callexpr->get_argument_by_index(0), TYPE_INFERENCE_MAX);
 
@@ -168,7 +170,7 @@ TEST(logia_test_multiple_dispatch, find001)
     auto callexpr = new CallExpression(loc, new Identifier(loc, "xxx"), {i32_v});
     main_body->unshift_child(callexpr);
 
-    logia::type_inference_program(program);
+    program->semantic_analysis();
     // untype!
     logia::type_inference_untype(callexpr);
     logia::type_inference_untype(callexpr->get_locator());

@@ -40,6 +40,9 @@ namespace logia::AST
     /// @brief Root of the AST, contains all the top level declarations, statements and imports
     struct Program : public File
     {
+        logia::Backend *backend = nullptr;
+        bool loaded_intrinsics = false;
+
     public:
         /// @brief Intrinsics are functions that are implemented directly in llvm ir
         /// @remarks Use a property to hide intrinsics tree from user
@@ -72,23 +75,41 @@ namespace logia::AST
         /// @brief Codegen the program
         /// @details
         /// Codegen it's done in two phases
-        /// pre_codegen: traverse all nodes inorder - create all types, prepare functions
-        /// post_codegen: traverse a specific order defined by each node - generates llvm instructions / debug
+        /// pre_codegen: traverse all nodes inorder - creates all types, prepare functions/blocks etc.
+        /// post_codegen: traverse in a specific order (defined by each node) and generates llvm instructions / debug
+        /// After this call Backend::module is executable!
         /// @param backend
         void codegen(logia::Backend *backend);
 
         /// @brief do nothing
         void pre_codegen(logia::Backend *backend) override;
 
-        /// @brief codegen all children
+        /// @brief Codegen the program
         /// @param backend
         /// @return nullptr
         void post_codegen(logia::Backend *backend) override;
 
-        /// @brief do nothing
+        /// @brief Does nothing, we are the root!
         void on_after_attach() override;
 
-        /// @brief validates and type inferences the program
+        /// @brief Sets Backend back-pointer
+        /// @details this is just to ease unit-testing so every pass can be done from "Program" node
+        /// @param backend
+        void set_backend(logia::Backend *backend);
+
+        /// @brief Loads intrinsics
+        /// @details usage in unit-testing only -> semantic_analysis() otherwise
+        void load_intrinsics();
+
+        /// @brief Validates current program
+        /// @details usage in unit-testing only -> semantic_analysis() otherwise
+        void semantic_analysis_validate();
+
+        /// @brief Type inference program until given pass_id
+        /// @details usage in unit-testing only -> semantic_analysis() otherwise
+        void semantic_analysis_type_inference(size_t pass_id = -1);
+
+        /// @brief Does a complete semantic analysis pass
         void semantic_analysis();
 
         void dump();

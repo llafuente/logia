@@ -47,6 +47,7 @@ namespace logia
 {
     Backend::Backend(AST::Program *program) : program(program), debug(logia_config.debug)
     {
+        program->set_backend(this);
 #ifdef CODEGEN_NATIVE
         llvm::InitializeNativeTarget();
         llvm::InitializeNativeTargetAsmPrinter();
@@ -323,9 +324,6 @@ namespace logia
     void Backend::load_intrinsics(char *filepath)
     {
         LOG(INF, "({})", filepath);
-        START_INTRINSICS();
-        //  to find logia type from LLVM Type we need to codegen our types first!
-        this->program->codegen_primitives(this);
 
         llvm::SMDiagnostic diag;
         this->intrinsics_module = llvm::parseIRFile(filepath, diag, context);
@@ -389,7 +387,6 @@ namespace logia
                 this->program->add_intrinsic(intrinsic);
             }
         }
-        STOP_INTRINSICS();
     }
 
     void Backend::add_intrinsic(void *fn_ref, char *fn_name)

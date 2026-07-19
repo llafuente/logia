@@ -90,7 +90,6 @@ namespace logia
         AST::Program *program = logia::logia_parse_program(argv[0]);
 
         auto backend = new logia::Backend(program);
-        backend->load_intrinsics();
         if (logia_config.llfile != nullptr)
         {
             if (logia_config.verbose)
@@ -110,6 +109,7 @@ namespace logia
         }
         auto ret = backend->run_jit("main");
 
+        program->backend = nullptr;
         delete backend;
         delete program;
         logia_config.reset();

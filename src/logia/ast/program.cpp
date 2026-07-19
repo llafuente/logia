@@ -18,6 +18,8 @@
 #include "logia/ast/llvm.h"
 #include "logia/ast/constexpr.h"
 
+#include "utils.h"
+
 namespace logia::AST
 {
     File::File(location loc, const char *entry_point_file, const char *entry_point_reldir, const char *file_contents) : Scope(loc)
@@ -223,34 +225,70 @@ namespace logia::AST
         this->post_codegen(backend);
     }
 
-    void Program::semantic_analysis()
+    void Program::set_backend(logia::Backend *backend)
     {
-        if (!this->is_validated)
-        {
-            // NOTE this pass is in pre-order because most of the error are for users to handle them
-            // and people are not compilers and their minds work top-to-bottom, left-to-right
-            // while post-order is possible it will give error in reverse order and it will be a mess
+        this->backend = backend;
+    }
 
-            // auto all_nodes = this->program->get_post_descendant();
-            auto all_nodes = this->get_pre_descendant();
-            LOG(INF, "validating {} nodes", all_nodes.size());
-            for (auto node : all_nodes)
-            {
-                LOG(SILLY, "validate {}", node->to_string());
-                node->validate();
-                node->is_validated = true;
-            }
+    void Program::load_intrinsics()
+    {
+        // re-entry protection
+        if (this->loaded_intrinsics == true)
+        {
+            return;
         }
-        else
+
+        START_INTRINSICS();
+        //  to find logia type from LLVM Type we need to codegen our types first!
+        this->codegen_primitives(this->backend);
+
+        LOGIA_VERIFY(this->backend != nullptr, "call set_backend before semantic_analysis. Intrinsics should be available!");
+        this->backend->load_intrinsics();
+        STOP_INTRINSICS();
+        this->loaded_intrinsics = true;
+    }
+
+    void Program::semantic_analysis_validate()
+    {
+        LOGIA_VERIFY(this->loaded_intrinsics == true, "call load_intrinsics() before!");
+
+        // re-entry protection
+        if (this->is_validated)
         {
             LOG(INF, "validated");
+            return;
         }
 
-        if (this->type_inference_pass_id == 0)
+        // NOTE this pass is in pre-order because most of the error are for users to handle them
+        // and people are not compilers and their minds work top-to-bottom, left-to-right
+        // while post-order is possible it will give error in reverse order and it will be a mess
+
+        // auto all_nodes = this->program->get_post_descendant();
+        auto all_nodes = this->get_pre_descendant();
+        LOG(INF, "validating {} nodes", all_nodes.size());
+        for (auto node : all_nodes)
         {
-            LOG(INF, "start type inference");
-            type_inference_program(this);
+            LOG(SILLY, "validate {}", node->to_string());
+            node->validate();
+            node->is_validated = true;
         }
+    }
+
+    void Program::semantic_analysis_type_inference(size_t pass_id)
+    {
+        LOGIA_VERIFY(this->loaded_intrinsics == true, "call load_intrinsics() before!");
+        LOGIA_VERIFY(this->is_validated == true, "call semantic_analysis_validate() before!");
+
+        // no re-entry protection atm, for testing purposes
+        LOG(INF, "start type inference: {}", pass_id);
+        type_inference_program(this, pass_id);
+    }
+
+    void Program::semantic_analysis()
+    {
+        this->load_intrinsics();
+        this->semantic_analysis_validate();
+        this->semantic_analysis_type_inference();
     }
 
     void Program::dump()

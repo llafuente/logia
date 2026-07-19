@@ -385,13 +385,16 @@ TEST(type_inference_pass_check, vardecl_with_constant_initialization)
     EXPECT_EQ(vardecl->get_expr()->get_type(), nullptr);
 
     // nodes starts with default values
-    logia::type_inference_program(program, TYPE_INFERENCE_EARLY);
+    program->semantic_analysis_validate();
+    program->semantic_analysis_type_inference(TYPE_INFERENCE_EARLY);
+
     EXPECT_EQ(vardecl->get_type(), td_i16);
     EXPECT_EQ(vardecl->get_type_decl(), st_i16);
     EXPECT_EQ(vardecl->get_expr()->get_type(), i64); // this is the effective as is set by type_inference
 
-    logia::type_inference_program(program, TYPE_INFERENCE_PRE);
-    logia::type_inference_program(program, TYPE_INFERENCE_POST);
+    program->semantic_analysis_type_inference(TYPE_INFERENCE_PRE);
+    program->semantic_analysis_type_inference(TYPE_INFERENCE_POST);
+
     EXPECT_EQ(vardecl->get_type(), td_i16);
     EXPECT_EQ(vardecl->get_expr()->get_type(), scope_look_one<logia::AST::Struct>(program, "i16"));
     EXPECT_EQ(vardecl->get_expr()->get_type_decl()->get_effective_type_decl(), i16);

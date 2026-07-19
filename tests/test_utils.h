@@ -15,7 +15,7 @@ char *end_stdout_capture();
 #define LOGIA_UNIT_TEST()                                                                   \
     logia::AST::Program *program = logia::logia_parse_program(".\\tests\\unit-test.logia"); \
     auto backend = new logia::Backend(program);                                             \
-    backend->load_intrinsics();                                                             \
+    program->load_intrinsics();                                                             \
     logia::AST::Function *main_fn = scope_look_one<logia::AST::Function>(program, "main");  \
     logia::AST::Block *main_body = main_fn->get_body();                                     \
     auto i1 = scope_look_one<logia::AST::Integer>(program, "λi1");                          \
