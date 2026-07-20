@@ -72,7 +72,20 @@ namespace logia::AST
         throw_compiler_error("unkown operator");
     }
 
-    bool is_assignament_operator(Operators op)
+    LOGIA_API const char *ast_operator_to_str(Operators op)
+    {
+        for (int i = 0; i < f2op_length; ++i)
+        {
+            if ((Operators)f2op[i].op_value == op)
+            {
+                return f2op[i].op_str;
+            }
+        }
+
+        throw_compiler_error("unkown operator");
+    }
+
+    LOGIA_API bool is_assignament_operator(Operators op)
     {
         switch (op)
         {
@@ -92,7 +105,7 @@ namespace logia::AST
         return false;
     }
 
-    bool is_bitwise_operator(Operators op)
+    LOGIA_API bool is_bitwise_operator(Operators op)
     {
         switch (op)
         {
@@ -111,7 +124,7 @@ namespace logia::AST
         return false;
     }
 
-    bool is_comparison_operator(Operators op)
+    LOGIA_API bool is_comparison_operator(Operators op)
     {
         switch (op)
         {
@@ -127,7 +140,7 @@ namespace logia::AST
         return false;
     }
 
-    bool is_logical_operator(Operators op)
+    LOGIA_API bool is_logical_operator(Operators op)
     {
         switch (op)
         {
