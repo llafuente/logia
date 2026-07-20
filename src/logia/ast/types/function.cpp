@@ -67,6 +67,18 @@ namespace logia::AST
     {
         return std::format("Parameter[{}][{}]{}", this->get_name()->identifier, this->get_type()->to_string(), Node::to_string());
     }
+
+    std::string FunctionParameter::to_code(size_t ident)
+    {
+        std::string code = std::format("{} {}", this->get_type()->to_code(), this->get_name()->to_code());
+        if (this->has_default_value())
+        {
+            code += " = ";
+            code += this->get_default_value()->to_code();
+        }
+        return code;
+    }
+
     void FunctionParameter::post_codegen(logia::Backend *backend)
     {
 
@@ -140,6 +152,24 @@ namespace logia::AST
     std::string Function::to_string()
     {
         return std::format("Type.Function {}{}", is_method ? "method " : "", Node::to_string());
+    }
+
+    std::string Function::to_code(size_t ident)
+    {
+        std::string code = std::format("function {} (", this->get_name());
+        auto parameters = this->get_parameters();
+        for (size_t i = 0; i < parameters.size(); ++i)
+        {
+            if (i > 0)
+            {
+                code += ", ";
+            }
+            code += parameters[i]->to_code();
+        }
+        code += ") ";
+        code += this->get_return_type()->to_code();
+        code += std::format(" {{\n{}\n}}", this->get_body()->to_code(ident + 1));
+        return code;
     }
 
     std::string Function::get_repr()

@@ -109,6 +109,11 @@ namespace logia::AST
         return std::format("MemberAccessExpression {}", Node::to_string());
     }
 
+    std::string MemberAccessExpression::to_code(size_t ident)
+    {
+        return std::format("{}.{}", this->get_left()->to_code(), this->get_right()->to_code());
+    }
+
     void MemberAccessExpression::post_codegen(logia::Backend *backend)
     {
         LOG(DBG, "{}", this->to_string_tree());

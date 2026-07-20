@@ -85,7 +85,7 @@ namespace logia::AST
         throw_compiler_error("unkown operator");
     }
 
-    LOGIA_API bool is_assignament_operator(Operators op)
+    LOGIA_API bool is_assignment_operator(Operators op)
     {
         switch (op)
         {
@@ -147,6 +147,34 @@ namespace logia::AST
         case Operators::BINARY_LOGICAL_AND:
         case Operators::BINARY_LOGICAL_OR:
         case Operators::PREFIX_LOGICAL_NOT:
+            return true;
+        }
+        return false;
+    }
+
+    LOGIA_API bool is_prefix_operator(Operators op)
+    {
+
+        switch (op)
+        {
+        case Operators::PREFIX_REFERENCE:
+        case Operators::PREFIX_DEREFERENCE:
+        case Operators::PREFIX_NEGATION:
+        case Operators::PREFIX_LOGICAL_NOT:
+        case Operators::PREFIX_INCREMENT:
+        case Operators::PREFIX_DECREMENT:
+        case Operators::PREFIX_BITWISE_NOT:
+            return true;
+        }
+        return false;
+    }
+
+    LOGIA_API bool is_postfix_operator(Operators op)
+    {
+        switch (op)
+        {
+        case Operators::POSTFIX_INCREMENT:
+        case Operators::POSTFIX_DECREMENT:
             return true;
         }
         return false;

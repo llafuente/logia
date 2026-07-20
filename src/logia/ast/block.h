@@ -36,6 +36,8 @@ namespace logia::AST
 
         std::string to_string() override;
 
+        std::string to_code(size_t ident = 0) override;
+
         void pre_codegen(logia::Backend *codegen) override;
         /// @brief Inserts block into parent Function, add a jump if needed and codegen children
         void post_codegen(logia::Backend *backend) override;

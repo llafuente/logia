@@ -17,6 +17,12 @@ namespace logia::AST
     {
         return std::format("ptr{}", Node::to_string());
     }
+
+    std::string Pointer::to_code(size_t ident)
+    {
+        return this->get_repr();
+    }
+
     std::string Pointer::get_repr()
     {
         return std::format("{}", "ptr");

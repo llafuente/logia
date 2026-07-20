@@ -90,8 +90,35 @@ namespace logia::AST
         return std::format("TypeDef[{}]{}", dot_locatots, Node::to_string());
     }
 
+    std::string TypeDef::to_code(size_t ident)
+    {
+        std::string dot_locatots;
+        for (auto node : this->children)
+        {
+            dot_locatots += dot_locatots.size() ? "." : "";
+            dot_locatots += node->to_code();
+        }
+
+        return std::format("{}", dot_locatots);
+    }
+
     std::string TypeDef::get_repr()
     {
+
+        auto left = this->children[0]->to_code();
+        if (this->children.size() > 1)
+        {
+            auto right = this->children[1];
+            if (right->is<TemplateDef>())
+            {
+                return std::format("{}<{}>", left, right->to_code());
+            }
+            if (right->is<Identifier>())
+            {
+                return std::format("{}.{}", left, right->to_code());
+            }
+        }
+
         std::string t;
         Identifier *ident;
         for (auto node : this->children)

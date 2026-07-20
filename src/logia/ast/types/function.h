@@ -53,6 +53,8 @@ namespace logia::AST
 
         std::string to_string() override;
 
+        std::string to_code(size_t ident = 0) override;
+
         void post_codegen(logia::Backend *backend) override;
 
         void on_after_attach() override;
@@ -153,6 +155,9 @@ namespace logia::AST
         void validate_and_fill_call(CallExpression *callee);
 
         std::string to_string() override;
+
+        std::string to_code(size_t ident = 0) override;
+
         std::string get_repr() override;
         void on_after_attach() override;
         void validate() override;
@@ -189,6 +194,7 @@ namespace logia::AST
         ~Intrinsic();
 
         std::string to_string() override;
+
         void post_codegen(logia::Backend *backend) override;
     };
     /*

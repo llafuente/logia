@@ -64,6 +64,11 @@ namespace logia::AST
         return std::format("StructAlias{}", Node::to_string());
     }
 
+    std::string StructAlias::to_code(size_t ident)
+    {
+        return std::format("alias {} {}", this->get_from()->to_code(), this->get_to()->to_code());
+    }
+
     Type *StructAlias::get_type()
     {
         return this->target == nullptr ? nullptr : this->target->get_type();
@@ -118,6 +123,17 @@ namespace logia::AST
     std::string StructField::to_string()
     {
         return std::format("StructField{}", Node::to_string());
+    }
+
+    std::string StructField::to_code(size_t ident)
+    {
+        std::string code = std::format("{} {}", this->get_type()->to_code(), this->get_name()->to_code());
+        if (this->get_default_value() != nullptr)
+        {
+            code += " = ";
+            code += this->get_default_value()->to_code();
+        }
+        return code;
     }
 
     bool StructField::type_inference(size_t pass_id)
@@ -285,6 +301,32 @@ namespace logia::AST
     std::string Struct::to_string()
     {
         return std::format("Type.Struct {}", Node::to_string());
+    }
+
+    std::string Struct::to_code(size_t ident)
+    {
+        std::string code = std::format("struct {}", this->get_name());
+        if (this->tpl_params.size())
+        {
+            code += "<";
+            for (const auto &tpl : this->tpl_params)
+            {
+                code += tpl->to_code();
+                code += ", ";
+            }
+            code.pop_back();
+            code.pop_back();
+            code += ">";
+        }
+        code += " {\n";
+        for (const auto &prop : this->scope->children)
+        {
+            code += "    ";
+            code += prop->to_code();
+            code += "\n";
+        }
+        code += "}";
+        return code;
     }
 
     std::string Struct::get_repr()

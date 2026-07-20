@@ -26,6 +26,12 @@ namespace logia::AST
     {
         return std::format("integer[{}]{}", this->get_repr(), Node::to_string());
     }
+
+    std::string Integer::to_code(size_t ident)
+    {
+        return this->get_repr();
+    }
+
     std::string Integer::get_repr()
     {
         return std::format("λ{}{}", (this->is_signed || this->bits == 1 ? "i" : "u"), this->bits);

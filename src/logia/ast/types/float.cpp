@@ -18,6 +18,12 @@ namespace logia::AST
     {
         return std::format("float[{}]{}", this->get_repr(), Node::to_string());
     }
+
+    std::string Float::to_code(size_t ident)
+    {
+        return this->get_repr();
+    }
+
     std::string Float::get_repr()
     {
         return std::format("λf{}", this->bits);

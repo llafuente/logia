@@ -53,6 +53,16 @@ namespace logia::AST
         return std::string(std::format("IfStmt{} ", Node::to_string()));
     }
 
+    std::string IfStmt::to_code(size_t ident)
+    {
+        std::string code = std::format("if {} {{\n", this->get_condition()->to_code());
+        code += this->get_then()->to_code();
+        code += "\n} else {\n";
+        code += this->get_else()->to_code();
+        code += "\n}\n";
+        return code;
+    }
+
     void IfStmt::post_codegen(logia::Backend *backend)
     {
         LOG(DBG, "{}", this->to_string());

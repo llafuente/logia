@@ -36,6 +36,8 @@ namespace logia::AST
 
         std::string to_string() override;
 
+        std::string to_code(size_t ident = 0) override;
+
         /// @brief Sets the package to import
         /// @param package The package represented as a list of identifiers
         void set_package(std::vector<AST::Identifier *> package);

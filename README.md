@@ -20,6 +20,13 @@ The compiler has 4 very different stages (atm).
 The compiler is not ready for public usage yet. It still runs very basic
 programs.
 
+## features
+
+- strong typed
+- static multiple dispatch
+- type inference
+- memory model: lend/own/shared
+
 ## install/build/develop
 
 ### install windows

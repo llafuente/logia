@@ -47,6 +47,7 @@ namespace logia::AST
         ~TemplateParameter();
 
         std::string to_string() override;
+        std::string to_code(size_t ident = 0) override { return ""; }
 
         std::string get_repr() override;
 

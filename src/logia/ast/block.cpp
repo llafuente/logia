@@ -45,6 +45,21 @@ namespace logia::AST
         return std::format("Block[{} {} statements] {}", this->name->identifier, this->children.size(), Scope::to_string());
     }
 
+    std::string Block::to_code(size_t ident)
+    {
+        // repeat LOGIA_IDENT_STRING ident times
+        std::string ident_str;
+        for (size_t i = 0; i < ident; ++i)
+        {
+            ident_str += "    ";
+        }
+
+        // accumulate code from children separated by newlines
+        return std::format("{{\n{}\n{}}}", std::accumulate(this->children.begin(), this->children.end(), std::string(), [ident_str](const std::string &acc, Node *child)
+                                                           { return acc + ident_str + child->to_code() + "\n"; }),
+                           ident_str);
+    }
+
     void Block::on_after_attach()
     {
         Scope::on_after_attach();

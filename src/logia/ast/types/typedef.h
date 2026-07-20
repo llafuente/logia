@@ -37,6 +37,8 @@ namespace logia::AST
 
         std::string to_string() override;
 
+        std::string to_code(size_t ident = 0) override;
+
         std::string get_repr() override;
 
         void post_codegen(logia::Backend *backend) override;

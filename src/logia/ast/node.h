@@ -105,6 +105,9 @@ namespace logia::AST
         /// @brief returns essential information nto debug
         virtual std::string to_string();
 
+        /// @brief AST Back to code, depending the moment could add more information like type inferenced.
+        virtual std::string to_code(size_t ident = 0) = 0;
+
         /// @brief prepare node/children to generate LLVM IR
         virtual void pre_codegen(logia::Backend *backend);
 
@@ -363,6 +366,7 @@ namespace logia::AST
     {
         NoOp();
         std::string to_string() override;
+        std::string to_code(size_t ident = 0) override { return ""; }
         void post_codegen(logia::Backend *backend) override;
         Type *get_type() override;
         void on_after_attach() override;

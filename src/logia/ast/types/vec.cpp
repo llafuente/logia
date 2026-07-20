@@ -18,6 +18,11 @@ namespace logia::AST
         return std::format("{}", this->get_repr(), Node::to_string());
     }
 
+    std::string Vec::to_code(size_t ident)
+    {
+        return this->get_repr();
+    }
+
     std::string Vec::get_repr()
     {
         if (this->pointee == nullptr)

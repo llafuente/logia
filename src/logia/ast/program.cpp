@@ -31,6 +31,13 @@ namespace logia::AST
         this->file_contents = file_contents;
     }
 
+    std::string File::to_code(size_t ident)
+    {
+        // accumulate all children code by newlines
+        return std::accumulate(this->children.begin(), this->children.end(), std::string(""), [](std::string acc, Node *child)
+                               { return acc + child->to_code() + "\n"; });
+    }
+
     Program::Program(location loc, const char *entry_point_file, const char *entry_point_reldir, const char *file_contents) : File(loc, entry_point_file, entry_point_reldir, file_contents)
     {
         this->is_attached = true; // Program is obviously never attached to anything, it's the root -> manually set the flag

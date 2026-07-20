@@ -34,6 +34,8 @@ namespace logia::AST
 
         std::string to_string() override;
 
+        std::string to_code(size_t ident = 0) override;
+
         Type *get_type() override;
 
         void on_after_attach() override;
@@ -125,6 +127,8 @@ namespace logia::AST
         CallExpressionArgument *get_argument_by_index(uint32_t index);
 
         std::string to_string() override;
+
+        std::string to_code(size_t ident = 0) override;
 
         void post_codegen(logia::Backend *backend) override;
 

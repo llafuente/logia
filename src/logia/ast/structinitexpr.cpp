@@ -18,9 +18,36 @@ namespace logia::AST
     //
 
     StructInitializer::StructInitializer(location loc) : Expression(loc) {}
+
     std::string StructInitializer::to_string()
     {
         return std::format("{}{}", "StructInitializer", Expression::to_string());
+    }
+
+    std::string StructInitializer::to_code(size_t ident)
+    {
+        // accumulate all children code by comma
+        size_t count = -1; // -1 because it will be "pre-incremented" in the lambda, so first child will be 0
+        return std::format("{{{}}}", std::accumulate(this->children.begin(), this->children.end(), std::string(""), [&count](std::string acc, Node *child)
+                                                     {
+            ++count;
+            // even elements are names
+            if (count % 2 == 1) {
+                if (!acc.empty())
+                {
+                    acc += ", ";
+                }
+
+                if (child->is<NoOp>()) {
+                    return acc;
+                }
+                acc += child->to_code();
+                acc += ": ";
+                return acc;
+            }
+            // odd elements are values
+            acc += child->to_code();
+            return acc; }));
     }
 
     void StructInitializer::_on_set_type(TypeDecl *type)

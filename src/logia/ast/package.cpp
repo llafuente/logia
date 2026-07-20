@@ -11,6 +11,7 @@ namespace logia::AST
     Package::Package(location loc, const char *entry_point_file, const char *entry_point_reldir, const char *file_contents) : File(loc, entry_point_file, entry_point_reldir, file_contents)
     {
     }
+
     std::string Package::to_string()
     {
 

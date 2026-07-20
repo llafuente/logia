@@ -17,6 +17,12 @@ namespace logia::AST
     {
         return std::format("void{}", Node::to_string());
     }
+
+    std::string Void::to_code(size_t ident)
+    {
+        return this->get_repr();
+    }
+
     std::string Void::get_repr()
     {
         return std::format("{}", "void");

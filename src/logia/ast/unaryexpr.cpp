@@ -21,6 +21,20 @@ namespace logia::AST
         return std::format("UnaryExpression [{}] {}", ast_operator_to_function_name(op), Node::to_string());
     }
 
+    std::string UnaryExpression::to_code(size_t ident)
+    {
+        if (is_prefix_operator(this->op))
+        {
+            return std::format("{}{}", ast_operator_to_str(op), this->get_operand()->to_code());
+        }
+        else if (is_postfix_operator(this->op))
+        {
+            return std::format("{}{}", this->get_operand()->to_code(), ast_operator_to_str(op));
+        }
+
+        throw_compiler_error("unreachable!");
+    }
+
     UnaryExpression::UnaryExpression(location loc, Operators op, Expression *operand) : Expression(loc)
     {
         this->op = op;

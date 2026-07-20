@@ -21,6 +21,11 @@ namespace logia::AST
         return std::format("TemplateDef {}{}", this->get_repr(), Type::to_string());
     }
 
+    std::string TemplateDef::to_code(size_t ident)
+    {
+        return this->get_repr();
+    }
+
     std::string TemplateDef::get_repr()
     {
         std::string list = "";
@@ -38,7 +43,7 @@ namespace logia::AST
             }
         }
 
-        return std::format("<{}>", list);
+        return std::format("{}", this->to_code());
     }
 
     void TemplateDef::on_after_attach() {}

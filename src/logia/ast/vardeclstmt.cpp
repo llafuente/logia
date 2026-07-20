@@ -54,6 +54,14 @@ namespace logia::AST
         return std::format("VarDeclStmt[{}]{}", this->get_name(), Node::to_string());
     }
 
+    std::string VarDeclStmt::to_code(size_t ident)
+    {
+        auto type = this->get_type();
+        auto expr = this->get_expr();
+
+        return std::format("var {} {} = {}", type == nullptr ? "" : type->to_code(), this->get_identifier()->to_code(), expr ? expr->to_code() : "");
+    }
+
     void VarDeclStmt::post_codegen(logia::Backend *backend)
     {
         if (this->alloca_inst != nullptr)

@@ -35,6 +35,8 @@ namespace logia::AST
         const char *file_contents = nullptr;
 
         File(location loc, const char *entry_point_file, const char *entry_point_reldir, const char *file_contents);
+
+        std::string to_code(size_t ident = 0) override;
     };
 
     /// @brief Root of the AST, contains all the top level declarations, statements and imports

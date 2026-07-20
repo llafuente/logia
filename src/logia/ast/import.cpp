@@ -28,6 +28,45 @@ namespace logia::AST
         return std::format("Import[{}]{}", package_name, Scope::to_string());
     }
 
+    std::string Import::to_code(size_t ident)
+    {
+        // see: LogiaParser.g4:importStmt
+
+        // join package by dot
+        std::string package_name;
+        for (auto id : package)
+        {
+            if (!package_name.empty())
+            {
+                package_name += ".";
+            }
+            package_name += id->identifier;
+        }
+
+        if (is_import_all_package)
+        {
+            return std::format("import {}.*", package_name);
+        }
+
+        if (!import_list.empty())
+        {
+            auto list = " { ";
+            for (size_t i = 0; i < import_list.size(); i++)
+            {
+                auto id = import_list[i];
+                list += id->identifier;
+                if (i < import_list.size() - 1)
+                {
+                    list += ", ";
+                }
+            }
+            list += " }";
+            return std::format("import {} from {}", list, package_name);
+        }
+
+        return std::format("import {}", package_name);
+    }
+
     void Import::set_package(std::vector<AST::Identifier *> package)
     {
         this->package = package;

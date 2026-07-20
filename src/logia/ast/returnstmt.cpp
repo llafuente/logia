@@ -18,6 +18,11 @@ namespace logia::AST
         return std::format("ReturnStmt{}", Node::to_string());
     }
 
+    std::string ReturnStmt::to_code(size_t ident)
+    {
+        return std::format("return {}", this->get_expr()->to_code());
+    }
+
     Expression *ReturnStmt::get_expr()
     {
         return this->get_child<Expression>(0);

@@ -26,6 +26,9 @@ namespace logia::AST
         StructAlias(location loc, Identifier *from, Identifier *to, const char *_docstring = nullptr);
 
         std::string to_string() override;
+
+        std::string to_code(size_t ident = 0) override;
+
         Type *get_type() override;
         /// @brief Returns the source identifier of the alias
         /// @return
@@ -58,6 +61,7 @@ namespace logia::AST
             const char *docstring = nullptr);
 
         std::string to_string() override;
+        std::string to_code(size_t ident = 0) override;
         Type *get_type() override;
         Identifier *get_name();
         Expression *get_default_value();
@@ -158,6 +162,7 @@ namespace logia::AST
 
         // Node
         std::string to_string() override;
+        std::string to_code(size_t ident = 0) override;
         void on_after_attach() override;
         void validate() override;
         void pre_codegen(logia::Backend *backend) override;

@@ -52,20 +52,34 @@ namespace logia::AST
         POSTFIX_INCREMENT = 256, // ++
         POSTFIX_DECREMENT,       // --
     };
-    /// @brief Returns if given operator is an assignament
-    LOGIA_API bool is_assignament_operator(Operators op);
+    /// @brief Returns if given operator is an assignment
+    /// @param op The operator
+    /// @return True if the operator is an assignment, false otherwise
+    LOGIA_API bool is_assignment_operator(Operators op);
     /// @brief Returns if given operator is a bitwise
+    /// @param op The operator
+    /// @return True if the operator is a bitwise, false otherwise
     LOGIA_API bool is_bitwise_operator(Operators op);
     /// @brief Returns if given operator is a comparison
+    /// @param op The operator
+    /// @return True if the operator is a comparison, false otherwise
     LOGIA_API bool is_comparison_operator(Operators op);
     /// @brief Returns if given operator is a logical
+    /// @param op The operator
+    /// @return True if the operator is a logical, false otherwise
     LOGIA_API bool is_logical_operator(Operators op);
-
+    /// @brief Returns if given operator is a prefix
+    /// @param op The operator
+    /// @return True if the operator is a prefix, false otherwise
+    LOGIA_API bool is_prefix_operator(Operators op);
+    /// @brief Returns if given operator is a postfix
+    /// @param op The operator
+    /// @return True if the operator is a postfix, false otherwise
+    LOGIA_API bool is_postfix_operator(Operators op);
     /// @brief Converts an operator to its associated function name
     /// @param op The operator
     /// @return Function name
     LOGIA_API const char *ast_operator_to_function_name(Operators op);
-
     /// @brief Converts an operator to its string representation
     /// @param op The operator
     /// @return The string representation of the operator

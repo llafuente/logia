@@ -35,6 +35,11 @@ namespace logia::AST
         return std::format("BinaryExpression [{}]{}", ast_operator_to_function_name(this->op), Node::to_string());
     }
 
+    std::string BinaryExpression::to_code(size_t ident)
+    {
+        return this->get_left()->to_code() + " " + ast_operator_to_str(this->op) + " " + this->get_right()->to_code();
+    }
+
     BinaryExpression::BinaryExpression(location loc, Expression *left, Operators op, Expression *right) : Expression(loc)
     {
         this->op = op;
@@ -43,7 +48,7 @@ namespace logia::AST
         {
             this->push_child(left);
         }
-        else if (is_assignament_operator(this->op))
+        else if (is_assignment_operator(this->op))
         {
             this->push_child(new UnaryExpression(this->loc, Operators::PREFIX_REFERENCE, left));
         }
@@ -141,7 +146,7 @@ namespace logia::AST
                 return true;
             }
 
-            if (is_assignament_operator(this->op))
+            if (is_assignment_operator(this->op))
             {
                 if (left->is<ConstExpression>())
                 {

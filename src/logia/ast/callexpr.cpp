@@ -60,6 +60,11 @@ namespace logia::AST
         return std::format("CallExpressionArgument{}", Node::to_string());
     }
 
+    std::string CallExpressionArgument::to_code(size_t ident)
+    {
+        return this->get_name()->to_code() + " = " + this->get_value()->to_code();
+    }
+
     Type *CallExpressionArgument::get_type()
     {
         return this->get_value()->get_type();
@@ -368,6 +373,17 @@ namespace logia::AST
         }
 
         return std::format("CallExpression[args = {}, target = {}]{}", arguments.size(), (void *)this->callee, Node::to_string());
+    }
+
+    std::string CallExpression::to_code(size_t ident)
+    {
+        return this->get_locator()->to_code() + "(" + std::accumulate(this->children.begin() + 1, this->children.end(), std::string(""), [](std::string acc, Node *arg)
+                                                                      {
+            if (!acc.empty()) {
+                acc += ", ";
+            }
+            return acc + arg->to_code(); }) +
+               ")";
     }
 
     void CallExpression::post_codegen(logia::Backend *backend)

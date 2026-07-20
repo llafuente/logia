@@ -38,6 +38,8 @@ namespace logia::AST
 
         std::string to_string() override;
 
+        std::string to_code(size_t ident = 0) override;
+
         // TODO generate our string data not cstring
         void post_codegen(logia::Backend *backend) override;
 
@@ -67,6 +69,8 @@ namespace logia::AST
         FloatLiteral(location loc, LOGIA_CLONE const char *number_as_text, TypeDecl *type = nullptr);
 
         std::string to_string() override;
+
+        std::string to_code(size_t ident = 0) override;
 
         void post_codegen(logia::Backend *backend) override;
 
@@ -105,6 +109,8 @@ namespace logia::AST
         void negate();
 
         std::string to_string() override;
+
+        std::string to_code(size_t ident = 0) override;
 
         void post_codegen(logia::Backend *backend) override;
 

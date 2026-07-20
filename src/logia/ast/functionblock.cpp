@@ -11,9 +11,15 @@ namespace logia::AST
     //
 
     FunctionBlock::FunctionBlock(location loc, Identifier *name) : Block(loc, name) {}
+
     std::string FunctionBlock::to_string()
     {
         return std::format("{}{}", "Function", Block::to_string());
+    }
+
+    std::string FunctionBlock::to_code(size_t ident)
+    {
+        return Block::to_code(size_t ident));
     }
 
     void FunctionBlock::pre_codegen(logia::Backend *backend)

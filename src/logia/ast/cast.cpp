@@ -44,6 +44,12 @@ namespace logia::AST
         return std::format("Cast{}", Expression::to_string());
     }
 
+    std::string Cast::to_code(size_t ident)
+    {
+        // TODO REVIEW syntax
+        return std::format("cast<{}>({})", this->get_target_type()->to_code(), this->get_expr()->to_code());
+    }
+
     Type *Cast::get_type()
     {
         return this->get_target_type();

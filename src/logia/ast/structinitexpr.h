@@ -15,6 +15,9 @@ namespace logia::AST
         StructInitializer(location loc);
 
         std::string to_string() override;
+
+        std::string to_code(size_t ident = 0) override;
+
         /// @brief Adds a named property
         /// @param locator The identifier for the property
         /// @param value The expression representing the value of the property

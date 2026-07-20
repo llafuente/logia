@@ -43,6 +43,11 @@ namespace logia::AST
         return std::format("Identifier[{}]{}{}", this->identifier, flags, Node::to_string());
     }
 
+    std::string Identifier::to_code(size_t ident)
+    {
+        return std::format("{}", this->identifier);
+    }
+
     void Identifier::post_codegen(logia::Backend *backend)
     {
         LOGIA_VERIFY(this->decl != nullptr);

@@ -117,6 +117,11 @@ namespace logia::AST
         return std::format("IntegerLiteral [{}]{}", this->value_str, Node::to_string());
     }
 
+    std::string IntegerLiteral::to_code(size_t ident)
+    {
+        return std::format("{}", this->value_str);
+    }
+
     void IntegerLiteral::_on_set_type(TypeDecl *type)
     {
     }
@@ -473,6 +478,11 @@ namespace logia::AST
         return std::format("FloatLiteral[{}]{}", this->value_str, Node::to_string());
     }
 
+    std::string FloatLiteral::to_code(size_t ident)
+    {
+        return std::format("{}", this->value_str);
+    }
+
     void FloatLiteral::post_codegen(logia::Backend *backend)
     {
         auto type = this->get_type_decl()->get_effective_type_decl();
@@ -523,6 +533,12 @@ namespace logia::AST
     std::string StringLiteral::to_string()
     {
         return std::format("StringLiteral[{}]{}", this->text, Node::to_string());
+    }
+
+    std::string StringLiteral::to_code(size_t ident)
+    {
+        // TODO handle escape sequences
+        return std::format("\"{}\"", this->text);
     }
 
     void StringLiteral::_on_set_type(TypeDecl *t)
