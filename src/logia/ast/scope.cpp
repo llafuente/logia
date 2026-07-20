@@ -37,6 +37,11 @@ namespace logia::AST
         return std::format("scope[{}]{}", list, Node::to_string());
     }
 
+    std::string Scope::to_code(size_t ident)
+    {
+        throw_compiler_error("Scope cannot be exported to code");
+    }
+
     void Scope::scope_set(const char *name, Node *node)
     {
         if (!node->is<Type>() && !node->is<Block>() && !node->is<VarDeclStmt>() && !node->is<FunctionParameter>())

@@ -19,7 +19,7 @@ namespace logia::AST
 
     std::string FunctionBlock::to_code(size_t ident)
     {
-        return Block::to_code(size_t ident));
+        return Block::to_code(ident);
     }
 
     void FunctionBlock::pre_codegen(logia::Backend *backend)

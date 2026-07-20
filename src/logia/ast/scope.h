@@ -27,6 +27,8 @@ namespace logia::AST
 
         std::string to_string() override;
 
+        std::string to_code(size_t ident = 0) override;
+
         /// @brief Register a name in the scope
         void scope_set(const char *name, Node *node);
 

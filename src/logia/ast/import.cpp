@@ -50,7 +50,7 @@ namespace logia::AST
 
         if (!import_list.empty())
         {
-            auto list = " { ";
+            std::string list = " { ";
             for (size_t i = 0; i < import_list.size(); i++)
             {
                 auto id = import_list[i];

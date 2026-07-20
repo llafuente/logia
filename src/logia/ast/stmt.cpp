@@ -56,6 +56,11 @@ namespace logia::AST
         return std::format("GotoStmt[{}]{}", this->get_name(), Node::to_string());
     }
 
+    std::string GotoStmt::to_code(size_t ident)
+    {
+        return std::format("goto {}", this->get_identifier()->to_code());
+    }
+
     void GotoStmt::post_codegen(logia::Backend *backend)
     {
         LOG(DBG, "{}", this->to_string());
