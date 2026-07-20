@@ -40,6 +40,8 @@ namespace logia::AST
 
     Program::Program(location loc, const char *entry_point_file, const char *entry_point_reldir, const char *file_contents) : File(loc, entry_point_file, entry_point_reldir, file_contents)
     {
+        this->backend = std::make_unique<logia::Backend>(this);
+
         this->is_attached = true; // Program is obviously never attached to anything, it's the root -> manually set the flag
         intrinsics = new Scope(loc);
         this->push_child(intrinsics);
@@ -131,15 +133,15 @@ namespace logia::AST
         STOP_INTRINSICS();
     }
 
-    void Program::codegen_primitives(logia::Backend *backend)
+    void Program::codegen_primitives()
     {
         for (const auto it : intrinsics->children)
         {
-            it->pre_codegen(backend);
-            it->post_codegen(backend);
+            it->pre_codegen(this->backend.get());
+            it->post_codegen(this->backend.get());
         }
-        this->false_value->pre_codegen(backend);
-        this->true_value->pre_codegen(backend);
+        this->false_value->pre_codegen(this->backend.get());
+        this->true_value->pre_codegen(this->backend.get());
     }
 
     Type *Program::get_type()
@@ -232,11 +234,6 @@ namespace logia::AST
         this->post_codegen(backend);
     }
 
-    void Program::set_backend(logia::Backend *backend)
-    {
-        this->backend = backend;
-    }
-
     void Program::load_intrinsics()
     {
         // re-entry protection
@@ -247,7 +244,7 @@ namespace logia::AST
 
         START_INTRINSICS();
         //  to find logia type from LLVM Type we need to codegen our types first!
-        this->codegen_primitives(this->backend);
+        this->codegen_primitives();
 
         LOGIA_VERIFY(this->backend != nullptr, "call set_backend before semantic_analysis. Intrinsics should be available!");
         this->backend->load_intrinsics();

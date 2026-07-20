@@ -124,7 +124,7 @@ add_executable(logia_test_suite
   tests/test_utils.cpp
   tests/test_node.cpp
   tests/test_ast.cpp
-  tests/test_logia.cpp
+  tests/test_logia_run_file.cpp
   tests/test_logia_err.cpp
   tests/test_type_system.cpp
   tests/test_multiple_dispatch.cpp

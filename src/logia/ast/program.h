@@ -1,6 +1,7 @@
 #pragma once
 
 #include "logia/ast/block.h"
+#include "logia/backend.h"
 
 namespace llvm
 {
@@ -42,10 +43,11 @@ namespace logia::AST
     /// @brief Root of the AST, contains all the top level declarations, statements and imports
     struct Program : public File
     {
-        logia::Backend *backend = nullptr;
         bool loaded_intrinsics = false;
 
     public:
+        std::unique_ptr<Backend> backend = nullptr;
+
         /// @brief Intrinsics are functions that are implemented directly in llvm ir
         /// @remarks Use a property to hide intrinsics tree from user
         Scope *intrinsics = nullptr;
@@ -72,7 +74,7 @@ namespace logia::AST
 
         /// @brief Codegen core module (primitives) to be able to add intrinsics later
         /// @param backend
-        void codegen_primitives(logia::Backend *backend);
+        void codegen_primitives();
 
         /// @brief Codegen the program
         /// @details
@@ -93,11 +95,6 @@ namespace logia::AST
 
         /// @brief Does nothing, we are the root!
         void on_after_attach() override;
-
-        /// @brief Sets Backend back-pointer
-        /// @details this is just to ease unit-testing so every pass can be done from "Program" node
-        /// @param backend
-        void set_backend(logia::Backend *backend);
 
         /// @brief Loads intrinsics
         /// @details usage in unit-testing only -> semantic_analysis() otherwise

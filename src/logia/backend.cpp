@@ -45,9 +45,8 @@
 
 namespace logia
 {
-    Backend::Backend(AST::Program *program) : program(program), debug(logia_config.debug)
+    Backend::Backend(AST::Program *program) : debug(logia_config.debug), program(program)
     {
-        program->set_backend(this);
 #ifdef CODEGEN_NATIVE
         llvm::InitializeNativeTarget();
         llvm::InitializeNativeTargetAsmPrinter();

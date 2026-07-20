@@ -89,14 +89,13 @@ namespace logia
         // frontend starts
         AST::Program *program = logia::logia_parse_program(argv[0]);
 
-        auto backend = new logia::Backend(program);
         if (logia_config.llfile != nullptr)
         {
             if (logia_config.verbose)
             {
                 std::cerr << "Emit ir file:" << logia_config.llfile << std::endl;
             }
-            backend->emitTargetLLVMIR(logia_config.llfile);
+            program->backend->emitTargetLLVMIR(logia_config.llfile);
         }
 
         if (logia_config.objfile != nullptr)
@@ -105,12 +104,10 @@ namespace logia
             {
                 std::cout << "Emit obj file: " << logia_config.objfile << std::endl;
             }
-            backend->emitTargetObjectFile(logia_config.objfile);
+            program->backend->emitTargetObjectFile(logia_config.objfile);
         }
-        auto ret = backend->run_jit("main");
+        auto ret = program->backend->run_jit("main");
 
-        program->backend = nullptr;
-        delete backend;
         delete program;
         logia_config.reset();
 

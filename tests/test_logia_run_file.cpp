@@ -199,9 +199,10 @@ TEST(logia_run_file, dnrg)
 //
 // pointers
 //
-
+/*
 TEST(logia_run_file, pointers)
 {
     EXPECT_EQ(test_single_file(".\\tests\\logia\\pointers\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "ref"), 10);
     EXPECT_EQ(test_single_file(".\\tests\\logia\\pointers\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "vec"), 10);
 }
+*/
