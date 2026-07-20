@@ -86,6 +86,9 @@ namespace logia::AST
         /// @brief Adds child at the end of the list
         void set_child(Node *child, size_t position);
 
+        /// @brief Adds child after given node
+        void insert_child_after(Node *child, Node *after);
+
         /// @brief Adds child at the beginning of the list
         void unshift_child(Node *child);
 

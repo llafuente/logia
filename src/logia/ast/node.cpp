@@ -194,6 +194,29 @@ namespace logia::AST
         }
     }
 
+    void Node::insert_child_after(Node *child, Node *after)
+    {
+        if (freezed)
+        {
+            throw std::exception("Node is freezed");
+        }
+
+        auto end = children.end();
+        auto itr = std::find(children.begin(), end, after);
+        if (itr == end)
+        {
+            throw_compiler_error("Node not found");
+        }
+
+        children.insert(itr + 1, child);
+        child->parent_node = this;
+
+        if (__is_attached_to_program(this))
+        {
+            __notify_attached_descendants(child);
+        }
+    }
+
     void Node::replace_self(Node *new_node)
     {
         auto parent = this->parent_node;

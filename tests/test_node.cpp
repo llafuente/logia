@@ -91,6 +91,23 @@ TEST(test_node, test_1)
 
     EXPECT_EQ(program->first_child<Function>()->get_body()->first_parent<Program>(), program);
 
+    program->insert_child_after(new Identifier(loc, "d"), program->children[0]);
+    EXPECT_TRUE(program->children[1]->is<Identifier>());
+    EXPECT_TRUE(program->children[1]->as<Identifier>()->operator==("d"));
+
+    program->insert_child_after(new Identifier(loc, "e"), program->children[3]);
+    EXPECT_TRUE(program->children[4]->is<Identifier>());
+    EXPECT_TRUE(program->children[4]->as<Identifier>()->operator==("e"));
+
+    auto last = program->children.size();
+    EXPECT_EQ(program->children.size(), last);
+    auto el = new Identifier(loc, "last");
+    program->insert_child_after(el, program->children[last - 1]);
+    EXPECT_EQ(program->children.size(), last + 1);
+    EXPECT_EQ(program->children[last], el);
+    EXPECT_TRUE(program->children[last]->is<Identifier>());
+    EXPECT_TRUE(program->children[last]->as<Identifier>()->operator==("last"));
+
     LOGIA_UNIT_TEST_END();
 }
 
