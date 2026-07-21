@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include "llvm/Support/Alignment.h"
+
 namespace llvm
 {
     class BasicBlock; // #include "llvm/IR/BasicBlock.h"
@@ -30,5 +32,13 @@ namespace logia::AST
     /// @return
     llvm::Value *llvm_load_if_required(llvm::Value *value, logia::Backend *backend);
 
+    /// @brief Retrieves alignament of given value
+    /// @param v GlobalVariable, AllocaInst, LoadInst and StoreInst
+    /// @return alignament
+    llvm::Align llvm_get_alignament(const llvm::Value *V);
+
+    /// @brief Convert given type to its string representation
+    /// @param v
+    /// @return text
     std::string llvm_type_to_string(llvm::Type *ty);
 }

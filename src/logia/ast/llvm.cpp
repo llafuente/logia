@@ -96,6 +96,30 @@ namespace logia::AST
         return value;
     }
 
+    llvm::Align llvm_get_alignament(const llvm::Value *V)
+    {
+        if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(V))
+        {
+            return GV->getAlign().value_or(llvm::Align(1)); // default to 1 if unset
+        }
+        else if (const auto *AI = llvm::dyn_cast<llvm::AllocaInst>(V))
+        {
+            return AI->getAlign();
+        }
+        else if (const auto *LI = llvm::dyn_cast<llvm::LoadInst>(V))
+        {
+            return LI->getAlign();
+        }
+        else if (const auto *SI = llvm::dyn_cast<llvm::StoreInst>(V))
+        {
+            return SI->getAlign();
+        }
+        else
+        {
+            throw_compiler_error("Unsupported value type for alignment.");
+        }
+    }
+
     std::string llvm_type_to_string(llvm::Type *ty)
     {
         std::string typeStr;
