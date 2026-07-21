@@ -30,13 +30,8 @@ namespace logia::AST
         Identifier *name,
         Expression *value) : Node(value->loc), index(index)
     {
-        this->has_type = false;
-        this->type_inference_pass_id = TYPE_INFERENCE_MAX;
+        this->name = name;
 
-        this->push_child(name);
-        name->skip_codegen = true;
-        name->has_type = false;
-        name->type_inference_pass_id = TYPE_INFERENCE_MAX;
         this->push_child(value);
     }
 
@@ -47,17 +42,17 @@ namespace logia::AST
 
     Identifier *CallExpressionArgument::get_name()
     {
-        return this->get_child<Identifier>(0);
+        return this->name;
     }
 
     Expression *CallExpressionArgument::get_value()
     {
-        return this->get_child<Expression>(1);
+        return this->get_child<Expression>(0);
     }
 
     std::string CallExpressionArgument::to_string()
     {
-        return std::format("CallExpressionArgument{}", Node::to_string());
+        return std::format("CallExpressionArgument[{}]{}", this->name->identifier, Node::to_string());
     }
 
     std::string CallExpressionArgument::to_code(size_t ident)
@@ -86,20 +81,12 @@ namespace logia::AST
 
     bool CallExpressionArgument::type_inference(size_t pass_id)
     {
-        switch (pass_id)
-        {
-        case TYPE_INFERENCE_PRE:
-        {
-            // I'm ready when my value is ready!
-            if (!this->get_value()->is_typed)
-            {
-                return false;
-            }
-            this->is_typed = true;
-        }
-        break;
-        }
-        return true;
+        // forward type inference from child :)
+        auto value = this->get_value();
+        this->real_type = value->real_type;
+        this->is_typed = value->is_typed;
+
+        return value->type_inference_pass_id >= pass_id;
     }
 
     //

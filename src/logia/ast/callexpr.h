@@ -15,6 +15,7 @@ namespace logia::AST
         /// @brief The index of the argument in the call expression, used for positional arguments
         /// @remarks Handled by CallExpression, should not be set manually here
         size_t index = 0;
+        Identifier *name = nullptr;
         /// @brief Set at type inference to match the function parameter
         FunctionParameter *parameter = nullptr;
 
