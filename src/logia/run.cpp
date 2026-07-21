@@ -88,6 +88,7 @@ namespace logia
 
         // frontend starts
         std::unique_ptr<AST::Program> program = logia::logia_parse_program(argv[0]);
+        program->semantic_analysis();
 
         if (logia_config.llfile != nullptr)
         {
@@ -106,8 +107,6 @@ namespace logia
             }
             program->backend->emitTargetObjectFile(logia_config.objfile);
         }
-
-        program->semantic_analysis();
 
         auto ret = program->backend->run_jit("main");
 

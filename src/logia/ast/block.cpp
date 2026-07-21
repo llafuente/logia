@@ -55,8 +55,13 @@ namespace logia::AST
         }
 
         // accumulate code from children separated by newlines
-        return std::format("{{\n{}\n{}}}", std::accumulate(this->children.begin(), this->children.end(), std::string(), [ident_str](const std::string &acc, Node *child)
-                                                           { return acc + ident_str + child->to_code() + "\n"; }),
+        return std::format("{{\n{}{}}}", std::accumulate(this->children.begin(), this->children.end(), std::string(), [ident_str](const std::string &acc, Node *child)
+                                                         {
+                                                            if (child->is<NoOp>())
+                                                            {
+                                                                return acc;
+                                                            }
+                                                            return acc + ident_str + child->to_code() + "\n"; }),
                            ident_str);
     }
 
