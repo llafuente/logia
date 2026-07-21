@@ -146,7 +146,7 @@ namespace logia::AST
 
         // parse
         auto x = logia_parse_package(package_path.c_str());
-        this->push_child(x); // program attached? :P
+        this->push_child(x.release()); // program attached? :P
 
         // handle scope target
         if (target == nullptr)

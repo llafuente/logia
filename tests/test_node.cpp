@@ -45,8 +45,6 @@ TEST(test_node, clone_identifier)
     EXPECT_EQ(aclone->real_type, nullptr);
 
     EXPECT_EQ(aclone->parent_node, nullptr); // parent_node is removed
-
-    LOGIA_UNIT_TEST_END();
 }
 
 TEST(test_node, test_1)
@@ -107,8 +105,6 @@ TEST(test_node, test_1)
     EXPECT_EQ(program->children[last], el);
     EXPECT_TRUE(program->children[last]->is<Identifier>());
     EXPECT_TRUE(program->children[last]->as<Identifier>()->operator==("last"));
-
-    LOGIA_UNIT_TEST_END();
 }
 
 TEST(test_constexpr, integer_literals)
@@ -151,8 +147,6 @@ TEST(test_constexpr, integer_literals)
         EXPECT_STREQ(result->value_str, "2");
         EXPECT_EQ(result->value.getSExtValue(), (int64_t)2);
     }
-
-    LOGIA_UNIT_TEST_END();
 }
 
 TEST(test_constexpr, float_literals)
@@ -193,8 +187,6 @@ TEST(test_constexpr, float_literals)
         EXPECT_STREQ(result->value_str, "1.9285714285714288");
         EXPECT_NEAR(result->value.convertToDouble(), 10.8 / 5.6, 0.01);
     }
-
-    LOGIA_UNIT_TEST_END();
 }
 
 TEST(test_constexpr, string_literals)
@@ -210,8 +202,6 @@ TEST(test_constexpr, string_literals)
     auto result = a->operator+(b)->as<StringLiteral>();
 
     EXPECT_STREQ(result->text, "1011");
-
-    LOGIA_UNIT_TEST_END();
 }
 
 TEST(test_constexpr, float_limits)
@@ -234,8 +224,6 @@ TEST(test_constexpr, float_limits)
         auto a = new FloatLiteral(loc, "-nan");
         EXPECT_TRUE(a->value.isNaN());
     }
-
-    LOGIA_UNIT_TEST_END();
 }
 
 TEST(test_type, function)
@@ -270,8 +258,6 @@ TEST(test_type, function)
     main_fn->is_attached = true;
     program->semantic_analysis();
     EXPECT_STREQ(main_fn->get_repr().c_str(), "function main (λi32 c, λi32 b, λi32 d, λi32 a) λi32");
-
-    LOGIA_UNIT_TEST_END();
 }
 
 TEST(test_type, struct)
@@ -293,8 +279,6 @@ TEST(test_type, struct)
     program->semantic_analysis();
     EXPECT_STREQ(point_st->get_repr().c_str(), "struct point {}");
     EXPECT_STREQ(add_fn->get_repr().c_str(), "function add (ref<struct point {}> this, point other) point");
-
-    LOGIA_UNIT_TEST_END();
 }
 
 TEST(test_type, callexpr)
@@ -313,8 +297,6 @@ TEST(test_type, callexpr)
     program->semantic_analysis();
     // backend->emitTargetLLVMIR("xxx.ll");
     // backend->run_jit("main");
-
-    LOGIA_UNIT_TEST_END();
 }
 
 TEST(test_type, type_inference_return_stmt_constexpr)
@@ -329,8 +311,6 @@ TEST(test_type, type_inference_return_stmt_constexpr)
 
     EXPECT_EQ(ret->get_type_decl(), i32);
     EXPECT_EQ(ret->get_expr()->get_type_decl(), i32);
-
-    LOGIA_UNIT_TEST_END();
 }
 
 TEST(type_inference_pass_check, constant_return)
@@ -354,8 +334,6 @@ TEST(type_inference_pass_check, constant_return)
     EXPECT_EQ(ret->get_type_decl(), i32);
     EXPECT_EQ(ret->get_expr()->get_type(), i32);
     EXPECT_EQ(ret->get_expr()->get_type_decl(), i32);
-
-    LOGIA_UNIT_TEST_END();
 }
 
 TEST(type_inference_pass_check, infer_vardecl_with_initialization)
@@ -379,8 +357,6 @@ TEST(type_inference_pass_check, infer_vardecl_with_initialization)
     logia::type_inference_pass(program, program, TYPE_INFERENCE_PRE);
     EXPECT_EQ(vardecl->get_type(), i64);
     EXPECT_EQ(vardecl->get_expr()->get_type(), i64);
-
-    LOGIA_UNIT_TEST_END();
 }
 
 TEST(type_inference_pass_check, vardecl_with_constant_initialization)
@@ -415,8 +391,6 @@ TEST(type_inference_pass_check, vardecl_with_constant_initialization)
     EXPECT_EQ(vardecl->get_type(), td_i16);
     EXPECT_EQ(vardecl->get_expr()->get_type(), scope_look_one<logia::AST::Struct>(program, "i16"));
     EXPECT_EQ(vardecl->get_expr()->get_type_decl()->get_effective_type_decl(), i16);
-
-    LOGIA_UNIT_TEST_END();
 }
 
 TEST(type_inference_pass_check, vardecl_with_expr_initialization)
@@ -458,8 +432,6 @@ TEST(type_inference_pass_check, vardecl_with_expr_initialization)
     EXPECT_EQ(vardecl->get_expr()->get_type(), st_i32);
     EXPECT_EQ(vardecl->get_expr()->get_type_decl(), st_i32);
     EXPECT_EQ(vardecl->get_expr()->get_type_decl()->get_effective_type_decl(), i32);
-
-    LOGIA_UNIT_TEST_END();
 }
 /* TODO
 TEST(type_inference_pass_check, vardecl_with_expr_initialization_and_cast)
@@ -514,8 +486,6 @@ TEST(type_inference_pass_check, vardecl_with_expr_initialization_and_cast)
     EXPECT_EQ(vardecl->get_expr()->get_type(), st_i16);
     EXPECT_EQ(vardecl->get_expr()->get_type_decl(), st_i32);
     EXPECT_EQ(vardecl->get_expr()->get_type_decl()->get_efective_type_decl(), i32);
-
-    LOGIA_UNIT_TEST_END();
 }
 */
 TEST(test_type, struct_field_ref)
@@ -596,7 +566,6 @@ TEST(test_type, struct_field_ref)
         EXPECT_EQ(td_point->get_type_decl(), point_st);
         EXPECT_EQ(td_point_x->get_type_decl(), i32);
     */
-    LOGIA_UNIT_TEST_END();
 }
 
 TEST(test_type, struct_tpl_1)

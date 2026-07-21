@@ -196,7 +196,7 @@ void start_stdout_capture() {}
 char *get_captured_stdout() {}
 #endif
 
-logia_run_result test_single_file(const char *logia_folder, const char *ir_folder, const char *obj_folder, const char *file)
+logia::logia_run_result test_single_file(const char *logia_folder, const char *ir_folder, const char *obj_folder, const char *file)
 {
     std::cout << std::endl
               << "logia file      : " << logia_folder << file << ".logia" << std::endl

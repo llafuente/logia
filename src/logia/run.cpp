@@ -9,7 +9,7 @@
 
 namespace logia
 {
-    std::pair<std::unique_ptr<AST::Program>, int> logia_run(int argc, const char *argv[])
+    LOGIA_API logia_run_result logia_run(int argc, const char *argv[])
     {
         logia_config.reset();
 
@@ -106,11 +106,14 @@ namespace logia
             }
             program->backend->emitTargetObjectFile(logia_config.objfile);
         }
+
+        program->semantic_analysis();
+
         auto ret = program->backend->run_jit("main");
 
         logia_config.reset();
 
-        return {program, ret};
+        return {std::move(program), ret};
     }
 
 } // namespace name

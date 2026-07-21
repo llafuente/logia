@@ -5,6 +5,8 @@
 #include "logia/ast/expr.h"
 #include "logia/ast/constexpr.h"
 #include "logia/ast/stmt.h"
+#include "logia/ast/identifier.h"
+#include "logia/ast/vardeclstmt.h"
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h> // For matchers like HasSubstr
@@ -23,7 +25,24 @@ TEST(logia_run_file, primitives)
     EXPECT_EQ(test_single_file(".\\tests\\logia\\primitives\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "integer-limits").second, 0);
     EXPECT_EQ(test_single_file(".\\tests\\logia\\primitives\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "integer-reprs").second, 0);
     EXPECT_EQ(test_single_file(".\\tests\\logia\\primitives\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "integer-to-float").second, 0);
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\primitives\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "integer-vardecl").second, 15);
+    {
+        auto result = test_single_file(".\\tests\\logia\\primitives\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "integer-vardecl");
+        auto program = result.first.get();
+        auto main_fn = scope_lookup_first(program, "main")->as<logia::AST::Function>();
+        auto main_body = main_fn->get_body();
+
+        // std::cout << main_body->to_code();
+        // std::cout << main_body->to_string_tree();
+        // std::cout << program->to_code();
+
+        auto a = main_body->get_child<logia::AST::VarDeclStmt>(1);
+        auto i8 = scope_lookup_first(program, "λi8");
+        EXPECT_EQ(a->get_type_decl()->get_effective_type_decl(), i8);
+        EXPECT_EQ(a->get_identifier()->get_type_decl()->get_effective_type_decl(), i8);
+        EXPECT_EQ(a->get_expr()->get_type_decl()->get_effective_type_decl(), i8);
+
+        EXPECT_EQ(result.second, 15);
+    }
     EXPECT_EQ(test_single_file(".\\tests\\logia\\primitives\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "float").second, 0);
 }
 

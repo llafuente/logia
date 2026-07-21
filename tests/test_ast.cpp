@@ -47,7 +47,6 @@ TEST(logia_ast, create)
   EXPECT_EQ(scope_look_one<Type>(program, "λi8"), scope_look_one<Type>(program, "λi8"));
 
   expect_all_attached(program);
-  LOGIA_UNIT_TEST_END();
 }
 /* @llafuente atm we need casting to enable this test!
 TEST(logia_ast, create_function_type)
@@ -107,8 +106,6 @@ TEST(logia_ast, create_function_type)
   backend->applyLLVMOptimizers();
   int exit_code = backend->run_jit("main");
   EXPECT_EQ(exit_code, 38);
-
-  LOGIA_UNIT_TEST_END();
 }
 
 // hello world example
@@ -157,8 +154,6 @@ TEST(logia_ast, create_struct_type)
 
   // NOTE works, but for an unkown reason yet, we can't jit again.
   int exit_code = backend->run_jit("main");
-
-  LOGIA_UNIT_TEST_END();
 }
 
 // hello world example
@@ -230,8 +225,6 @@ TEST(logia_ast, create_var_decl)
 
   int exit_code = backend->run_jit("main");
   EXPECT_EQ(exit_code, 0);
-
-  LOGIA_UNIT_TEST_END();
 }
 
 // sum 15+20 as variables
@@ -271,8 +264,6 @@ TEST(AST_Type, ast_create_var_decl2)
 
   int exit_code = backend->run_jit("main");
   EXPECT_EQ(exit_code, 11 + 12);
-
-  LOGIA_UNIT_TEST_END();
 }
 
 extern "C" int logia_compiler_to_jit_test()
@@ -303,8 +294,6 @@ TEST(logia_ast, logia_compiler_to_jit_test)
 
   int exit_code = backend->run_jit("main");
   EXPECT_EQ(exit_code, 101);
-
-  LOGIA_UNIT_TEST_END();
 }
 
 // expose compiler functions to logia
@@ -329,7 +318,6 @@ TEST(ast_create_if2, t1)
   int exit_code = backend->run_jit("main");
   EXPECT_EQ(exit_code, 1);
 
-  LOGIA_UNIT_TEST_END();
 }
 */
 // expose compiler functions to logia
@@ -391,7 +379,5 @@ TEST(ast_create_if3, t1)
 
   int exit_code = backend->run_jit("main");
   EXPECT_EQ(exit_code, 1);
-
-  LOGIA_UNIT_TEST_END();
 }
 */

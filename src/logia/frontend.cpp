@@ -248,7 +248,7 @@ namespace logia
         cst_tree = nullptr;
 
         parser->removeErrorListeners();
-        return ast_tree.release();
+        return ast_tree;
     }
 
     LOGIA_LEND std::unique_ptr<AST::Package> logia_parse_package(const char *file_path)
