@@ -9,14 +9,14 @@
 
 namespace logia
 {
-    int logia_run(int argc, const char *argv[])
+    std::pair<std::unique_ptr<AST::Program>, int> logia_run(int argc, const char *argv[])
     {
         logia_config.reset();
 
         if (!argc)
         {
             print_usage("run");
-            return 0;
+            return {nullptr, 0};
         }
 
         // skip first, it's entry point file
@@ -26,7 +26,7 @@ namespace logia
             if (strcmp("--help", argv[i]) == 0)
             {
                 print_usage("run");
-                return 0;
+                return {nullptr, 0};
             }
             else if (strcmp("--package", argv[i]) == 0)
             {
@@ -87,7 +87,7 @@ namespace logia
         }
 
         // frontend starts
-        AST::Program *program = logia::logia_parse_program(argv[0]);
+        std::unique_ptr<AST::Program> program = logia::logia_parse_program(argv[0]);
 
         if (logia_config.llfile != nullptr)
         {
@@ -108,10 +108,9 @@ namespace logia
         }
         auto ret = program->backend->run_jit("main");
 
-        delete program;
         logia_config.reset();
 
-        return ret;
+        return {program, ret};
     }
 
 } // namespace name

@@ -15,27 +15,27 @@
 
 TEST(logia_run_file, helloworld)
 {
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "helloworld"), 0);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "helloworld").second, 0);
 }
 TEST(logia_run_file, primitives)
 {
     // EXPECT_EQ(test_single_file(".\\tests\\logia\\primitives\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "math"), 7);
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\primitives\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "integer-limits"), 0);
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\primitives\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "integer-reprs"), 0);
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\primitives\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "integer-to-float"), 0);
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\primitives\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "integer-vardecl"), 15);
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\primitives\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "float"), 0);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\primitives\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "integer-limits").second, 0);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\primitives\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "integer-reprs").second, 0);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\primitives\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "integer-to-float").second, 0);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\primitives\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "integer-vardecl").second, 15);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\primitives\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "float").second, 0);
 }
 
 TEST(logia_run_file, binary_expr)
 {
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\expr\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "binary-expr-add"), 21);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\expr\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "binary-expr-add").second, 21);
     // require constexpr atm!
     // EXPECT_EQ(test_single_file(".\\tests\\logia\\expr\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "binary-expr-add-constants"), 100);
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\expr\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "binary-expr-logical-and"), 1);
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\expr\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "binary-expr-logical-or"), 3);
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\expr\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "expr-add-all-types"), 0);
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\expr\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "big-struct-copy"), 8);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\expr\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "binary-expr-logical-and").second, 1);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\expr\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "binary-expr-logical-or").second, 3);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\expr\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "expr-add-all-types").second, 0);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\expr\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "big-struct-copy").second, 8);
 }
 
 //
@@ -44,34 +44,34 @@ TEST(logia_run_file, binary_expr)
 /*
 TEST(logia_run_file, struct_method)
 {
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\struct\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-method"), 11 + 13);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\struct\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-method").second, 11 + 13);
 }
 */
 TEST(logia_run_file, struct)
 {
 
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer"), 11 + 13);
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer2"), 13 + 17);
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer3"), 3);
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer4"), 2);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer").second, 11 + 13);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer2").second, 13 + 17);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer3").second, 3);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer4").second, 2);
 
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer-defaults1"), 75 + 1);
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer-defaults2"), 99 + 1);
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer-defaults3"), 75 + 99);
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer-named"), 32); // 31 means not ordering!
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer-alias"), 4);
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-all-primitives"), 0);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer-defaults1").second, 75 + 1);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer-defaults2").second, 99 + 1);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer-defaults3").second, 75 + 99);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer-named").second, 32); // 31 means not ordering!
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer-alias").second, 4);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-all-primitives").second, 0);
 
     // EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-operators"), 64);
 }
 TEST(logia_run_file, function)
 {
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "function-parameters"), 25);
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "function-blocks"), 11111);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "function-parameters").second, 25);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "function-blocks").second, 11111);
 }
 TEST(logia_run_file, cast)
 {
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "cast-expr"), 0);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "cast-expr").second, 0);
 }
 
 //
@@ -102,7 +102,7 @@ TEST(logia_run_file, goto)
 {
     // 0 means it jumped, 1 it doesn't
     // also not so true as "return 1" is removed, but maybe to check regressions
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\goto\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "goto-stmt-dead-code"), 0);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\goto\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "goto-stmt-dead-code").second, 0);
 }
 
 TEST(logia_run_error_file, goto_semantic_error_LGERR_GT001)
@@ -133,7 +133,7 @@ TEST(logia_run_error_file, goto_semantic_error_LGERR_GT003)
 
 TEST(logia_run_file, function_pointer)
 {
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\vardecl\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "function-pointer"), 43);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\vardecl\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "function-pointer").second, 43);
 }
 
 TEST(logia_run_error_file, vardecl_semantic_error_LGERR_VDECL001)
@@ -168,8 +168,8 @@ TEST(logia_run_error_file, vardecl_semantic_error_LGERR_VDECL001_3)
 TEST(logia_run_file, if)
 {
     // 3 tests -> 3
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "if-stmt"), 3);
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "if-stmt-2"), 1101);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "if-stmt").second, 3);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "if-stmt-2").second, 1101);
 }
 
 //
@@ -178,7 +178,7 @@ TEST(logia_run_file, if)
 
 TEST(logia_run_file, expr)
 {
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "expr-all-operator-i64"), -100);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "expr-all-operator-i64").second, -100);
 }
 
 //
@@ -186,14 +186,14 @@ TEST(logia_run_file, expr)
 //
 TEST(logia_run_file, unordered)
 {
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\unordered\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "unordered-001"), 0);
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\unordered\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "unordered-002"), 0);
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\unordered\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "unordered-003"), 0);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\unordered\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "unordered-001").second, 0);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\unordered\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "unordered-002").second, 0);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\unordered\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "unordered-003").second, 0);
 }
 
 TEST(logia_run_file, dnrg)
 {
-    EXPECT_EQ(test_single_file(".\\core\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "drng"), 1015568748);
+    EXPECT_EQ(test_single_file(".\\core\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "drng").second, 1015568748);
 }
 
 //
@@ -202,7 +202,7 @@ TEST(logia_run_file, dnrg)
 /*
 TEST(logia_run_file, pointers)
 {
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\pointers\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "ref"), 10);
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\pointers\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "vec"), 10);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\pointers\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "ref").second, 10);
+    EXPECT_EQ(test_single_file(".\\tests\\logia\\pointers\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "vec").second, 10);
 }
 */

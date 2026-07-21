@@ -33,7 +33,7 @@ namespace logia
         void reportContextSensitivity(antlr4::Parser *recognizer, const antlr4::dfa::DFA &dfa, size_t startIndex, size_t stopIndex, size_t prediction, antlr4::atn::ATNConfigSet *configs) override;
     };
 
-    AST::Package *logia_parse_package(const char *file_path);
-    AST::Program *logia_parse_program(const char *file_path);
+    std::unique_ptr<AST::Package> logia_parse_package(const char *file_path);
+    std::unique_ptr<AST::Program> logia_parse_program(const char *file_path);
 
 }

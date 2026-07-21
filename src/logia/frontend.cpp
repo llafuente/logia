@@ -125,7 +125,7 @@ namespace logia
 
     // the real "parser"
     template <class T>
-    T *logia_parse_file(const char *file_path)
+    std::unique_ptr<T> logia_parse_file(const char *file_path)
     {
         /// @brief Current working directory
         char cwd[MAX_PATH];
@@ -251,12 +251,12 @@ namespace logia
         return ast_tree.release();
     }
 
-    LOGIA_LEND AST::Package *logia_parse_package(const char *file_path)
+    LOGIA_LEND std::unique_ptr<AST::Package> logia_parse_package(const char *file_path)
     {
         return logia_parse_file<AST::Package>(file_path);
     }
 
-    LOGIA_LEND AST::Program *logia_parse_program(const char *file_path)
+    LOGIA_LEND std::unique_ptr<AST::Program> logia_parse_program(const char *file_path)
     {
         return logia_parse_file<AST::Program>(file_path);
     }

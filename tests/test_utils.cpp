@@ -17,6 +17,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <iostream>
+#include <vector>
 
 static HANDLE g_readPipe = NULL;
 static HANDLE g_writePipe = NULL;
@@ -195,7 +196,7 @@ void start_stdout_capture() {}
 char *get_captured_stdout() {}
 #endif
 
-int test_single_file(const char *logia_folder, const char *ir_folder, const char *obj_folder, const char *file)
+logia_run_result test_single_file(const char *logia_folder, const char *ir_folder, const char *obj_folder, const char *file)
 {
     std::cout << std::endl
               << "logia file      : " << logia_folder << file << ".logia" << std::endl
@@ -204,31 +205,28 @@ int test_single_file(const char *logia_folder, const char *ir_folder, const char
 
     bool debug = true;
 
-    int argc = debug ? 7 : 5;
-    //++argc;
-    const char **argv = (const char **)malloc(sizeof(char *) * argc);
-    int arg = 0;
+    std::vector<const char *> argv;
+    argv.reserve(debug ? 7 : 5);
+
     auto logia_file = std::format("{}{}{}", logia_folder, file, ".logia");
-    argv[arg++] = logia_file.c_str();
+    argv.push_back(logia_file.c_str());
 
-    argv[arg++] = "--emit-llvm";
+    argv.push_back("--emit-llvm");
     auto llfile = std::format("{}{}{}", ir_folder, file, ".ll");
-    argv[arg++] = llfile.c_str();
+    argv.push_back(llfile.c_str());
 
-    argv[arg++] = "--emit-obj";
+    argv.push_back("--emit-obj");
     auto objfile = std::format("{}{}{}", obj_folder, file, ".o");
-    argv[arg++] = objfile.c_str();
+    argv.push_back(objfile.c_str());
 
     if (debug)
     {
-        argv[arg++] = "--debug";
-        argv[arg++] = "--coverage";
+        argv.push_back("--debug");
+        argv.push_back("--coverage");
     }
     // argv[arg++] = "--verbose";
 
-    auto ret = logia::logia_run(argc, argv);
-    free(argv);
-    return ret;
+    return logia::logia_run(static_cast<int>(argv.size()), argv.data());
 }
 
 const char *test_file_with_semantic_error(const char *logia_folder, const char *ir_folder, const char *obj_folder, const char *file)

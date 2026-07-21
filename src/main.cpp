@@ -39,7 +39,7 @@ int main(int argc, const char *argv[])
 		auto command = argv[1];
 		if (strcmp(command, "run") == 0)
 		{
-			return logia::logia_run(argc - 2, argv + 2);
+			return logia::logia_run(argc - 2, argv + 2).second;
 		}
 
 		std::cout << "unkown command: \"" << command << "\"" << std::endl;
