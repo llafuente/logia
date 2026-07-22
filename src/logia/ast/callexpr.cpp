@@ -312,6 +312,15 @@ namespace logia::AST
             // because the lhs is the first parameter and rhs is the function to call
             auto locator = this->get_locator();
 
+            // every children should have type!
+            for (size_t i = 1; i < this->children.size(); ++i)
+            {
+                if (this->children[i]->type_inference_pass_id < pass_id && this->children[i]->is_typed)
+                {
+                    return false; // not ready yet!
+                }
+            }
+
             // find a proper target or throws!
             auto list = this->find_candidates();
             auto result = multiple_dispatch::find_one(list, this);

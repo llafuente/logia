@@ -52,26 +52,41 @@ namespace logia::AST
     {
         LOGIA_VERIFY(this->decl != nullptr);
 
-        if (this->decl->is<VarDeclStmt>())
+        VarDeclStmt *vdecl;
+
+        if (this->decl->try_cast(&vdecl))
         {
             LOG(DBG, "{} points to a var declaration {}", (void *)this->decl, this->to_string());
-            this->set_codegen_value(backend, this->decl->as<VarDeclStmt>()->alloca_inst);
+            /*
+                        std::cout << vdecl->parent_node->to_code();
+                        std::cout << std::endl
+                                  << std::endl
+                                  << std::endl;
+                        std::cout << this->parent_node->to_code();
+            */
+            LOGIA_VERIFY(vdecl->alloca_inst != nullptr);
+            this->set_codegen_value(backend, vdecl->alloca_inst);
             return Expression::post_codegen(backend);
         }
-        if (this->decl->is<FunctionParameter>())
+
+        FunctionParameter *fparam;
+        if (this->decl->try_cast(&fparam))
         {
             LOG(DBG, "{} points to a function parameter {}", (void *)this->decl, this->to_string());
-            this->set_codegen_value(backend, this->decl->as<FunctionParameter>()->alloca_inst);
+            this->set_codegen_value(backend, fparam->alloca_inst);
             return Expression::post_codegen(backend);
         }
-        if (this->decl->is<Function>())
+
+        Function *fn;
+        if (this->decl->try_cast(&fn))
         {
             LOG(DBG, "{} points to a function {}", (void *)this->decl, this->to_string());
             // return the function itself - it's considered a constant so no debug information!
-            this->set_codegen_value(nullptr, this->decl->as<Function>()->ir_func);
+            this->set_codegen_value(nullptr, fn->ir_func);
             // NOTE do not use Expression::post_codegen because it will set debug information on the real function -> wrong and also SEH
             return Node::post_codegen(backend);
         }
+
         LOG(DBG, "{} points to {}", this->to_string(), this->decl->to_string());
         // TODO function? -> function pointer
         throw_compiler_error(std::format("{}{}", "Identifier found but type not handled yet {}!", this->decl->to_string(), typeid(this->decl).name()));

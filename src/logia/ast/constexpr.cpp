@@ -119,7 +119,7 @@ namespace logia::AST
 
     std::string IntegerLiteral::to_code(size_t ident)
     {
-        return std::format("{}", this->value_str);
+        return std::format("/*{}*/ {}", this->get_type_decl()->get_repr(), this->value_str);
     }
 
     void IntegerLiteral::_on_set_type(TypeDecl *type)

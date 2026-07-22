@@ -6,6 +6,7 @@
 #include "logia/ast/types/typedef.h"
 #include "logia/ast/types/struct.h"
 #include "logia/ast/block.h"
+#include "logia/ast/binaryexpr.h"
 #include "logia/backend.h"
 
 #include "llvm/IR/Instructions.h"
@@ -16,10 +17,11 @@ namespace logia::AST
     {
         LOGIA_VERIFY(expr != nullptr);
 
-        this->push_child(id); // 0
-        // we will set the type based on expr / type
-        id->type_inference_pass_id = TYPE_INFERENCE_MAX;
-        this->push_child(expr); // 1
+        this->id = id;
+
+        this->first_usage = expr;
+        this->assignment = new BinaryExpression(expr->loc, node_clone(id), Operators::BINARY_ASSIGN, expr);
+        this->push_child(this->assignment); // 0
     }
 
     VarDeclStmt::VarDeclStmt(location loc, Identifier *id, TypeDef *type, Expression *expr) : Stmt(loc), alloca_inst(nullptr)
@@ -27,12 +29,13 @@ namespace logia::AST
         LOGIA_VERIFY(type != nullptr);
         LOGIA_VERIFY(expr != nullptr);
 
-        this->push_child(id); // 0
-        // we will set the type based on expr / type
-        id->type_inference_pass_id = TYPE_INFERENCE_MAX;
-        this->push_child(expr); // 1
+        this->id = id;
 
-        this->push_child(type); // 2
+        this->first_usage = expr;
+        this->assignment = new BinaryExpression(expr->loc, node_clone(id), Operators::BINARY_ASSIGN, expr);
+        this->push_child(this->assignment); // 0
+
+        this->push_child(type); // 1
     }
 
     const char *VarDeclStmt::get_name()
@@ -41,12 +44,12 @@ namespace logia::AST
     }
     Identifier *VarDeclStmt::get_identifier()
     {
-        return this->get_child<Identifier>(0);
+        return this->id;
     }
 
-    Expression *VarDeclStmt::get_expr()
+    BinaryExpression *VarDeclStmt::get_init_expr()
     {
-        return this->get_child<Expression>(1);
+        return this->assignment;
     }
 
     std::string VarDeclStmt::to_string()
@@ -57,9 +60,13 @@ namespace logia::AST
     std::string VarDeclStmt::to_code(size_t ident)
     {
         auto type = this->get_type();
-        auto expr = this->get_expr();
+        // this is a "defect"
+        if (this->assignment != nullptr)
+        {
+            return std::format("var {} {}\n{}", type == nullptr ? "" : type->to_code(), this->get_identifier()->to_code(), this->assignment->to_code(ident));
+        }
 
-        return std::format("var {} {} = {}", type == nullptr ? "" : type->to_code(), this->get_identifier()->to_code(), expr ? expr->to_code() : "");
+        return std::format("var {} {}", type == nullptr ? "" : type->to_code(), this->get_identifier()->to_code());
     }
 
     void VarDeclStmt::post_codegen(logia::Backend *backend)
@@ -69,9 +76,7 @@ namespace logia::AST
             return;
         }
         auto type = this->get_type_decl()->get_effective_type_decl();
-        auto expr = this->get_expr();
         LOG(SILLY, "type = {}", type->to_string());
-        LOG(SILLY, "expr = {}", expr->to_string());
         LOG(SILLY, "{}", this->to_string());
 
         // TODO this will lead to problems when the type is below the declaration!
@@ -79,40 +84,18 @@ namespace logia::AST
         // type->codegen(backend);
 
         auto name = this->get_name();
-        auto init_value = expr->get_codegen_value(backend);
 
         this->alloca_inst = backend->builder->CreateAlloca(type->ir_type, 0, nullptr, name);
         backend->set_debug_loc(this->alloca_inst, this->loc);
 
-        // TODO this should be handled by "binaryExpression" ?
-        // that said ->
-        // var x = xxx() <-- function xxx() big_struct
-        // that big_struct has to be "stack allocated" and passed by pointer, a PIA at this stage!
-        if (type->is<Struct>())
-        {
-            if (llvm::isa<llvm::GlobalVariable>(init_value))
-            {
-                LOG(DBG, "struct store from global variable");
-                auto dl = backend->module->getDataLayout();
-                auto gv = llvm::dyn_cast<llvm::GlobalVariable>(init_value);
-                backend->builder->CreateMemCpy(this->alloca_inst, this->alloca_inst->getAlign(), init_value, init_value->getPointerAlignment(dl), dl.getTypeAllocSize(gv->getValueType()));
-            }
-            else
-            {
-                LOG(DBG, "struct store from value");
-                backend->builder->CreateStore(init_value, this->alloca_inst);
-            }
-        }
-        else
-        {
-            LOG(DBG, "function/primitive store");
-            backend->builder->CreateStore(init_value, this->alloca_inst);
-        }
+        this->assignment->post_codegen(backend);
+
         return Stmt::post_codegen(backend);
     }
 
     void VarDeclStmt::on_after_attach()
     {
+        // it's unsage to push a child here -> move to CST2AST, I't makes no sense but vector iteration will fail otherwise!
     }
 
     void VarDeclStmt::validate()
@@ -140,9 +123,9 @@ namespace logia::AST
 
     Type *VarDeclStmt::get_type()
     {
-        if (children.size() == 3)
+        if (children.size() == 2)
         {
-            return this->get_child<Type>(2);
+            return this->get_child<Type>(1);
         }
         return nullptr;
     }
@@ -157,7 +140,7 @@ namespace logia::AST
             // if I don't have a type -> my type is in the initialization!
             if (ty == nullptr)
             {
-                auto tyd = this->get_expr()->get_type_decl();
+                auto tyd = this->first_usage->get_type_decl();
                 if (tyd != nullptr)
                 {
                     this->set_type(tyd);
@@ -177,18 +160,7 @@ namespace logia::AST
                 return false;
             }
             this->set_type(tyd);
-            this->get_expr()->set_type(tyd);
-
-            /*
-            // expression --> VarDeclStmt
-            auto type = this->get_expr()->get_final_type();
-            if (type != nullptr)
-            {
-                this->set_type(type);
-                return Stmt::_pre_type_inference();
-            }
-            // cannot determine type, "try later"
-            */
+            this->get_init_expr()->set_type(tyd);
         }
         break;
         }
@@ -198,7 +170,7 @@ namespace logia::AST
     void VarDeclStmt::_on_set_type(TypeDecl *ty)
     {
         // TODO WHY? -> get_type could be nullptr always otherwise
-        if (children.size() < 3)
+        if (children.size() == 1)
         {
             this->push_child(ty);
         }

@@ -9,13 +9,20 @@ namespace llvm
 
 namespace logia::AST
 {
+    struct BinaryExpression;
+
     /// @brief Variable declaration/initialization statement
     struct VarDeclStmt : Stmt
     {
         /// @brief AllocaInst for this variable, populated at pre_codegen and cached for later use
-        llvm::AllocaInst *alloca_inst;
-        /// @brief Cached type
-        TypeDef *type;
+        llvm::AllocaInst *alloca_inst = nullptr;
+        /// @brief vardecl identifier
+        Identifier *id = nullptr;
+        /// @brief identifier first usage, use it in type inference
+        Expression *first_usage = nullptr;
+        /// @brief Assignament in declaration
+        BinaryExpression *assignment = nullptr;
+
         /// @brief Variable declaration without type, expr is mandatory
         VarDeclStmt(location loc, Identifier *id, Expression *expr);
         /// @brief Variable declaration with type, expr is optional
@@ -23,7 +30,7 @@ namespace logia::AST
 
         /// @brief Returns initializer expression
         /// @return
-        Expression *get_expr();
+        BinaryExpression *get_init_expr();
 
         /// @brief  Returns variable name
         /// @return

@@ -7,6 +7,7 @@
 #include "logia/ast/stmt.h"
 #include "logia/ast/identifier.h"
 #include "logia/ast/vardeclstmt.h"
+#include "logia/ast/binaryexpr.h"
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h> // For matchers like HasSubstr
@@ -39,7 +40,7 @@ TEST(logia_run_file, primitives)
         auto i8 = scope_lookup_first(program, "λi8");
         EXPECT_EQ(a->get_type_decl()->get_effective_type_decl(), i8);
         EXPECT_EQ(a->get_identifier()->get_type_decl()->get_effective_type_decl(), i8);
-        EXPECT_EQ(a->get_expr()->get_type_decl()->get_effective_type_decl(), i8);
+        EXPECT_EQ(a->get_init_expr()->get_type_decl()->get_effective_type_decl(), i8);
 
         EXPECT_EQ(result.second, 15);
     }
@@ -78,7 +79,11 @@ TEST(logia_run_file, struct)
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer-defaults2").second, 99 + 1);
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer-defaults3").second, 75 + 99);
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer-named").second, 32); // 31 means not ordering!
-    EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer-alias").second, 4);
+    {
+        auto result = test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-initializer-alias");
+        std::cout << result.first->to_code();
+        EXPECT_EQ(result.second, 4);
+    }
     EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-all-primitives").second, 0);
 
     // EXPECT_EQ(test_single_file(".\\tests\\logia\\", ".\\tests\\tmp\\", ".\\tests\\tmp\\", "struct-operators"), 64);

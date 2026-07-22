@@ -346,17 +346,25 @@ TEST(type_inference_pass_check, infer_vardecl_with_initialization)
     main_body->unshift_child(vardecl);
 
     EXPECT_EQ(vardecl->get_type(), nullptr);
-    EXPECT_EQ(vardecl->get_expr()->get_type(), nullptr);
+    EXPECT_EQ(vardecl->get_init_expr()->get_type(), nullptr);
+
+    program->load_intrinsics();
+    program->semantic_analysis_validate();
+    program->semantic_analysis_type_inference(TYPE_INFERENCE_EARLY);
 
     // nodes starts with default values
-    logia::type_inference_pass(program, program, TYPE_INFERENCE_EARLY);
     EXPECT_EQ(vardecl->get_type(), nullptr);
-    EXPECT_EQ(vardecl->get_expr()->get_type(), i64);
+    // EXPECT_EQ(vardecl->get_expr()->get_type(), i64);
 
     // function narrow return types to i32 -> ret = i32 -> ret.expr = i32
-    logia::type_inference_pass(program, program, TYPE_INFERENCE_PRE);
+    program->semantic_analysis_type_inference(TYPE_INFERENCE_PRE);
+
     EXPECT_EQ(vardecl->get_type(), i64);
-    EXPECT_EQ(vardecl->get_expr()->get_type(), i64);
+    EXPECT_EQ(vardecl->get_init_expr()->get_type(), i64);
+
+    program->semantic_analysis_type_inference();
+
+    EXPECT_STREQ(main_body->to_code().c_str(), "{\nvar λi64 x\nx = /*λi64*/ 15\nreturn /*λi32*/ 0\n}");
 }
 
 TEST(type_inference_pass_check, vardecl_with_constant_initialization)
@@ -375,7 +383,7 @@ TEST(type_inference_pass_check, vardecl_with_constant_initialization)
 
     EXPECT_EQ(vardecl->get_type(), td_i16);
     EXPECT_EQ(vardecl->get_type_decl(), nullptr);
-    EXPECT_EQ(vardecl->get_expr()->get_type(), nullptr);
+    EXPECT_EQ(vardecl->get_init_expr()->get_type(), nullptr);
 
     // nodes starts with default values
     program->semantic_analysis_validate();
@@ -383,14 +391,14 @@ TEST(type_inference_pass_check, vardecl_with_constant_initialization)
 
     EXPECT_EQ(vardecl->get_type(), td_i16);
     EXPECT_EQ(vardecl->get_type_decl(), st_i16);
-    EXPECT_EQ(vardecl->get_expr()->get_type(), i64); // this is the effective as is set by type_inference
+    EXPECT_EQ(vardecl->get_init_expr()->get_left()->get_type(), nullptr);
+    EXPECT_EQ(vardecl->get_init_expr()->get_right()->get_type(), i64); // this is the effective as is set by type_inference
 
-    program->semantic_analysis_type_inference(TYPE_INFERENCE_PRE);
-    program->semantic_analysis_type_inference(TYPE_INFERENCE_POST);
+    program->semantic_analysis_type_inference();
 
     EXPECT_EQ(vardecl->get_type(), td_i16);
-    EXPECT_EQ(vardecl->get_expr()->get_type(), scope_look_one<logia::AST::Struct>(program, "i16"));
-    EXPECT_EQ(vardecl->get_expr()->get_type_decl()->get_effective_type_decl(), i16);
+    EXPECT_EQ(vardecl->get_init_expr()->get_type(), scope_look_one<logia::AST::Struct>(program, "i16"));
+    EXPECT_EQ(vardecl->get_init_expr()->get_type_decl()->get_effective_type_decl(), i16);
 }
 
 TEST(type_inference_pass_check, vardecl_with_expr_initialization)
@@ -411,16 +419,17 @@ TEST(type_inference_pass_check, vardecl_with_expr_initialization)
 
     EXPECT_EQ(vardecl->get_type(), nullptr);
     EXPECT_EQ(vardecl->get_type_decl(), nullptr);
-    EXPECT_EQ(vardecl->get_expr()->get_type(), nullptr);
+    EXPECT_EQ(vardecl->get_init_expr()->get_type(), nullptr);
 
     // nodes starts with default values
-    logia::type_inference_pass(program, program, TYPE_INFERENCE_EARLY);
+    program->semantic_analysis_validate();
+    program->semantic_analysis_type_inference(TYPE_INFERENCE_EARLY);
     EXPECT_EQ(vardecl->get_type(), nullptr);
     EXPECT_EQ(vardecl->get_type_decl(), nullptr);
-    EXPECT_EQ(vardecl->get_expr()->get_type(), nullptr);
+    EXPECT_EQ(vardecl->get_init_expr()->get_type(), nullptr);
 
-    logia::type_inference_pass(program, program, TYPE_INFERENCE_PRE);
-    logia::type_inference_pass(program, program, TYPE_INFERENCE_POST);
+    program->semantic_analysis_type_inference();
+
     EXPECT_EQ(vardecl->get_type(), st_i32);
     EXPECT_EQ(vardecl->get_type_decl(), st_i32);
     EXPECT_EQ(vardecl->get_type_decl()->get_effective_type_decl(), i32);
@@ -429,9 +438,9 @@ TEST(type_inference_pass_check, vardecl_with_expr_initialization)
     EXPECT_EQ(vardecl->get_identifier()->get_type_decl(), st_i32);
     EXPECT_EQ(vardecl->get_identifier()->get_type_decl()->get_effective_type_decl(), i32);
 
-    EXPECT_EQ(vardecl->get_expr()->get_type(), st_i32);
-    EXPECT_EQ(vardecl->get_expr()->get_type_decl(), st_i32);
-    EXPECT_EQ(vardecl->get_expr()->get_type_decl()->get_effective_type_decl(), i32);
+    EXPECT_EQ(vardecl->get_init_expr()->get_type(), st_i32);
+    EXPECT_EQ(vardecl->get_init_expr()->get_type_decl(), st_i32);
+    EXPECT_EQ(vardecl->get_init_expr()->get_type_decl()->get_effective_type_decl(), i32);
 }
 /* TODO
 TEST(type_inference_pass_check, vardecl_with_expr_initialization_and_cast)
@@ -537,8 +546,8 @@ TEST(test_type, struct_field_ref)
         EXPECT_EQ(vardecl->get_type_decl(), i32_st);
         EXPECT_EQ(vardecl->get_type_decl()->get_effective_type_decl(), i32);
 
-        EXPECT_EQ(vardecl->get_expr()->get_type_decl(), i32_st);
-        EXPECT_EQ(vardecl->get_expr()->get_type_decl()->get_effective_type_decl(), i32);
+        EXPECT_EQ(vardecl->get_init_expr()->get_type_decl(), i32_st);
+        EXPECT_EQ(vardecl->get_init_expr()->get_type_decl()->get_effective_type_decl(), i32);
     }
     // invalid 2 level
     try

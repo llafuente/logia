@@ -5,6 +5,7 @@
 #include "logia/ast/types/function.h"
 #include "logia/ast/types/ref.h"
 #include "logia/ast/types/integer.h"
+#include "logia/ast/types/struct.h"
 
 #include "logia/log.h"
 #include "logia/type_system.h"
@@ -74,9 +75,16 @@ namespace logia::AST
         return this->get_child<Expression>(1);
     }
 
-    void BinaryExpression::__enforce_assignament_type(TypeDecl *left_ty, TypeDecl *right_ty)
+    void BinaryExpression::__enforce_assignament_type(TypeDecl *left_ty, TypeDecl *right_ty, size_t pass_id)
     {
         auto right = this->get_right();
+        if (right->is<ConstExpression>())
+        {
+            // just forward the type, it will be an error later if it's not compatible
+            right->set_type(left_ty);
+            return;
+        }
+
         auto err = type_system::type_is_compatible(left_ty, right_ty);
         if (err.is_error())
         {
@@ -95,7 +103,7 @@ namespace logia::AST
         if (result.contains(type_system::type_compatibility::AUTOCAST_CAST))
         {
             this->replace(right, new Cast(right->loc, right, left_ty));
-            type_inference_node(this->first_parent<Program>(), this->get_right(), TYPE_INFERENCE_PRE);
+            type_inference_node(this->first_parent<Program>(), this->get_right(), pass_id);
             LOG(DBG, "\n\n\n\n\n{}", this->to_string_tree());
             return;
         }
@@ -106,13 +114,25 @@ namespace logia::AST
             return;
         }
         // hell!
-        throw_compiler_error("unreable");
+        throw_compiler_error("unreachble");
     }
 
     bool BinaryExpression::type_inference(size_t pass_id)
     {
         switch (pass_id)
         {
+        case TYPE_INFERENCE_EARLY:
+        {
+            // regardless the type, lhs should not be a constant
+            if (is_assignment_operator(this->op))
+            {
+                if (this->get_left()->is<ConstExpression>())
+                {
+                    throw_semantic_error(this, LGERR_BINEXPR002);
+                }
+            }
+        }
+        break;
         case TYPE_INFERENCE_PRE:
         {
             auto left = this->get_left();
@@ -121,6 +141,27 @@ namespace logia::AST
             auto right = this->get_right();
             auto right_ty = right->get_type_decl();
 
+            if (op == Operators::BINARY_ASSIGN)
+            {
+                if (left_ty != nullptr && right_ty == nullptr)
+                {
+                    // from left -> right
+                    right->set_type(left_ty);
+                    return false;
+                }
+                if (left_ty == nullptr && right_ty != nullptr)
+                {
+                    // from right -> left
+                    left->set_type(right_ty);
+                    return false;
+                }
+
+                this->__enforce_assignament_type(left_ty, right_ty, pass_id);
+                this->set_type(left_ty);
+
+                return true;
+            }
+
             if (left_ty == nullptr)
             {
                 LOG(DBG, "lhs is not ready {}", this->to_string_tree());
@@ -128,31 +169,16 @@ namespace logia::AST
             }
             if (right_ty == nullptr)
             {
+                if (right->is_constant)
+                {
+                }
                 LOG(DBG, "rhs is not ready {}", this->to_string_tree());
                 return false;
             }
 
-            if (op == Operators::BINARY_ASSIGN)
-            {
-                // same/comptible types ?!
-                if (left->is<ConstExpression>())
-                {
-                    throw_semantic_error(this, LGERR_BINEXPR002);
-                }
-
-                this->__enforce_assignament_type(left_ty, right_ty);
-                this->set_type(left_ty);
-
-                return true;
-            }
-
+            // NOTE = handled above
             if (is_assignment_operator(this->op))
             {
-                if (left->is<ConstExpression>())
-                {
-                    throw_semantic_error(this, LGERR_BINEXPR002);
-                }
-
                 // right_ty should be a ref!
                 Ref *ref_left_ty;
                 if (!left_ty->try_cast<Ref>(&ref_left_ty))
@@ -160,7 +186,7 @@ namespace logia::AST
                     LOG_ERR("{}", this->to_string_tree());
                     throw_semantic_error(right, std::format(LGERR_BINEXPR001, left_ty->get_repr()));
                 }
-                this->__enforce_assignament_type(ref_left_ty->get_pointee(), right_ty);
+                this->__enforce_assignament_type(ref_left_ty->get_pointee(), right_ty, pass_id);
                 this->set_type(ref_left_ty);
                 return true;
             }
@@ -234,13 +260,24 @@ namespace logia::AST
         {
             // auto left_ty = left->get_final_type();
             auto left_value = left->get_codegen_value(backend);
+
             // auto right_ty = right->get_final_type();
             auto right_value = right->get_codegen_value(backend);
 
-            right_value = llvm_load_if_required(right_value, backend);
-
-            auto store = backend->builder->CreateStore(right_value, left_value, false);
-            backend->set_debug_loc((llvm::Instruction *)store, this->loc);
+            if (left->get_type_decl()->is<Struct>() && llvm::isa<llvm::GlobalVariable>(right_value))
+            {
+                LOG(DBG, "struct store from global variable");
+                auto dl = backend->module->getDataLayout();
+                auto gv = llvm::dyn_cast<llvm::GlobalVariable>(right_value);
+                auto store = backend->builder->CreateMemCpy(left_value, llvm_get_alignament(left_value), right_value, right_value->getPointerAlignment(dl), dl.getTypeAllocSize(gv->getValueType()));
+                backend->set_debug_loc((llvm::Instruction *)store, this->loc);
+            }
+            else
+            {
+                right_value = llvm_load_if_required(right_value, backend);
+                auto store = backend->builder->CreateStore(right_value, left_value, false);
+                backend->set_debug_loc((llvm::Instruction *)store, this->loc);
+            }
 
             this->set_codegen_value(backend, left_value);
             return Expression::post_codegen(backend);

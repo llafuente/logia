@@ -55,6 +55,6 @@ namespace logia::AST
         void _on_set_type(TypeDecl *type) override;
 
     private:
-        void __enforce_assignament_type(TypeDecl *left_ty, TypeDecl *right_ty);
+        void __enforce_assignament_type(TypeDecl *left_ty, TypeDecl *right_ty, size_t pass_id);
     };
 }

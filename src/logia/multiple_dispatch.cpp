@@ -295,6 +295,8 @@ namespace logia::multiple_dispatch
 
     find_one_result find_one(std::vector<Function *> functions, CallExpression *callexpr)
     {
+        LOG(DBG, "({}, {})", functions.size(), (void *)callexpr);
+
         std::vector<std::tuple<float, Function *>> candidates(functions.size(), {0, nullptr});
         candidates.clear();
 
