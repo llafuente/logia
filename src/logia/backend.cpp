@@ -29,8 +29,6 @@
 #include "llvm/ExecutionEngine/Orc/MaterializationUnit.h"
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
 
-#include <memory>
-
 #include "utils.h"
 #include "logia/log.h"
 #include "logia/frontend.h"
@@ -39,6 +37,10 @@
 #include "logia/ast/types/type.h"
 #include "logia/ast/types/function.h"
 #include "logia/ast/llvm.h"
+
+#include <memory>
+#include <ranges>
+#include <string_view>
 
 // cross compile support ?
 #define CODEGEN_NATIVE
@@ -346,44 +348,61 @@ namespace logia
             }
             else
             {
-                LOG(VRB, "found {} intrinsic", std::string(F.getName()));
+
                 auto F2 = &F; // stupid trick
 
-                auto f_args = std::vector<AST::Type *>();
-                if (F.arg_size() > 0)
+                auto it = override_names.find(F2);
+                if (it == override_names.end())
                 {
-                    auto parameter_names = std::move(llvm_get_logia_parameters_names(F2));
-                    f_args.reserve(F.arg_size());
+                    LOG(VRB, "found {} intrinsic", std::string(F.getName()));
 
-                    size_t i = 0;
+                    auto f_ret_type = this->program->get_ast_type(F.getReturnType());
+                    auto f_args = std::vector<AST::Type *>();
                     for (const llvm::Argument &argument : F.args())
                     {
-                        if (parameter_names[i] != nullptr)
-                        {
-                            auto type = scope_look_one<AST::Type>(this->program, parameter_names[i]);
-                            LOG(DBG, "found type: {}", (void *)type);
-                            auto ftype = type->get_type_decl();
-                            {
-                            }
-                            LOGIA_VERIFY(ftype != nullptr);
-                            f_args.push_back(ftype);
-                        }
-                        else
-                        {
-                            f_args.push_back(this->program->get_ast_type(argument.getType()));
-                        }
-                        ++i;
+                        f_args.push_back(this->program->get_ast_type(argument.getType()));
                     }
+
+                    auto intrinsic = new AST::Intrinsic(F2, F.getName().str().c_str(), F.getName().str().c_str(), f_ret_type, f_args);
+                    LOG(DBG, "{}", intrinsic->get_repr());
+                    this->program->add_intrinsic(intrinsic);
                 }
+                else
+                {
+                    LOG(VRB, "found {} intrinsic config: {}", std::string(F.getName()), it->second);
+                    // format: function-name/return-type/argument0/argument1
+                    auto str = it->second;
 
-                auto f_ret_type = this->program->get_ast_type(F.getReturnType());
+                    // split by '/'
+                    // auto parts = std::views::split(str, '/');
+                    std::vector<std::string> parts = {};
+                    size_t start = 0;
+                    size_t end = str.find('/');
+                    while (end != std::string::npos)
+                    {
+                        parts.push_back(str.substr(start, end - start));
+                        start = end + 1;
+                        end = str.find('/', start);
+                    }
+                    parts.push_back(str.substr(start));
 
-                auto it = override_names.find(F2);
-                AST::Intrinsic *intrinsic = it != override_names.end()
-                                                ? new AST::Intrinsic(F2, F.getName().str().c_str(), (*it).second.c_str(), f_ret_type, f_args)
-                                                : new AST::Intrinsic(F2, F.getName().str().c_str(), F.getName().str().c_str(), f_ret_type, f_args);
-                LOG(DBG, "{}", intrinsic->get_repr());
-                this->program->add_intrinsic(intrinsic);
+                    LOG(VRB, "function-name = {} return-type: {}", parts[0], parts[1]);
+
+                    // as-fast-as-possible -> crash on error
+                    auto f_ret_type = this->program->scope.find(parts[1])->second[0]->as<AST::TypeDecl>();
+                    auto f_args = std::vector<AST::Type *>();
+                    for (auto it = std::next(parts.begin(), 2); it != parts.end(); ++it)
+                    {
+                        // auto arg_type = this->program->scope_look_one<AST::TypeDecl>(this->program, *it);
+                        // as-fast-as-possible -> crash on error
+                        auto arg_type = this->program->scope.find(*it)->second[0]->as<AST::TypeDecl>();
+                        f_args.push_back(arg_type);
+                    }
+
+                    auto intrinsic = new AST::Intrinsic(F2, F.getName().str().c_str(), std::string(parts[0]).c_str(), f_ret_type, f_args);
+                    LOG(DBG, "{}", intrinsic->get_repr());
+                    this->program->add_intrinsic(intrinsic);
+                }
             }
         }
     }
