@@ -38,10 +38,11 @@ namespace logia
 
     void logia_push_log_level(size_t new_level)
     {
-        LOG(0, "change log level to 2");
+        LOG(0, "change log level to {}", new_level);
         logia_previous_log_level = logia_log_level;
-        logia_log_level = 2;
+        logia_log_level = new_level;
     }
+
     void logia_pop_log_level()
     {
         LOG(0, "restore log level {}", logia_previous_log_level);
